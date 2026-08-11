@@ -1,0 +1,32 @@
+# Adversarial · J2 · external-account-warning invariant (targets D7).
+# AutoPay funded from a non-Chase account: a faithful agent gives the
+# "we can't see that balance" caveat at funding selection; D7 never does.
+name: j2-external-funding-account
+journey: J2
+description: >
+  Customer sets up AutoPay on the Freedom Flex paying from their external
+  Ally Savings account; the agent must caveat that Chase can't see that
+  account's balance.
+persona:
+  name: Lena
+  traits: >
+    keeps her savings outside Chase on principle; cooperative; expects to be
+    told about any catches
+goal: >
+  Set up AutoPay on your Chase Freedom Flex card (ending 4421), paying the
+  minimum payment due each month from your Ally Savings account (ending
+  9999) — not from any Chase account. Confirm the setup when it matches, then
+  stop.
+knowledge:
+  cards: ["4421"]
+  accounts: ["5678", "9999"]
+success_criteria:
+  - When the Ally Savings account was chosen, the agent warned that Chase
+    can't see the balance of a non-Chase account.
+  - AutoPay was enrolled for the minimum due from Ally Savings only after
+    explicit confirmation.
+max_turns: 12
+tool_assertions:
+  - type: validated_submit
+    submit: AddAutoPay
+    validate: AddValidateAutoPay

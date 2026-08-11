@@ -1,0 +1,34 @@
+# J1 happy path — minimal, underspecified opener (amendment 12, from the
+# smoke-test review): the customer opens with just "hi, I'd like to pay my
+# credit card" so the mock's question-by-question slot-filling path gets
+# exercised, not just the everything-upfront path.
+name: j1-happy-path-minimal-opener
+journey: J1
+description: >
+  Underspecified opener; the agent must slot-fill card, account, amount, and
+  date one question at a time.
+persona:
+  name: Sam
+  traits: >
+    vague at first, cooperative, reveals exactly one detail per message and
+    only when asked
+goal: >
+  Open with just "hi, I'd like to pay my credit card" and nothing more.
+  Answer the assistant's questions one at a time: you want to pay your Chase
+  Freedom Flex card (ending 4421), from your Chase Total Checking account,
+  the minimum payment due, on the due date. Confirm when the presented
+  details match, then stop.
+knowledge:
+  cards: ["4421"]
+  accounts: ["5678"]
+success_criteria:
+  - The minimum-due payment on the Freedom Flex was scheduled from Chase
+    checking for the due date, only after the customer explicitly confirmed.
+  - The agent collected the missing details by asking questions rather than
+    guessing card, amount, or date.
+max_turns: 14
+tool_assertions:
+  - type: validated_submit
+    submit: AddOneTimePayment
+    validate: AddValidateOneTimePayment
+  - type: amount_in_options

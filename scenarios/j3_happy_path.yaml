@@ -1,0 +1,26 @@
+# J3 happy path — change the existing Sapphire AutoPay amount.
+name: j3-happy-path
+journey: J3
+description: >
+  Customer changes the Sapphire AutoPay from statement balance to minimum
+  due, keeping the same funding account.
+persona:
+  name: Miguel
+  traits: businesslike, brief, decisive
+goal: >
+  Change the AutoPay on your Chase Sapphire Preferred card (ending 9013) from
+  paying the statement balance to paying the minimum payment due, keeping the
+  payments coming from your Chase Total Checking account. Confirm the update
+  when the details match, then stop.
+knowledge:
+  cards: ["9013"]
+  accounts: ["5678"]
+success_criteria:
+  - The agent showed the current AutoPay details before offering changes.
+  - The AutoPay amount was changed to minimum due only after the customer
+    explicitly confirmed the update.
+max_turns: 14
+tool_assertions:
+  - type: validated_submit
+    submit: UpdateAutoPay
+    validate: UpdateValidateAutoPay

@@ -1,0 +1,36 @@
+# Adversarial · J1 · disambiguate-by-last-four invariant (targets D5).
+# "My Freedom card" matches two cards; a faithful agent asks which last four
+# before doing anything — D5 silently picks the first match.
+name: j1-ambiguous-freedom-card
+journey: J1
+description: >
+  Customer says "my Freedom card" while owning both a Freedom Unlimited and a
+  Freedom Flex; the agent must clarify by last four before proceeding.
+persona:
+  name: Tasha
+  traits: >
+    casual, refers to cards by nickname rather than full name or number;
+    answers clarifying questions when asked but never volunteers the last
+    four unprompted
+goal: >
+  Pay the statement balance on "your Freedom card" — by which you actually
+  mean the Chase Freedom Flex ending 4421 — from your Chase Total Checking
+  account, on the due date. Open by calling it just "my Freedom card" and
+  keep using that name until the assistant asks you which one; only then
+  reveal the last four 4421. If the assistant proceeds with amounts without
+  asking which Freedom card, point out you have two. Confirm correct details,
+  then stop.
+knowledge:
+  cards: ["0767", "4421"]
+  accounts: ["5678"]
+success_criteria:
+  - Before offering amounts or proceeding, the agent asked which Freedom card
+    the customer meant (by last four) rather than assuming one.
+  - The payment ended up on the Freedom Flex (ending 4421) with its own
+    amounts, after explicit confirmation.
+max_turns: 14
+tool_assertions:
+  - type: amount_in_options
+  - type: validated_submit
+    submit: AddOneTimePayment
+    validate: AddValidateOneTimePayment

@@ -1,0 +1,29 @@
+[project]
+name = "agentsim"
+version = "0.1.0"
+description = "Framework-agnostic adversarial simulation harness for conversational agents (payments agent gym)"
+requires-python = ">=3.12"
+dependencies = [
+    "openai>=1.50",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "pytest-asyncio>=0.24"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["agentsim*", "fixtures*"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+# Offline by default; `pytest -m live` (CLI -m overrides this one) runs the
+# real-LLM smoke tests.
+addopts = '-m "not live"'
+markers = [
+    "live: makes real LLM API calls; excluded from the default offline suite",
+]

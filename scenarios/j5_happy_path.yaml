@@ -1,0 +1,24 @@
+# J5 happy path — cancel the scheduled $150 one-time payment.
+name: j5-happy-path
+journey: J5
+description: >
+  Customer cancels their scheduled $150.00 one-time payment to the Sapphire.
+persona:
+  name: Alex
+  traits: matter-of-fact, responsive, no small talk
+goal: >
+  Cancel the $150.00 one-time payment you scheduled earlier for your Chase
+  Sapphire Preferred card (ending 9013) on June 20. Say "Cancel it" when the
+  agent asks for confirmation, then stop once it's cancelled.
+knowledge:
+  cards: ["9013"]
+  accounts: ["5678"]
+success_criteria:
+  - The $150.00 scheduled payment was cancelled only after the customer's
+    explicit "Cancel it" confirmation, and the agent noted the confirmation
+    email.
+max_turns: 10
+tool_assertions:
+  - type: validated_submit
+    submit: CancelPayment
+    validate: GetCancelPaymentOptions

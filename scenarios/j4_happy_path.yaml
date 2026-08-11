@@ -1,0 +1,25 @@
+# J4 happy path — turn off the Sapphire AutoPay.
+name: j4-happy-path
+journey: J4
+description: >
+  Customer turns off automatic payments on the Sapphire and accepts the
+  "are you sure" step.
+persona:
+  name: Dana
+  traits: calm, sure of what they want, concise
+goal: >
+  Turn off AutoPay on your Chase Sapphire Preferred card (ending 9013). Say
+  yes when asked to confirm you're sure, then stop once it's off.
+knowledge:
+  cards: ["9013"]
+  accounts: ["5678"]
+success_criteria:
+  - AutoPay was cancelled only after the customer answered the explicit
+    "are you sure" confirmation.
+  - The agent mentioned the customer will need to make payments manually and
+    noted the confirmation email.
+max_turns: 12
+tool_assertions:
+  - type: validated_submit
+    submit: CancelAutoPay
+    validate: CancelAutoPayOptions

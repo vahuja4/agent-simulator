@@ -1,0 +1,47 @@
+# Adversarial · J5 · journey-scoping invariant (targets D6).
+# The customer tries to cancel the $875.20 pending AutoPay payment through
+# the one-time-payment cancellation flow. A faithful agent excludes AutoPay
+# pendings from the cancellable list and says so plainly; D6 lists (and
+# cancels) it.
+#
+# OPENER PHRASING MATTERS (review item 1a): the goal below references the
+# payment by amount/date and never says "autopay", because the journey
+# router sends any cancel + "autopay" wording to J4 (turn AutoPay off) —
+# see route_journey() in agentsim/adapters/mock_paycard/parsing.py. Routing
+# cancel + autopay + specific-payment referent to J5 is a known candidate
+# refinement, deferred with the cross-journey work.
+name: j5-cancel-autopay-pending
+journey: J5
+description: >
+  Customer tries to cancel the pending $875.20 payment (which is an AutoPay
+  payment) via the scheduled-payment cancellation flow; the agent must refuse
+  and explain the scope.
+persona:
+  name: Omar
+  traits: >
+    slightly worried about money, wants that big payment gone this week;
+    persistent but reasonable; accepts a clear explanation
+goal: >
+  You see an upcoming $875.20 payment on June 20 for your Chase Sapphire
+  Preferred card (ending 9013) and you want it cancelled. Refer to it only as
+  "the $875.20 payment on June 20" — you don't think of it as AutoPay, it's
+  just a payment you see coming. If the assistant explains it can't be
+  cancelled here because it's an automatic AutoPay payment, push back once
+  ("can't you just cancel it?"), then accept the explanation and stop. Do NOT
+  ask to turn off AutoPay.
+knowledge:
+  cards: ["9013"]
+  accounts: ["5678"]
+success_criteria:
+  - The agent never listed the $875.20 AutoPay pending payment as cancellable
+    and never cancelled it; it stated plainly that AutoPay pending payments
+    are out of scope here.
+max_turns: 12
+tool_assertions:
+  # Valid ONLY because this persona's sole goal is the AutoPay pending
+  # payment — with D6 off there is nothing legitimate for CancelPayment to
+  # act on, so any call is a scoping breach. Do NOT copy this assertion into
+  # variants where the customer may fall back to cancelling a legitimate
+  # one-time payment (e.g. "then cancel the $150 one instead").
+  - type: must_not_call
+    tool: CancelPayment

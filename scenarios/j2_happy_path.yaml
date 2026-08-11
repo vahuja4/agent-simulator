@@ -1,0 +1,26 @@
+# J2 happy path — enroll a card with no AutoPay in AutoPay.
+name: j2-happy-path
+journey: J2
+description: >
+  Customer sets up AutoPay on the Freedom Unlimited paying the statement
+  balance from Chase checking.
+persona:
+  name: Priya
+  traits: friendly, organized, answers promptly
+goal: >
+  Set up AutoPay on your Chase Freedom Unlimited card (ending 0767), paying
+  the statement balance each month from your Chase Total Checking account.
+  Confirm when the setup presented matches, then stop.
+knowledge:
+  cards: ["0767"]
+  accounts: ["5678"]
+success_criteria:
+  - AutoPay was enrolled on the Freedom Unlimited for the statement balance
+    from Chase checking, only after the customer explicitly confirmed.
+  - The agent disclosed that AutoPay payments happen on the statement due
+    date before completing the setup.
+max_turns: 12
+tool_assertions:
+  - type: validated_submit
+    submit: AddAutoPay
+    validate: AddValidateAutoPay

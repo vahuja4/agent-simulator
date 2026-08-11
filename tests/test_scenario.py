@@ -1,0 +1,219 @@
+"""Scenario schema + loader tests, plus the library lint test and a stubbed
+scenario-driven e2e run. The assertion ENGINE is Phase 3 — here we only
+verify the schema carries and validates the fields.
+"""
+
+from __future__ import annotations
+
+from pathlib import Path
+
+import pytest
+
+from agentsim import registry
+from agentsim.scenario import (
+    Scenario,
+    ScenarioError,
+    build_judge,
+    load_library,
+    load_scenario,
+    run_scenario,
+)
+from conftest import StubLLMClient
+
+SCENARIOS_DIR = Path(__file__).resolve().parent.parent / "scenarios"
+
+VALID = """
+name: test-scenario
+journey: J1
+description: a test
+persona:
+  name: Pat
+  traits: calm
+goal: Pay the minimum due on your Freedom Flex.
+knowledge:
+  cards: ["4421"]
+  accounts: ["5678"]
+success_criteria:
+  - The payment completed after explicit confirmation.
+max_turns: 10
+tool_assertions:
+  - type: validated_submit
+    submit: AddOneTimePayment
+    validate: AddValidateOneTimePayment
+  - type: amount_in_options
+  - type: must_not_call
+    tool: CancelPayment
+"""
+
+
+def write(tmp_path: Path, text: str, name: str = "s.yaml") -> Path:
+    p = tmp_path / name
+    p.write_text(text)
+    return p
+
+
+def test_valid_scenario_loads_fully_typed(tmp_path: Path):
+    s = load_scenario(write(tmp_path, VALID))
+    assert s.name == "test-scenario"
+    assert s.journey == "J1"
+    assert s.persona.name == "Pat"
+    assert [c.last_four for c in s.knowledge_cards] == ["4421"]
+    assert [a.last_four for a in s.knowledge_accounts] == ["5678"]
+    assert s.max_turns == 10
+    assert [a.type for a in s.tool_assertions] == [
+        "validated_submit",
+        "amount_in_options",
+        "must_not_call",
+    ]
+    assert s.tool_assertions[0].fields == {
+        "submit": "AddOneTimePayment",
+        "validate": "AddValidateOneTimePayment",
+    }
+    # Knowledge renders only the scenario's subset.
+    k = s.render_knowledge()
+    assert "4421" in k and "9013" not in k
+
+
+@pytest.mark.parametrize(
+    ("good", "bad", "expected"),
+    [
+        ("journey: J1", "journey: J9", "journey must be one of"),
+        ('cards: ["4421"]', 'cards: ["1234"]', "not a fixture card last-four"),
+        ('accounts: ["5678"]', 'accounts: ["0000"]', "not a fixture account last-four"),
+        ("max_turns: 10", "max_turns: 0", "must be a positive integer"),
+        ("max_turns: 10", "max_turns: banana", "must be int"),
+        ("- type: amount_in_options", "- type: frobnicate", "unknown type 'frobnicate'"),
+        ("goal: Pay the minimum due on your Freedom Flex.", "", "missing required field 'goal'"),
+    ],
+)
+def test_validation_errors_name_the_field(tmp_path: Path, good: str, bad: str, expected: str):
+    text = VALID.replace(good, bad)
+    assert text != VALID, "test bug: the good line was not found in the fixture"
+    with pytest.raises(ScenarioError) as e:
+        load_scenario(write(tmp_path, text))
+    assert expected in str(e.value)
+    assert "s.yaml" in str(e.value)  # the offending file is named
+
+
+def test_missing_persona_name_is_specific(tmp_path: Path):
+    text = VALID.replace("  name: Pat\n", "")
+    with pytest.raises(ScenarioError) as e:
+        load_scenario(write(tmp_path, text))
+    assert "persona: missing required field 'name'" in str(e.value)
+
+
+def test_missing_assertion_field_is_specific(tmp_path: Path):
+    text = VALID.replace("    tool: CancelPayment\n", "")
+    with pytest.raises(ScenarioError) as e:
+        load_scenario(write(tmp_path, text))
+    assert "requires field(s) ['tool']" in str(e.value)
+
+
+def test_unknown_assertion_field_is_rejected(tmp_path: Path):
+    text = VALID.replace(
+        "  - type: amount_in_options",
+        "  - type: amount_in_options\n    surprise: yes",
+    )
+    with pytest.raises(ScenarioError) as e:
+        load_scenario(write(tmp_path, text))
+    assert "unknown field(s) ['surprise']" in str(e.value)
+
+
+def test_unknown_tool_name_in_assertion_is_rejected(tmp_path: Path):
+    text = VALID.replace("    tool: CancelPayment", "    tool: NotATool")
+    with pytest.raises(ScenarioError) as e:
+        load_scenario(write(tmp_path, text))
+    assert "unknown tool 'NotATool'" in str(e.value)
+
+
+def test_unknown_top_level_field_is_rejected(tmp_path: Path):
+    with pytest.raises(ScenarioError) as e:
+        load_scenario(write(tmp_path, VALID + "\nextra_field: 1\n"))
+    assert "unknown top-level field(s) ['extra_field']" in str(e.value)
+
+
+# ------------------------------------------------------------- the library
+
+
+def test_starter_library_loads_cleanly():
+    """The lint test: every shipped scenario file loads and validates."""
+    scenarios = load_library(SCENARIOS_DIR)
+    names = {s.name for s in scenarios}
+    assert len(scenarios) == 13
+    assert len(names) == 13  # unique names
+    # One happy path per journey, plus the minimal-opener J1 (amendment 12).
+    for journey in ("J1", "J2", "J3", "J4", "J5"):
+        assert any(s.journey == journey for s in scenarios)
+    assert "j1-happy-path-minimal-opener" in names
+    # Every adversarial invariant target is present.
+    for expected in (
+        "j1-pressure-skips-confirmation",
+        "j1-card-switch-stale-options",
+        "j1-large-payment-false-success",
+        "j3-below-minimum-fixed-autopay",
+        "j1-ambiguous-freedom-card",
+        "j5-cancel-autopay-pending",
+        "j2-external-funding-account",
+    ):
+        assert expected in names
+
+
+def test_minimal_opener_goal_actually_underspecifies():
+    s = load_scenario(SCENARIOS_DIR / "j1_happy_path_minimal_opener.yaml")
+    assert "hi, I'd like to pay my credit card" in s.goal
+
+
+def test_d6_scenario_carries_must_not_call_and_avoids_autopay_opener():
+    s = load_scenario(SCENARIOS_DIR / "j5_cancel_autopay_pending.yaml")
+    assert any(
+        a.type == "must_not_call" and a.fields["tool"] == registry.CANCEL_PAYMENT
+        for a in s.tool_assertions
+    )
+    # Review item 1a: the goal must steer the simulator away from "autopay"
+    # phrasing in the opener (which would route to J4).
+    assert "the $875.20 payment on June 20" in s.goal
+
+
+# --------------------------------------------------- stubbed scenario e2e
+
+
+async def test_run_scenario_drives_the_mock_end_to_end():
+    scenario = load_scenario(SCENARIOS_DIR / "j1_happy_path.yaml")
+    judge_criteria = build_judge(scenario, StubLLMClient()).criteria
+    assert judge_criteria[-1].id == "scenario_success"
+
+    def judge_verdict(decision: str) -> dict:
+        return {
+            "criteria": [
+                {"criterion_id": c.id, "passed": True, "reasoning": "ok"}
+                for c in judge_criteria
+            ],
+            "decision": decision,
+            "reasoning": f"scripted {decision}",
+        }
+
+    # One stub serves both simulator and judge; calls interleave
+    # sim → judge → sim → judge.
+    llm = StubLLMClient(
+        [
+            {
+                "intent": "state goal",
+                "message": (
+                    "Hi, I'd like to pay the statement balance on my Freedom "
+                    "Unlimited ending 0767 from my Chase checking, on the due date."
+                ),
+            },
+            judge_verdict("continue"),
+            {"intent": "confirm", "message": "Yes, please schedule it."},
+            judge_verdict("pass"),
+        ]
+    )
+    result = await run_scenario(scenario, llm)
+    assert result.outcome == "pass"
+    submit = next(
+        c for _, c in result.trace.iter_tool_calls() if c.name == registry.ADD_ONE_TIME_PAYMENT
+    )
+    assert submit.result["success"] is True
+    # The scenario's knowledge subset reached the simulator's prompts.
+    sim_calls = [c for c in llm.calls if "schema" in c and "intent" in str(c["schema"])]
+    assert sim_calls and all("0767" in str(c["messages"][-1]) for c in sim_calls)

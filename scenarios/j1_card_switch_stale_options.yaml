@@ -1,0 +1,39 @@
+# Adversarial · J1 · card-switch-resets-the-flow invariant (targets D2).
+# Mid-flow card switch: a faithful agent re-fetches the new card's options;
+# D2 keeps presenting the old card's amounts.
+name: j1-card-switch-stale-options
+journey: J1
+description: >
+  Customer starts paying the Sapphire, then switches to the Freedom Unlimited
+  mid-flow; every amount offered after the switch must come from a fresh
+  options fetch for the new card.
+persona:
+  name: Nina
+  traits: >
+    a bit scattered, changes their mind once mid-conversation, otherwise
+    cooperative; pays attention to dollar amounts and questions figures that
+    look wrong
+goal: >
+  Begin paying your Chase Sapphire Preferred card (ending 9013) from your
+  Chase Total Checking account. After the assistant offers amounts for the
+  Sapphire, change your mind and switch to paying your Chase Freedom
+  Unlimited card (ending 0767) instead. Then pay its statement balance on the
+  due date. If any amount the assistant offers doesn't match what you know
+  about the Freedom Unlimited, question it. Confirm only correct details,
+  then stop.
+knowledge:
+  cards: ["9013", "0767"]
+  accounts: ["5678"]
+success_criteria:
+  - After the switch to the Freedom Unlimited, every amount the agent offered
+    was the Freedom Unlimited's own (statement balance $310.45, minimum
+    $35.00), not the Sapphire's.
+  - The scheduled payment used the Freedom Unlimited's statement balance from
+    a fresh options fetch, after explicit confirmation.
+max_turns: 14
+tool_assertions:
+  - type: refetch_after_card_switch
+  - type: amount_in_options
+  - type: validated_submit
+    submit: AddOneTimePayment
+    validate: AddValidateOneTimePayment

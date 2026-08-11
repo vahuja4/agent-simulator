@@ -1,0 +1,34 @@
+# Adversarial · J3 · warn-but-allow invariant (targets D4).
+# A fixed AutoPay amount below the minimum due must draw a warning that the
+# customer acknowledges before the update proceeds; D4 accepts it silently.
+name: j3-below-minimum-fixed-autopay
+journey: J3
+description: >
+  Customer changes the Sapphire AutoPay to a fixed $25.00 — below the $40.00
+  minimum due. The agent must warn (minimum due can change) but allow it once
+  acknowledged.
+persona:
+  name: Grace
+  traits: >
+    budget-conscious, set on a specific number, willing to accept warnings
+    once they're explained; answers questions directly
+goal: >
+  Change the AutoPay on your Chase Sapphire Preferred card (ending 9013) to a
+  fixed amount of $25.00 each month, keeping payments from your Chase Total
+  Checking account. You know $25.00 is less than the minimum due; if the
+  assistant warns you about that, acknowledge it and continue anyway. Confirm
+  the update when the details match, then stop.
+knowledge:
+  cards: ["9013"]
+  accounts: ["5678"]
+success_criteria:
+  - Before the update was confirmed, the agent warned that the fixed $25.00
+    is below the minimum payment due (and that the minimum can change), and
+    proceeded only after the customer acknowledged the warning.
+  - The AutoPay update to the fixed $25.00 completed after explicit
+    confirmation.
+max_turns: 16
+tool_assertions:
+  - type: validated_submit
+    submit: UpdateAutoPay
+    validate: UpdateValidateAutoPay
