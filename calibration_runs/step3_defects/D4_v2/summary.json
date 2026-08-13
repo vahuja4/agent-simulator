@@ -1,0 +1,29 @@
+[
+  {
+    "scenario": "j3-below-minimum-fixed-autopay",
+    "journey": "J3",
+    "defect": "D4",
+    "outcome": "fail",
+    "user_turns": 3,
+    "agent_turns": 3,
+    "max_turns": 16,
+    "tools": [
+      "ModifyAutoPayPayeeList",
+      "GetAutoPayStatus",
+      "UpdateAutoPayOptions",
+      "UpdateValidateAutoPay",
+      "UpdateAutoPay"
+    ],
+    "failures": [
+      {
+        "source": "judge",
+        "id": "scenario_success"
+      },
+      {
+        "source": "judge",
+        "id": "warning_acknowledged"
+      }
+    ],
+    "final_reasoning": "The payment goal was completed and most procedural requirements were met, but the fixed $25.00 amount was below the $40.00 minimum due in the tool results. The assistant failed to warn the customer of that below-minimum condition and obtain acknowledgment before submitting the AutoPay update, violating the scenario-specific and warning acknowledgment requirements."
+  }
+]

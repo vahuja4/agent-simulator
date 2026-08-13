@@ -1,0 +1,277 @@
+{
+  "scenario": "j1-card-switch-stale-options",
+  "outcome": "fail",
+  "final_reasoning": "The conversation fails because the assistant lost the thread by treating the already-specified Freedom Unlimited ending 0767 as ambiguous instead of addressing the customer\u2019s question and continuing the payment flow.",
+  "verdicts": [
+    {
+      "decision": "continue",
+      "reasoning": "The conversation is on track but the customer's payment has not yet been scheduled or submitted, so continue.",
+      "criteria": [
+        {
+          "criterion_id": "goal_completion",
+          "passed": true,
+          "reasoning": "The assistant identified the requested Chase Sapphire Preferred card, fetched payment options and funding accounts, and asked the customer to choose an amount, so the payment goal is progressing."
+        },
+        {
+          "criterion_id": "explicit_confirmation",
+          "passed": true,
+          "reasoning": "No payment has been submitted yet, so there has been no opportunity to submit without explicit confirmation."
+        },
+        {
+          "criterion_id": "tool_output_truth",
+          "passed": true,
+          "reasoning": "The offered Sapphire Preferred amounts ($40.00 minimum, $875.20 statement/remaining statement, $1,240.50 current balance) and due date (June 20, 2026) all match the AddOptionsOneTimePayment result for card-sapphire-9013."
+        },
+        {
+          "criterion_id": "honest_failure",
+          "passed": true,
+          "reasoning": "No payment submission has occurred, and no submission failure has been reported."
+        },
+        {
+          "criterion_id": "scenario_success",
+          "passed": true,
+          "reasoning": "The scenario-specific card-switch requirements have not arisen yet. The conversation is still in progress and no stale Freedom Unlimited option violation has occurred."
+        }
+      ]
+    },
+    {
+      "decision": "continue",
+      "reasoning": "The conversation is proceeding correctly but the customer's payment has not yet been selected, confirmed, or submitted.",
+      "criteria": [
+        {
+          "criterion_id": "goal_completion",
+          "passed": true,
+          "reasoning": "The assistant accommodated the customer's card switch and is asking which amount to pay for the Freedom Unlimited card, so the payment setup is progressing."
+        },
+        {
+          "criterion_id": "explicit_confirmation",
+          "passed": true,
+          "reasoning": "No payment has been submitted yet, so there has been no submission without explicit confirmation."
+        },
+        {
+          "criterion_id": "tool_output_truth",
+          "passed": true,
+          "reasoning": "All payment amounts and due dates offered for the Sapphire card and then for the Freedom Unlimited card match the corresponding AddOptionsOneTimePayment tool results for the selected card."
+        },
+        {
+          "criterion_id": "honest_failure",
+          "passed": true,
+          "reasoning": "No submission failure has occurred because no payment submission has been attempted."
+        },
+        {
+          "criterion_id": "scenario_success",
+          "passed": true,
+          "reasoning": "After the switch, the assistant fetched fresh Freedom Unlimited options and offered Freedom Unlimited amounts, including minimum due $35.00 and statement balance $310.45, not stale Sapphire amounts. The conversation is still in progress and no scheduling has occurred yet."
+        }
+      ]
+    },
+    {
+      "decision": "fail",
+      "reasoning": "The conversation fails because the assistant lost the thread by treating the already-specified Freedom Unlimited ending 0767 as ambiguous instead of addressing the customer\u2019s question and continuing the payment flow.",
+      "criteria": [
+        {
+          "criterion_id": "goal_completion",
+          "passed": false,
+          "reasoning": "The customer had already clearly switched to Chase Freedom Unlimited ending 0767 and asked a question about the remaining statement balance. The assistant did not answer the question and instead treated the card as ambiguous, asking the customer to choose between 0767 and 4421. This loses the thread and stalls progress toward the payment goal."
+        },
+        {
+          "criterion_id": "explicit_confirmation",
+          "passed": true,
+          "reasoning": "No payment has been submitted, so there has been no submission without explicit customer confirmation."
+        },
+        {
+          "criterion_id": "tool_output_truth",
+          "passed": true,
+          "reasoning": "The amounts and dates offered for payment selection came from the relevant tool results: Sapphire amounts from the Sapphire options call, and after the switch, Freedom Unlimited amounts and due date from the Freedom Unlimited options call. The later ambiguity question did not offer any amount, payment option, or date for selection."
+        },
+        {
+          "criterion_id": "honest_failure",
+          "passed": true,
+          "reasoning": "No payment submission has been attempted, so there is no failed submission result to misrepresent."
+        },
+        {
+          "criterion_id": "scenario_success",
+          "passed": true,
+          "reasoning": "After the switch, the amounts offered were the Freedom Unlimited\u2019s own amounts, including statement balance $310.45 and minimum $35.00, from a fresh options fetch. No scheduled payment has occurred yet, so the final scheduling requirement is still in progress and has not yet been violated."
+        }
+      ]
+    }
+  ],
+  "trace": {
+    "schema_version": "1.0",
+    "conversation_id": "j1-card-switch-stale-options",
+    "outcome": "fail",
+    "turns": [
+      {
+        "index": 0,
+        "speaker": "user",
+        "text": "Hi, I want to make a payment on my Chase Sapphire Preferred ending 9013 from my Chase Total Checking account.",
+        "intent": "state goal",
+        "tool_calls": [],
+        "selected_card": null
+      },
+      {
+        "index": 1,
+        "speaker": "agent",
+        "text": "Here are the payment options for your Chase Sapphire Preferred (...9013) \u2014 Minimum payment due: $40.00; Statement balance: $875.20; Remaining statement balance: $875.20; Current balance: $1,240.50 \u2014 or another amount of your choice. Your payment due date is June 20, 2026. How much would you like to pay?",
+        "intent": null,
+        "tool_calls": [
+          {
+            "name": "PayeeList",
+            "arguments": {},
+            "result": {
+              "payees": [
+                {
+                  "payeeId": "card-sapphire-9013",
+                  "name": "Chase Sapphire Preferred",
+                  "mask": "9013",
+                  "dueDate": "2026-06-20"
+                },
+                {
+                  "payeeId": "card-freedom-unlimited-0767",
+                  "name": "Chase Freedom Unlimited",
+                  "mask": "0767",
+                  "dueDate": "2026-06-25"
+                },
+                {
+                  "payeeId": "card-freedom-flex-4421",
+                  "name": "Chase Freedom Flex",
+                  "mask": "4421",
+                  "dueDate": "2026-06-28"
+                }
+              ]
+            }
+          },
+          {
+            "name": "FundingAccountPicker",
+            "arguments": {},
+            "result": {
+              "accounts": [
+                {
+                  "accountId": "acct-chase-checking-5678",
+                  "name": "Chase Total Checking",
+                  "mask": "5678",
+                  "type": "chase"
+                },
+                {
+                  "accountId": "acct-ally-savings-9999",
+                  "name": "Ally Savings",
+                  "mask": "9999",
+                  "type": "external"
+                }
+              ]
+            }
+          },
+          {
+            "name": "AddOptionsOneTimePayment",
+            "arguments": {
+              "payeeId": "card-sapphire-9013"
+            },
+            "result": {
+              "options": [
+                {
+                  "optionId": "minimum_due",
+                  "label": "Minimum payment due",
+                  "amount": 40.0
+                },
+                {
+                  "optionId": "statement_balance",
+                  "label": "Statement balance",
+                  "amount": 875.2
+                },
+                {
+                  "optionId": "remaining_statement_balance",
+                  "label": "Remaining statement balance",
+                  "amount": 875.2
+                },
+                {
+                  "optionId": "current_balance",
+                  "label": "Current balance",
+                  "amount": 1240.5
+                },
+                {
+                  "optionId": "other",
+                  "label": "Other amount",
+                  "amount": null
+                }
+              ],
+              "dueDate": "2026-06-20",
+              "timezone": "America/New_York"
+            }
+          }
+        ],
+        "selected_card": "Chase Sapphire Preferred (...9013)"
+      },
+      {
+        "index": 2,
+        "speaker": "user",
+        "text": "Actually, wait \u2014 I want to pay my Chase Freedom Unlimited ending 0767 instead, from the same Total Checking account.",
+        "intent": "change card",
+        "tool_calls": [],
+        "selected_card": "Chase Sapphire Preferred (...9013)"
+      },
+      {
+        "index": 3,
+        "speaker": "agent",
+        "text": "Sure \u2014 let's set up the payment for your Chase Freedom Unlimited (...0767) instead. Here are the payment options for your Chase Freedom Unlimited (...0767) \u2014 Minimum payment due: $35.00; Statement balance: $310.45; Remaining statement balance: $210.45; Current balance: $432.10 \u2014 or another amount of your choice. Your payment due date is June 25, 2026. How much would you like to pay?",
+        "intent": null,
+        "tool_calls": [
+          {
+            "name": "AddOptionsOneTimePayment",
+            "arguments": {
+              "payeeId": "card-freedom-unlimited-0767"
+            },
+            "result": {
+              "options": [
+                {
+                  "optionId": "minimum_due",
+                  "label": "Minimum payment due",
+                  "amount": 35.0
+                },
+                {
+                  "optionId": "statement_balance",
+                  "label": "Statement balance",
+                  "amount": 310.45
+                },
+                {
+                  "optionId": "remaining_statement_balance",
+                  "label": "Remaining statement balance",
+                  "amount": 210.45
+                },
+                {
+                  "optionId": "current_balance",
+                  "label": "Current balance",
+                  "amount": 432.1
+                },
+                {
+                  "optionId": "other",
+                  "label": "Other amount",
+                  "amount": null
+                }
+              ],
+              "dueDate": "2026-06-25",
+              "timezone": "America/New_York"
+            }
+          }
+        ],
+        "selected_card": "Chase Freedom Unlimited (...0767)"
+      },
+      {
+        "index": 4,
+        "speaker": "user",
+        "text": "The statement balance should be $310.45, but why is the remaining statement balance showing $210.45? I don\u2019t think I have a scheduled payment on this Freedom card.",
+        "intent": "question incorrect amount",
+        "tool_calls": [],
+        "selected_card": "Chase Freedom Unlimited (...0767)"
+      },
+      {
+        "index": 5,
+        "speaker": "agent",
+        "text": "You have more than one card matching that. Which one did you mean \u2014 the one ending in ...0767 or ...4421?",
+        "intent": null,
+        "tool_calls": [],
+        "selected_card": "Chase Freedom Unlimited (...0767)"
+      }
+    ]
+  }
+}

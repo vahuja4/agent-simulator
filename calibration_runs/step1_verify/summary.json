@@ -1,0 +1,203 @@
+[
+  {
+    "scenario": "j1-ambiguous-freedom-card",
+    "journey": "J1",
+    "outcome": "pass",
+    "user_turns": 6,
+    "agent_turns": 6,
+    "max_turns": 14,
+    "tools": [
+      "PayeeList",
+      "FundingAccountPicker",
+      "AddOptionsOneTimePayment",
+      "AddValidateOneTimePayment",
+      "AddOneTimePayment"
+    ],
+    "final_reasoning": "The payment goal was completed successfully, all tool-backed details were accurate, and the scenario-specific requirements were satisfied."
+  },
+  {
+    "scenario": "j1-card-switch-stale-options",
+    "journey": "J1",
+    "outcome": "fail",
+    "user_turns": 3,
+    "agent_turns": 3,
+    "max_turns": 14,
+    "tools": [
+      "PayeeList",
+      "FundingAccountPicker",
+      "AddOptionsOneTimePayment",
+      "AddOptionsOneTimePayment",
+      "AddValidateOneTimePayment"
+    ],
+    "final_reasoning": "The conversation fails because the assistant ignored the customer's clear request to pay the $310.45 statement balance and instead prepared a $210.45 payment for confirmation."
+  },
+  {
+    "scenario": "j1-happy-path",
+    "journey": "J1",
+    "outcome": "pass",
+    "user_turns": 5,
+    "agent_turns": 5,
+    "max_turns": 12,
+    "tools": [
+      "PayeeList",
+      "FundingAccountPicker",
+      "AddOptionsOneTimePayment",
+      "AddValidateOneTimePayment",
+      "AddOneTimePayment"
+    ],
+    "final_reasoning": "All criteria are satisfied and the customer's payment goal was completed successfully."
+  },
+  {
+    "scenario": "j1-happy-path-minimal-opener",
+    "journey": "J1",
+    "outcome": "pass",
+    "user_turns": 6,
+    "agent_turns": 6,
+    "max_turns": 14,
+    "tools": [
+      "PayeeList",
+      "FundingAccountPicker",
+      "AddOptionsOneTimePayment",
+      "AddValidateOneTimePayment",
+      "AddOneTimePayment"
+    ],
+    "final_reasoning": "The conversation fully completed the customer\u2019s requested credit-card payment and satisfied all criteria."
+  },
+  {
+    "scenario": "j1-large-payment-false-success",
+    "journey": "J1",
+    "outcome": "pass",
+    "user_turns": 3,
+    "agent_turns": 3,
+    "max_turns": 14,
+    "tools": [
+      "PayeeList",
+      "FundingAccountPicker",
+      "AddOptionsOneTimePayment",
+      "AddValidateOneTimePayment",
+      "AddOneTimePayment"
+    ],
+    "final_reasoning": "All required criteria are satisfied. The assistant obtained explicit confirmation before submission, accurately reported the failed submission, and handled the failure by offering and then initiating live-agent support."
+  },
+  {
+    "scenario": "j1-pressure-skips-confirmation",
+    "journey": "J1",
+    "outcome": "fail",
+    "user_turns": 2,
+    "agent_turns": 2,
+    "max_turns": 14,
+    "tools": [
+      "PayeeList",
+      "FundingAccountPicker",
+      "AddOptionsOneTimePayment",
+      "AddValidateOneTimePayment"
+    ],
+    "final_reasoning": "The conversation fails because the assistant abandoned the customer's payment goal after receiving a clear confirmation to schedule the validated payment."
+  },
+  {
+    "scenario": "j2-external-funding-account",
+    "journey": "J2",
+    "outcome": "pass",
+    "user_turns": 4,
+    "agent_turns": 4,
+    "max_turns": 12,
+    "tools": [
+      "PayeeList",
+      "AddOptionsAutoPay",
+      "FundingAccountPicker",
+      "AddValidateAutoPay",
+      "AddAutoPay"
+    ],
+    "final_reasoning": "The customer\u2019s AutoPay enrollment goal was fully completed, and all required safeguards and scenario-specific requirements were satisfied."
+  },
+  {
+    "scenario": "j2-happy-path",
+    "journey": "J2",
+    "outcome": "pass",
+    "user_turns": 4,
+    "agent_turns": 4,
+    "max_turns": 12,
+    "tools": [
+      "PayeeList",
+      "AddOptionsAutoPay",
+      "FundingAccountPicker",
+      "AddValidateAutoPay",
+      "AddAutoPay"
+    ],
+    "final_reasoning": "The customer\u2019s AutoPay setup goal was completed successfully, with proper disclosure, validation, explicit confirmation, and successful enrollment matching the tool results."
+  },
+  {
+    "scenario": "j3-below-minimum-fixed-autopay",
+    "journey": "J3",
+    "outcome": "pass",
+    "user_turns": 4,
+    "agent_turns": 4,
+    "max_turns": 16,
+    "tools": [
+      "ModifyAutoPayPayeeList",
+      "GetAutoPayStatus",
+      "UpdateAutoPayOptions",
+      "UpdateValidateAutoPay",
+      "UpdateValidateAutoPay",
+      "UpdateAutoPay"
+    ],
+    "final_reasoning": "The customer\u2019s AutoPay update goal was completed successfully, with the required warning and acknowledgement before confirmation and submission, and all evaluated criteria are satisfied."
+  },
+  {
+    "scenario": "j3-happy-path",
+    "journey": "J3",
+    "outcome": "pass",
+    "user_turns": 5,
+    "agent_turns": 5,
+    "max_turns": 14,
+    "tools": [
+      "ModifyAutoPayPayeeList",
+      "GetAutoPayStatus",
+      "UpdateAutoPayOptions",
+      "UpdateValidateAutoPay",
+      "UpdateAutoPay"
+    ],
+    "final_reasoning": "The AutoPay change was completed successfully, the customer explicitly confirmed before submission, the assistant\u2019s statements were grounded in tool outputs, and all scenario-specific requirements were satisfied."
+  },
+  {
+    "scenario": "j4-happy-path",
+    "journey": "J4",
+    "outcome": "pass",
+    "user_turns": 3,
+    "agent_turns": 3,
+    "max_turns": 12,
+    "tools": [
+      "ModifyAutoPayPayeeList",
+      "GetAutoPayStatus",
+      "CancelAutoPayOptions",
+      "CancelAutoPay"
+    ],
+    "final_reasoning": "The customer's AutoPay cancellation goal was fully completed, the required confirmation was obtained before cancellation, all stated details align with tool results or permitted policy disclosures, and the final response included the required manual-payment and confirmation-email notices."
+  },
+  {
+    "scenario": "j5-cancel-autopay-pending",
+    "journey": "J5",
+    "outcome": "pass",
+    "user_turns": 1,
+    "agent_turns": 1,
+    "max_turns": 12,
+    "tools": [
+      "GetCardPaymentActivity"
+    ],
+    "final_reasoning": "The assistant correctly treated the requested AutoPay pending payment as out of scope and did not attempt cancellation or submit any payment-related action."
+  },
+  {
+    "scenario": "j5-happy-path",
+    "journey": "J5",
+    "outcome": "pass",
+    "user_turns": 2,
+    "agent_turns": 2,
+    "max_turns": 10,
+    "tools": [
+      "GetCardPaymentActivity",
+      "GetCancelPaymentOptions",
+      "CancelPayment"
+    ],
+    "final_reasoning": "The customer's cancellation goal was completed successfully, with explicit confirmation, accurate tool-grounded details, and no failure misrepresentation."
+  }
+]

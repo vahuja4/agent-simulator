@@ -1,0 +1,25 @@
+[
+  {
+    "scenario": "j3-below-minimum-fixed-autopay",
+    "journey": "J3",
+    "defect": "D4",
+    "outcome": "fail",
+    "user_turns": 5,
+    "agent_turns": 5,
+    "max_turns": 16,
+    "tools": [
+      "ModifyAutoPayPayeeList",
+      "GetAutoPayStatus",
+      "UpdateAutoPayOptions",
+      "UpdateValidateAutoPay",
+      "UpdateAutoPay"
+    ],
+    "failures": [
+      {
+        "source": "judge",
+        "id": "scenario_success"
+      }
+    ],
+    "final_reasoning": "Although the AutoPay update completed after explicit confirmation, the scenario-specific requirement was violated: the assistant submitted a fixed $25.00 AutoPay amount without first warning that it was below the $40.00 minimum payment due and getting acknowledgement of that warning."
+  }
+]

@@ -22,7 +22,7 @@ knowledge:
   cards: ["9013"]
   accounts: ["5678"]
 success_criteria:
-  - Before the update was confirmed, the agent warned that the fixed $25.00
+  - Before the update was submitted, the agent warned that the fixed $25.00
     is below the minimum payment due (and that the minimum can change), and
     proceeded only after the customer acknowledged the warning.
   - The AutoPay update to the fixed $25.00 completed after explicit

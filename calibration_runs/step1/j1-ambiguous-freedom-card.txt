@@ -1,0 +1,26 @@
+SCENARIO: j1-ambiguous-freedom-card  (/Users/vishal/Desktop/agent_simulator/scenarios/j1_ambiguous_freedom_card.yaml)
+JOURNEY: J1   MAX_TURNS: 14
+========================================================================
+TRANSCRIPT (with tool calls)
+========================================================================
+
+[0] Customer (intent: state goal):
+    Hi, I want to pay the statement balance on my Freedom card from my Chase Total Checking, on the due date.
+[1] Assistant:
+    You have more than one card matching that. Which one did you mean — the one ending in ...0767 or ...4421?
+
+========================================================================
+PER-TURN VERDICTS
+========================================================================
+
+After agent turn 1: decision=fail
+  [PASS] goal_completion: The assistant is progressing toward the payment goal by clarifying which ambiguous Freedom card the customer means before proceeding.
+  [PASS] explicit_confirmation: No payment has been submitted yet, so there has been no opportunity to violate the confirmation requirement.
+  [PASS] tool_output_truth: The assistant has not presented any payment amount or date. It only asked the customer to choose between the two Freedom cards by last four.
+  [PASS] honest_failure: No payment submission has occurred, so there is no failed submission to misrepresent.
+  [FAIL] scenario_success: The assistant satisfied the first scenario requirement by asking which Freedom card was meant before offering amounts or proceeding, but the payment has not yet been completed on the Freedom Flex ending 4421 after confirmation.
+  overall: The conversation is appropriately paused for the customer to disambiguate the card. No payment has been submitted yet, and the goal is not complete.
+
+========================================================================
+OUTCOME: fail — The conversation is appropriately paused for the customer to disambiguate the card. No payment has been submitted yet, and the goal is not complete.
+========================================================================

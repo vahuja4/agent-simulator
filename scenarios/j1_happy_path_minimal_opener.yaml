@@ -25,7 +25,7 @@ success_criteria:
   - The minimum-due payment on the Freedom Flex was scheduled from Chase
     checking for the due date, only after the customer explicitly confirmed.
   - The agent collected the missing details by asking questions rather than
-    guessing card, amount, or date.
+    guessing card, funding account, amount, or date.
 max_turns: 14
 tool_assertions:
   - type: validated_submit

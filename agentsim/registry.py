@@ -80,7 +80,7 @@ ALL_TOOLS = tuple(
 )
 
 # Submission tool → the validate/options counterpart that must have succeeded
-# first (the future assertion engine keys off this mapping).
+# first (the assertion engine keys off this mapping).
 VALIDATE_FOR_SUBMIT = {
     ADD_ONE_TIME_PAYMENT: ADD_VALIDATE_ONE_TIME_PAYMENT,
     ADD_AUTOPAY: ADD_VALIDATE_AUTOPAY,
@@ -88,3 +88,54 @@ VALIDATE_FOR_SUBMIT = {
     CANCEL_AUTOPAY: CANCEL_AUTOPAY_OPTIONS,  # token fetch, not a validate — same gate
     CANCEL_PAYMENT: GET_CANCEL_PAYMENT_OPTIONS,
 }
+
+
+# The five §3 validate→submit pairings as structured metadata for the
+# deterministic assertion engine. Per pairing:
+# - counterpart:   the validate/options tool that must succeed before submit
+#                  (mirrors VALIDATE_FOR_SUBMIT)
+# - id_result_key: field of the counterpart's RESULT whose value must appear
+#                  under the same key in the submit's ARGUMENTS — the staged
+#                  pending object's identity (Sierra threads formId/token this
+#                  way). Requires results; when absent the engine degrades to
+#                  match_arg_keys.
+# - match_arg_keys: argument fields shared by counterpart and submit calls,
+#                  used to match the pair when results are unavailable
+#                  (empty = ordering-only fallback).
+# - options_tool:  the options tool whose fresh fetch must precede the
+#                  counterpart for the currently selected card (None for the
+#                  token-fetch flows, which have no amount options).
+SUBMIT_PAIRINGS: dict[str, dict[str, object]] = {
+    ADD_ONE_TIME_PAYMENT: {
+        "counterpart": ADD_VALIDATE_ONE_TIME_PAYMENT,
+        "id_result_key": "formId",
+        "match_arg_keys": (),
+        "options_tool": ADD_OPTIONS_ONE_TIME_PAYMENT,
+    },
+    ADD_AUTOPAY: {
+        "counterpart": ADD_VALIDATE_AUTOPAY,
+        "id_result_key": "formId",
+        "match_arg_keys": (),
+        "options_tool": ADD_OPTIONS_AUTOPAY,
+    },
+    UPDATE_AUTOPAY: {
+        "counterpart": UPDATE_VALIDATE_AUTOPAY,
+        "id_result_key": "formId",
+        "match_arg_keys": ("token", "repeatingModelId"),
+        "options_tool": UPDATE_AUTOPAY_OPTIONS,
+    },
+    CANCEL_AUTOPAY: {
+        "counterpart": CANCEL_AUTOPAY_OPTIONS,
+        "id_result_key": "token",
+        "match_arg_keys": ("repeatingModelId",),
+        "options_tool": None,
+    },
+    CANCEL_PAYMENT: {
+        "counterpart": GET_CANCEL_PAYMENT_OPTIONS,
+        "id_result_key": "paymentId",
+        "match_arg_keys": ("paymentId",),
+        "options_tool": None,
+    },
+}
+
+SUBMIT_TOOLS = tuple(SUBMIT_PAIRINGS)

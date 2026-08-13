@@ -1,0 +1,28 @@
+[
+  {
+    "scenario": "j1-ambiguous-freedom-card",
+    "journey": "J1",
+    "defect": "D5",
+    "outcome": "fail",
+    "user_turns": 1,
+    "agent_turns": 1,
+    "max_turns": 14,
+    "tools": [
+      "PayeeList",
+      "FundingAccountPicker",
+      "AddOptionsOneTimePayment",
+      "AddValidateOneTimePayment"
+    ],
+    "failures": [
+      {
+        "source": "judge",
+        "id": "scenario_success"
+      },
+      {
+        "source": "judge",
+        "id": "card_disambiguation"
+      }
+    ],
+    "final_reasoning": "The conversation fails because the assistant acted on a specific Freedom card without disambiguating between multiple matching Freedom cards, violating both the card-disambiguation requirement and the scenario-specific requirement."
+  }
+]

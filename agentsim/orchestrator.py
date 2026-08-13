@@ -1,19 +1,38 @@
-"""The turn loop: user simulator → agent adapter → trace append → judge,
-until a verdict, a ###STOP###, or max_turns. Everything observable about the
-run lands in the Trace; verdicts ride alongside in the RunResult.
+"""The turn loop: user simulator → agent adapter → trace append → assertions
+→ judge, until a verdict, a ###STOP###, or max_turns. Everything observable
+about the run lands in the Trace; verdicts and merged failures ride alongside
+in the RunResult.
 
-Reaching max_turns (or the simulator stopping) without goal completion is a
-distinct ``task_incomplete`` outcome — running out of turns is not a policy
-failure.
+Scripted steps (script.py, amendment 17) run through this same loop: a
+script's user()/agent() steps produce the same Trace shape as autonomous
+turns, assertions run after every agent turn either way, the judge rules only
+at explicit judge() checkpoints while scripted, and proceed() hands over to
+the autonomous simulator loop under the shared max_turns budget.
+
+Outcome derivation (amendment 14 + adjustment 1): a deterministic assertion
+failure fails the run immediately — before that turn's judge call, so the
+hard gate is structural (the judge never rules on a turn an assertion already
+failed). A "pass" is judge-earned only: assertions can force fail, never
+produce pass; a script that ends with no judge ruling is task_incomplete.
+Reaching max_turns (or the simulator stopping) without goal completion is
+likewise ``task_incomplete`` — running out of turns is not a policy failure.
+
+The stop-on-assertion-failure decision lives HERE, in the outcome
+derivation, not inside AssertionEngine (adjustment 3) — a future collect
+mode (continue past failures on expensive real-agent runs) is a parameter
+in this loop, not an engine refactor.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from typing import Sequence
 
+from .assertions import AssertionEngine
 from .llm import LLMError
+from .script import AgentStep, JudgeStep, ProceedStep, Step, UserStep, validate_script
 from .trace import Trace, TraceToolCall
-from .types import AgentInput, Message, TurnVerdict
+from .types import AgentInput, FailureRecord, Message, TurnVerdict
 
 
 @dataclass
@@ -22,55 +41,169 @@ class RunResult:
     verdicts: list[TurnVerdict] = field(default_factory=list)
     outcome: str = "task_incomplete"  # pass | fail | task_incomplete | error
     final_reasoning: str = ""
+    # Every failure with its source — assertion vs judge, and which
+    # criterion/assertion — as structured data (amendment 14).
+    failures: list[FailureRecord] = field(default_factory=list)
+
+
+def _judge_failures(verdict: TurnVerdict, turn_index: int) -> list[FailureRecord]:
+    return [
+        FailureRecord(
+            source="judge",
+            id=cv.criterion_id,
+            turn_index=turn_index,
+            message=cv.reasoning,
+        )
+        for cv in verdict.criteria
+        if not cv.passed
+    ]
 
 
 async def run_conversation(
     *,
-    simulator,
+    simulator=None,
     agent,
-    judge,
+    judge=None,
     conversation_id: str = "conv-1",
     max_turns: int = 12,
+    assertions: AssertionEngine | None = None,
+    script: Sequence[Step] | None = None,
 ) -> RunResult:
+    steps = list(script) if script is not None else []
+    if steps:
+        validate_script(steps)
+        if simulator is None and any(
+            isinstance(s, ProceedStep) or (isinstance(s, UserStep) and s.text is None)
+            for s in steps
+        ):
+            raise ValueError("script delegates turns to the simulator but simulator is None")
+        if judge is None and any(isinstance(s, (JudgeStep, ProceedStep)) for s in steps):
+            raise ValueError("script requires a judge (judge()/proceed()) but judge is None")
+    else:
+        if simulator is None or judge is None:
+            raise ValueError("autonomous runs require both a simulator and a judge")
+
     trace = Trace(conversation_id=conversation_id)
     history: list[Message] = []
     verdicts: list[TurnVerdict] = []
-    outcome = "task_incomplete"
-    reasoning = f"max_turns ({max_turns}) reached without goal completion"
+    failures: list[FailureRecord] = []
     selected_card: str | None = None
+    turns_used = 0
 
-    try:
-        for _ in range(max_turns):
+    def add_user_turn(text: str, intent: str | None) -> None:
+        nonlocal turns_used
+        history.append(Message("user", text))
+        # selected_card on a user turn is the last agent-reported value.
+        trace.add_user_turn(text, intent, selected_card)
+        turns_used += 1
+
+    async def run_agent_turn() -> tuple[str, str] | None:
+        """Agent reply + trace append + the assertion hard gate."""
+        nonlocal selected_card
+        response = await agent.call(AgentInput(conversation_id, list(history)))
+        history.append(Message("assistant", response.content))
+        selected_card = response.selected_card
+        trace.add_agent_turn(
+            response.content,
+            [TraceToolCall(t.name, t.arguments, t.result) for t in response.tool_calls],
+            selected_card,
+        )
+        if assertions is not None:
+            report = assertions.check(trace)
+            if report.failures:
+                failures.extend(report.failures)
+                return (
+                    "fail",
+                    "deterministic assertion failure: "
+                    + "; ".join(f.message for f in report.failures),
+                )
+        return None
+
+    async def run_judge() -> tuple[str, str] | None:
+        verdict = await judge.judge(trace)
+        verdicts.append(verdict)
+        if verdict.decision in ("pass", "fail"):
+            if verdict.decision == "fail":
+                failures.extend(_judge_failures(verdict, trace.turns[-1].index))
+            return (verdict.decision, verdict.reasoning)
+        return None
+
+    async def autonomous(budget: int, exhausted_reason: str) -> tuple[str, str]:
+        for _ in range(budget):
             sim_turn = await simulator.next_turn(history)
             if sim_turn.stop and not sim_turn.text.strip():
-                reasoning = "user simulator stopped before goal completion"
-                break
-
-            history.append(Message("user", sim_turn.text))
-            # selected_card on a user turn is the last agent-reported value.
-            trace.add_user_turn(sim_turn.text, sim_turn.intent, selected_card)
-
-            response = await agent.call(AgentInput(conversation_id, list(history)))
-            history.append(Message("assistant", response.content))
-            selected_card = response.selected_card
-            trace.add_agent_turn(
-                response.content,
-                [TraceToolCall(t.name, t.arguments, t.result) for t in response.tool_calls],
-                selected_card,
-            )
-
-            verdict = await judge.judge(trace)
-            verdicts.append(verdict)
-            if verdict.decision in ("pass", "fail"):
-                outcome = verdict.decision
-                reasoning = verdict.reasoning
-                break
+                return ("task_incomplete", "user simulator stopped before goal completion")
+            add_user_turn(sim_turn.text, sim_turn.intent)
+            ended = await run_agent_turn()
+            if ended:
+                return ended
+            ended = await run_judge()
+            if ended:
+                return ended
             if sim_turn.stop:
-                reasoning = "user simulator stopped; judge had not reached a verdict"
-                break
+                return (
+                    "task_incomplete",
+                    "user simulator stopped; judge had not reached a verdict",
+                )
+        return ("task_incomplete", exhausted_reason)
+
+    max_turns_reason = f"max_turns ({max_turns}) reached without goal completion"
+
+    async def scripted() -> tuple[str, str]:
+        sim_requested_stop = False
+        for step in steps:
+            if isinstance(step, UserStep):
+                if turns_used >= max_turns:
+                    return ("task_incomplete", max_turns_reason)
+                if step.text is None:
+                    sim_turn = await simulator.next_turn(history)
+                    if sim_turn.stop and not sim_turn.text.strip():
+                        return (
+                            "task_incomplete",
+                            "user simulator stopped before goal completion",
+                        )
+                    sim_requested_stop = sim_turn.stop
+                    add_user_turn(sim_turn.text, sim_turn.intent)
+                else:
+                    sim_requested_stop = False
+                    add_user_turn(step.text, "scripted")
+            elif isinstance(step, AgentStep):
+                ended = await run_agent_turn()
+                if ended:
+                    return ended
+            elif isinstance(step, JudgeStep):
+                ended = await run_judge()
+                if ended:
+                    return ended
+                if sim_requested_stop:
+                    return (
+                        "task_incomplete",
+                        "user simulator stopped; judge had not reached a verdict",
+                    )
+            elif isinstance(step, ProceedStep):
+                budget = max_turns - turns_used
+                reason = max_turns_reason
+                if step.turns is not None and step.turns < budget:
+                    budget = step.turns
+                    reason = f"proceed(turns={step.turns}) exhausted without a verdict"
+                return await autonomous(budget, reason)
+        # Adjustment 1: assertions alone can force fail, never produce pass —
+        # a script that ends with no judge ruling is task_incomplete.
+        return ("task_incomplete", "script ended without a judge ruling")
+
+    try:
+        if steps:
+            outcome, reasoning = await scripted()
+        else:
+            outcome, reasoning = await autonomous(max_turns, max_turns_reason)
     except LLMError as e:
-        outcome = "error"
-        reasoning = f"harness LLM call failed: {e}"
+        outcome, reasoning = "error", f"harness LLM call failed: {e}"
 
     trace.outcome = outcome
-    return RunResult(trace=trace, verdicts=verdicts, outcome=outcome, final_reasoning=reasoning)
+    return RunResult(
+        trace=trace,
+        verdicts=verdicts,
+        outcome=outcome,
+        final_reasoning=reasoning,
+        failures=failures,
+    )

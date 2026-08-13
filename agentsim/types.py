@@ -77,6 +77,28 @@ class CriterionVerdict:
 
 
 @dataclass
+class FailureRecord:
+    """One failure in a run's merged outcome, with its source (amendment 14):
+    a deterministic assertion or a judge criterion. Phase 4 clustering and
+    reporting key on these fields as structured data, never on prose."""
+
+    source: Literal["assertion", "judge"]
+    id: str  # assertion id or criterion_id
+    turn_index: int | None
+    message: str
+    data: dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "source": self.source,
+            "id": self.id,
+            "turn_index": self.turn_index,
+            "message": self.message,
+            "data": self.data,
+        }
+
+
+@dataclass
 class TurnVerdict:
     decision: Literal["continue", "pass", "fail"]
     criteria: list[CriterionVerdict]

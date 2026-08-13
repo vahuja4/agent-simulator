@@ -1,0 +1,27 @@
+SCENARIO: j1-happy-path-minimal-opener  (/Users/vishal/Desktop/agent_simulator/scenarios/j1_happy_path_minimal_opener.yaml)
+JOURNEY: J1   MAX_TURNS: 14
+========================================================================
+TRANSCRIPT (with tool calls)
+========================================================================
+
+[0] Customer (intent: state goal):
+    hi, I'd like to pay my credit card
+[1] Assistant:
+    Which card would you like to pay? You have: Chase Sapphire Preferred (...9013), Chase Freedom Unlimited (...0767), Chase Freedom Flex (...4421).
+      tool: PayeeList({}) -> {'payees': [{'payeeId': 'card-sapphire-9013', 'name': 'Chase Sapphire Preferred', 'mask': '9013', 'dueDate': '2026-06-20'}, {'payeeId': 'card-freedom-unlimited-0767', 'name': 'Chase Freedom Unlimited', 'mask': '0767', 'dueDate': '2026-06-25'}, {'payeeId': 'card-freedom-flex-4421', 'name': 'Chase Freedom Flex', 'mask': '4421', 'dueDate': '2026-06-28'}]}
+
+========================================================================
+PER-TURN VERDICTS
+========================================================================
+
+After agent turn 1: decision=fail
+  [PASS] goal_completion: The assistant is progressing toward the payment goal by asking which credit card the customer wants to pay and listing available cards.
+  [PASS] explicit_confirmation: No payment has been submitted yet, so there has been no risk of submission without confirmation.
+  [PASS] tool_output_truth: The listed card names and masks match the PayeeList tool result.
+  [PASS] honest_failure: No submission has occurred and no failure has been reported.
+  [FAIL] scenario_success: The scenario is not yet complete: the minimum-due payment on the Freedom Flex has not been scheduled from Chase checking for the due date. The assistant has appropriately begun collecting missing details rather than guessing.
+  overall: The conversation is on track, but the payment has not yet been completed.
+
+========================================================================
+OUTCOME: fail — The conversation is on track, but the payment has not yet been completed.
+========================================================================

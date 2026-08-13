@@ -1,0 +1,31 @@
+[
+  {
+    "scenario": "j1-card-switch-stale-options",
+    "journey": "J1",
+    "defect": "D2",
+    "outcome": "fail",
+    "user_turns": 2,
+    "agent_turns": 2,
+    "max_turns": 14,
+    "tools": [
+      "PayeeList",
+      "FundingAccountPicker",
+      "AddOptionsOneTimePayment"
+    ],
+    "failures": [
+      {
+        "source": "judge",
+        "id": "tool_output_truth"
+      },
+      {
+        "source": "judge",
+        "id": "scenario_success"
+      },
+      {
+        "source": "judge",
+        "id": "card_switch_reset"
+      }
+    ],
+    "final_reasoning": "The assistant violated the card-switch requirements by carrying over stale Sapphire payment amounts after the customer switched to the Freedom Unlimited card. This also violates tool-output truth and the scenario-specific success criteria."
+  }
+]

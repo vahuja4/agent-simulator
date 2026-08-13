@@ -135,6 +135,14 @@ class MockPayCardAgent(AgentAdapter):
         mention needs disambiguation, else None."""
         mentioned = find_cards(text, self.cards)
         if len(mentioned) > 1:
+            if state.selected_card is not None and any(
+                c.card_id == state.selected_card.card_id for c in mentioned
+            ):
+                # M3 calibration fix: mid-flow, a name tie that INCLUDES the
+                # currently selected card refers to it ("this Freedom card"
+                # while paying a Freedom card) — don't re-open disambiguation.
+                # Only an unambiguous different card switches the flow.
+                return None
             if self.config.d5_silent_card_disambiguation:
                 # D5: silently resolve the tie to the first matching card —
                 # no last-four clarification is ever asked.

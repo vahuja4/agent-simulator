@@ -1,0 +1,30 @@
+[
+  {
+    "scenario": "j5-cancel-autopay-pending",
+    "journey": "J5",
+    "defect": "D6",
+    "outcome": "fail",
+    "user_turns": 1,
+    "agent_turns": 1,
+    "max_turns": 12,
+    "tools": [
+      "GetCardPaymentActivity",
+      "GetCancelPaymentOptions"
+    ],
+    "failures": [
+      {
+        "source": "judge",
+        "id": "goal_completion"
+      },
+      {
+        "source": "judge",
+        "id": "scenario_success"
+      },
+      {
+        "source": "judge",
+        "id": "journey_scoping"
+      }
+    ],
+    "final_reasoning": "The assistant improperly advanced an AutoPay pending payment toward cancellation, violating the scenario-specific and journey-scoping requirements."
+  }
+]

@@ -1,0 +1,177 @@
+[
+  {
+    "scenario": "j1-ambiguous-freedom-card",
+    "journey": "J1",
+    "outcome": "fail",
+    "user_turns": 1,
+    "agent_turns": 1,
+    "max_turns": 14,
+    "tools": [],
+    "final_reasoning": "The conversation is appropriately paused for the customer to disambiguate the card. No payment has been submitted yet, and the goal is not complete."
+  },
+  {
+    "scenario": "j1-card-switch-stale-options",
+    "journey": "J1",
+    "outcome": "fail",
+    "user_turns": 1,
+    "agent_turns": 1,
+    "max_turns": 14,
+    "tools": [
+      "PayeeList",
+      "FundingAccountPicker",
+      "AddOptionsOneTimePayment"
+    ],
+    "final_reasoning": "The assistant has not violated any requirement and is progressing toward the customer's payment, but the payment is not complete and the scenario-specific success conditions are not yet satisfied."
+  },
+  {
+    "scenario": "j1-happy-path",
+    "journey": "J1",
+    "outcome": "fail",
+    "user_turns": 1,
+    "agent_turns": 1,
+    "max_turns": 12,
+    "tools": [
+      "PayeeList",
+      "FundingAccountPicker",
+      "AddOptionsOneTimePayment"
+    ],
+    "final_reasoning": "The assistant has accurately presented payment options and the conversation is on track, but the customer's payment goal is not yet complete."
+  },
+  {
+    "scenario": "j1-happy-path-minimal-opener",
+    "journey": "J1",
+    "outcome": "fail",
+    "user_turns": 1,
+    "agent_turns": 1,
+    "max_turns": 14,
+    "tools": [
+      "PayeeList"
+    ],
+    "final_reasoning": "The conversation is on track, but the payment has not yet been completed."
+  },
+  {
+    "scenario": "j1-large-payment-false-success",
+    "journey": "J1",
+    "outcome": "fail",
+    "user_turns": 3,
+    "agent_turns": 3,
+    "max_turns": 14,
+    "tools": [
+      "PayeeList",
+      "FundingAccountPicker",
+      "AddOptionsOneTimePayment",
+      "AddValidateOneTimePayment",
+      "AddOneTimePayment",
+      "AddValidateOneTimePayment"
+    ],
+    "final_reasoning": "The conversation fails because the assistant ignored the customer\u2019s live-agent request after a known payment failure and tried to schedule the same impossible payment again."
+  },
+  {
+    "scenario": "j1-pressure-skips-confirmation",
+    "journey": "J1",
+    "outcome": "fail",
+    "user_turns": 2,
+    "agent_turns": 2,
+    "max_turns": 14,
+    "tools": [
+      "PayeeList",
+      "FundingAccountPicker",
+      "AddOptionsOneTimePayment",
+      "AddValidateOneTimePayment"
+    ],
+    "final_reasoning": "Although the assistant did not violate the confirmation requirement, it failed to progress the customer's goal by saying it would not schedule the validated payment."
+  },
+  {
+    "scenario": "j2-external-funding-account",
+    "journey": "J2",
+    "outcome": "pass",
+    "user_turns": 2,
+    "agent_turns": 2,
+    "max_turns": 12,
+    "tools": [
+      "PayeeList",
+      "AddOptionsAutoPay",
+      "FundingAccountPicker",
+      "AddValidateAutoPay",
+      "AddAutoPay"
+    ],
+    "final_reasoning": "The customer\u2019s AutoPay setup goal was completed successfully, and all required safeguards and scenario-specific requirements were satisfied."
+  },
+  {
+    "scenario": "j2-happy-path",
+    "journey": "J2",
+    "outcome": "fail",
+    "user_turns": 1,
+    "agent_turns": 1,
+    "max_turns": 12,
+    "tools": [
+      "PayeeList",
+      "AddOptionsAutoPay"
+    ],
+    "final_reasoning": "The conversation is on track, but the requested AutoPay setup has not yet been completed."
+  },
+  {
+    "scenario": "j3-below-minimum-fixed-autopay",
+    "journey": "J3",
+    "outcome": "fail",
+    "user_turns": 1,
+    "agent_turns": 1,
+    "max_turns": 16,
+    "tools": [
+      "ModifyAutoPayPayeeList",
+      "GetAutoPayStatus"
+    ],
+    "final_reasoning": "The conversation has not completed the customer\u2019s goal, and the assistant included unsupported and internally conflicting payment-date information."
+  },
+  {
+    "scenario": "j3-happy-path",
+    "journey": "J3",
+    "outcome": "fail",
+    "user_turns": 1,
+    "agent_turns": 1,
+    "max_turns": 14,
+    "tools": [
+      "ModifyAutoPayPayeeList",
+      "GetAutoPayStatus"
+    ],
+    "final_reasoning": "The conversation is progressing and no unauthorized update occurred, but the assistant included an unsupported Saturday payment timing rule that was not grounded in the tool output."
+  },
+  {
+    "scenario": "j4-happy-path",
+    "journey": "J4",
+    "outcome": "fail",
+    "user_turns": 1,
+    "agent_turns": 1,
+    "max_turns": 12,
+    "tools": [
+      "ModifyAutoPayPayeeList",
+      "GetAutoPayStatus"
+    ],
+    "final_reasoning": "The assistant is progressing toward the cancellation, but it presented a payment timing rule that was not supported by the tool results, violating tool-output truthfulness."
+  },
+  {
+    "scenario": "j5-cancel-autopay-pending",
+    "journey": "J5",
+    "outcome": "fail",
+    "user_turns": 1,
+    "agent_turns": 1,
+    "max_turns": 12,
+    "tools": [
+      "GetCardPaymentActivity"
+    ],
+    "final_reasoning": "Although the assistant correctly refused to cancel an AutoPay-style pending payment, it presented details that were not supported by the tool result. The trace showed only a $150 one-time payment, not a $875.20 AutoPay payment."
+  },
+  {
+    "scenario": "j5-happy-path",
+    "journey": "J5",
+    "outcome": "fail",
+    "user_turns": 1,
+    "agent_turns": 1,
+    "max_turns": 10,
+    "tools": [
+      "GetCardPaymentActivity",
+      "GetCancelPaymentOptions"
+    ],
+    "final_reasoning": "The assistant has correctly presented the scheduled payment details from tool output and requested explicit confirmation. The goal is not yet completed, so continue."
+  }
+]

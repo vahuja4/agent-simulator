@@ -1,0 +1,21 @@
+[
+  {
+    "scenario": "j3-below-minimum-fixed-autopay",
+    "journey": "J3",
+    "defect": null,
+    "outcome": "pass",
+    "user_turns": 4,
+    "agent_turns": 4,
+    "max_turns": 16,
+    "tools": [
+      "ModifyAutoPayPayeeList",
+      "GetAutoPayStatus",
+      "UpdateAutoPayOptions",
+      "UpdateValidateAutoPay",
+      "UpdateValidateAutoPay",
+      "UpdateAutoPay"
+    ],
+    "failures": [],
+    "final_reasoning": "The customer\u2019s AutoPay update goal was completed successfully, with warning acknowledgement, explicit confirmation, required disclosures, and tool-grounded details."
+  }
+]

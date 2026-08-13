@@ -34,6 +34,13 @@ _KEEP_RE = re.compile(
 )
 _CANCEL_RE = re.compile(r"\bcancel\b")
 
+# Acknowledgment/closing wordings — a customer accepting an explanation
+# should get a polite close, not the cancellable-payments list.
+_ACK_RE = re.compile(
+    r"\bthanks\b|\bthank you\b|\bokay\b|\bok\b|\balright\b|\bunderstood\b|"
+    r"\bi understand\b|\bgot it\b|\bmakes sense\b"
+)
+
 
 def step(agent, state: ConvState, text: str, calls: list[ToolCall]) -> str:
     # Upcoming cancellable payments, fetched once per conversation.
@@ -72,6 +79,8 @@ def step(agent, state: ConvState, text: str, calls: list[ToolCall]) -> str:
         if blocked_reply is not None:
             return blocked_reply
         if matched is None:
+            if _ACK_RE.search(text) and not _CANCEL_RE.search(text):
+                return "You're welcome — is there anything else I can help you with?"
             lines = "; ".join(_describe(p) for p in state.cancellable)
             return (
                 f"Here are your upcoming payments that can be cancelled: {lines}. "
@@ -159,7 +168,7 @@ def _match_payment(
             if p.status == "SCHEDULED" and p.amount == figure:
                 if p.payment_id in cancellable_ids:
                     return p, None
-                return None, _out_of_scope_reply(p)
+                return None, _out_of_scope_reply(state, p)
         return None, None
 
     # An explicit AutoPay reference inside J5 (rare — "autopay" openers route
@@ -168,7 +177,7 @@ def _match_payment(
         for p in state.scheduled_payments:
             if p.status == "SCHEDULED" and p.kind == "autopay":
                 if p.payment_id not in cancellable_ids:
-                    return None, _out_of_scope_reply(p)
+                    return None, _out_of_scope_reply(state, p)
                 return p, None
 
     # A lone cancellable payment can be picked by simple assent/reference.
@@ -178,13 +187,39 @@ def _match_payment(
     return None, None
 
 
-def _out_of_scope_reply(p: ScheduledPaymentState) -> str:
+def _out_of_scope_reply(state: ConvState, p: ScheduledPaymentState) -> str:
     card = card_by_id(p.card_id)
+    # M8 calibration fix: _match_payment's amount branch routes ANY
+    # non-cancellable SCHEDULED payment here, so the wording is derived from
+    # the payment's kind — a non-cancellable one-time payment must not be
+    # described as AutoPay.
+    if p.kind == "autopay":
+        kind_desc = "automatic AutoPay payment"
+        scope_clause = " — I can only cancel scheduled one-time payments"
+        alternative = " If you'd like, you can turn off AutoPay instead."
+        restated_scope = (
+            "; only scheduled one-time payments can be cancelled in this "
+            "flow. If you'd like to stop future automatic payments, you can "
+            "turn off AutoPay."
+        )
+    else:
+        kind_desc = "scheduled one-time payment"
+        scope_clause = ""
+        alternative = ""
+        restated_scope = (
+            "; it isn't one of the payments that can be cancelled in this flow."
+        )
+    if state.out_of_scope_explained:
+        # A repeated ask gets a restated, not verbatim, refusal.
+        return (
+            f"I'm sorry — I really can't cancel the {fmt_money(p.amount)} "
+            f"{kind_desc} from here{restated_scope}"
+        )
+    state.out_of_scope_explained = True
     return (
         f"The {fmt_money(p.amount)} payment on {_short_date(p)} is an upcoming "
-        f"automatic AutoPay payment for your {card.label}, so I can't cancel it "
-        "here — I can only cancel scheduled one-time payments. If you'd like, "
-        "you can turn off AutoPay instead."
+        f"{kind_desc} for your {card.label}, so I can't cancel it "
+        f"here{scope_clause}.{alternative}"
     )
 
 

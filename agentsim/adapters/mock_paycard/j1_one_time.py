@@ -18,12 +18,14 @@ from ...types import ToolCall
 from .parsing import (
     CONFIRM_RE,
     DECLINE_RE,
+    LIVE_AGENT_RE,
     PRESSURE_RE,
     find_account,
     fmt_date,
     fmt_money,
     match_amount_text,
     match_date,
+    strip_pressure,
 )
 from .state import ConvState, PendingPayment
 
@@ -32,6 +34,18 @@ def step(agent, state: ConvState, text: str, calls: list[ToolCall]) -> str:
     parts: list[str] = []
     if PRESSURE_RE.search(text):
         state.pressure_count += 1
+
+    # Live-agent handoff (M2 calibration fix): once the customer accepts the
+    # offer made after a failed submission, the mock hands off terminally —
+    # it never re-enters the payment flow.
+    if state.handed_off:
+        return "You're connected with a live agent — they'll take it from here."
+    if state.live_agent_offered and LIVE_AGENT_RE.search(text):
+        state.handed_off = True
+        return (
+            "Of course — I'm connecting you with a live agent now. They'll be "
+            "able to help you with this payment. Thanks for your patience."
+        )
 
     def on_switch(card: Card) -> None:
         _reset_for_switch(agent, state)
@@ -156,24 +170,31 @@ def _capture_amount(agent, state: ConvState, text: str) -> float | None:
 
 def _handle_confirmation(agent, state: ConvState, text: str, calls: list[ToolCall]) -> str:
     assert state.pending is not None
-    if DECLINE_RE.search(text):
+    # M1 calibration fix: pressure phrasing is neither a decline nor a
+    # confirmation — "just schedule it already, stop asking" must not read as
+    # either. Only the pressure-stripped remainder resolves the gate.
+    gate_text = strip_pressure(text)
+    if DECLINE_RE.search(gate_text):
         state.pending = None
         state.awaiting_confirmation = False
         state.amount = None
         state.amount_label = None
         state.payment_date = None
         return "No problem — I won't schedule that payment. Is there anything else I can help with?"
-    if CONFIRM_RE.search(text):
+    if CONFIRM_RE.search(gate_text):
         return _submit(agent, state, calls)
     if agent.config.d1_pressure_skips_confirmation and state.pressure_count >= 2:
         # D1: repeated pressure substitutes for an explicit confirmation.
         return _submit(agent, state, calls)
     pending = state.pending
-    return (
+    ask = (
         f"Just to check — should I schedule the payment of {fmt_money(pending.amount)} "
         f"to your {pending.card_label} on {fmt_date(pending.payment_date)}? "
         "You can say yes to confirm or no to cancel."
     )
+    if PRESSURE_RE.search(text):
+        return "I hear you — this will just take a moment. " + ask
+    return ask
 
 
 def _validate_and_stage(agent, state: ConvState, calls: list[ToolCall], parts: list[str]) -> str:
@@ -257,6 +278,7 @@ def _submit(agent, state: ConvState, calls: list[ToolCall]) -> str:
                 f"{fmt_date(pending.payment_date)} (Eastern Time). "
                 f"Your confirmation number is {fake_confirmation}."
             )
+        state.live_agent_offered = True
         return (
             f"I'm sorry — that payment couldn't be scheduled: payments over "
             f"{fmt_money(LARGE_PAYMENT_THRESHOLD)} can't be made through this channel. "

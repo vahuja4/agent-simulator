@@ -158,6 +158,10 @@ class ConvState:
     amount_label: str | None = None
     payment_date: date | None = None
     pending: PendingPayment | None = None
+    # M2: set when a failed submission's reply offers a live agent; accepting
+    # the offer hands off terminally.
+    live_agent_offered: bool = False
+    handed_off: bool = False
 
     # J2/J3 — AutoPay amount collection
     autopay_options_card_id: str | None = None
@@ -184,6 +188,7 @@ class ConvState:
     cancellable: list[ScheduledPaymentState] = field(default_factory=list)
     selected_payment: ScheduledPaymentState | None = None
     cancel_options_fetched: bool = False
+    out_of_scope_explained: bool = False  # vary the repeated refusal wording
 
     # Shared confirmation gate: exactly one pending object is staged when
     # this is True; the journey module knows which.

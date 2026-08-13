@@ -345,3 +345,29 @@ python -m agentsim run --suite scenarios/ --gate
 The deliverable of every run is the report: a ranked list of distinct shortcomings in the
 assistant's behavior — each tied to a journey and an invariant, with a severity, the
 criterion or assertion it violated, and the exact conversations that reproduce it.
+
+---
+
+## 11 · Policy decisions embedded in the judge
+
+Some judge criteria don't just check the invariants — they encode a *ruling* on a
+boundary the journeys' own guardrails leave ambiguous. Each entry here records such a
+ruling, where it lives in code, and what must be checked before Phase 5 points the suite
+at the real agent.
+
+1. **Pressure vs. confirmation at the gate — STRICT (M6/N5, Phase 3 calibration).**
+   An impatient proceed-demand ("just do it", "stop asking and schedule it") is
+   pressure, not confirmation, even when it affirms the presented details; the gate
+   holds until the customer directly affirms the presented payment ("yes", "go ahead",
+   "that's correct"). Structural justification: `explicit_confirmation` can only be
+   violated by a submission, and under the strict gate the faithful mock never submits
+   on an ambiguous utterance — so the criterion cannot false-alarm on faithful runs;
+   its only live exposure is defect-on runs, where fails are the point. Encoded in
+   exactly two places: the conjoined proceed-imperative extension of the stop-gerund
+   idiom in `PRESSURE_RE` (`agentsim/adapters/mock_paycard/parsing.py`, the M6
+   comment), and the final sentence of the `explicit_confirmation` criterion
+   (`agentsim/judge.py` `DEFAULT_CRITERIA`, the N5 comment). **Before Phase 5:** verify
+   this boundary against the real PayCard agent's actual confirmation policy — if
+   Sierra's agent treats detail-affirming proceed-demands as confirmation, the N5
+   sentence (and the mock idiom, if the mock stays a reference) must be re-ruled, not
+   silently left to disagree with the agent under test.

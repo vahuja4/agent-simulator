@@ -87,3 +87,57 @@ async def test_prompt_carries_transcript_and_trace_with_results(stub_llm):
     content = stub_llm.calls[0]["messages"][0]["content"]
     assert "TRANSCRIPT:" in content and "Customer: pay my card" in content
     assert '"payees"' in content  # tool result payload included
+
+
+# ------------------------------------------------- dynamic criteria (Phase 3)
+
+from agentsim.judge import Criterion  # noqa: E402
+
+EXTRA = Criterion("specialist_x", "An extra trigger-conditioned criterion.")
+
+
+def judge_with_hook(stub_llm, active: bool) -> GeneralJudge:
+    return GeneralJudge(
+        stub_llm, dynamic_criteria=lambda trace: (EXTRA,) if active else ()
+    )
+
+
+async def test_active_dynamic_criterion_joins_prompt_schema_and_verdict(stub_llm):
+    stub_llm.push({
+        "criteria": all_true_criteria()
+        + [{"criterion_id": EXTRA.id, "passed": True, "reasoning": "ok"}],
+        "decision": "continue",
+        "reasoning": "ok",
+    })
+    v = await judge_with_hook(stub_llm, active=True).judge(make_trace())
+    assert v.decision == "continue"
+    assert [c.criterion_id for c in v.criteria][-1] == EXTRA.id
+    call = stub_llm.calls[0]
+    assert EXTRA.id in call["system"]  # batched into the single call
+    assert EXTRA.id in call["schema"]["properties"]["criteria"]["items"][
+        "properties"]["criterion_id"]["enum"]
+
+
+async def test_missing_active_dynamic_criterion_fails_closed(stub_llm):
+    stub_llm.push({"criteria": all_true_criteria(), "decision": "pass", "reasoning": "done"})
+    v = await judge_with_hook(stub_llm, active=True).judge(make_trace())
+    assert v.decision == "fail"
+    extra = [c for c in v.criteria if c.criterion_id == EXTRA.id]
+    assert len(extra) == 1 and extra[0].passed is False
+
+
+async def test_inactive_dynamic_criterion_is_not_demanded(stub_llm):
+    stub_llm.push({"criteria": all_true_criteria(), "decision": "pass", "reasoning": "done"})
+    v = await judge_with_hook(stub_llm, active=False).judge(make_trace())
+    assert v.decision == "pass"
+    assert EXTRA.id not in [c.criterion_id for c in v.criteria]
+    assert EXTRA.id not in stub_llm.calls[0]["system"]
+
+
+async def test_dynamic_criterion_never_shadows_a_base_id(stub_llm):
+    clashing = Criterion("goal_completion", "SHOULD NOT REPLACE THE BASE WORDING")
+    judge = GeneralJudge(stub_llm, dynamic_criteria=lambda trace: (clashing,))
+    stub_llm.push({"criteria": all_true_criteria(), "decision": "pass", "reasoning": "done"})
+    v = await judge.judge(make_trace())
+    assert v.decision == "pass"  # base set unchanged, nothing extra demanded
+    assert "SHOULD NOT REPLACE" not in stub_llm.calls[0]["system"]

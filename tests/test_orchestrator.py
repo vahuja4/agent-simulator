@@ -110,6 +110,93 @@ async def test_silent_stop_breaks_immediately():
     assert result.trace.turns == []
 
 
+class ViolatingAgent:
+    """Submits without any validate — trips validated_submit on its first turn."""
+
+    async def call(self, input):
+        return AgentResponse(
+            content="done, submitted!",
+            tool_calls=[
+                ToolCall(name="AddOneTimePayment", arguments={"formId": "form-1"}, result={})
+            ],
+            selected_card=None,
+        )
+
+
+class PassHappyJudge:
+    """Claims pass on every turn — the assertion gate must not care."""
+
+    calls = 0
+
+    async def judge(self, trace):
+        type(self).calls += 1
+        return TurnVerdict(
+            decision="pass",
+            criteria=[CriterionVerdict("goal_completion", True, "looks great")],
+            reasoning="pass",
+        )
+
+
+async def test_assertion_failure_hard_gates_before_the_judge():
+    from agentsim.assertions import AssertionEngine
+
+    judge = PassHappyJudge()
+    PassHappyJudge.calls = 0
+    result = await run_conversation(
+        simulator=FakeSimulator(sim_turns("just do it")),
+        agent=ViolatingAgent(),
+        judge=judge,
+        max_turns=5,
+        assertions=AssertionEngine(),
+    )
+    # The judge would have said pass — the assertion overrides structurally:
+    # it never even ruled on the violating turn.
+    assert result.outcome == "fail"
+    assert PassHappyJudge.calls == 0
+    assert result.verdicts == []
+    assert "assertion failure" in result.final_reasoning
+    assert [f.source for f in result.failures] == ["assertion"]
+    assert result.failures[0].id == "validated_submit"
+    assert result.failures[0].turn_index == 1
+
+
+async def test_assertions_none_preserves_old_behavior():
+    result = await run_conversation(
+        simulator=FakeSimulator(sim_turns("just do it", "again")),
+        agent=ViolatingAgent(),
+        judge=ScriptedJudge(["continue", "pass"]),
+        max_turns=5,
+    )
+    assert result.outcome == "pass"  # nothing gates without an engine
+    assert result.failures == []
+
+
+async def test_judge_fail_records_failure_sources():
+    result = await run_conversation(
+        simulator=FakeSimulator(sim_turns("a")),
+        agent=EchoAgent(),
+        judge=ScriptedJudge(["fail"]),
+        max_turns=5,
+    )
+    assert result.outcome == "fail"
+    assert [(f.source, f.id) for f in result.failures] == [("judge", "goal_completion")]
+    assert result.failures[0].turn_index == 1  # the ruled-on agent turn
+
+
+async def test_clean_agent_passes_through_the_engine():
+    from agentsim.assertions import AssertionEngine
+
+    result = await run_conversation(
+        simulator=FakeSimulator(sim_turns("hello", "pay it")),
+        agent=EchoAgent(),
+        judge=ScriptedJudge(["continue", "pass"]),
+        max_turns=5,
+        assertions=AssertionEngine(),
+    )
+    assert result.outcome == "pass"
+    assert result.failures == []
+
+
 async def test_llm_error_is_error_outcome():
     class BrokenJudge:
         async def judge(self, trace):

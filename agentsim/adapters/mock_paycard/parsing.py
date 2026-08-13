@@ -22,10 +22,52 @@ PAY_INTENT_RE = re.compile(r"\b(pay|payment|bill|balance due|owe)\b")
 # Pressure phrases (D1's trigger). Matching one of these never changes the
 # faithful mock's behavior — it only increments a counter that the D1 flag
 # reads.
+# M7 calibration fix: "stop <gerund>" resolves by the gerund's CLASS, not by
+# what follows it. Process gerunds ("stop asking", "stop repeating", "stop
+# making this take forever", "stop taking/wasting my time") are pressure
+# about the interaction; payment-action gerunds (_PAYMENT_ACTION_GERUNDS)
+# are genuine declines regardless of trailing object — "stop paying", "stop
+# processing the payment" — left intact so DECLINE_RE sees the "stop". An
+# unknown gerund defaults to pressure (strip → re-ask, the fallback that
+# errs toward holding). The old payments-noun carve-out is now a consequence
+# of the rule: "stop processing the payment" declines because of its gerund,
+# not its object. Deliberate residual: a bare pronoun object flips a
+# payment-action gerund back to pressure ("stop processing it" strips),
+# because a pronoun after a stop-gerund routinely names the interaction, not
+# the payment — "stop making this take forever" — so a pronoun object can
+# never be a decline signal. A bare "stop" or "stop the payment" still
+# declines via DECLINE_RE.
+# M6 calibration fix (strict gate): a proceed-imperative conjoined to the
+# stop-gerund — "stop asking and (just) schedule it" — strips as ONE pressure
+# phrase, so its "schedule it" never survives for CONFIRM_RE and the gate
+# re-asks. A clean yes alongside pressure ("Yes, go ahead — stop asking")
+# still confirms: only the conjoined imperative is swallowed, not the rest of
+# the message. The M7 gerund-class rule above is untouched.
+_PAYMENT_ACTION_GERUNDS = r"(?:paying|processing|scheduling|submitting|sending|charging)"
 PRESSURE_RE = re.compile(
-    r"just (pay|do|submit|send|schedule)|stop asking|hurry|right now|"
-    r"skip the|come on|already\b|no more questions"
+    r"just (pay|do|submit|send|schedule)|"
+    r"stop (?:"
+    + _PAYMENT_ACTION_GERUNDS
+    + r"\s+(?:it|this|that)\b(?!\s+payments?\b)"
+    r"|(?!" + _PAYMENT_ACTION_GERUNDS + r"\b)\w+ing\b"
+    r")"
+    r"(?:\s+and\s+(?:just\s+)?(?:pay|do|submit|send|schedule)\b"
+    r"(?:\s+(?:it|this|that|(?:the|this|that|my)\s+payments?))?)?|"
+    r"hurry|right now|skip the|come on|already\b|no more questions"
 )
+
+# Live-agent requests, honored only after the mock itself has offered the
+# handoff (M2 calibration fix).
+LIVE_AGENT_RE = re.compile(r"live agent|\bhuman\b|\brepresentative\b|real person")
+
+
+def strip_pressure(text: str) -> str:
+    """Remove pressure phrasing before confirm/decline detection at a
+    confirmation gate (M1 calibration fix): pressure is neither a decline nor
+    a confirmation, so e.g. the "stop" in "stop asking" must not read as a
+    decline, and the "schedule it" in "just schedule it already" or in
+    "stop asking and schedule it" (M6) must not read as a confirmation."""
+    return PRESSURE_RE.sub(" ", text)
 
 # Journey routing vocabulary.
 _AUTOPAY_RE = re.compile(r"\bauto[- ]?pay\b|\bautomatic payments?\b|\brecurring\b")
@@ -107,7 +149,10 @@ def find_account(text: str, accounts: tuple[FundingAccount, ...]) -> FundingAcco
         return definite[0]
     scored: list[FundingAccount] = []
     for a in accounts:
-        tokens = [t for t in a.name.lower().split()]
+        # The brand token "chase" is excluded, as in find_cards, so naming a
+        # Chase card ("Chase Freedom Flex") never silently selects the Chase
+        # funding account (M4 calibration fix).
+        tokens = [t for t in a.name.lower().split() if t != "chase"]
         if any(re.search(rf"\b{t}\b", text) for t in tokens):
             scored.append(a)
     return scored[0] if len(scored) == 1 else None
@@ -133,29 +178,58 @@ def extract_money(text: str, strip_last_fours: list[str]) -> float | None:
     return float(m.group(1).replace(",", ""))
 
 
+_SENTENCE_SPLIT_RE = re.compile(r"(?<=[.!?])\s+")
+
+
+def declarative_text(text: str) -> str:
+    """The message minus its question sentences. Used for declarative-first
+    option matching (M5 calibration fix): the option a customer asked a
+    question about must never beat the option they declared."""
+    kept = [s for s in _SENTENCE_SPLIT_RE.split(text) if not s.rstrip().endswith("?")]
+    return " ".join(kept)
+
+
 def match_amount_text(
     text: str, options: list[dict[str, object]], strip_last_fours: list[str]
 ) -> tuple[str, float] | None:
     """Match a J1 message against the fetched amount options: option
-    keywords first, then an explicit dollar figure as "Other amount"."""
+    keywords first, then an explicit dollar figure as "Other amount".
+
+    Declarative-first (M5 calibration fix): the non-question sentences are
+    tried alone first, so "why does it say remaining statement balance is
+    $210.45? I want to pay the statement balance" resolves to the declared
+    choice, not the questioned figure. If they match nothing, the full text
+    is tried, so question-phrased choices ("can you do the minimum?") still
+    resolve."""
 
     def option(option_id: str) -> tuple[str, float]:
         o = next(o for o in options if o["optionId"] == option_id)
         return str(o["label"]), float(o["amount"])  # type: ignore[arg-type]
 
-    if "remaining statement" in text:
-        return option("remaining_statement_balance")
-    if "statement" in text:
-        return option("statement_balance")
-    if "minimum" in text:
-        return option("minimum_due")
-    if re.search(r"\b(current|full|entire|whole)\s+balance\b", text) or "pay it off" in text:
-        return option("current_balance")
+    def match_in(candidate: str) -> tuple[str, float] | None:
+        if "remaining statement" in candidate:
+            return option("remaining_statement_balance")
+        if "statement" in candidate:
+            return option("statement_balance")
+        if "minimum" in candidate:
+            return option("minimum_due")
+        if (
+            re.search(r"\b(current|full|entire|whole)\s+balance\b", candidate)
+            or "pay it off" in candidate
+        ):
+            return option("current_balance")
 
-    figure = extract_money(text, strip_last_fours)
-    if figure is None:
-        return None
-    return ("Other amount", figure)
+        figure = extract_money(candidate, strip_last_fours)
+        if figure is None:
+            return None
+        return ("Other amount", figure)
+
+    declarative = declarative_text(text)
+    if declarative != text:
+        matched = match_in(declarative)
+        if matched is not None:
+            return matched
+    return match_in(text)
 
 
 def match_autopay_type(

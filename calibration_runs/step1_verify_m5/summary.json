@@ -1,0 +1,19 @@
+[
+  {
+    "scenario": "j1-card-switch-stale-options",
+    "journey": "J1",
+    "outcome": "pass",
+    "user_turns": 5,
+    "agent_turns": 5,
+    "max_turns": 14,
+    "tools": [
+      "PayeeList",
+      "FundingAccountPicker",
+      "AddOptionsOneTimePayment",
+      "AddOptionsOneTimePayment",
+      "AddValidateOneTimePayment",
+      "AddOneTimePayment"
+    ],
+    "final_reasoning": "The customer's payment goal was completed successfully, and all evaluated criteria have held throughout the conversation."
+  }
+]

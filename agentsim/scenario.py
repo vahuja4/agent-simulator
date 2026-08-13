@@ -4,14 +4,16 @@ A scenario is one test case: journey, persona, goal, the slice of fixture
 knowledge the simulated customer is allowed to know, the judge's
 success criteria, max_turns, and a ``tool_assertions`` block.
 
-The assertion ENGINE is Phase 3 — this module only carries and validates the
-assertions (closed vocabulary, clear errors on load); nothing enforces them
-at runtime yet.
+The ``tool_assertions`` block keeps its closed vocabulary with clear errors
+on load. The built-in checks (validated_submit, amount_in_options,
+refetch_after_card_switch) always run — a scenario listing them documents
+what it targets; only must_not_call entries add engine behavior.
 
 ``run_scenario`` wires a loaded scenario to the existing pieces: the
 UserSimulator gets the persona/goal and the fixture-filtered knowledge; the
 GeneralJudge gets one extra batched criterion holding the scenario's success
-criteria (the per-invariant specialist criteria arrive in Phase 3).
+criteria plus the trigger-conditioned specialists (criteria.py); the
+AssertionEngine hard-gates every turn in the orchestrator.
 """
 
 from __future__ import annotations
@@ -25,6 +27,8 @@ import yaml
 from fixtures.paycard import CARDS, FUNDING_ACCOUNTS, Card, FundingAccount
 
 from . import registry
+from .assertions import AssertionEngine
+from .criteria import active_criteria
 from .judge import DEFAULT_CRITERIA, Criterion, GeneralJudge
 from .llm import LLMClient
 from .orchestrator import RunResult, run_conversation
@@ -235,16 +239,41 @@ def build_simulator(scenario: Scenario, llm: LLMClient) -> UserSimulator:
     )
 
 
+def build_assertions(scenario: Scenario) -> AssertionEngine:
+    """The deterministic engine for this scenario. The pairing, amount, and
+    re-fetch checks are built-in invariants and always on; a scenario's
+    validated_submit / amount_in_options / refetch_after_card_switch entries
+    are documentation of what it targets — only must_not_call adds behavior."""
+    return AssertionEngine(
+        must_not_call=[
+            a.fields["tool"] for a in scenario.tool_assertions if a.type == "must_not_call"
+        ]
+    )
+
+
 def build_judge(scenario: Scenario, llm: LLMClient) -> GeneralJudge:
     """The general judge plus ONE extra batched criterion carrying the
-    scenario's success criteria. Per-invariant specialist criteria are
-    Phase 3."""
+    scenario's success criteria, plus the trigger-conditioned specialist
+    criteria (Phase 3) via the dynamic hook — still one LLM call per turn."""
     scenario_criterion = Criterion(
         "scenario_success",
-        "Scenario-specific success criteria (ALL must hold): "
-        + " ".join(f"({i + 1}) {s}" for i, s in enumerate(scenario.success_criteria)),
+        "Scenario-specific success criteria describing the state required by "
+        "the END of the conversation (ALL must hold by then): "
+        + " ".join(f"({i + 1}) {s}" for i, s in enumerate(scenario.success_criteria))
+        + " While the conversation is still in progress, mark passed=true "
+        "unless a criterion has already been violated or become impossible "
+        "to satisfy; an in-progress conversation that simply has not reached "
+        "the end state yet is NOT a violation. A criterion that requires "
+        "something to happen before a later event (e.g. a warning before "
+        "confirmation) is violated only when that later event has occurred "
+        "without it — i.e. only when the criterion can no longer be "
+        "satisfied.",
     )
-    return GeneralJudge(llm, criteria=(*DEFAULT_CRITERIA, scenario_criterion))
+    return GeneralJudge(
+        llm,
+        criteria=(*DEFAULT_CRITERIA, scenario_criterion),
+        dynamic_criteria=active_criteria,
+    )
 
 
 async def run_scenario(
@@ -266,4 +295,5 @@ async def run_scenario(
         judge=build_judge(scenario, llm),
         conversation_id=conversation_id or scenario.name,
         max_turns=scenario.max_turns,
+        assertions=build_assertions(scenario),
     )

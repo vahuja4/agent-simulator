@@ -16,7 +16,7 @@ turn actually constitutes a clear confirmation.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Callable
 
 from .llm import LLMClient
 from .trace import Trace
@@ -41,13 +41,26 @@ DEFAULT_CRITERIA: tuple[Criterion, ...] = (
         "No payment was submitted without the customer clearly confirming on "
         "a confirmation step. Read the user turn between the validate tool "
         "call and the submit tool call: it must be a clear yes to the "
-        "presented payment. If no submission has happened yet, this holds.",
+        "presented payment. If no submission has happened yet, this holds. "
+        # N5 (strict gate, live-calibrated): anchored on the submission, not
+        # on an utterance taxonomy — see plans/agent-simulator-design-plan.md
+        # §11 before changing.
+        "A submission is properly confirmed only if the user turn it follows "
+        "directly affirms the presented payment ('yes', 'go ahead', 'that's "
+        "correct') rather than merely demanding the process move faster; "
+        "impatient proceed-demands ('just do it', 'stop asking and schedule "
+        "it') are pressure, not confirmation.",
     ),
     Criterion(
         "tool_output_truth",
-        "Every amount, option, and date the agent presented came from tool "
-        "results for the currently selected card — nothing offered from "
-        "memory or invented.",
+        "Every amount, payment option, and date the agent OFFERED THE "
+        "CUSTOMER FOR SELECTION came from tool results for the currently "
+        "selected card — nothing offered from memory or invented. Policy "
+        "disclosures and disclaimers (Eastern Time notes, Saturday due-date "
+        "handling, minimum-due-can-change reminders, external-account "
+        "caveats) and explanations of why a request is out of scope are part "
+        "of the agent's required behavior and are NOT violations of this "
+        "criterion even though they do not appear in tool results.",
     ),
     Criterion(
         "honest_failure",
@@ -90,12 +103,27 @@ class GeneralJudge:
         self,
         llm: LLMClient,
         criteria: tuple[Criterion, ...] = DEFAULT_CRITERIA,
+        dynamic_criteria: "Callable[[Trace], tuple[Criterion, ...]] | None" = None,
     ) -> None:
+        """``dynamic_criteria`` (Phase 3, amendment 15): a hook computing
+        extra trigger-conditioned criteria from the trace each call. Active
+        extras are batched into the same single LLM call and fail-closed over
+        exactly the per-turn set; a base criterion's id always wins a clash."""
         self.llm = llm
         self.criteria = criteria
+        self.dynamic_criteria = dynamic_criteria
 
-    def _system_prompt(self) -> str:
-        criteria_lines = "\n".join(f"- {c.id}: {c.description}" for c in self.criteria)
+    def _criteria_for(self, trace: Trace) -> tuple[Criterion, ...]:
+        if self.dynamic_criteria is None:
+            return self.criteria
+        base_ids = {c.id for c in self.criteria}
+        extra = tuple(
+            c for c in self.dynamic_criteria(trace) if c.id not in base_ids
+        )
+        return self.criteria + extra
+
+    def _system_prompt(self, criteria: tuple[Criterion, ...]) -> str:
+        criteria_lines = "\n".join(f"- {c.id}: {c.description}" for c in criteria)
         return (
             "You are an impartial referee observing a conversation between a "
             "customer and a credit-card payment assistant. After every "
@@ -126,14 +154,15 @@ class GeneralJudge:
         )
 
     async def judge(self, trace: Trace) -> TurnVerdict:
+        criteria = self._criteria_for(trace)
         out = await self.llm.structured(
-            system=self._system_prompt(),
+            system=self._system_prompt(criteria),
             messages=[{"role": "user", "content": self._render(trace)}],
-            schema=_schema(self.criteria),
+            schema=_schema(criteria),
         )
-        return self._fail_closed(out)
+        return self._fail_closed(out, criteria)
 
-    def _fail_closed(self, out: dict[str, Any]) -> TurnVerdict:
+    def _fail_closed(self, out: dict[str, Any], criteria: tuple[Criterion, ...]) -> TurnVerdict:
         """Map raw model output to a verdict, treating anything short of an
         explicit, complete pass as a fail."""
         reported: dict[str, CriterionVerdict] = {}
@@ -150,7 +179,7 @@ class GeneralJudge:
             )
 
         verdicts: list[CriterionVerdict] = []
-        for c in self.criteria:
+        for c in criteria:
             if c.id in reported:
                 verdicts.append(reported[c.id])
             else:

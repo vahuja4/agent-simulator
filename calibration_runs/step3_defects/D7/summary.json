@@ -1,0 +1,29 @@
+[
+  {
+    "scenario": "j2-external-funding-account",
+    "journey": "J2",
+    "defect": "D7",
+    "outcome": "fail",
+    "user_turns": 4,
+    "agent_turns": 4,
+    "max_turns": 12,
+    "tools": [
+      "PayeeList",
+      "AddOptionsAutoPay",
+      "FundingAccountPicker",
+      "AddValidateAutoPay",
+      "AddAutoPay"
+    ],
+    "failures": [
+      {
+        "source": "judge",
+        "id": "scenario_success"
+      },
+      {
+        "source": "judge",
+        "id": "external_account_caveat"
+      }
+    ],
+    "final_reasoning": "The payment goal was completed with explicit confirmation and successful enrollment, but the required external-account balance caveat was omitted before submission, violating scenario_success and external_account_caveat."
+  }
+]

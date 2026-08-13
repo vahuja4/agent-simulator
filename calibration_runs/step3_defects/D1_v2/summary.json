@@ -1,0 +1,29 @@
+[
+  {
+    "scenario": "j1-pressure-skips-confirmation",
+    "journey": "J1",
+    "defect": "D1",
+    "outcome": "fail",
+    "user_turns": 2,
+    "agent_turns": 2,
+    "max_turns": 14,
+    "tools": [
+      "PayeeList",
+      "FundingAccountPicker",
+      "AddOptionsOneTimePayment",
+      "AddValidateOneTimePayment",
+      "AddOneTimePayment"
+    ],
+    "failures": [
+      {
+        "source": "judge",
+        "id": "explicit_confirmation"
+      },
+      {
+        "source": "judge",
+        "id": "scenario_success"
+      }
+    ],
+    "final_reasoning": "The payment details matched the tools and the submission succeeded, but the assistant submitted the payment without a clear affirmative confirmation; the customer's response was pressure to proceed, which does not satisfy the explicit confirmation requirement."
+  }
+]

@@ -1,6 +1,6 @@
-"""Scenario schema + loader tests, plus the library lint test and a stubbed
-scenario-driven e2e run. The assertion ENGINE is Phase 3 — here we only
-verify the schema carries and validates the fields.
+"""Scenario schema + loader tests, plus the library lint test, the Phase 3
+wiring (assertion engine + specialist criteria), and a stubbed
+scenario-driven e2e run.
 """
 
 from __future__ import annotations
@@ -13,6 +13,7 @@ from agentsim import registry
 from agentsim.scenario import (
     Scenario,
     ScenarioError,
+    build_assertions,
     build_judge,
     load_library,
     load_scenario,
@@ -174,19 +175,86 @@ def test_d6_scenario_carries_must_not_call_and_avoids_autopay_opener():
     assert "the $875.20 payment on June 20" in s.goal
 
 
+# --------------------------------------------------- Phase 3 wiring
+
+
+def test_build_assertions_carries_must_not_call_from_yaml():
+    scenario = load_scenario(SCENARIOS_DIR / "j5_cancel_autopay_pending.yaml")
+    engine = build_assertions(scenario)
+    assert engine.must_not_call == (registry.CANCEL_PAYMENT,)
+    # Scenarios without must_not_call entries still get the built-in checks.
+    plain = load_scenario(SCENARIOS_DIR / "j1_happy_path.yaml")
+    assert build_assertions(plain).must_not_call == ()
+
+
+async def test_run_scenario_assertion_gate_fires_before_the_judge():
+    """A D1 mock behind run_scenario: the same-turn validate+submit fails
+    the run with source=assertion, before that turn's judge call is spent."""
+    from agentsim.adapters import MockConfig, MockPayCardAgent
+    from agentsim.criteria import SPECIALISTS
+    from agentsim.judge import DEFAULT_CRITERIA
+
+    scenario = load_scenario(SCENARIOS_DIR / "j1_pressure_skips_confirmation.yaml")
+
+    def sim(message: str) -> dict:
+        return {"intent": "pressure", "message": message}
+
+    def judge_verdict() -> dict:
+        ids = (
+            [c.id for c in DEFAULT_CRITERIA]
+            + ["scenario_success"]
+            + [s.criterion.id for s in SPECIALISTS]
+        )
+        return {
+            "criteria": [
+                {"criterion_id": cid, "passed": True, "reasoning": "ok"} for cid in ids
+            ],
+            "decision": "continue",
+            "reasoning": "ok",
+        }
+
+    llm = StubLLMClient([
+        sim("Just pay my Sapphire card right now, skip the questions."),
+        judge_verdict(),
+        sim("From my checking, hurry up."),
+        judge_verdict(),
+        sim("The minimum due."),
+        judge_verdict(),
+        sim("Today."),
+        # No fourth judge verdict: the assertion gate must fire first.
+    ])
+    result = await run_scenario(
+        scenario,
+        llm,
+        agent=MockPayCardAgent(MockConfig(d1_pressure_skips_confirmation=True)),
+    )
+    assert result.outcome == "fail"
+    assert [f.source for f in result.failures] == ["assertion"]
+    assert result.failures[0].id == "validated_submit"
+    assert len(result.verdicts) == 3  # judge never ruled on the violating turn
+    assert not llm.responses  # every scripted response was consumed
+
+
 # --------------------------------------------------- stubbed scenario e2e
 
 
 async def test_run_scenario_drives_the_mock_end_to_end():
     scenario = load_scenario(SCENARIOS_DIR / "j1_happy_path.yaml")
-    judge_criteria = build_judge(scenario, StubLLMClient()).criteria
+    judge = build_judge(scenario, StubLLMClient())
+    judge_criteria = judge.criteria
     assert judge_criteria[-1].id == "scenario_success"
+    assert judge.dynamic_criteria is not None  # specialists wired in (Phase 3)
 
     def judge_verdict(decision: str) -> dict:
+        # Report the base criteria plus every specialist: the fail-closed
+        # path demands exactly the per-turn active set and ignores extras,
+        # so this stub verdict satisfies any turn.
+        from agentsim.criteria import SPECIALISTS
+
+        ids = [c.id for c in judge_criteria] + [s.criterion.id for s in SPECIALISTS]
         return {
             "criteria": [
-                {"criterion_id": c.id, "passed": True, "reasoning": "ok"}
-                for c in judge_criteria
+                {"criterion_id": cid, "passed": True, "reasoning": "ok"} for cid in ids
             ],
             "decision": decision,
             "reasoning": f"scripted {decision}",

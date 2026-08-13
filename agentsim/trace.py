@@ -12,15 +12,19 @@ independently of any judge's conclusions. ``outcome`` is a plain string.
 What future checks need from this schema
 ----------------------------------------
 Tool *calls only* (names + arguments + ordering) suffice for:
-  - validate→submit pairing (a submit tool requires a prior successful
-    validate for the same card/amount/date),
-  - amount ∈ options fetched for the currently selected card,
+  - validate→submit pairing ORDERING (a submit tool requires a prior
+    validate, with a user turn between them),
   - card switch → options re-fetched (via ``selected_card`` per turn).
 
 Tool *results* are additionally required for:
   - honest failure handling (reply text vs. the submit result's status),
   - "successful" validate (the pairing check must read the validate result's
     status; a blocking error poisons the pair),
+  - the pair's identity match (the staged formId/token lives in the validate
+    RESULT; without results the pairing degrades to argument-field overlap
+    or ordering alone),
+  - amount ∈ options for the currently selected card (the options exist only
+    in the options tool's result),
   - status-code-overrides-warnings,
   - tool-output truth (amounts presented must appear in the options result).
 
