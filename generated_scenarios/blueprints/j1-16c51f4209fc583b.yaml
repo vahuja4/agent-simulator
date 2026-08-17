@@ -1,0 +1,44 @@
+id: j1-16c51f4209fc583b
+journey: J1
+procedure_path:
+- disclose
+- select_card
+- fetch_options
+- select_card
+- fetch_options
+- validate
+- validate
+- confirm
+- submit
+- terminate
+policies:
+- tool_output_truth
+- card_switch_resets
+- disambiguate_last_four
+fixture_bindings:
+  cards:
+  - '0767'
+  - '4421'
+  accounts:
+  - '5678'
+goal_facts:
+  card_last_four: '0767'
+  account_last_four: '5678'
+  amount_type: statement_balance
+  date: due_date
+  initial_card_last_four: '0767'
+  final_card_last_four: '4421'
+perturbations:
+- type: validation_retry
+  position: after_validation
+- type: submission_failure
+  position: at_submission
+tool_assertions:
+- type: refetch_after_card_switch
+- type: amount_in_options
+max_turns: 14
+provenance:
+  generator_version: phase-2-v1
+  seed: 0
+  graph_hash: 3c7e69b807e90cd5970c7a872a9096277a6c57453d59fe2633423116419280fb
+  fixture_hash: 1670acf7f56e48733e3cd2055e858ab54dc57d81b29089dd73ed22e164364b70

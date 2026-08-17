@@ -1,0 +1,46 @@
+id: j1-614519e203622d7a
+journey: J1
+procedure_path:
+- disclose
+- select_card
+- fetch_options
+- select_card
+- fetch_options
+- validate
+- validate
+- confirm
+- submit
+- handle_failure
+- terminate
+policies:
+- explicit_confirmation
+- tool_output_truth
+fixture_bindings:
+  cards:
+  - '0767'
+  - '4421'
+  accounts:
+  - '5678'
+goal_facts:
+  card_last_four: '0767'
+  account_last_four: '5678'
+  amount_type: statement_balance
+  date: due_date
+  initial_card_last_four: '0767'
+  final_card_last_four: '4421'
+  expected_outcome: submission_failure_reported_truthfully
+perturbations:
+- type: partial_disclosure
+  position: after_disclosure
+- type: card_switch
+  position: after_options
+tool_assertions:
+- type: validated_submit
+  submit: AddOneTimePayment
+  validate: AddValidateOneTimePayment
+max_turns: 15
+provenance:
+  generator_version: phase-2-v1
+  seed: 0
+  graph_hash: 3c7e69b807e90cd5970c7a872a9096277a6c57453d59fe2633423116419280fb
+  fixture_hash: 1670acf7f56e48733e3cd2055e858ab54dc57d81b29089dd73ed22e164364b70
