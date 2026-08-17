@@ -15,7 +15,7 @@ from fixtures.paycard import CARDS, FUNDING_ACCOUNTS
 
 from .blueprint import Blueprint, FixtureBindings, Perturbation, Provenance, dump_blueprint
 from .policies import POLICIES, Policy
-from .sample import sample_blueprints, stratum_counts
+from .sample import behavioral_representatives, sample_blueprints, stratum_counts
 from .validator import BlueprintValidationError, BlueprintValidator, _fixture_predicate
 
 GENERATOR_VERSION = "phase-2-v1"
@@ -99,6 +99,7 @@ def write_generation(
     """Enumerate J1, write all blueprints, and record a reproducible sample."""
     validator = validator or BlueprintValidator()
     blueprints = enumerate_blueprints(validator=validator, seed=seed)
+    representatives = behavioral_representatives(blueprints)
     sample = sample_blueprints(blueprints, seed=seed, per_stratum=per_stratum)
     root = Path(output_root)
     blueprint_dir = root / "blueprints"
@@ -120,11 +121,14 @@ def write_generation(
         "max_perturbations_per_blueprint": MAX_PERTURBATIONS,
         "counts": {
             "deduped_space": len(blueprints),
+            "behavioral_classes": len(representatives),
             "sample": len(sample),
         },
+        "sampling_unit": "behavioral_class",
         "per_stratum_counts": counts,
         "sample_per_stratum": per_stratum,
         "sample_ids": [blueprint.id for blueprint in sample],
+        "realized_scenarios": [],
     }
     root.mkdir(parents=True, exist_ok=True)
     (root / "manifest.json").write_text(

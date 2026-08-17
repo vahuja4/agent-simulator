@@ -9,7 +9,11 @@ from scenario_synthesis.enumerate import (
     write_generation,
 )
 from scenario_synthesis.policies import POLICIES
-from scenario_synthesis.sample import sample_blueprints
+from scenario_synthesis.sample import (
+    behavioral_class_key,
+    behavioral_representatives,
+    sample_blueprints,
+)
 from scenario_synthesis.validator import BlueprintValidator
 
 
@@ -79,3 +83,24 @@ def test_manifest_sample_is_reproduced_from_seed(tmp_path: Path) -> None:
     assert loaded == manifest
     assert [blueprint.id for blueprint in reproduced] == loaded["sample_ids"]
     assert loaded["counts"]["deduped_space"] == len(blueprints)
+    assert loaded["counts"]["behavioral_classes"] == len(
+        behavioral_representatives(blueprints)
+    )
+    assert loaded["sampling_unit"] == "behavioral_class"
+    assert len({behavioral_class_key(item) for item in reproduced}) == len(reproduced)
+
+
+def test_behavioral_classes_choose_maximal_policy_representatives() -> None:
+    blueprints = enumerate_blueprints()
+    representatives = behavioral_representatives(blueprints)
+    policies_by_class: dict[str, list[tuple[str, ...]]] = {}
+    for blueprint in blueprints:
+        policies_by_class.setdefault(behavioral_class_key(blueprint), []).append(
+            blueprint.policies
+        )
+
+    assert len(blueprints) == 3748
+    assert len(representatives) == 353
+    for representative in representatives:
+        policies = policies_by_class[behavioral_class_key(representative)]
+        assert len(representative.policies) == max(map(len, policies))

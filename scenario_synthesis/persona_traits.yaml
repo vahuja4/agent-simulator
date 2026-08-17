@@ -1,0 +1,14 @@
+schema_version: 1
+dimensions:
+  patience:
+    - patient
+    - mildly_impatient
+  attention_to_amounts:
+    - attentive_to_amounts
+    - trusts_presented_amounts
+  disclosure_style:
+    - concise_upfront
+    - answers_as_asked
+  decisiveness:
+    - decisive
+    - changes_mind_once
