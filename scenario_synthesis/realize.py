@@ -11,7 +11,7 @@ from typing import Any
 import yaml
 
 from agentsim import registry
-from agentsim.llm import LLMClient
+from agentsim.llm import LLMClient, LLMTruncationError
 
 from .blueprint import Blueprint
 from .sample import behavioral_class_key, behavioral_representatives
@@ -92,19 +92,19 @@ async def realize_blueprint(
         prompt = _prompt(blueprint)
         if rejection is not None:
             prompt += f"\nThe prior output was rejected: {rejection}. Correct it."
-        raw = await llm.structured(
-            system=(
-                "Realize only the supplied scenario facts. Do not invent numbers, "
-                "identifiers, dates, accounts, amounts, tools, or persona traits."
-            ),
-            messages=[{"role": "user", "content": prompt}],
-            schema=schema,
-            effort="high",
-            max_tokens=2048,
-        )
         try:
+            raw = await llm.structured(
+                system=(
+                    "Realize only the supplied scenario facts. Do not invent numbers, "
+                    "identifiers, dates, accounts, amounts, tools, or persona traits."
+                ),
+                messages=[{"role": "user", "content": prompt}],
+                schema=schema,
+                effort="none",
+                max_tokens=8192 if attempt == 0 else 16384,
+            )
             return build_scenario(blueprint, raw, whitelist=whitelist)
-        except RealizationError as exc:
+        except (RealizationError, LLMTruncationError) as exc:
             rejection = str(exc)
             if attempt == 1:
                 raise
@@ -158,10 +158,10 @@ async def realize_catalog(
     """Realize exactly one maximal-policy member of every behavior class."""
     representatives = behavioral_representatives(blueprints)
     entries: list[dict[str, str]] = []
-    paths: list[Path] = []
+    realized: list[tuple[dict[str, Any], Blueprint]] = []
     for blueprint in representatives:
         scenario = await realize_blueprint(blueprint, llm)
-        paths.append(write_scenario(scenario, blueprint))
+        realized.append((scenario, blueprint))
         entries.append(
             {
                 "scenario_id": blueprint.id,
@@ -169,6 +169,13 @@ async def realize_catalog(
                 "behavioral_class_key": behavioral_class_key(blueprint),
             }
         )
+
+    expected_names = {f"{blueprint.id}.yaml" for _, blueprint in realized}
+    DEFAULT_YAML_DIR.mkdir(parents=True, exist_ok=True)
+    for stale in sorted(DEFAULT_YAML_DIR.glob("*.yaml")):
+        if stale.name not in expected_names:
+            stale.unlink()
+    paths = [write_scenario(scenario, blueprint) for scenario, blueprint in realized]
     manifest = json.loads(DEFAULT_MANIFEST.read_text())
     manifest["realized_scenarios"] = entries
     DEFAULT_MANIFEST.write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n")

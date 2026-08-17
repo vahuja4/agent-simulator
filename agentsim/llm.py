@@ -25,6 +25,10 @@ class LLMError(Exception):
     """A harness LLM call failed in a way the caller must treat as a failure."""
 
 
+class LLMTruncationError(LLMError):
+    """The model exhausted its completion budget before finishing output."""
+
+
 class LLMClient(Protocol):
     """The one small interface the simulator and judge depend on — tests
     stub it; production uses OpenAILLM."""
@@ -89,7 +93,7 @@ async def structured(
     if choice.message.refusal:
         raise LLMError(f"model refused the request: {choice.message.refusal}")
     if choice.finish_reason == "length":
-        raise LLMError("model output truncated at max_completion_tokens")
+        raise LLMTruncationError("model output truncated at max_completion_tokens")
 
     text = choice.message.content
     if not text:

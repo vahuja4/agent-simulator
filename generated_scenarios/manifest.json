@@ -4,6 +4,1358 @@
     "deduped_space": 3748,
     "sample": 27
   },
+  "dry_run_summary": {
+    "candidates": 27,
+    "defect_sensitive": 0,
+    "faithful_classifications": {
+      "agent_fail": 0,
+      "agent_pass": 0,
+      "error": 27,
+      "simulator_invalid": 0
+    },
+    "solvable": 0,
+    "targeted_defect_classifications": {
+      "agent_fail": 0,
+      "agent_pass": 0,
+      "error": 27,
+      "simulator_invalid": 0
+    }
+  },
+  "dry_runs": [
+    {
+      "blueprint_id": "j1-6fd3cce8c9eff872",
+      "candidate_id": "j1-6fd3cce8c9eff872",
+      "defect_sensitive": false,
+      "runs": [
+        {
+          "classification": "error",
+          "configuration": "faithful",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised APIConnectionError: Connection error.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        },
+        {
+          "classification": "error",
+          "configuration": "targeted_defect",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [
+            "d1_same_turn_after_validation",
+            "d1_submit_on_reask",
+            "d3_false_success_on_failed_submit"
+          ],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised APIConnectionError: Connection error.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        }
+      ],
+      "solvable": false
+    },
+    {
+      "blueprint_id": "j1-1a8cef237cb9a615",
+      "candidate_id": "j1-1a8cef237cb9a615",
+      "defect_sensitive": false,
+      "runs": [
+        {
+          "classification": "error",
+          "configuration": "faithful",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised APIConnectionError: Connection error.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        },
+        {
+          "classification": "error",
+          "configuration": "targeted_defect",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [
+            "d1_same_turn_after_validation",
+            "d1_submit_on_reask",
+            "d2_stale_options_after_card_switch",
+            "d3_false_success_on_failed_submit"
+          ],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised APIConnectionError: Connection error.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        }
+      ],
+      "solvable": false
+    },
+    {
+      "blueprint_id": "j1-82b14c01dcd19612",
+      "candidate_id": "j1-82b14c01dcd19612",
+      "defect_sensitive": false,
+      "runs": [
+        {
+          "classification": "error",
+          "configuration": "faithful",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised APIConnectionError: Connection error.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        },
+        {
+          "classification": "error",
+          "configuration": "targeted_defect",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [
+            "d1_same_turn_after_validation",
+            "d1_submit_on_reask",
+            "d2_stale_options_after_card_switch",
+            "d3_false_success_on_failed_submit",
+            "d5_silent_card_disambiguation"
+          ],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised APIConnectionError: Connection error.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        }
+      ],
+      "solvable": false
+    },
+    {
+      "blueprint_id": "j1-633947b18615197d",
+      "candidate_id": "j1-633947b18615197d",
+      "defect_sensitive": false,
+      "runs": [
+        {
+          "classification": "error",
+          "configuration": "faithful",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised APIConnectionError: Connection error.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        },
+        {
+          "classification": "error",
+          "configuration": "targeted_defect",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [
+            "d1_same_turn_after_validation",
+            "d1_submit_on_reask",
+            "d2_stale_options_after_card_switch",
+            "d3_false_success_on_failed_submit",
+            "d5_silent_card_disambiguation"
+          ],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised APIConnectionError: Connection error.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        }
+      ],
+      "solvable": false
+    },
+    {
+      "blueprint_id": "j1-df7bba79881e74dc",
+      "candidate_id": "j1-df7bba79881e74dc",
+      "defect_sensitive": false,
+      "runs": [
+        {
+          "classification": "error",
+          "configuration": "faithful",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised APIConnectionError: Connection error.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        },
+        {
+          "classification": "error",
+          "configuration": "targeted_defect",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [
+            "d1_same_turn_after_validation",
+            "d1_submit_on_reask",
+            "d2_stale_options_after_card_switch",
+            "d3_false_success_on_failed_submit"
+          ],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised APIConnectionError: Connection error.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        }
+      ],
+      "solvable": false
+    },
+    {
+      "blueprint_id": "j1-f09de7c5aa3cdf9f",
+      "candidate_id": "j1-f09de7c5aa3cdf9f",
+      "defect_sensitive": false,
+      "runs": [
+        {
+          "classification": "error",
+          "configuration": "faithful",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised APIConnectionError: Connection error.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        },
+        {
+          "classification": "error",
+          "configuration": "targeted_defect",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [
+            "d1_same_turn_after_validation",
+            "d1_submit_on_reask",
+            "d2_stale_options_after_card_switch",
+            "d3_false_success_on_failed_submit"
+          ],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised APIConnectionError: Connection error.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        }
+      ],
+      "solvable": false
+    },
+    {
+      "blueprint_id": "j1-5cbd3ff623f7bab9",
+      "candidate_id": "j1-5cbd3ff623f7bab9",
+      "defect_sensitive": false,
+      "runs": [
+        {
+          "classification": "error",
+          "configuration": "faithful",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised APIConnectionError: Connection error.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        },
+        {
+          "classification": "error",
+          "configuration": "targeted_defect",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [
+            "d1_same_turn_after_validation",
+            "d1_submit_on_reask",
+            "d2_stale_options_after_card_switch",
+            "d3_false_success_on_failed_submit"
+          ],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised APIConnectionError: Connection error.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        }
+      ],
+      "solvable": false
+    },
+    {
+      "blueprint_id": "j1-e10080bbf91eba03",
+      "candidate_id": "j1-e10080bbf91eba03",
+      "defect_sensitive": false,
+      "runs": [
+        {
+          "classification": "error",
+          "configuration": "faithful",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised APIConnectionError: Connection error.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        },
+        {
+          "classification": "error",
+          "configuration": "targeted_defect",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [
+            "d1_same_turn_after_validation",
+            "d1_submit_on_reask",
+            "d2_stale_options_after_card_switch",
+            "d3_false_success_on_failed_submit",
+            "d5_silent_card_disambiguation"
+          ],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised APIConnectionError: Connection error.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        }
+      ],
+      "solvable": false
+    },
+    {
+      "blueprint_id": "j1-38b93bf6b74fd63c",
+      "candidate_id": "j1-38b93bf6b74fd63c",
+      "defect_sensitive": false,
+      "runs": [
+        {
+          "classification": "error",
+          "configuration": "faithful",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised APIConnectionError: Connection error.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        },
+        {
+          "classification": "error",
+          "configuration": "targeted_defect",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [
+            "d1_same_turn_after_validation",
+            "d1_submit_on_reask",
+            "d2_stale_options_after_card_switch",
+            "d3_false_success_on_failed_submit"
+          ],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised APIConnectionError: Connection error.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        }
+      ],
+      "solvable": false
+    },
+    {
+      "blueprint_id": "j1-51f7838c30dee465",
+      "candidate_id": "j1-51f7838c30dee465",
+      "defect_sensitive": false,
+      "runs": [
+        {
+          "classification": "error",
+          "configuration": "faithful",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised APIConnectionError: Connection error.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        },
+        {
+          "classification": "error",
+          "configuration": "targeted_defect",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [
+            "d1_same_turn_after_validation",
+            "d1_submit_on_reask",
+            "d2_stale_options_after_card_switch",
+            "d3_false_success_on_failed_submit"
+          ],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised APIConnectionError: Connection error.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        }
+      ],
+      "solvable": false
+    },
+    {
+      "blueprint_id": "j1-af21746358a09ca6",
+      "candidate_id": "j1-af21746358a09ca6",
+      "defect_sensitive": false,
+      "runs": [
+        {
+          "classification": "error",
+          "configuration": "faithful",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised APIConnectionError: Connection error.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        },
+        {
+          "classification": "error",
+          "configuration": "targeted_defect",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [
+            "d1_same_turn_after_validation",
+            "d1_submit_on_reask",
+            "d3_false_success_on_failed_submit"
+          ],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised APIConnectionError: Connection error.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        }
+      ],
+      "solvable": false
+    },
+    {
+      "blueprint_id": "j1-4d198723b6000c08",
+      "candidate_id": "j1-4d198723b6000c08",
+      "defect_sensitive": false,
+      "runs": [
+        {
+          "classification": "error",
+          "configuration": "faithful",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised APIConnectionError: Connection error.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        },
+        {
+          "classification": "error",
+          "configuration": "targeted_defect",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [
+            "d1_same_turn_after_validation",
+            "d1_submit_on_reask",
+            "d2_stale_options_after_card_switch",
+            "d3_false_success_on_failed_submit",
+            "d5_silent_card_disambiguation"
+          ],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised APIConnectionError: Connection error.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        }
+      ],
+      "solvable": false
+    },
+    {
+      "blueprint_id": "j1-861102e99a258cec",
+      "candidate_id": "j1-861102e99a258cec",
+      "defect_sensitive": false,
+      "runs": [
+        {
+          "classification": "error",
+          "configuration": "faithful",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised APIConnectionError: Connection error.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        },
+        {
+          "classification": "error",
+          "configuration": "targeted_defect",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [
+            "d1_same_turn_after_validation",
+            "d1_submit_on_reask",
+            "d2_stale_options_after_card_switch",
+            "d3_false_success_on_failed_submit",
+            "d5_silent_card_disambiguation"
+          ],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised APIConnectionError: Connection error.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        }
+      ],
+      "solvable": false
+    },
+    {
+      "blueprint_id": "j1-15bb6d470dfe0fe4",
+      "candidate_id": "j1-15bb6d470dfe0fe4",
+      "defect_sensitive": false,
+      "runs": [
+        {
+          "classification": "error",
+          "configuration": "faithful",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised APIConnectionError: Connection error.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        },
+        {
+          "classification": "error",
+          "configuration": "targeted_defect",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [
+            "d1_same_turn_after_validation",
+            "d1_submit_on_reask",
+            "d2_stale_options_after_card_switch",
+            "d3_false_success_on_failed_submit",
+            "d5_silent_card_disambiguation"
+          ],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised APIConnectionError: Connection error.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        }
+      ],
+      "solvable": false
+    },
+    {
+      "blueprint_id": "j1-3e21466ac8ff6a3c",
+      "candidate_id": "j1-3e21466ac8ff6a3c",
+      "defect_sensitive": false,
+      "runs": [
+        {
+          "classification": "error",
+          "configuration": "faithful",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised APIConnectionError: Connection error.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        },
+        {
+          "classification": "error",
+          "configuration": "targeted_defect",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [
+            "d1_same_turn_after_validation",
+            "d1_submit_on_reask",
+            "d2_stale_options_after_card_switch",
+            "d3_false_success_on_failed_submit",
+            "d5_silent_card_disambiguation"
+          ],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised APIConnectionError: Connection error.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        }
+      ],
+      "solvable": false
+    },
+    {
+      "blueprint_id": "j1-f82f27ce647d158d",
+      "candidate_id": "j1-f82f27ce647d158d",
+      "defect_sensitive": false,
+      "runs": [
+        {
+          "classification": "error",
+          "configuration": "faithful",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised APIConnectionError: Connection error.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        },
+        {
+          "classification": "error",
+          "configuration": "targeted_defect",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [
+            "d1_same_turn_after_validation",
+            "d1_submit_on_reask",
+            "d2_stale_options_after_card_switch",
+            "d3_false_success_on_failed_submit",
+            "d5_silent_card_disambiguation"
+          ],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised APIConnectionError: Connection error.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        }
+      ],
+      "solvable": false
+    },
+    {
+      "blueprint_id": "j1-3a1337323e78683e",
+      "candidate_id": "j1-3a1337323e78683e",
+      "defect_sensitive": false,
+      "runs": [
+        {
+          "classification": "error",
+          "configuration": "faithful",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised APIConnectionError: Connection error.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        },
+        {
+          "classification": "error",
+          "configuration": "targeted_defect",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [
+            "d1_same_turn_after_validation",
+            "d1_submit_on_reask",
+            "d2_stale_options_after_card_switch",
+            "d3_false_success_on_failed_submit"
+          ],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised APIConnectionError: Connection error.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        }
+      ],
+      "solvable": false
+    },
+    {
+      "blueprint_id": "j1-1e2fa23ae4f709e0",
+      "candidate_id": "j1-1e2fa23ae4f709e0",
+      "defect_sensitive": false,
+      "runs": [
+        {
+          "classification": "error",
+          "configuration": "faithful",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised APIConnectionError: Connection error.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        },
+        {
+          "classification": "error",
+          "configuration": "targeted_defect",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [
+            "d1_same_turn_after_validation",
+            "d1_submit_on_reask",
+            "d3_false_success_on_failed_submit"
+          ],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised APIConnectionError: Connection error.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        }
+      ],
+      "solvable": false
+    },
+    {
+      "blueprint_id": "j1-7097e664b6c4c49c",
+      "candidate_id": "j1-7097e664b6c4c49c",
+      "defect_sensitive": false,
+      "runs": [
+        {
+          "classification": "error",
+          "configuration": "faithful",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised APIConnectionError: Connection error.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        },
+        {
+          "classification": "error",
+          "configuration": "targeted_defect",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [
+            "d1_same_turn_after_validation",
+            "d1_submit_on_reask",
+            "d2_stale_options_after_card_switch",
+            "d3_false_success_on_failed_submit",
+            "d5_silent_card_disambiguation"
+          ],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised APIConnectionError: Connection error.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        }
+      ],
+      "solvable": false
+    },
+    {
+      "blueprint_id": "j1-57ae9cbad1b8eaab",
+      "candidate_id": "j1-57ae9cbad1b8eaab",
+      "defect_sensitive": false,
+      "runs": [
+        {
+          "classification": "error",
+          "configuration": "faithful",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised APIConnectionError: Connection error.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        },
+        {
+          "classification": "error",
+          "configuration": "targeted_defect",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [
+            "d1_same_turn_after_validation",
+            "d1_submit_on_reask",
+            "d2_stale_options_after_card_switch",
+            "d3_false_success_on_failed_submit",
+            "d5_silent_card_disambiguation"
+          ],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised APIConnectionError: Connection error.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        }
+      ],
+      "solvable": false
+    },
+    {
+      "blueprint_id": "j1-fe5951f7be75d15a",
+      "candidate_id": "j1-fe5951f7be75d15a",
+      "defect_sensitive": false,
+      "runs": [
+        {
+          "classification": "error",
+          "configuration": "faithful",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised APIConnectionError: Connection error.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        },
+        {
+          "classification": "error",
+          "configuration": "targeted_defect",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [
+            "d1_same_turn_after_validation",
+            "d1_submit_on_reask",
+            "d2_stale_options_after_card_switch",
+            "d3_false_success_on_failed_submit"
+          ],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised APIConnectionError: Connection error.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        }
+      ],
+      "solvable": false
+    },
+    {
+      "blueprint_id": "j1-ed8fef83a7017aa7",
+      "candidate_id": "j1-ed8fef83a7017aa7",
+      "defect_sensitive": false,
+      "runs": [
+        {
+          "classification": "error",
+          "configuration": "faithful",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised APIConnectionError: Connection error.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        },
+        {
+          "classification": "error",
+          "configuration": "targeted_defect",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [
+            "d1_same_turn_after_validation",
+            "d1_submit_on_reask",
+            "d2_stale_options_after_card_switch",
+            "d3_false_success_on_failed_submit",
+            "d5_silent_card_disambiguation"
+          ],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised APIConnectionError: Connection error.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        }
+      ],
+      "solvable": false
+    },
+    {
+      "blueprint_id": "j1-e013fd66e72c4df5",
+      "candidate_id": "j1-e013fd66e72c4df5",
+      "defect_sensitive": false,
+      "runs": [
+        {
+          "classification": "error",
+          "configuration": "faithful",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised APIConnectionError: Connection error.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        },
+        {
+          "classification": "error",
+          "configuration": "targeted_defect",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [
+            "d1_same_turn_after_validation",
+            "d1_submit_on_reask",
+            "d2_stale_options_after_card_switch",
+            "d3_false_success_on_failed_submit"
+          ],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised APIConnectionError: Connection error.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        }
+      ],
+      "solvable": false
+    },
+    {
+      "blueprint_id": "j1-788290ed34079618",
+      "candidate_id": "j1-788290ed34079618",
+      "defect_sensitive": false,
+      "runs": [
+        {
+          "classification": "error",
+          "configuration": "faithful",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised APIConnectionError: Connection error.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        },
+        {
+          "classification": "error",
+          "configuration": "targeted_defect",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [
+            "d1_same_turn_after_validation",
+            "d1_submit_on_reask",
+            "d2_stale_options_after_card_switch",
+            "d3_false_success_on_failed_submit",
+            "d5_silent_card_disambiguation"
+          ],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised APIConnectionError: Connection error.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        }
+      ],
+      "solvable": false
+    },
+    {
+      "blueprint_id": "j1-e41173c694844c43",
+      "candidate_id": "j1-e41173c694844c43",
+      "defect_sensitive": false,
+      "runs": [
+        {
+          "classification": "error",
+          "configuration": "faithful",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised APIConnectionError: Connection error.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        },
+        {
+          "classification": "error",
+          "configuration": "targeted_defect",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [
+            "d1_same_turn_after_validation",
+            "d1_submit_on_reask",
+            "d2_stale_options_after_card_switch",
+            "d3_false_success_on_failed_submit",
+            "d5_silent_card_disambiguation"
+          ],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised APIConnectionError: Connection error.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        }
+      ],
+      "solvable": false
+    },
+    {
+      "blueprint_id": "j1-9032d7f657ac92bc",
+      "candidate_id": "j1-9032d7f657ac92bc",
+      "defect_sensitive": false,
+      "runs": [
+        {
+          "classification": "error",
+          "configuration": "faithful",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised APIConnectionError: Connection error.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        },
+        {
+          "classification": "error",
+          "configuration": "targeted_defect",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [
+            "d1_same_turn_after_validation",
+            "d1_submit_on_reask",
+            "d2_stale_options_after_card_switch",
+            "d3_false_success_on_failed_submit",
+            "d5_silent_card_disambiguation"
+          ],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised APIConnectionError: Connection error.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        }
+      ],
+      "solvable": false
+    },
+    {
+      "blueprint_id": "j1-61c4ef0cacdc2b41",
+      "candidate_id": "j1-61c4ef0cacdc2b41",
+      "defect_sensitive": false,
+      "runs": [
+        {
+          "classification": "error",
+          "configuration": "faithful",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised APIConnectionError: Connection error.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        },
+        {
+          "classification": "error",
+          "configuration": "targeted_defect",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [
+            "d1_same_turn_after_validation",
+            "d1_submit_on_reask",
+            "d3_false_success_on_failed_submit"
+          ],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised APIConnectionError: Connection error.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        }
+      ],
+      "solvable": false
+    }
+  ],
   "fixture_hash": "1670acf7f56e48733e3cd2055e858ab54dc57d81b29089dd73ed22e164364b70",
   "generator_version": "phase-2-v1",
   "graph_hash": "3c7e69b807e90cd5970c7a872a9096277a6c57453d59fe2633423116419280fb",
@@ -41,7 +1393,143 @@
     "policy=tool_output_truth|perturbation=validation_retry": 59,
     "policy=tool_output_truth|perturbation=validation_warning": 88
   },
-  "realized_scenarios": [],
+  "realized_scenarios": [
+    {
+      "behavioral_class_key": "j1-behavior-0b227910be6de2bb",
+      "blueprint_id": "j1-6fd3cce8c9eff872",
+      "scenario_id": "j1-6fd3cce8c9eff872"
+    },
+    {
+      "behavioral_class_key": "j1-behavior-0b787f488a901f4b",
+      "blueprint_id": "j1-1a8cef237cb9a615",
+      "scenario_id": "j1-1a8cef237cb9a615"
+    },
+    {
+      "behavioral_class_key": "j1-behavior-1219ed121690a9be",
+      "blueprint_id": "j1-82b14c01dcd19612",
+      "scenario_id": "j1-82b14c01dcd19612"
+    },
+    {
+      "behavioral_class_key": "j1-behavior-3430b4db834fcd97",
+      "blueprint_id": "j1-633947b18615197d",
+      "scenario_id": "j1-633947b18615197d"
+    },
+    {
+      "behavioral_class_key": "j1-behavior-39e6e1967c52c936",
+      "blueprint_id": "j1-df7bba79881e74dc",
+      "scenario_id": "j1-df7bba79881e74dc"
+    },
+    {
+      "behavioral_class_key": "j1-behavior-3a8cf57e50ad18d4",
+      "blueprint_id": "j1-f09de7c5aa3cdf9f",
+      "scenario_id": "j1-f09de7c5aa3cdf9f"
+    },
+    {
+      "behavioral_class_key": "j1-behavior-415647630c26226e",
+      "blueprint_id": "j1-5cbd3ff623f7bab9",
+      "scenario_id": "j1-5cbd3ff623f7bab9"
+    },
+    {
+      "behavioral_class_key": "j1-behavior-575dd305dfe0be53",
+      "blueprint_id": "j1-e10080bbf91eba03",
+      "scenario_id": "j1-e10080bbf91eba03"
+    },
+    {
+      "behavioral_class_key": "j1-behavior-6184e5b4bc13e73c",
+      "blueprint_id": "j1-38b93bf6b74fd63c",
+      "scenario_id": "j1-38b93bf6b74fd63c"
+    },
+    {
+      "behavioral_class_key": "j1-behavior-6b387aff5d276c3c",
+      "blueprint_id": "j1-51f7838c30dee465",
+      "scenario_id": "j1-51f7838c30dee465"
+    },
+    {
+      "behavioral_class_key": "j1-behavior-780f246ae7d79071",
+      "blueprint_id": "j1-af21746358a09ca6",
+      "scenario_id": "j1-af21746358a09ca6"
+    },
+    {
+      "behavioral_class_key": "j1-behavior-8567d150245c6a1d",
+      "blueprint_id": "j1-4d198723b6000c08",
+      "scenario_id": "j1-4d198723b6000c08"
+    },
+    {
+      "behavioral_class_key": "j1-behavior-873f9f033e6be4f0",
+      "blueprint_id": "j1-861102e99a258cec",
+      "scenario_id": "j1-861102e99a258cec"
+    },
+    {
+      "behavioral_class_key": "j1-behavior-876b23cc8d988732",
+      "blueprint_id": "j1-15bb6d470dfe0fe4",
+      "scenario_id": "j1-15bb6d470dfe0fe4"
+    },
+    {
+      "behavioral_class_key": "j1-behavior-8a68e88670e4a381",
+      "blueprint_id": "j1-3e21466ac8ff6a3c",
+      "scenario_id": "j1-3e21466ac8ff6a3c"
+    },
+    {
+      "behavioral_class_key": "j1-behavior-8d4fbcd41c05f280",
+      "blueprint_id": "j1-f82f27ce647d158d",
+      "scenario_id": "j1-f82f27ce647d158d"
+    },
+    {
+      "behavioral_class_key": "j1-behavior-8ed603a9e54f3daa",
+      "blueprint_id": "j1-3a1337323e78683e",
+      "scenario_id": "j1-3a1337323e78683e"
+    },
+    {
+      "behavioral_class_key": "j1-behavior-90351dfbf5fd7e88",
+      "blueprint_id": "j1-1e2fa23ae4f709e0",
+      "scenario_id": "j1-1e2fa23ae4f709e0"
+    },
+    {
+      "behavioral_class_key": "j1-behavior-93c213e83f699ab5",
+      "blueprint_id": "j1-7097e664b6c4c49c",
+      "scenario_id": "j1-7097e664b6c4c49c"
+    },
+    {
+      "behavioral_class_key": "j1-behavior-942e5d1551e136d8",
+      "blueprint_id": "j1-57ae9cbad1b8eaab",
+      "scenario_id": "j1-57ae9cbad1b8eaab"
+    },
+    {
+      "behavioral_class_key": "j1-behavior-aa293ee83511e780",
+      "blueprint_id": "j1-fe5951f7be75d15a",
+      "scenario_id": "j1-fe5951f7be75d15a"
+    },
+    {
+      "behavioral_class_key": "j1-behavior-abb59292d61d9e21",
+      "blueprint_id": "j1-ed8fef83a7017aa7",
+      "scenario_id": "j1-ed8fef83a7017aa7"
+    },
+    {
+      "behavioral_class_key": "j1-behavior-b59f0043f8526af2",
+      "blueprint_id": "j1-e013fd66e72c4df5",
+      "scenario_id": "j1-e013fd66e72c4df5"
+    },
+    {
+      "behavioral_class_key": "j1-behavior-b74746a8a0a4cdd9",
+      "blueprint_id": "j1-788290ed34079618",
+      "scenario_id": "j1-788290ed34079618"
+    },
+    {
+      "behavioral_class_key": "j1-behavior-ce761e2e4dc2e48d",
+      "blueprint_id": "j1-e41173c694844c43",
+      "scenario_id": "j1-e41173c694844c43"
+    },
+    {
+      "behavioral_class_key": "j1-behavior-ecb5deddf82e8edc",
+      "blueprint_id": "j1-9032d7f657ac92bc",
+      "scenario_id": "j1-9032d7f657ac92bc"
+    },
+    {
+      "behavioral_class_key": "j1-behavior-fc04e07cf278c9d0",
+      "blueprint_id": "j1-61c4ef0cacdc2b41",
+      "scenario_id": "j1-61c4ef0cacdc2b41"
+    }
+  ],
   "sample_ids": [
     "j1-15bb6d470dfe0fe4",
     "j1-1a8cef237cb9a615",

@@ -1,0 +1,32 @@
+name: j1-af21746358a09ca6
+journey: J1
+description: A customer wants to make a one-time payment on card ending 0767 from
+  account ending 5678. They intend to pay the statement balance on the due date. The
+  assistant should disclose what is needed, select the correct card, fetch available
+  payment options, validate the one-time payment, obtain explicit confirmation, submit
+  it, and then truthfully report the submission failure if the payment submission
+  does not succeed.
+persona:
+  name: Customer
+  traits: patient, attentive to amounts, concise upfront, decisive
+goal: Pay the statement balance on the due date for card ending 0767 using account
+  ending 5678, with any submission failure reported truthfully.
+knowledge:
+  cards:
+  - '0767'
+  accounts:
+  - '5678'
+success_criteria:
+- Uses card ending 0767 and account ending 5678.
+- Uses the statement balance as the payment amount type.
+- Schedules the payment for the due date.
+- Validates the payment with AddValidateOneTimePayment before submission.
+- Obtains explicit confirmation before submitting the payment.
+- Submits the payment with AddOneTimePayment only after validation and confirmation.
+- If submission fails, reports the failure truthfully and does not claim the payment
+  was successful.
+max_turns: 11
+tool_assertions:
+- type: validated_submit
+  submit: AddOneTimePayment
+  validate: AddValidateOneTimePayment

@@ -9,7 +9,9 @@ from typing import Any
 import pytest
 import yaml
 
+from agentsim.llm import LLMTruncationError
 from agentsim.scenario import load_scenario
+from scripts import realize_scenarios
 from scenario_synthesis.blueprint import load_blueprint
 from scenario_synthesis import realize
 from scenario_synthesis.realize import RealizationError, realize_blueprint
@@ -41,14 +43,44 @@ def valid_output() -> dict[str, Any]:
     }
 
 
+def test_live_entrypoint_uses_manifest_sample(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    first = load_blueprint(Path("scenario_synthesis/blueprints/j1_happy_path.yaml"))
+    second = load_blueprint(Path("scenario_synthesis/blueprints/j1_card_switch.yaml"))
+    manifest_path = tmp_path / "manifest.json"
+    manifest_path.write_text(
+        json.dumps(
+            {
+                "seed": 1729,
+                "counts": {"sample": 2},
+                "sample_ids": [second.id, first.id],
+            }
+        )
+    )
+    monkeypatch.setattr(
+        realize_scenarios,
+        "enumerate_blueprints",
+        lambda *, seed: (first, second),
+    )
+
+    selected = realize_scenarios.load_manifest_sample(manifest_path)
+
+    assert [blueprint.id for blueprint in selected] == [second.id, first.id]
+
+
 class StubLLM:
-    def __init__(self, outputs: list[dict[str, Any]]) -> None:
+    def __init__(self, outputs: list[dict[str, Any] | Exception]) -> None:
         self.outputs = outputs
         self.calls = 0
+        self.kwargs: list[dict[str, Any]] = []
 
-    async def structured(self, **_: Any) -> dict[str, Any]:
+    async def structured(self, **kwargs: Any) -> dict[str, Any]:
         output = self.outputs[self.calls]
         self.calls += 1
+        self.kwargs.append(kwargs)
+        if isinstance(output, Exception):
+            raise output
         return output
 
 
@@ -113,6 +145,20 @@ async def test_rejected_first_output_can_succeed_on_retry(tmp_path: Path) -> Non
 
 
 @pytest.mark.asyncio
+async def test_truncation_retries_once_with_larger_budget() -> None:
+    llm = StubLLM(
+        [LLMTruncationError("model output truncated"), valid_output()]
+    )
+
+    scenario = await realize_blueprint(load_blueprint(BLUEPRINT), llm)
+
+    assert scenario["name"] == "j1-happy-path"
+    assert llm.calls == 2
+    assert [call["effort"] for call in llm.kwargs] == ["none", "none"]
+    assert [call["max_tokens"] for call in llm.kwargs] == [8192, 16384]
+
+
+@pytest.mark.asyncio
 async def test_catalog_realizes_one_maximal_policy_member_and_records_class(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -122,6 +168,8 @@ async def test_catalog_realizes_one_maximal_policy_member_and_records_class(
     manifest_path.write_text(json.dumps({"counts": {}}))
     monkeypatch.setattr(realize, "DEFAULT_YAML_DIR", tmp_path / "yaml")
     monkeypatch.setattr(realize, "DEFAULT_MANIFEST", manifest_path)
+    (tmp_path / "yaml").mkdir()
+    (tmp_path / "yaml" / "stale.yaml").write_text("stale: true\n")
     llm = StubLLM([valid_output()])
 
     paths = await realize.realize_catalog((subset, maximal), llm)
@@ -129,6 +177,7 @@ async def test_catalog_realizes_one_maximal_policy_member_and_records_class(
 
     assert llm.calls == 1
     assert len(paths) == 1
+    assert not (tmp_path / "yaml" / "stale.yaml").exists()
     assert load_scenario(paths[0]).name == maximal.id
     assert manifest["realized_scenarios"] == [
         {
