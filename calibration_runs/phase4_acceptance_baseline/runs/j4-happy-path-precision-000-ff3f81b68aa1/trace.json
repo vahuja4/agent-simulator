@@ -1,0 +1,109 @@
+{
+  "schema_version": "1.0",
+  "conversation_id": "j4-happy-path-precision-000-ff3f81b68aa1",
+  "outcome": "pass",
+  "turns": [
+    {
+      "index": 0,
+      "speaker": "user",
+      "text": "Hi, I\u2019d like to turn off AutoPay for my Chase Sapphire Preferred card ending in 9013.",
+      "intent": "state goal",
+      "tool_calls": [],
+      "selected_card": null
+    },
+    {
+      "index": 1,
+      "speaker": "agent",
+      "text": "Here's your current AutoPay for your Chase Sapphire Preferred (...9013): it pays the statement balance from your Chase Total Checking (...5678) on your statement due date \u2014 the next payment is June 20, 2026. If your due date falls on a Saturday, we'll make the payment on the Friday before. Would you like to turn off automatic payments?",
+      "intent": null,
+      "tool_calls": [
+        {
+          "name": "ModifyAutoPayPayeeList",
+          "arguments": {},
+          "result": {
+            "payees": [
+              {
+                "payeeId": "card-sapphire-9013",
+                "name": "Chase Sapphire Preferred",
+                "mask": "9013",
+                "repeatingModelId": "rpm-sapphire-0001"
+              }
+            ]
+          }
+        },
+        {
+          "name": "GetAutoPayStatus",
+          "arguments": {
+            "payeeId": "card-sapphire-9013"
+          },
+          "result": {
+            "paymentType": "statement_balance",
+            "paymentTypeLabel": "Statement balance",
+            "fixedAmount": null,
+            "accountLabel": "Chase Total Checking (...5678)",
+            "nextPaymentDate": "2026-06-20",
+            "repeatingModelId": "rpm-sapphire-0001"
+          }
+        }
+      ],
+      "selected_card": "Chase Sapphire Preferred (...9013)"
+    },
+    {
+      "index": 2,
+      "speaker": "user",
+      "text": "Yes, please turn off automatic payments for that card.",
+      "intent": "confirm turn off",
+      "tool_calls": [],
+      "selected_card": "Chase Sapphire Preferred (...9013)"
+    },
+    {
+      "index": 3,
+      "speaker": "agent",
+      "text": "Are you sure? You'll need to make payments manually for your card ...9013. Yes or no?",
+      "intent": null,
+      "tool_calls": [
+        {
+          "name": "CancelAutoPayOptions",
+          "arguments": {
+            "payeeId": "card-sapphire-9013",
+            "repeatingModelId": "rpm-sapphire-0001"
+          },
+          "result": {
+            "token": "captoken-form-0001",
+            "repeatingModelId": "rpm-sapphire-0001"
+          }
+        }
+      ],
+      "selected_card": "Chase Sapphire Preferred (...9013)"
+    },
+    {
+      "index": 4,
+      "speaker": "user",
+      "text": "Yes, I\u2019m sure. Please turn it off.",
+      "intent": "confirm",
+      "tool_calls": [],
+      "selected_card": "Chase Sapphire Preferred (...9013)"
+    },
+    {
+      "index": 5,
+      "speaker": "agent",
+      "text": "AutoPay is now off for your Chase Sapphire Preferred (...9013). You'll need to make payments manually going forward. You'll receive a confirmation email.",
+      "intent": null,
+      "tool_calls": [
+        {
+          "name": "CancelAutoPay",
+          "arguments": {
+            "repeatingModelId": "rpm-sapphire-0001",
+            "token": "captoken-form-0001"
+          },
+          "result": {
+            "status": "CANCELED",
+            "success": true,
+            "repeatingModelId": "rpm-sapphire-0001"
+          }
+        }
+      ],
+      "selected_card": "Chase Sapphire Preferred (...9013)"
+    }
+  ]
+}

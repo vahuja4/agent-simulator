@@ -1,0 +1,34 @@
+{
+  "conversation_id": "j2-external-funding-account-recall-d7-external-caveat-730e7960669e",
+  "schema_version": "1.0",
+  "steps": [
+    {
+      "kind": "user",
+      "text": "Set up autopay on my Freedom Flex ending 4421."
+    },
+    {
+      "kind": "agent"
+    },
+    {
+      "kind": "user",
+      "text": "The minimum due."
+    },
+    {
+      "kind": "agent"
+    },
+    {
+      "kind": "user",
+      "text": "From my Ally Savings account."
+    },
+    {
+      "kind": "agent"
+    },
+    {
+      "kind": "user",
+      "text": "Yes, go ahead."
+    },
+    {
+      "kind": "agent"
+    }
+  ]
+}

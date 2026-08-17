@@ -1,0 +1,34 @@
+{
+  "conversation_id": "j1-card-switch-stale-options-recall-d2-stale-options-e0b89e4a690b",
+  "schema_version": "1.0",
+  "steps": [
+    {
+      "kind": "user",
+      "text": "Pay my Sapphire card from my checking account."
+    },
+    {
+      "kind": "agent"
+    },
+    {
+      "kind": "user",
+      "text": "Actually, let's pay my Freedom Unlimited instead."
+    },
+    {
+      "kind": "agent"
+    },
+    {
+      "kind": "user",
+      "text": "The statement balance."
+    },
+    {
+      "kind": "agent"
+    },
+    {
+      "kind": "user",
+      "text": "Today."
+    },
+    {
+      "kind": "agent"
+    }
+  ]
+}

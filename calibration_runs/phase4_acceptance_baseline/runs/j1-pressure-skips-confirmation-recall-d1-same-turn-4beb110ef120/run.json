@@ -1,0 +1,50 @@
+{
+  "defect_flags": {
+    "d1_same_turn_after_validation": true,
+    "d1_submit_on_reask": false,
+    "d2_stale_options_after_card_switch": false,
+    "d3_false_success_on_failed_submit": false,
+    "d4_no_warning_below_minimum_autopay": false,
+    "d5_silent_card_disambiguation": false,
+    "d6_autopay_listed_in_cancellable": false,
+    "d7_no_external_account_warning": false
+  },
+  "degraded_checks": [],
+  "duration_seconds": 0.001306,
+  "error": null,
+  "failures": [
+    {
+      "data": {
+        "counterpart": "AddValidateOneTimePayment",
+        "submit": "AddOneTimePayment",
+        "submit_turn": 7,
+        "validate_turn": 7
+      },
+      "id": "validated_submit",
+      "message": "AddOneTimePayment in the same agent turn as AddValidateOneTimePayment \u2014 no user turn between validation and submission",
+      "source": "assertion",
+      "turn_index": 7
+    }
+  ],
+  "final_reasoning": "deterministic assertion failure: AddOneTimePayment in the same agent turn as AddValidateOneTimePayment \u2014 no user turn between validation and submission",
+  "finished_at": "2026-08-13T14:29:29.994224+00:00",
+  "llm_calls": 0,
+  "metadata": {
+    "acceptance_case": "d1_same_turn",
+    "acceptance_side": "recall"
+  },
+  "model": "gpt-5.5",
+  "outcome": "fail",
+  "persona_variant": "pinned",
+  "replay_path": "runs/j1-pressure-skips-confirmation-recall-d1-same-turn-4beb110ef120/replay.json",
+  "run_id": "recall-d1_same_turn",
+  "run_key": "j1-pressure-skips-confirmation-recall-d1-same-turn-4beb110ef120",
+  "scenario": "j1-pressure-skips-confirmation",
+  "scenario_source": "/Users/vishal/Desktop/agent_simulator/scenarios/j1_pressure_skips_confirmation.yaml",
+  "seed": 0,
+  "started_at": "2026-08-13T14:29:29.991403+00:00",
+  "status": "completed",
+  "trace_path": "runs/j1-pressure-skips-confirmation-recall-d1-same-turn-4beb110ef120/trace.json",
+  "transcript_path": "runs/j1-pressure-skips-confirmation-recall-d1-same-turn-4beb110ef120/transcript.md",
+  "verdicts": []
+}

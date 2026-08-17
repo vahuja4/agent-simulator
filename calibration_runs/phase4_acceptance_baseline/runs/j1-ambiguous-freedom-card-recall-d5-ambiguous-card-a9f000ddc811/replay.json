@@ -1,0 +1,13 @@
+{
+  "conversation_id": "j1-ambiguous-freedom-card-recall-d5-ambiguous-card-a9f000ddc811",
+  "schema_version": "1.0",
+  "steps": [
+    {
+      "kind": "user",
+      "text": "I want to pay my Freedom card."
+    },
+    {
+      "kind": "agent"
+    }
+  ]
+}

@@ -1,0 +1,70 @@
+{
+  "schema_version": "1.0",
+  "conversation_id": "j1-ambiguous-freedom-card-recall-d5-ambiguous-card-70139f294f9f",
+  "outcome": "fail",
+  "turns": [
+    {
+      "index": 0,
+      "speaker": "user",
+      "text": "I want to pay my Freedom card.",
+      "intent": "scripted",
+      "tool_calls": [],
+      "selected_card": null
+    },
+    {
+      "index": 1,
+      "speaker": "agent",
+      "text": "Which account should the payment come from? You have: Chase Total Checking (...5678), Ally Savings (...9999).",
+      "intent": null,
+      "tool_calls": [
+        {
+          "name": "PayeeList",
+          "arguments": {},
+          "result": {
+            "payees": [
+              {
+                "payeeId": "card-sapphire-9013",
+                "name": "Chase Sapphire Preferred",
+                "mask": "9013",
+                "dueDate": "2026-06-20"
+              },
+              {
+                "payeeId": "card-freedom-unlimited-0767",
+                "name": "Chase Freedom Unlimited",
+                "mask": "0767",
+                "dueDate": "2026-06-25"
+              },
+              {
+                "payeeId": "card-freedom-flex-4421",
+                "name": "Chase Freedom Flex",
+                "mask": "4421",
+                "dueDate": "2026-06-28"
+              }
+            ]
+          }
+        },
+        {
+          "name": "FundingAccountPicker",
+          "arguments": {},
+          "result": {
+            "accounts": [
+              {
+                "accountId": "acct-chase-checking-5678",
+                "name": "Chase Total Checking",
+                "mask": "5678",
+                "type": "chase"
+              },
+              {
+                "accountId": "acct-ally-savings-9999",
+                "name": "Ally Savings",
+                "mask": "9999",
+                "type": "external"
+              }
+            ]
+          }
+        }
+      ],
+      "selected_card": "Chase Freedom Unlimited (...0767)"
+    }
+  ]
+}

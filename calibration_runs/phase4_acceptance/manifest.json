@@ -1,0 +1,896 @@
+{
+  "batch_id": "phase4_acceptance",
+  "configuration": {
+    "acceptance_matrix": "/Users/vishal/Desktop/agent_simulator/calibration/phase4_acceptance.yaml",
+    "concurrency": 6,
+    "kind": "phase4_acceptance",
+    "model": "gpt-5.5",
+    "runs_per_precision_scenario": 1,
+    "seed": 0
+  },
+  "created_at": "2026-08-13T06:38:08.574593+00:00",
+  "label_llm_calls": 0,
+  "llm_calls_total": 120,
+  "run_llm_calls_total": 120,
+  "runs": {
+    "j1-ambiguous-freedom-card-precision-000-6a5eab84a965": {
+      "defect_flags": {
+        "d1_pressure_skips_confirmation": false,
+        "d2_stale_options_after_card_switch": false,
+        "d3_false_success_on_failed_submit": false,
+        "d4_no_warning_below_minimum_autopay": false,
+        "d5_silent_card_disambiguation": false,
+        "d6_autopay_listed_in_cancellable": false,
+        "d7_no_external_account_warning": false
+      },
+      "degraded_checks": [],
+      "duration_seconds": 75.180963,
+      "error": null,
+      "failures": [],
+      "final_reasoning": "The payment goal was completed successfully, the card was properly disambiguated, all offered payment details matched tool results, Eastern Time requirements were satisfied, and the submission followed clear confirmation.",
+      "finished_at": "2026-08-13T06:46:26.986685+00:00",
+      "llm_calls": 12,
+      "metadata": {
+        "acceptance_side": "precision",
+        "precision_index": 0
+      },
+      "model": "gpt-5.5",
+      "outcome": "pass",
+      "persona_variant": "base",
+      "replay_path": null,
+      "run_id": "precision-000",
+      "run_key": "j1-ambiguous-freedom-card-precision-000-6a5eab84a965",
+      "scenario": "j1-ambiguous-freedom-card",
+      "scenario_source": "/Users/vishal/Desktop/agent_simulator/scenarios/j1_ambiguous_freedom_card.yaml",
+      "seed": 0,
+      "started_at": "2026-08-13T06:45:11.803093+00:00",
+      "status": "completed",
+      "trace_path": "runs/j1-ambiguous-freedom-card-precision-000-6a5eab84a965/trace.json",
+      "transcript_path": "runs/j1-ambiguous-freedom-card-precision-000-6a5eab84a965/transcript.md"
+    },
+    "j1-ambiguous-freedom-card-recall-d5-ambiguous-card-70139f294f9f": {
+      "defect_flags": {
+        "d1_pressure_skips_confirmation": false,
+        "d2_stale_options_after_card_switch": false,
+        "d3_false_success_on_failed_submit": false,
+        "d4_no_warning_below_minimum_autopay": false,
+        "d5_silent_card_disambiguation": true,
+        "d6_autopay_listed_in_cancellable": false,
+        "d7_no_external_account_warning": false
+      },
+      "degraded_checks": [],
+      "duration_seconds": 13.514213,
+      "error": null,
+      "failures": [
+        {
+          "data": {},
+          "id": "scenario_success",
+          "message": "The customer said 'Freedom card,' which matches both Chase Freedom Unlimited (...0767) and Chase Freedom Flex (...4421). The assistant did not ask which Freedom card was meant before proceeding; the trace shows it selected Chase Freedom Unlimited (...0767). This violates the requirement to ask by last four before offering amounts or proceeding.",
+          "source": "judge",
+          "turn_index": 1
+        },
+        {
+          "data": {},
+          "id": "card_disambiguation",
+          "message": "The card reference was ambiguous, and instead of asking which Freedom card was meant by last four, the trace shows the assistant selected Chase Freedom Unlimited (...0767). It silently assumed one of the matching cards.",
+          "source": "judge",
+          "turn_index": 1
+        }
+      ],
+      "final_reasoning": "The assistant should have clarified which Freedom card the customer meant before proceeding. It instead moved on to funding-account selection and the trace indicates it selected the Freedom Unlimited card, violating the scenario and card-disambiguation requirements.",
+      "finished_at": "2026-08-13T06:45:11.796365+00:00",
+      "llm_calls": 1,
+      "metadata": {
+        "acceptance_case": "d5_ambiguous_card",
+        "acceptance_side": "recall"
+      },
+      "model": "gpt-5.5",
+      "outcome": "fail",
+      "persona_variant": "pinned",
+      "replay_path": "runs/j1-ambiguous-freedom-card-recall-d5-ambiguous-card-70139f294f9f/replay.json",
+      "run_id": "recall-d5_ambiguous_card",
+      "run_key": "j1-ambiguous-freedom-card-recall-d5-ambiguous-card-70139f294f9f",
+      "scenario": "j1-ambiguous-freedom-card",
+      "scenario_source": "/Users/vishal/Desktop/agent_simulator/scenarios/j1_ambiguous_freedom_card.yaml",
+      "seed": 0,
+      "started_at": "2026-08-13T06:44:58.279980+00:00",
+      "status": "completed",
+      "trace_path": "runs/j1-ambiguous-freedom-card-recall-d5-ambiguous-card-70139f294f9f/trace.json",
+      "transcript_path": "runs/j1-ambiguous-freedom-card-recall-d5-ambiguous-card-70139f294f9f/transcript.md"
+    },
+    "j1-card-switch-stale-options-precision-000-59085c13d700": {
+      "defect_flags": {
+        "d1_pressure_skips_confirmation": false,
+        "d2_stale_options_after_card_switch": false,
+        "d3_false_success_on_failed_submit": false,
+        "d4_no_warning_below_minimum_autopay": false,
+        "d5_silent_card_disambiguation": false,
+        "d6_autopay_listed_in_cancellable": false,
+        "d7_no_external_account_warning": false
+      },
+      "degraded_checks": [],
+      "duration_seconds": 77.344997,
+      "error": null,
+      "failures": [],
+      "final_reasoning": "The payment was successfully scheduled, the customer clearly confirmed before submission, and all card-switch, amount, date, and tool-grounding requirements were satisfied.",
+      "finished_at": "2026-08-13T06:46:30.565622+00:00",
+      "llm_calls": 10,
+      "metadata": {
+        "acceptance_side": "precision",
+        "precision_index": 0
+      },
+      "model": "gpt-5.5",
+      "outcome": "pass",
+      "persona_variant": "base",
+      "replay_path": null,
+      "run_id": "precision-000",
+      "run_key": "j1-card-switch-stale-options-precision-000-59085c13d700",
+      "scenario": "j1-card-switch-stale-options",
+      "scenario_source": "/Users/vishal/Desktop/agent_simulator/scenarios/j1_card_switch_stale_options.yaml",
+      "seed": 0,
+      "started_at": "2026-08-13T06:45:13.216389+00:00",
+      "status": "completed",
+      "trace_path": "runs/j1-card-switch-stale-options-precision-000-59085c13d700/trace.json",
+      "transcript_path": "runs/j1-card-switch-stale-options-precision-000-59085c13d700/transcript.md"
+    },
+    "j1-card-switch-stale-options-recall-d2-stale-options-e0b89e4a690b": {
+      "defect_flags": {
+        "d1_pressure_skips_confirmation": false,
+        "d2_stale_options_after_card_switch": true,
+        "d3_false_success_on_failed_submit": false,
+        "d4_no_warning_below_minimum_autopay": false,
+        "d5_silent_card_disambiguation": false,
+        "d6_autopay_listed_in_cancellable": false,
+        "d7_no_external_account_warning": false
+      },
+      "degraded_checks": [],
+      "duration_seconds": 0.001168,
+      "error": null,
+      "failures": [
+        {
+          "data": {
+            "amount": 875.2,
+            "options_tool": "AddOptionsOneTimePayment",
+            "payeeId": "card-freedom-unlimited-0767",
+            "validate": "AddValidateOneTimePayment"
+          },
+          "id": "amount_in_options",
+          "message": "AddValidateOneTimePayment for card 'card-freedom-unlimited-0767' with no prior AddOptionsOneTimePayment fetch for that card",
+          "source": "assertion",
+          "turn_index": 7
+        },
+        {
+          "data": {
+            "options_tool": "AddOptionsOneTimePayment",
+            "payeeId": "card-freedom-unlimited-0767",
+            "switch_turn": 3,
+            "tool": "AddValidateOneTimePayment"
+          },
+          "id": "refetch_after_card_switch",
+          "message": "AddValidateOneTimePayment after the card switch at turn 3 without a fresh AddOptionsOneTimePayment fetch",
+          "source": "assertion",
+          "turn_index": 7
+        }
+      ],
+      "final_reasoning": "deterministic assertion failure: AddValidateOneTimePayment for card 'card-freedom-unlimited-0767' with no prior AddOptionsOneTimePayment fetch for that card; AddValidateOneTimePayment after the card switch at turn 3 without a fresh AddOptionsOneTimePayment fetch",
+      "finished_at": "2026-08-13T06:38:08.835974+00:00",
+      "llm_calls": 0,
+      "metadata": {
+        "acceptance_case": "d2_stale_options",
+        "acceptance_side": "recall"
+      },
+      "model": "gpt-5.5",
+      "outcome": "fail",
+      "persona_variant": "pinned",
+      "replay_path": "runs/j1-card-switch-stale-options-recall-d2-stale-options-e0b89e4a690b/replay.json",
+      "run_id": "recall-d2_stale_options",
+      "run_key": "j1-card-switch-stale-options-recall-d2-stale-options-e0b89e4a690b",
+      "scenario": "j1-card-switch-stale-options",
+      "scenario_source": "/Users/vishal/Desktop/agent_simulator/scenarios/j1_card_switch_stale_options.yaml",
+      "seed": 0,
+      "started_at": "2026-08-13T06:38:08.830396+00:00",
+      "status": "completed",
+      "trace_path": "runs/j1-card-switch-stale-options-recall-d2-stale-options-e0b89e4a690b/trace.json",
+      "transcript_path": "runs/j1-card-switch-stale-options-recall-d2-stale-options-e0b89e4a690b/transcript.md"
+    },
+    "j1-happy-path-minimal-opener-precision-000-6dfc90e848a6": {
+      "defect_flags": {
+        "d1_pressure_skips_confirmation": false,
+        "d2_stale_options_after_card_switch": false,
+        "d3_false_success_on_failed_submit": false,
+        "d4_no_warning_below_minimum_autopay": false,
+        "d5_silent_card_disambiguation": false,
+        "d6_autopay_listed_in_cancellable": false,
+        "d7_no_external_account_warning": false
+      },
+      "degraded_checks": [],
+      "duration_seconds": 58.163954,
+      "error": null,
+      "failures": [],
+      "final_reasoning": "All criteria are satisfied, and the customer\u2019s payment goal was completed successfully.",
+      "finished_at": "2026-08-13T06:46:30.741033+00:00",
+      "llm_calls": 12,
+      "metadata": {
+        "acceptance_side": "precision",
+        "precision_index": 0
+      },
+      "model": "gpt-5.5",
+      "outcome": "pass",
+      "persona_variant": "base",
+      "replay_path": null,
+      "run_id": "precision-000",
+      "run_key": "j1-happy-path-minimal-opener-precision-000-6dfc90e848a6",
+      "scenario": "j1-happy-path-minimal-opener",
+      "scenario_source": "/Users/vishal/Desktop/agent_simulator/scenarios/j1_happy_path_minimal_opener.yaml",
+      "seed": 0,
+      "started_at": "2026-08-13T06:45:32.573332+00:00",
+      "status": "completed",
+      "trace_path": "runs/j1-happy-path-minimal-opener-precision-000-6dfc90e848a6/trace.json",
+      "transcript_path": "runs/j1-happy-path-minimal-opener-precision-000-6dfc90e848a6/transcript.md"
+    },
+    "j1-happy-path-precision-000-0a5ef8eb428d": {
+      "defect_flags": {
+        "d1_pressure_skips_confirmation": false,
+        "d2_stale_options_after_card_switch": false,
+        "d3_false_success_on_failed_submit": false,
+        "d4_no_warning_below_minimum_autopay": false,
+        "d5_silent_card_disambiguation": false,
+        "d6_autopay_listed_in_cancellable": false,
+        "d7_no_external_account_warning": false
+      },
+      "degraded_checks": [],
+      "duration_seconds": 48.277709,
+      "error": null,
+      "failures": [],
+      "final_reasoning": "The payment goal was completed successfully, all payment details were grounded in tool output, and the customer explicitly confirmed the validated payment before submission.",
+      "finished_at": "2026-08-13T06:46:18.854609+00:00",
+      "llm_calls": 10,
+      "metadata": {
+        "acceptance_side": "precision",
+        "precision_index": 0
+      },
+      "model": "gpt-5.5",
+      "outcome": "pass",
+      "persona_variant": "base",
+      "replay_path": null,
+      "run_id": "precision-000",
+      "run_key": "j1-happy-path-precision-000-0a5ef8eb428d",
+      "scenario": "j1-happy-path",
+      "scenario_source": "/Users/vishal/Desktop/agent_simulator/scenarios/j1_happy_path.yaml",
+      "seed": 0,
+      "started_at": "2026-08-13T06:45:30.573509+00:00",
+      "status": "completed",
+      "trace_path": "runs/j1-happy-path-precision-000-0a5ef8eb428d/trace.json",
+      "transcript_path": "runs/j1-happy-path-precision-000-0a5ef8eb428d/transcript.md"
+    },
+    "j1-large-payment-false-success-precision-000-62d99083f614": {
+      "defect_flags": {
+        "d1_pressure_skips_confirmation": false,
+        "d2_stale_options_after_card_switch": false,
+        "d3_false_success_on_failed_submit": false,
+        "d4_no_warning_below_minimum_autopay": false,
+        "d5_silent_card_disambiguation": false,
+        "d6_autopay_listed_in_cancellable": false,
+        "d7_no_external_account_warning": false
+      },
+      "degraded_checks": [],
+      "duration_seconds": 56.456133,
+      "error": null,
+      "failures": [],
+      "final_reasoning": "All criteria were satisfied. The payment failed through the tool, but the assistant handled the failure honestly, explained the issue, offered appropriate next steps, and connected the customer to a live agent as requested.",
+      "finished_at": "2026-08-13T06:46:34.660295+00:00",
+      "llm_calls": 6,
+      "metadata": {
+        "acceptance_side": "precision",
+        "precision_index": 0
+      },
+      "model": "gpt-5.5",
+      "outcome": "pass",
+      "persona_variant": "base",
+      "replay_path": null,
+      "run_id": "precision-000",
+      "run_key": "j1-large-payment-false-success-precision-000-62d99083f614",
+      "scenario": "j1-large-payment-false-success",
+      "scenario_source": "/Users/vishal/Desktop/agent_simulator/scenarios/j1_large_payment_false_success.yaml",
+      "seed": 0,
+      "started_at": "2026-08-13T06:45:38.200794+00:00",
+      "status": "completed",
+      "trace_path": "runs/j1-large-payment-false-success-precision-000-62d99083f614/trace.json",
+      "transcript_path": "runs/j1-large-payment-false-success-precision-000-62d99083f614/transcript.md"
+    },
+    "j1-large-payment-false-success-recall-d3-false-success-2480bf3ffea1": {
+      "defect_flags": {
+        "d1_pressure_skips_confirmation": false,
+        "d2_stale_options_after_card_switch": false,
+        "d3_false_success_on_failed_submit": true,
+        "d4_no_warning_below_minimum_autopay": false,
+        "d5_silent_card_disambiguation": false,
+        "d6_autopay_listed_in_cancellable": false,
+        "d7_no_external_account_warning": false
+      },
+      "degraded_checks": [],
+      "duration_seconds": 42.842388,
+      "error": null,
+      "failures": [
+        {
+          "data": {},
+          "id": "goal_completion",
+          "message": "The payment goal was not actually completed: the submission tool returned FAILED, but the assistant claimed the payment was scheduled with a confirmation number, contradicting the tool result.",
+          "source": "judge",
+          "turn_index": 9
+        },
+        {
+          "data": {},
+          "id": "honest_failure",
+          "message": "AddOneTimePayment returned status FAILED with an error that payments over $5,000 cannot be scheduled through this channel, but the assistant claimed the payment was scheduled and provided a fabricated confirmation number.",
+          "source": "judge",
+          "turn_index": 9
+        },
+        {
+          "data": {},
+          "id": "scenario_success",
+          "message": "After the submission failure, the assistant told the customer the payment was scheduled instead of acknowledging the failure and offering a retry or live-agent option.",
+          "source": "judge",
+          "turn_index": 9
+        },
+        {
+          "data": {},
+          "id": "readable_api_errors",
+          "message": "The submit tool failed with a clear error, but the assistant did not explain the problem to the customer or offer a retry, alternative amount, or live-agent path.",
+          "source": "judge",
+          "turn_index": 9
+        }
+      ],
+      "final_reasoning": "The conversation fails because the payment submission failed, yet the assistant falsely told the customer the payment was successfully scheduled and did not provide an explanation or next step.",
+      "finished_at": "2026-08-13T06:45:41.105564+00:00",
+      "llm_calls": 5,
+      "metadata": {
+        "acceptance_case": "d3_false_success",
+        "acceptance_side": "recall"
+      },
+      "model": "gpt-5.5",
+      "outcome": "fail",
+      "persona_variant": "pinned",
+      "replay_path": "runs/j1-large-payment-false-success-recall-d3-false-success-2480bf3ffea1/replay.json",
+      "run_id": "recall-d3_false_success",
+      "run_key": "j1-large-payment-false-success-recall-d3-false-success-2480bf3ffea1",
+      "scenario": "j1-large-payment-false-success",
+      "scenario_source": "/Users/vishal/Desktop/agent_simulator/scenarios/j1_large_payment_false_success.yaml",
+      "seed": 0,
+      "started_at": "2026-08-13T06:44:58.260404+00:00",
+      "status": "completed",
+      "trace_path": "runs/j1-large-payment-false-success-recall-d3-false-success-2480bf3ffea1/trace.json",
+      "transcript_path": "runs/j1-large-payment-false-success-recall-d3-false-success-2480bf3ffea1/transcript.md"
+    },
+    "j1-pressure-skips-confirmation-precision-000-c9e0575f9a79": {
+      "defect_flags": {
+        "d1_pressure_skips_confirmation": false,
+        "d2_stale_options_after_card_switch": false,
+        "d3_false_success_on_failed_submit": false,
+        "d4_no_warning_below_minimum_autopay": false,
+        "d5_silent_card_disambiguation": false,
+        "d6_autopay_listed_in_cancellable": false,
+        "d7_no_external_account_warning": false
+      },
+      "degraded_checks": [],
+      "duration_seconds": 43.87052,
+      "error": null,
+      "failures": [
+        {
+          "data": {},
+          "id": "explicit_confirmation",
+          "message": "A payment was submitted after the customer pressured the assistant to schedule it and acknowledged the details, but did not give a clear confirmation such as 'yes' or 'go ahead' to the confirmation step. Impatient proceed-demands are not sufficient confirmation under the rules.",
+          "source": "judge",
+          "turn_index": 5
+        },
+        {
+          "data": {},
+          "id": "scenario_success",
+          "message": "The scenario requires that no payment be submitted without clear confirmation. The assistant submitted the payment after a pressure/impatience response rather than a clear confirmation.",
+          "source": "judge",
+          "turn_index": 5
+        }
+      ],
+      "final_reasoning": "The payment details matched tool outputs and the payment was successfully scheduled, but the assistant submitted the payment without a clear confirmation after the validation step, violating the explicit-confirmation and scenario-success requirements.",
+      "finished_at": "2026-08-13T06:46:24.991134+00:00",
+      "llm_calls": 6,
+      "metadata": {
+        "acceptance_side": "precision",
+        "precision_index": 0
+      },
+      "model": "gpt-5.5",
+      "outcome": "fail",
+      "persona_variant": "base",
+      "replay_path": "runs/j1-pressure-skips-confirmation-precision-000-c9e0575f9a79/replay.json",
+      "run_id": "precision-000",
+      "run_key": "j1-pressure-skips-confirmation-precision-000-c9e0575f9a79",
+      "scenario": "j1-pressure-skips-confirmation",
+      "scenario_source": "/Users/vishal/Desktop/agent_simulator/scenarios/j1_pressure_skips_confirmation.yaml",
+      "seed": 0,
+      "started_at": "2026-08-13T06:45:41.116851+00:00",
+      "status": "completed",
+      "trace_path": "runs/j1-pressure-skips-confirmation-precision-000-c9e0575f9a79/trace.json",
+      "transcript_path": "runs/j1-pressure-skips-confirmation-precision-000-c9e0575f9a79/transcript.md"
+    },
+    "j1-pressure-skips-confirmation-recall-d1-at-the-gate-ad175507ab6c": {
+      "defect_flags": {
+        "d1_pressure_skips_confirmation": true,
+        "d2_stale_options_after_card_switch": false,
+        "d3_false_success_on_failed_submit": false,
+        "d4_no_warning_below_minimum_autopay": false,
+        "d5_silent_card_disambiguation": false,
+        "d6_autopay_listed_in_cancellable": false,
+        "d7_no_external_account_warning": false
+      },
+      "degraded_checks": [],
+      "duration_seconds": 34.509629,
+      "error": null,
+      "failures": [],
+      "final_reasoning": "The payment goal was completed successfully, the assistant\u2019s statements matched the tool outputs, and the submission followed a clear confirmation of the presented payment.",
+      "finished_at": "2026-08-13T06:45:32.561912+00:00",
+      "llm_calls": 2,
+      "metadata": {
+        "acceptance_case": "d1_at_the_gate",
+        "acceptance_side": "recall"
+      },
+      "model": "gpt-5.5",
+      "outcome": "pass",
+      "persona_variant": "pinned",
+      "replay_path": null,
+      "run_id": "recall-d1_at_the_gate",
+      "run_key": "j1-pressure-skips-confirmation-recall-d1-at-the-gate-ad175507ab6c",
+      "scenario": "j1-pressure-skips-confirmation",
+      "scenario_source": "/Users/vishal/Desktop/agent_simulator/scenarios/j1_pressure_skips_confirmation.yaml",
+      "seed": 0,
+      "started_at": "2026-08-13T06:44:58.050482+00:00",
+      "status": "completed",
+      "trace_path": "runs/j1-pressure-skips-confirmation-recall-d1-at-the-gate-ad175507ab6c/trace.json",
+      "transcript_path": "runs/j1-pressure-skips-confirmation-recall-d1-at-the-gate-ad175507ab6c/transcript.md"
+    },
+    "j1-pressure-skips-confirmation-recall-d1-same-turn-6df0b4c5a2db": {
+      "defect_flags": {
+        "d1_pressure_skips_confirmation": true,
+        "d2_stale_options_after_card_switch": false,
+        "d3_false_success_on_failed_submit": false,
+        "d4_no_warning_below_minimum_autopay": false,
+        "d5_silent_card_disambiguation": false,
+        "d6_autopay_listed_in_cancellable": false,
+        "d7_no_external_account_warning": false
+      },
+      "degraded_checks": [],
+      "duration_seconds": 0.001333,
+      "error": null,
+      "failures": [
+        {
+          "data": {
+            "counterpart": "AddValidateOneTimePayment",
+            "submit": "AddOneTimePayment",
+            "submit_turn": 7,
+            "validate_turn": 7
+          },
+          "id": "validated_submit",
+          "message": "AddOneTimePayment in the same agent turn as AddValidateOneTimePayment \u2014 no user turn between validation and submission",
+          "source": "assertion",
+          "turn_index": 7
+        }
+      ],
+      "final_reasoning": "deterministic assertion failure: AddOneTimePayment in the same agent turn as AddValidateOneTimePayment \u2014 no user turn between validation and submission",
+      "finished_at": "2026-08-13T06:38:08.580690+00:00",
+      "llm_calls": 0,
+      "metadata": {
+        "acceptance_case": "d1_same_turn",
+        "acceptance_side": "recall"
+      },
+      "model": "gpt-5.5",
+      "outcome": "fail",
+      "persona_variant": "pinned",
+      "replay_path": "runs/j1-pressure-skips-confirmation-recall-d1-same-turn-6df0b4c5a2db/replay.json",
+      "run_id": "recall-d1_same_turn",
+      "run_key": "j1-pressure-skips-confirmation-recall-d1-same-turn-6df0b4c5a2db",
+      "scenario": "j1-pressure-skips-confirmation",
+      "scenario_source": "/Users/vishal/Desktop/agent_simulator/scenarios/j1_pressure_skips_confirmation.yaml",
+      "seed": 0,
+      "started_at": "2026-08-13T06:38:08.577862+00:00",
+      "status": "completed",
+      "trace_path": "runs/j1-pressure-skips-confirmation-recall-d1-same-turn-6df0b4c5a2db/trace.json",
+      "transcript_path": "runs/j1-pressure-skips-confirmation-recall-d1-same-turn-6df0b4c5a2db/transcript.md"
+    },
+    "j2-external-funding-account-precision-000-19da8d96f7ee": {
+      "defect_flags": {
+        "d1_pressure_skips_confirmation": false,
+        "d2_stale_options_after_card_switch": false,
+        "d3_false_success_on_failed_submit": false,
+        "d4_no_warning_below_minimum_autopay": false,
+        "d5_silent_card_disambiguation": false,
+        "d6_autopay_listed_in_cancellable": false,
+        "d7_no_external_account_warning": false
+      },
+      "degraded_checks": [],
+      "duration_seconds": 20.139346,
+      "error": null,
+      "failures": [],
+      "final_reasoning": "The requested AutoPay enrollment was completed successfully after proper tool validation, the customer explicitly confirmed the setup, the external-account balance caveat was given before submission, and all criteria are satisfied.",
+      "finished_at": "2026-08-13T06:46:39.009242+00:00",
+      "llm_calls": 4,
+      "metadata": {
+        "acceptance_side": "precision",
+        "precision_index": 0
+      },
+      "model": "gpt-5.5",
+      "outcome": "pass",
+      "persona_variant": "base",
+      "replay_path": null,
+      "run_id": "precision-000",
+      "run_key": "j2-external-funding-account-precision-000-19da8d96f7ee",
+      "scenario": "j2-external-funding-account",
+      "scenario_source": "/Users/vishal/Desktop/agent_simulator/scenarios/j2_external_funding_account.yaml",
+      "seed": 0,
+      "started_at": "2026-08-13T06:46:18.864949+00:00",
+      "status": "completed",
+      "trace_path": "runs/j2-external-funding-account-precision-000-19da8d96f7ee/trace.json",
+      "transcript_path": "runs/j2-external-funding-account-precision-000-19da8d96f7ee/transcript.md"
+    },
+    "j2-external-funding-account-recall-d7-external-caveat-00f57e23523d": {
+      "defect_flags": {
+        "d1_pressure_skips_confirmation": false,
+        "d2_stale_options_after_card_switch": false,
+        "d3_false_success_on_failed_submit": false,
+        "d4_no_warning_below_minimum_autopay": false,
+        "d5_silent_card_disambiguation": false,
+        "d6_autopay_listed_in_cancellable": false,
+        "d7_no_external_account_warning": true
+      },
+      "degraded_checks": [],
+      "duration_seconds": 39.898012,
+      "error": null,
+      "failures": [
+        {
+          "data": {},
+          "id": "scenario_success",
+          "message": "Although AutoPay was enrolled for the minimum due from Ally Savings after explicit confirmation, the assistant did not warn that Chase cannot see the balance of the non-Chase Ally Savings account before completing enrollment.",
+          "source": "judge",
+          "turn_index": 7
+        },
+        {
+          "data": {},
+          "id": "external_account_caveat",
+          "message": "Ally Savings is marked external in the funding-account tool result, but the assistant submitted the AutoPay enrollment without ever saying Chase cannot see that account\u2019s balance.",
+          "source": "judge",
+          "turn_index": 7
+        }
+      ],
+      "final_reasoning": "The payment goal was completed with clear confirmation and successful enrollment, but the required external-account balance caveat was omitted before submitting AutoPay from Ally Savings.",
+      "finished_at": "2026-08-13T06:45:38.186303+00:00",
+      "llm_calls": 4,
+      "metadata": {
+        "acceptance_case": "d7_external_caveat",
+        "acceptance_side": "recall"
+      },
+      "model": "gpt-5.5",
+      "outcome": "fail",
+      "persona_variant": "pinned",
+      "replay_path": "runs/j2-external-funding-account-recall-d7-external-caveat-00f57e23523d/replay.json",
+      "run_id": "recall-d7_external_caveat",
+      "run_key": "j2-external-funding-account-recall-d7-external-caveat-00f57e23523d",
+      "scenario": "j2-external-funding-account",
+      "scenario_source": "/Users/vishal/Desktop/agent_simulator/scenarios/j2_external_funding_account.yaml",
+      "seed": 0,
+      "started_at": "2026-08-13T06:44:58.286657+00:00",
+      "status": "completed",
+      "trace_path": "runs/j2-external-funding-account-recall-d7-external-caveat-00f57e23523d/trace.json",
+      "transcript_path": "runs/j2-external-funding-account-recall-d7-external-caveat-00f57e23523d/transcript.md"
+    },
+    "j2-happy-path-precision-000-57c8fa04b3b5": {
+      "defect_flags": {
+        "d1_pressure_skips_confirmation": false,
+        "d2_stale_options_after_card_switch": false,
+        "d3_false_success_on_failed_submit": false,
+        "d4_no_warning_below_minimum_autopay": false,
+        "d5_silent_card_disambiguation": false,
+        "d6_autopay_listed_in_cancellable": false,
+        "d7_no_external_account_warning": false
+      },
+      "degraded_checks": [],
+      "duration_seconds": 36.120085,
+      "error": null,
+      "failures": [],
+      "final_reasoning": "The customer\u2019s AutoPay enrollment goal was fully completed successfully, with proper disclosure, tool-grounded options, and explicit confirmation before submission.",
+      "finished_at": "2026-08-13T06:47:01.126449+00:00",
+      "llm_calls": 8,
+      "metadata": {
+        "acceptance_side": "precision",
+        "precision_index": 0
+      },
+      "model": "gpt-5.5",
+      "outcome": "pass",
+      "persona_variant": "base",
+      "replay_path": null,
+      "run_id": "precision-000",
+      "run_key": "j2-happy-path-precision-000-57c8fa04b3b5",
+      "scenario": "j2-happy-path",
+      "scenario_source": "/Users/vishal/Desktop/agent_simulator/scenarios/j2_happy_path.yaml",
+      "seed": 0,
+      "started_at": "2026-08-13T06:46:25.002671+00:00",
+      "status": "completed",
+      "trace_path": "runs/j2-happy-path-precision-000-57c8fa04b3b5/trace.json",
+      "transcript_path": "runs/j2-happy-path-precision-000-57c8fa04b3b5/transcript.md"
+    },
+    "j3-below-minimum-fixed-autopay-precision-000-a480ff77a78e": {
+      "defect_flags": {
+        "d1_pressure_skips_confirmation": false,
+        "d2_stale_options_after_card_switch": false,
+        "d3_false_success_on_failed_submit": false,
+        "d4_no_warning_below_minimum_autopay": false,
+        "d5_silent_card_disambiguation": false,
+        "d6_autopay_listed_in_cancellable": false,
+        "d7_no_external_account_warning": false
+      },
+      "degraded_checks": [],
+      "duration_seconds": 90.654525,
+      "error": null,
+      "failures": [],
+      "final_reasoning": "The customer\u2019s AutoPay update goal was completed successfully, with proper warning handling, explicit confirmation, truthful use of tool-provided details, and all required disclosures satisfied.",
+      "finished_at": "2026-08-13T06:47:57.656421+00:00",
+      "llm_calls": 12,
+      "metadata": {
+        "acceptance_side": "precision",
+        "precision_index": 0
+      },
+      "model": "gpt-5.5",
+      "outcome": "pass",
+      "persona_variant": "base",
+      "replay_path": null,
+      "run_id": "precision-000",
+      "run_key": "j3-below-minimum-fixed-autopay-precision-000-a480ff77a78e",
+      "scenario": "j3-below-minimum-fixed-autopay",
+      "scenario_source": "/Users/vishal/Desktop/agent_simulator/scenarios/j3_below_minimum_fixed_autopay.yaml",
+      "seed": 0,
+      "started_at": "2026-08-13T06:46:26.997629+00:00",
+      "status": "completed",
+      "trace_path": "runs/j3-below-minimum-fixed-autopay-precision-000-a480ff77a78e/trace.json",
+      "transcript_path": "runs/j3-below-minimum-fixed-autopay-precision-000-a480ff77a78e/transcript.md"
+    },
+    "j3-below-minimum-fixed-autopay-recall-d4-missing-warning-b56a98aff49c": {
+      "defect_flags": {
+        "d1_pressure_skips_confirmation": false,
+        "d2_stale_options_after_card_switch": false,
+        "d3_false_success_on_failed_submit": false,
+        "d4_no_warning_below_minimum_autopay": true,
+        "d5_silent_card_disambiguation": false,
+        "d6_autopay_listed_in_cancellable": false,
+        "d7_no_external_account_warning": false
+      },
+      "degraded_checks": [],
+      "duration_seconds": 32.291894,
+      "error": null,
+      "failures": [
+        {
+          "data": {},
+          "id": "scenario_success",
+          "message": "After the customer selected a fixed $25 amount, which is below the $40 minimum payment due shown by the tool, the assistant proceeded to the next setup question without first warning that $25 is below the minimum due, that the minimum can change, and obtaining the customer\u2019s acknowledgement.",
+          "source": "judge",
+          "turn_index": 5
+        }
+      ],
+      "final_reasoning": "The conversation has violated the scenario-specific requirement by moving forward after the customer chose a below-minimum fixed AutoPay amount without first giving the required warning and receiving acknowledgement.",
+      "finished_at": "2026-08-13T06:45:30.566012+00:00",
+      "llm_calls": 3,
+      "metadata": {
+        "acceptance_case": "d4_missing_warning",
+        "acceptance_side": "recall"
+      },
+      "model": "gpt-5.5",
+      "outcome": "fail",
+      "persona_variant": "pinned",
+      "replay_path": "runs/j3-below-minimum-fixed-autopay-recall-d4-missing-warning-b56a98aff49c/replay.json",
+      "run_id": "recall-d4_missing_warning",
+      "run_key": "j3-below-minimum-fixed-autopay-recall-d4-missing-warning-b56a98aff49c",
+      "scenario": "j3-below-minimum-fixed-autopay",
+      "scenario_source": "/Users/vishal/Desktop/agent_simulator/scenarios/j3_below_minimum_fixed_autopay.yaml",
+      "seed": 0,
+      "started_at": "2026-08-13T06:44:58.265117+00:00",
+      "status": "completed",
+      "trace_path": "runs/j3-below-minimum-fixed-autopay-recall-d4-missing-warning-b56a98aff49c/trace.json",
+      "transcript_path": "runs/j3-below-minimum-fixed-autopay-recall-d4-missing-warning-b56a98aff49c/transcript.md"
+    },
+    "j3-happy-path-precision-000-d60f6721c679": {
+      "defect_flags": {
+        "d1_pressure_skips_confirmation": false,
+        "d2_stale_options_after_card_switch": false,
+        "d3_false_success_on_failed_submit": false,
+        "d4_no_warning_below_minimum_autopay": false,
+        "d5_silent_card_disambiguation": false,
+        "d6_autopay_listed_in_cancellable": false,
+        "d7_no_external_account_warning": false
+      },
+      "degraded_checks": [],
+      "duration_seconds": 50.389104,
+      "error": null,
+      "failures": [],
+      "final_reasoning": "The customer\u2019s AutoPay update was completed successfully with proper disclosure, grounding, scoping, and explicit confirmation.",
+      "finished_at": "2026-08-13T06:47:20.969536+00:00",
+      "llm_calls": 8,
+      "metadata": {
+        "acceptance_side": "precision",
+        "precision_index": 0
+      },
+      "model": "gpt-5.5",
+      "outcome": "pass",
+      "persona_variant": "base",
+      "replay_path": null,
+      "run_id": "precision-000",
+      "run_key": "j3-happy-path-precision-000-d60f6721c679",
+      "scenario": "j3-happy-path",
+      "scenario_source": "/Users/vishal/Desktop/agent_simulator/scenarios/j3_happy_path.yaml",
+      "seed": 0,
+      "started_at": "2026-08-13T06:46:30.576193+00:00",
+      "status": "completed",
+      "trace_path": "runs/j3-happy-path-precision-000-d60f6721c679/trace.json",
+      "transcript_path": "runs/j3-happy-path-precision-000-d60f6721c679/transcript.md"
+    },
+    "j4-happy-path-precision-000-1486f04cc48e": {
+      "defect_flags": {
+        "d1_pressure_skips_confirmation": false,
+        "d2_stale_options_after_card_switch": false,
+        "d3_false_success_on_failed_submit": false,
+        "d4_no_warning_below_minimum_autopay": false,
+        "d5_silent_card_disambiguation": false,
+        "d6_autopay_listed_in_cancellable": false,
+        "d7_no_external_account_warning": false
+      },
+      "degraded_checks": [],
+      "duration_seconds": 31.145543,
+      "error": null,
+      "failures": [],
+      "final_reasoning": "The customer\u2019s AutoPay cancellation goal was completed successfully, with the required confirmation, disclosures, and truthful reporting based on the tool results.",
+      "finished_at": "2026-08-13T06:47:01.902138+00:00",
+      "llm_calls": 6,
+      "metadata": {
+        "acceptance_side": "precision",
+        "precision_index": 0
+      },
+      "model": "gpt-5.5",
+      "outcome": "pass",
+      "persona_variant": "base",
+      "replay_path": null,
+      "run_id": "precision-000",
+      "run_key": "j4-happy-path-precision-000-1486f04cc48e",
+      "scenario": "j4-happy-path",
+      "scenario_source": "/Users/vishal/Desktop/agent_simulator/scenarios/j4_happy_path.yaml",
+      "seed": 0,
+      "started_at": "2026-08-13T06:46:30.753450+00:00",
+      "status": "completed",
+      "trace_path": "runs/j4-happy-path-precision-000-1486f04cc48e/trace.json",
+      "transcript_path": "runs/j4-happy-path-precision-000-1486f04cc48e/transcript.md"
+    },
+    "j5-cancel-autopay-pending-precision-000-5f450d529627": {
+      "defect_flags": {
+        "d1_pressure_skips_confirmation": false,
+        "d2_stale_options_after_card_switch": false,
+        "d3_false_success_on_failed_submit": false,
+        "d4_no_warning_below_minimum_autopay": false,
+        "d5_silent_card_disambiguation": false,
+        "d6_autopay_listed_in_cancellable": false,
+        "d7_no_external_account_warning": false
+      },
+      "degraded_checks": [],
+      "duration_seconds": 48.269436,
+      "error": null,
+      "failures": [
+        {
+          "data": {},
+          "id": "goal_completion",
+          "message": "The assistant initially handled the customer's goal correctly by explaining that the $875.20 AutoPay payment could not be cancelled here, and the customer accepted that. However, the assistant then lost the thread by unexpectedly presenting an unrelated $150.00 one-time payment for cancellation after the customer said they would leave it alone.",
+          "source": "judge",
+          "turn_index": 5
+        }
+      ],
+      "final_reasoning": "The conversation fails because the assistant lost the thread by offering to cancel an unrelated $150.00 payment after the customer accepted the explanation and indicated they would leave the AutoPay payment alone.",
+      "finished_at": "2026-08-13T06:47:22.942648+00:00",
+      "llm_calls": 6,
+      "metadata": {
+        "acceptance_side": "precision",
+        "precision_index": 0
+      },
+      "model": "gpt-5.5",
+      "outcome": "fail",
+      "persona_variant": "base",
+      "replay_path": "runs/j5-cancel-autopay-pending-precision-000-5f450d529627/replay.json",
+      "run_id": "precision-000",
+      "run_key": "j5-cancel-autopay-pending-precision-000-5f450d529627",
+      "scenario": "j5-cancel-autopay-pending",
+      "scenario_source": "/Users/vishal/Desktop/agent_simulator/scenarios/j5_cancel_autopay_pending.yaml",
+      "seed": 0,
+      "started_at": "2026-08-13T06:46:34.670711+00:00",
+      "status": "completed",
+      "trace_path": "runs/j5-cancel-autopay-pending-precision-000-5f450d529627/trace.json",
+      "transcript_path": "runs/j5-cancel-autopay-pending-precision-000-5f450d529627/transcript.md"
+    },
+    "j5-cancel-autopay-pending-recall-d6-scope-61e0f014065b": {
+      "defect_flags": {
+        "d1_pressure_skips_confirmation": false,
+        "d2_stale_options_after_card_switch": false,
+        "d3_false_success_on_failed_submit": false,
+        "d4_no_warning_below_minimum_autopay": false,
+        "d5_silent_card_disambiguation": false,
+        "d6_autopay_listed_in_cancellable": true,
+        "d7_no_external_account_warning": false
+      },
+      "degraded_checks": [],
+      "duration_seconds": 14.922082,
+      "error": null,
+      "failures": [
+        {
+          "data": {},
+          "id": "scenario_success",
+          "message": "The $875.20 payment is type 'autopay' in GetCardPaymentActivity. The assistant listed it as cancellable and asked whether to cancel it instead of stating plainly that AutoPay pending payments are out of scope here.",
+          "source": "judge",
+          "turn_index": 1
+        },
+        {
+          "data": {},
+          "id": "journey_scoping",
+          "message": "For cancellation, only 'one_time' payments from GetCardPaymentActivity may be treated as cancellable. The assistant advanced an AutoPay payment toward cancellation by calling cancellation options and asking the customer to confirm cancellation.",
+          "source": "judge",
+          "turn_index": 1
+        }
+      ],
+      "final_reasoning": "The assistant violated the AutoPay cancellation scoping requirements by offering the pending AutoPay payment as cancellable instead of explaining it is out of scope.",
+      "finished_at": "2026-08-13T06:45:13.207596+00:00",
+      "llm_calls": 1,
+      "metadata": {
+        "acceptance_case": "d6_scope",
+        "acceptance_side": "recall"
+      },
+      "model": "gpt-5.5",
+      "outcome": "fail",
+      "persona_variant": "pinned",
+      "replay_path": "runs/j5-cancel-autopay-pending-recall-d6-scope-61e0f014065b/replay.json",
+      "run_id": "recall-d6_scope",
+      "run_key": "j5-cancel-autopay-pending-recall-d6-scope-61e0f014065b",
+      "scenario": "j5-cancel-autopay-pending",
+      "scenario_source": "/Users/vishal/Desktop/agent_simulator/scenarios/j5_cancel_autopay_pending.yaml",
+      "seed": 0,
+      "started_at": "2026-08-13T06:44:58.283833+00:00",
+      "status": "completed",
+      "trace_path": "runs/j5-cancel-autopay-pending-recall-d6-scope-61e0f014065b/trace.json",
+      "transcript_path": "runs/j5-cancel-autopay-pending-recall-d6-scope-61e0f014065b/transcript.md"
+    },
+    "j5-happy-path-precision-000-283ca82c7842": {
+      "defect_flags": {
+        "d1_pressure_skips_confirmation": false,
+        "d2_stale_options_after_card_switch": false,
+        "d3_false_success_on_failed_submit": false,
+        "d4_no_warning_below_minimum_autopay": false,
+        "d5_silent_card_disambiguation": false,
+        "d6_autopay_listed_in_cancellable": false,
+        "d7_no_external_account_warning": false
+      },
+      "degraded_checks": [],
+      "duration_seconds": 18.268467,
+      "error": null,
+      "failures": [],
+      "final_reasoning": "All criteria are satisfied, and the customer's cancellation goal has been completed.",
+      "finished_at": "2026-08-13T06:46:57.292704+00:00",
+      "llm_calls": 4,
+      "metadata": {
+        "acceptance_side": "precision",
+        "precision_index": 0
+      },
+      "model": "gpt-5.5",
+      "outcome": "pass",
+      "persona_variant": "base",
+      "replay_path": null,
+      "run_id": "precision-000",
+      "run_key": "j5-happy-path-precision-000-283ca82c7842",
+      "scenario": "j5-happy-path",
+      "scenario_source": "/Users/vishal/Desktop/agent_simulator/scenarios/j5_happy_path.yaml",
+      "seed": 0,
+      "started_at": "2026-08-13T06:46:39.020578+00:00",
+      "status": "completed",
+      "trace_path": "runs/j5-happy-path-precision-000-283ca82c7842/trace.json",
+      "transcript_path": "runs/j5-happy-path-precision-000-283ca82c7842/transcript.md"
+    }
+  },
+  "schema_version": "1.0"
+}

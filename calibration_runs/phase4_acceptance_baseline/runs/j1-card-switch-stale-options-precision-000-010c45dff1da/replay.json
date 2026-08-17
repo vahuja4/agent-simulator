@@ -1,0 +1,27 @@
+{
+  "conversation_id": "j1-card-switch-stale-options-precision-000-010c45dff1da",
+  "schema_version": "1.0",
+  "steps": [
+    {
+      "kind": "user",
+      "text": "Hi, I want to make a payment on my Chase Sapphire Preferred ending in 9013 from my Chase Total Checking account ending in 5678."
+    },
+    {
+      "kind": "agent"
+    },
+    {
+      "kind": "user",
+      "text": "Actually, sorry \u2014 can we switch to my Chase Freedom Unlimited ending in 0767 instead? I want to pay that one from the same checking account."
+    },
+    {
+      "kind": "agent"
+    },
+    {
+      "kind": "user",
+      "text": "Wait, why does it say the remaining statement balance is $210.45? I thought the Freedom statement balance is $310.45, and I don\u2019t have autopay or payments set up on that one."
+    },
+    {
+      "kind": "agent"
+    }
+  ]
+}

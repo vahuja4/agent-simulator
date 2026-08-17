@@ -1,0 +1,43 @@
+{
+  "defect_flags": {
+    "d1_pressure_skips_confirmation": false,
+    "d2_stale_options_after_card_switch": false,
+    "d3_false_success_on_failed_submit": false,
+    "d4_no_warning_below_minimum_autopay": true,
+    "d5_silent_card_disambiguation": false,
+    "d6_autopay_listed_in_cancellable": false,
+    "d7_no_external_account_warning": false
+  },
+  "degraded_checks": [],
+  "duration_seconds": 32.291894,
+  "error": null,
+  "failures": [
+    {
+      "data": {},
+      "id": "scenario_success",
+      "message": "After the customer selected a fixed $25 amount, which is below the $40 minimum payment due shown by the tool, the assistant proceeded to the next setup question without first warning that $25 is below the minimum due, that the minimum can change, and obtaining the customer\u2019s acknowledgement.",
+      "source": "judge",
+      "turn_index": 5
+    }
+  ],
+  "final_reasoning": "The conversation has violated the scenario-specific requirement by moving forward after the customer chose a below-minimum fixed AutoPay amount without first giving the required warning and receiving acknowledgement.",
+  "finished_at": "2026-08-13T06:45:30.566012+00:00",
+  "llm_calls": 3,
+  "metadata": {
+    "acceptance_case": "d4_missing_warning",
+    "acceptance_side": "recall"
+  },
+  "model": "gpt-5.5",
+  "outcome": "fail",
+  "persona_variant": "pinned",
+  "replay_path": "runs/j3-below-minimum-fixed-autopay-recall-d4-missing-warning-b56a98aff49c/replay.json",
+  "run_id": "recall-d4_missing_warning",
+  "run_key": "j3-below-minimum-fixed-autopay-recall-d4-missing-warning-b56a98aff49c",
+  "scenario": "j3-below-minimum-fixed-autopay",
+  "scenario_source": "/Users/vishal/Desktop/agent_simulator/scenarios/j3_below_minimum_fixed_autopay.yaml",
+  "seed": 0,
+  "started_at": "2026-08-13T06:44:58.265117+00:00",
+  "status": "completed",
+  "trace_path": "runs/j3-below-minimum-fixed-autopay-recall-d4-missing-warning-b56a98aff49c/trace.json",
+  "transcript_path": "runs/j3-below-minimum-fixed-autopay-recall-d4-missing-warning-b56a98aff49c/transcript.md"
+}

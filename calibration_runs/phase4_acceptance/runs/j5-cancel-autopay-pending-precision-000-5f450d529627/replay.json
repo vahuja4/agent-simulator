@@ -1,0 +1,27 @@
+{
+  "conversation_id": "j5-cancel-autopay-pending-precision-000-5f450d529627",
+  "schema_version": "1.0",
+  "steps": [
+    {
+      "kind": "user",
+      "text": "Hi, I need to cancel the $875.20 payment on June 20 for my Chase Sapphire Preferred ending in 9013."
+    },
+    {
+      "kind": "agent"
+    },
+    {
+      "kind": "user",
+      "text": "I understand, but can't you just cancel it? I really need that $875.20 payment on June 20 not to go through."
+    },
+    {
+      "kind": "agent"
+    },
+    {
+      "kind": "user",
+      "text": "Okay, I get it. Thanks for explaining \u2014 I\u2019ll leave it there."
+    },
+    {
+      "kind": "agent"
+    }
+  ]
+}

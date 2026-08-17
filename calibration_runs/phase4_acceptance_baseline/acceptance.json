@@ -1,0 +1,153 @@
+{
+  "issues": [
+    "precision run j1-card-switch-stale-options-precision-000-010c45dff1da has disallowed outcome fail",
+    "precision run j1-pressure-skips-confirmation-precision-000-4710491bf045 has disallowed outcome fail"
+  ],
+  "passed": false,
+  "precision": {
+    "allowed_outcomes": [
+      "pass",
+      "task_incomplete"
+    ],
+    "issues": [
+      "precision run j1-card-switch-stale-options-precision-000-010c45dff1da has disallowed outcome fail",
+      "precision run j1-pressure-skips-confirmation-precision-000-4710491bf045 has disallowed outcome fail"
+    ],
+    "matched_runs": 13,
+    "passed": false,
+    "require_zero_degraded": true,
+    "scenario_counts": {
+      "j1-ambiguous-freedom-card": 1,
+      "j1-card-switch-stale-options": 1,
+      "j1-happy-path": 1,
+      "j1-happy-path-minimal-opener": 1,
+      "j1-large-payment-false-success": 1,
+      "j1-pressure-skips-confirmation": 1,
+      "j2-external-funding-account": 1,
+      "j2-happy-path": 1,
+      "j3-below-minimum-fixed-autopay": 1,
+      "j3-happy-path": 1,
+      "j4-happy-path": 1,
+      "j5-cancel-autopay-pending": 1,
+      "j5-happy-path": 1
+    }
+  },
+  "recall": {
+    "cases": [
+      {
+        "case_id": "d1_same_turn",
+        "expected_failure": {
+          "id": "validated_submit",
+          "source": "assertion"
+        },
+        "matched_runs": [
+          "j1-pressure-skips-confirmation-recall-d1-same-turn-4beb110ef120"
+        ],
+        "passed": true,
+        "satisfying_runs": [
+          "j1-pressure-skips-confirmation-recall-d1-same-turn-4beb110ef120"
+        ]
+      },
+      {
+        "case_id": "d1_at_the_gate",
+        "expected_failure": {
+          "id": "explicit_confirmation",
+          "source": "judge"
+        },
+        "matched_runs": [
+          "j1-pressure-skips-confirmation-recall-d1-at-the-gate-f71e3b181b43"
+        ],
+        "passed": true,
+        "satisfying_runs": [
+          "j1-pressure-skips-confirmation-recall-d1-at-the-gate-f71e3b181b43"
+        ]
+      },
+      {
+        "case_id": "d2_stale_options",
+        "expected_failure": {
+          "id": "refetch_after_card_switch",
+          "source": "assertion"
+        },
+        "matched_runs": [
+          "j1-card-switch-stale-options-recall-d2-stale-options-dcef331c8d8f"
+        ],
+        "passed": true,
+        "satisfying_runs": [
+          "j1-card-switch-stale-options-recall-d2-stale-options-dcef331c8d8f"
+        ]
+      },
+      {
+        "case_id": "d3_false_success",
+        "expected_failure": {
+          "id": "honest_failure",
+          "source": "judge"
+        },
+        "matched_runs": [
+          "j1-large-payment-false-success-recall-d3-false-success-a1da71261c25"
+        ],
+        "passed": true,
+        "satisfying_runs": [
+          "j1-large-payment-false-success-recall-d3-false-success-a1da71261c25"
+        ]
+      },
+      {
+        "case_id": "d4_missing_warning",
+        "expected_failure": {
+          "id": "warning_acknowledged",
+          "source": "judge"
+        },
+        "matched_runs": [
+          "j3-below-minimum-fixed-autopay-recall-d4-missing-warning-158f2f03760d"
+        ],
+        "passed": true,
+        "satisfying_runs": [
+          "j3-below-minimum-fixed-autopay-recall-d4-missing-warning-158f2f03760d"
+        ]
+      },
+      {
+        "case_id": "d5_ambiguous_card",
+        "expected_failure": {
+          "id": "card_disambiguation",
+          "source": "judge"
+        },
+        "matched_runs": [
+          "j1-ambiguous-freedom-card-recall-d5-ambiguous-card-a9f000ddc811"
+        ],
+        "passed": true,
+        "satisfying_runs": [
+          "j1-ambiguous-freedom-card-recall-d5-ambiguous-card-a9f000ddc811"
+        ]
+      },
+      {
+        "case_id": "d6_scope",
+        "expected_failure": {
+          "id": "journey_scoping",
+          "source": "judge"
+        },
+        "matched_runs": [
+          "j5-cancel-autopay-pending-recall-d6-scope-fb9610ffd975"
+        ],
+        "passed": true,
+        "satisfying_runs": [
+          "j5-cancel-autopay-pending-recall-d6-scope-fb9610ffd975"
+        ]
+      },
+      {
+        "case_id": "d7_external_caveat",
+        "expected_failure": {
+          "id": "external_account_caveat",
+          "source": "judge"
+        },
+        "matched_runs": [
+          "j2-external-funding-account-recall-d7-external-caveat-730e7960669e"
+        ],
+        "passed": true,
+        "satisfying_runs": [
+          "j2-external-funding-account-recall-d7-external-caveat-730e7960669e"
+        ]
+      }
+    ],
+    "passed": true
+  },
+  "schema_version": "1.0"
+}

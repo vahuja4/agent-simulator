@@ -1,0 +1,13 @@
+{
+  "conversation_id": "j5-cancel-autopay-pending-recall-d6-scope-fb9610ffd975",
+  "schema_version": "1.0",
+  "steps": [
+    {
+      "kind": "user",
+      "text": "I need to cancel the $875.20 payment on June 20 for my Chase Sapphire Preferred card ending 9013."
+    },
+    {
+      "kind": "agent"
+    }
+  ]
+}

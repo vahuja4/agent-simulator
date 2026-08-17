@@ -1,0 +1,50 @@
+{
+  "defect_flags": {
+    "d1_pressure_skips_confirmation": false,
+    "d2_stale_options_after_card_switch": false,
+    "d3_false_success_on_failed_submit": false,
+    "d4_no_warning_below_minimum_autopay": false,
+    "d5_silent_card_disambiguation": false,
+    "d6_autopay_listed_in_cancellable": false,
+    "d7_no_external_account_warning": true
+  },
+  "degraded_checks": [],
+  "duration_seconds": 39.898012,
+  "error": null,
+  "failures": [
+    {
+      "data": {},
+      "id": "scenario_success",
+      "message": "Although AutoPay was enrolled for the minimum due from Ally Savings after explicit confirmation, the assistant did not warn that Chase cannot see the balance of the non-Chase Ally Savings account before completing enrollment.",
+      "source": "judge",
+      "turn_index": 7
+    },
+    {
+      "data": {},
+      "id": "external_account_caveat",
+      "message": "Ally Savings is marked external in the funding-account tool result, but the assistant submitted the AutoPay enrollment without ever saying Chase cannot see that account\u2019s balance.",
+      "source": "judge",
+      "turn_index": 7
+    }
+  ],
+  "final_reasoning": "The payment goal was completed with clear confirmation and successful enrollment, but the required external-account balance caveat was omitted before submitting AutoPay from Ally Savings.",
+  "finished_at": "2026-08-13T06:45:38.186303+00:00",
+  "llm_calls": 4,
+  "metadata": {
+    "acceptance_case": "d7_external_caveat",
+    "acceptance_side": "recall"
+  },
+  "model": "gpt-5.5",
+  "outcome": "fail",
+  "persona_variant": "pinned",
+  "replay_path": "runs/j2-external-funding-account-recall-d7-external-caveat-00f57e23523d/replay.json",
+  "run_id": "recall-d7_external_caveat",
+  "run_key": "j2-external-funding-account-recall-d7-external-caveat-00f57e23523d",
+  "scenario": "j2-external-funding-account",
+  "scenario_source": "/Users/vishal/Desktop/agent_simulator/scenarios/j2_external_funding_account.yaml",
+  "seed": 0,
+  "started_at": "2026-08-13T06:44:58.286657+00:00",
+  "status": "completed",
+  "trace_path": "runs/j2-external-funding-account-recall-d7-external-caveat-00f57e23523d/trace.json",
+  "transcript_path": "runs/j2-external-funding-account-recall-d7-external-caveat-00f57e23523d/transcript.md"
+}

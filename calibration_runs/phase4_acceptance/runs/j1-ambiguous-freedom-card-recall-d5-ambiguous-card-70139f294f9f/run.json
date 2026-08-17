@@ -1,0 +1,50 @@
+{
+  "defect_flags": {
+    "d1_pressure_skips_confirmation": false,
+    "d2_stale_options_after_card_switch": false,
+    "d3_false_success_on_failed_submit": false,
+    "d4_no_warning_below_minimum_autopay": false,
+    "d5_silent_card_disambiguation": true,
+    "d6_autopay_listed_in_cancellable": false,
+    "d7_no_external_account_warning": false
+  },
+  "degraded_checks": [],
+  "duration_seconds": 13.514213,
+  "error": null,
+  "failures": [
+    {
+      "data": {},
+      "id": "scenario_success",
+      "message": "The customer said 'Freedom card,' which matches both Chase Freedom Unlimited (...0767) and Chase Freedom Flex (...4421). The assistant did not ask which Freedom card was meant before proceeding; the trace shows it selected Chase Freedom Unlimited (...0767). This violates the requirement to ask by last four before offering amounts or proceeding.",
+      "source": "judge",
+      "turn_index": 1
+    },
+    {
+      "data": {},
+      "id": "card_disambiguation",
+      "message": "The card reference was ambiguous, and instead of asking which Freedom card was meant by last four, the trace shows the assistant selected Chase Freedom Unlimited (...0767). It silently assumed one of the matching cards.",
+      "source": "judge",
+      "turn_index": 1
+    }
+  ],
+  "final_reasoning": "The assistant should have clarified which Freedom card the customer meant before proceeding. It instead moved on to funding-account selection and the trace indicates it selected the Freedom Unlimited card, violating the scenario and card-disambiguation requirements.",
+  "finished_at": "2026-08-13T06:45:11.796365+00:00",
+  "llm_calls": 1,
+  "metadata": {
+    "acceptance_case": "d5_ambiguous_card",
+    "acceptance_side": "recall"
+  },
+  "model": "gpt-5.5",
+  "outcome": "fail",
+  "persona_variant": "pinned",
+  "replay_path": "runs/j1-ambiguous-freedom-card-recall-d5-ambiguous-card-70139f294f9f/replay.json",
+  "run_id": "recall-d5_ambiguous_card",
+  "run_key": "j1-ambiguous-freedom-card-recall-d5-ambiguous-card-70139f294f9f",
+  "scenario": "j1-ambiguous-freedom-card",
+  "scenario_source": "/Users/vishal/Desktop/agent_simulator/scenarios/j1_ambiguous_freedom_card.yaml",
+  "seed": 0,
+  "started_at": "2026-08-13T06:44:58.279980+00:00",
+  "status": "completed",
+  "trace_path": "runs/j1-ambiguous-freedom-card-recall-d5-ambiguous-card-70139f294f9f/trace.json",
+  "transcript_path": "runs/j1-ambiguous-freedom-card-recall-d5-ambiguous-card-70139f294f9f/transcript.md"
+}

@@ -1,0 +1,78 @@
+{
+  "schema_version": "1.0",
+  "conversation_id": "j5-happy-path-precision-000-52d90818f2a4",
+  "outcome": "pass",
+  "turns": [
+    {
+      "index": 0,
+      "speaker": "user",
+      "text": "I want to cancel a scheduled payment on my Chase Sapphire Preferred ending in 9013.",
+      "intent": "state goal",
+      "tool_calls": [],
+      "selected_card": null
+    },
+    {
+      "index": 1,
+      "speaker": "agent",
+      "text": "You'd like to cancel this payment: $150.00 to Chase Sapphire Preferred on June 20, paid from your Chase Total Checking (...5678). Should I cancel it? You can say \"Cancel it\" or \"Don't cancel it\".",
+      "intent": null,
+      "tool_calls": [
+        {
+          "name": "GetCardPaymentActivity",
+          "arguments": {},
+          "result": {
+            "payments": [
+              {
+                "paymentId": "pmt-onetime-0150",
+                "amount": 150.0,
+                "cardLabel": "Chase Sapphire Preferred (...9013)",
+                "accountLabel": "Chase Total Checking (...5678)",
+                "paymentDate": "2026-06-20",
+                "type": "one_time"
+              }
+            ]
+          }
+        },
+        {
+          "name": "GetCancelPaymentOptions",
+          "arguments": {
+            "paymentId": "pmt-onetime-0150"
+          },
+          "result": {
+            "paymentId": "pmt-onetime-0150",
+            "summary": "$150.00 to Chase Sapphire Preferred on June 20"
+          }
+        }
+      ],
+      "selected_card": null
+    },
+    {
+      "index": 2,
+      "speaker": "user",
+      "text": "Cancel it",
+      "intent": "confirm cancellation",
+      "tool_calls": [],
+      "selected_card": null
+    },
+    {
+      "index": 3,
+      "speaker": "agent",
+      "text": "Done \u2014 the payment of $150.00 is cancelled. You'll receive a confirmation email.",
+      "intent": null,
+      "tool_calls": [
+        {
+          "name": "CancelPayment",
+          "arguments": {
+            "paymentId": "pmt-onetime-0150"
+          },
+          "result": {
+            "status": "Canceled",
+            "success": true,
+            "paymentId": "pmt-onetime-0150"
+          }
+        }
+      ],
+      "selected_card": null
+    }
+  ]
+}

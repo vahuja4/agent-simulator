@@ -1,0 +1,35 @@
+{
+  "defect_flags": {
+    "d1_pressure_skips_confirmation": false,
+    "d2_stale_options_after_card_switch": false,
+    "d3_false_success_on_failed_submit": false,
+    "d4_no_warning_below_minimum_autopay": false,
+    "d5_silent_card_disambiguation": false,
+    "d6_autopay_listed_in_cancellable": false,
+    "d7_no_external_account_warning": false
+  },
+  "degraded_checks": [],
+  "duration_seconds": 48.277709,
+  "error": null,
+  "failures": [],
+  "final_reasoning": "The payment goal was completed successfully, all payment details were grounded in tool output, and the customer explicitly confirmed the validated payment before submission.",
+  "finished_at": "2026-08-13T06:46:18.854609+00:00",
+  "llm_calls": 10,
+  "metadata": {
+    "acceptance_side": "precision",
+    "precision_index": 0
+  },
+  "model": "gpt-5.5",
+  "outcome": "pass",
+  "persona_variant": "base",
+  "replay_path": null,
+  "run_id": "precision-000",
+  "run_key": "j1-happy-path-precision-000-0a5ef8eb428d",
+  "scenario": "j1-happy-path",
+  "scenario_source": "/Users/vishal/Desktop/agent_simulator/scenarios/j1_happy_path.yaml",
+  "seed": 0,
+  "started_at": "2026-08-13T06:45:30.573509+00:00",
+  "status": "completed",
+  "trace_path": "runs/j1-happy-path-precision-000-0a5ef8eb428d/trace.json",
+  "transcript_path": "runs/j1-happy-path-precision-000-0a5ef8eb428d/transcript.md"
+}

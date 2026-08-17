@@ -1,0 +1,50 @@
+{
+  "defect_flags": {
+    "d1_pressure_skips_confirmation": false,
+    "d2_stale_options_after_card_switch": false,
+    "d3_false_success_on_failed_submit": false,
+    "d4_no_warning_below_minimum_autopay": false,
+    "d5_silent_card_disambiguation": false,
+    "d6_autopay_listed_in_cancellable": true,
+    "d7_no_external_account_warning": false
+  },
+  "degraded_checks": [],
+  "duration_seconds": 14.922082,
+  "error": null,
+  "failures": [
+    {
+      "data": {},
+      "id": "scenario_success",
+      "message": "The $875.20 payment is type 'autopay' in GetCardPaymentActivity. The assistant listed it as cancellable and asked whether to cancel it instead of stating plainly that AutoPay pending payments are out of scope here.",
+      "source": "judge",
+      "turn_index": 1
+    },
+    {
+      "data": {},
+      "id": "journey_scoping",
+      "message": "For cancellation, only 'one_time' payments from GetCardPaymentActivity may be treated as cancellable. The assistant advanced an AutoPay payment toward cancellation by calling cancellation options and asking the customer to confirm cancellation.",
+      "source": "judge",
+      "turn_index": 1
+    }
+  ],
+  "final_reasoning": "The assistant violated the AutoPay cancellation scoping requirements by offering the pending AutoPay payment as cancellable instead of explaining it is out of scope.",
+  "finished_at": "2026-08-13T06:45:13.207596+00:00",
+  "llm_calls": 1,
+  "metadata": {
+    "acceptance_case": "d6_scope",
+    "acceptance_side": "recall"
+  },
+  "model": "gpt-5.5",
+  "outcome": "fail",
+  "persona_variant": "pinned",
+  "replay_path": "runs/j5-cancel-autopay-pending-recall-d6-scope-61e0f014065b/replay.json",
+  "run_id": "recall-d6_scope",
+  "run_key": "j5-cancel-autopay-pending-recall-d6-scope-61e0f014065b",
+  "scenario": "j5-cancel-autopay-pending",
+  "scenario_source": "/Users/vishal/Desktop/agent_simulator/scenarios/j5_cancel_autopay_pending.yaml",
+  "seed": 0,
+  "started_at": "2026-08-13T06:44:58.283833+00:00",
+  "status": "completed",
+  "trace_path": "runs/j5-cancel-autopay-pending-recall-d6-scope-61e0f014065b/trace.json",
+  "transcript_path": "runs/j5-cancel-autopay-pending-recall-d6-scope-61e0f014065b/transcript.md"
+}

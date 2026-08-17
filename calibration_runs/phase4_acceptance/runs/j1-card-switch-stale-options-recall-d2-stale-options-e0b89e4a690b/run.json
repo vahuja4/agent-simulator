@@ -1,0 +1,60 @@
+{
+  "defect_flags": {
+    "d1_pressure_skips_confirmation": false,
+    "d2_stale_options_after_card_switch": true,
+    "d3_false_success_on_failed_submit": false,
+    "d4_no_warning_below_minimum_autopay": false,
+    "d5_silent_card_disambiguation": false,
+    "d6_autopay_listed_in_cancellable": false,
+    "d7_no_external_account_warning": false
+  },
+  "degraded_checks": [],
+  "duration_seconds": 0.001168,
+  "error": null,
+  "failures": [
+    {
+      "data": {
+        "amount": 875.2,
+        "options_tool": "AddOptionsOneTimePayment",
+        "payeeId": "card-freedom-unlimited-0767",
+        "validate": "AddValidateOneTimePayment"
+      },
+      "id": "amount_in_options",
+      "message": "AddValidateOneTimePayment for card 'card-freedom-unlimited-0767' with no prior AddOptionsOneTimePayment fetch for that card",
+      "source": "assertion",
+      "turn_index": 7
+    },
+    {
+      "data": {
+        "options_tool": "AddOptionsOneTimePayment",
+        "payeeId": "card-freedom-unlimited-0767",
+        "switch_turn": 3,
+        "tool": "AddValidateOneTimePayment"
+      },
+      "id": "refetch_after_card_switch",
+      "message": "AddValidateOneTimePayment after the card switch at turn 3 without a fresh AddOptionsOneTimePayment fetch",
+      "source": "assertion",
+      "turn_index": 7
+    }
+  ],
+  "final_reasoning": "deterministic assertion failure: AddValidateOneTimePayment for card 'card-freedom-unlimited-0767' with no prior AddOptionsOneTimePayment fetch for that card; AddValidateOneTimePayment after the card switch at turn 3 without a fresh AddOptionsOneTimePayment fetch",
+  "finished_at": "2026-08-13T06:38:08.835974+00:00",
+  "llm_calls": 0,
+  "metadata": {
+    "acceptance_case": "d2_stale_options",
+    "acceptance_side": "recall"
+  },
+  "model": "gpt-5.5",
+  "outcome": "fail",
+  "persona_variant": "pinned",
+  "replay_path": "runs/j1-card-switch-stale-options-recall-d2-stale-options-e0b89e4a690b/replay.json",
+  "run_id": "recall-d2_stale_options",
+  "run_key": "j1-card-switch-stale-options-recall-d2-stale-options-e0b89e4a690b",
+  "scenario": "j1-card-switch-stale-options",
+  "scenario_source": "/Users/vishal/Desktop/agent_simulator/scenarios/j1_card_switch_stale_options.yaml",
+  "seed": 0,
+  "started_at": "2026-08-13T06:38:08.830396+00:00",
+  "status": "completed",
+  "trace_path": "runs/j1-card-switch-stale-options-recall-d2-stale-options-e0b89e4a690b/trace.json",
+  "transcript_path": "runs/j1-card-switch-stale-options-recall-d2-stale-options-e0b89e4a690b/transcript.md"
+}

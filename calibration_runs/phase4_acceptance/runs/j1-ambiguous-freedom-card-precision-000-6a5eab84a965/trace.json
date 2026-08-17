@@ -1,0 +1,228 @@
+{
+  "schema_version": "1.0",
+  "conversation_id": "j1-ambiguous-freedom-card-precision-000-6a5eab84a965",
+  "outcome": "pass",
+  "turns": [
+    {
+      "index": 0,
+      "speaker": "user",
+      "text": "Hi, I want to pay the statement balance on my Freedom card from my Chase Total Checking, on the due date.",
+      "intent": "state goal",
+      "tool_calls": [],
+      "selected_card": null
+    },
+    {
+      "index": 1,
+      "speaker": "agent",
+      "text": "You have more than one card matching that. Which one did you mean \u2014 the one ending in ...0767 or ...4421?",
+      "intent": null,
+      "tool_calls": [],
+      "selected_card": null
+    },
+    {
+      "index": 2,
+      "speaker": "user",
+      "text": "The one ending in 4421.",
+      "intent": "identify card",
+      "tool_calls": [],
+      "selected_card": null
+    },
+    {
+      "index": 3,
+      "speaker": "agent",
+      "text": "Which account should the payment come from? You have: Chase Total Checking (...5678), Ally Savings (...9999).",
+      "intent": null,
+      "tool_calls": [
+        {
+          "name": "PayeeList",
+          "arguments": {},
+          "result": {
+            "payees": [
+              {
+                "payeeId": "card-sapphire-9013",
+                "name": "Chase Sapphire Preferred",
+                "mask": "9013",
+                "dueDate": "2026-06-20"
+              },
+              {
+                "payeeId": "card-freedom-unlimited-0767",
+                "name": "Chase Freedom Unlimited",
+                "mask": "0767",
+                "dueDate": "2026-06-25"
+              },
+              {
+                "payeeId": "card-freedom-flex-4421",
+                "name": "Chase Freedom Flex",
+                "mask": "4421",
+                "dueDate": "2026-06-28"
+              }
+            ]
+          }
+        },
+        {
+          "name": "FundingAccountPicker",
+          "arguments": {},
+          "result": {
+            "accounts": [
+              {
+                "accountId": "acct-chase-checking-5678",
+                "name": "Chase Total Checking",
+                "mask": "5678",
+                "type": "chase"
+              },
+              {
+                "accountId": "acct-ally-savings-9999",
+                "name": "Ally Savings",
+                "mask": "9999",
+                "type": "external"
+              }
+            ]
+          }
+        }
+      ],
+      "selected_card": "Chase Freedom Flex (...4421)"
+    },
+    {
+      "index": 4,
+      "speaker": "user",
+      "text": "Use my Chase Total Checking, ending in 5678.",
+      "intent": "choose funding account",
+      "tool_calls": [],
+      "selected_card": "Chase Freedom Flex (...4421)"
+    },
+    {
+      "index": 5,
+      "speaker": "agent",
+      "text": "Here are the payment options for your Chase Freedom Flex (...4421) \u2014 Minimum payment due: $25.00; Statement balance: $89.99; Remaining statement balance: $89.99; Current balance: $89.99 \u2014 or another amount of your choice. Your payment due date is June 28, 2026. How much would you like to pay?",
+      "intent": null,
+      "tool_calls": [
+        {
+          "name": "AddOptionsOneTimePayment",
+          "arguments": {
+            "payeeId": "card-freedom-flex-4421"
+          },
+          "result": {
+            "options": [
+              {
+                "optionId": "minimum_due",
+                "label": "Minimum payment due",
+                "amount": 25.0
+              },
+              {
+                "optionId": "statement_balance",
+                "label": "Statement balance",
+                "amount": 89.99
+              },
+              {
+                "optionId": "remaining_statement_balance",
+                "label": "Remaining statement balance",
+                "amount": 89.99
+              },
+              {
+                "optionId": "current_balance",
+                "label": "Current balance",
+                "amount": 89.99
+              },
+              {
+                "optionId": "other",
+                "label": "Other amount",
+                "amount": null
+              }
+            ],
+            "dueDate": "2026-06-28",
+            "timezone": "America/New_York"
+          }
+        }
+      ],
+      "selected_card": "Chase Freedom Flex (...4421)"
+    },
+    {
+      "index": 6,
+      "speaker": "user",
+      "text": "Pay the statement balance, $89.99.",
+      "intent": "choose amount",
+      "tool_calls": [],
+      "selected_card": "Chase Freedom Flex (...4421)"
+    },
+    {
+      "index": 7,
+      "speaker": "agent",
+      "text": "What date would you like the payment to be made? Dates are in Eastern Time, and your due date is June 28, 2026.",
+      "intent": null,
+      "tool_calls": [],
+      "selected_card": "Chase Freedom Flex (...4421)"
+    },
+    {
+      "index": 8,
+      "speaker": "user",
+      "text": "Schedule it for the due date, June 28, 2026.",
+      "intent": "choose date",
+      "tool_calls": [],
+      "selected_card": "Chase Freedom Flex (...4421)"
+    },
+    {
+      "index": 9,
+      "speaker": "agent",
+      "text": "Here's what I have: a payment of $89.99 to your Chase Freedom Flex (...4421) from your Chase Total Checking (...5678) on June 28, 2026 (Eastern Time). Shall I schedule it?",
+      "intent": null,
+      "tool_calls": [
+        {
+          "name": "AddValidateOneTimePayment",
+          "arguments": {
+            "payeeId": "card-freedom-flex-4421",
+            "accountId": "acct-chase-checking-5678",
+            "amount": 89.99,
+            "paymentDate": "2026-06-28"
+          },
+          "result": {
+            "status": "ready",
+            "formId": "form-0001",
+            "pendingPayment": {
+              "cardLabel": "Chase Freedom Flex (...4421)",
+              "accountLabel": "Chase Total Checking (...5678)",
+              "amount": 89.99,
+              "paymentDate": "2026-06-28",
+              "formId": "form-0001"
+            }
+          }
+        }
+      ],
+      "selected_card": "Chase Freedom Flex (...4421)"
+    },
+    {
+      "index": 10,
+      "speaker": "user",
+      "text": "Yes, please schedule it.",
+      "intent": "confirm",
+      "tool_calls": [],
+      "selected_card": "Chase Freedom Flex (...4421)"
+    },
+    {
+      "index": 11,
+      "speaker": "agent",
+      "text": "Done! Your payment of $89.99 to your Chase Freedom Flex (...4421) from your Chase Total Checking (...5678) is scheduled for June 28, 2026 (Eastern Time). Your confirmation number is CONF-0001.",
+      "intent": null,
+      "tool_calls": [
+        {
+          "name": "AddOneTimePayment",
+          "arguments": {
+            "formId": "form-0001"
+          },
+          "result": {
+            "status": "SCHEDULED",
+            "success": true,
+            "confirmationNumber": "CONF-0001",
+            "payment": {
+              "cardLabel": "Chase Freedom Flex (...4421)",
+              "accountLabel": "Chase Total Checking (...5678)",
+              "amount": 89.99,
+              "paymentDate": "2026-06-28",
+              "formId": "form-0001"
+            }
+          }
+        }
+      ],
+      "selected_card": "Chase Freedom Flex (...4421)"
+    }
+  ]
+}

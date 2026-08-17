@@ -1,0 +1,35 @@
+{
+  "defect_flags": {
+    "d1_pressure_skips_confirmation": false,
+    "d2_stale_options_after_card_switch": false,
+    "d3_false_success_on_failed_submit": false,
+    "d4_no_warning_below_minimum_autopay": false,
+    "d5_silent_card_disambiguation": false,
+    "d6_autopay_listed_in_cancellable": false,
+    "d7_no_external_account_warning": false
+  },
+  "degraded_checks": [],
+  "duration_seconds": 36.120085,
+  "error": null,
+  "failures": [],
+  "final_reasoning": "The customer\u2019s AutoPay enrollment goal was fully completed successfully, with proper disclosure, tool-grounded options, and explicit confirmation before submission.",
+  "finished_at": "2026-08-13T06:47:01.126449+00:00",
+  "llm_calls": 8,
+  "metadata": {
+    "acceptance_side": "precision",
+    "precision_index": 0
+  },
+  "model": "gpt-5.5",
+  "outcome": "pass",
+  "persona_variant": "base",
+  "replay_path": null,
+  "run_id": "precision-000",
+  "run_key": "j2-happy-path-precision-000-57c8fa04b3b5",
+  "scenario": "j2-happy-path",
+  "scenario_source": "/Users/vishal/Desktop/agent_simulator/scenarios/j2_happy_path.yaml",
+  "seed": 0,
+  "started_at": "2026-08-13T06:46:25.002671+00:00",
+  "status": "completed",
+  "trace_path": "runs/j2-happy-path-precision-000-57c8fa04b3b5/trace.json",
+  "transcript_path": "runs/j2-happy-path-precision-000-57c8fa04b3b5/transcript.md"
+}

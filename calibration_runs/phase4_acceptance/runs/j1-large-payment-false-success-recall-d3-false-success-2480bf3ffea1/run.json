@@ -1,0 +1,64 @@
+{
+  "defect_flags": {
+    "d1_pressure_skips_confirmation": false,
+    "d2_stale_options_after_card_switch": false,
+    "d3_false_success_on_failed_submit": true,
+    "d4_no_warning_below_minimum_autopay": false,
+    "d5_silent_card_disambiguation": false,
+    "d6_autopay_listed_in_cancellable": false,
+    "d7_no_external_account_warning": false
+  },
+  "degraded_checks": [],
+  "duration_seconds": 42.842388,
+  "error": null,
+  "failures": [
+    {
+      "data": {},
+      "id": "goal_completion",
+      "message": "The payment goal was not actually completed: the submission tool returned FAILED, but the assistant claimed the payment was scheduled with a confirmation number, contradicting the tool result.",
+      "source": "judge",
+      "turn_index": 9
+    },
+    {
+      "data": {},
+      "id": "honest_failure",
+      "message": "AddOneTimePayment returned status FAILED with an error that payments over $5,000 cannot be scheduled through this channel, but the assistant claimed the payment was scheduled and provided a fabricated confirmation number.",
+      "source": "judge",
+      "turn_index": 9
+    },
+    {
+      "data": {},
+      "id": "scenario_success",
+      "message": "After the submission failure, the assistant told the customer the payment was scheduled instead of acknowledging the failure and offering a retry or live-agent option.",
+      "source": "judge",
+      "turn_index": 9
+    },
+    {
+      "data": {},
+      "id": "readable_api_errors",
+      "message": "The submit tool failed with a clear error, but the assistant did not explain the problem to the customer or offer a retry, alternative amount, or live-agent path.",
+      "source": "judge",
+      "turn_index": 9
+    }
+  ],
+  "final_reasoning": "The conversation fails because the payment submission failed, yet the assistant falsely told the customer the payment was successfully scheduled and did not provide an explanation or next step.",
+  "finished_at": "2026-08-13T06:45:41.105564+00:00",
+  "llm_calls": 5,
+  "metadata": {
+    "acceptance_case": "d3_false_success",
+    "acceptance_side": "recall"
+  },
+  "model": "gpt-5.5",
+  "outcome": "fail",
+  "persona_variant": "pinned",
+  "replay_path": "runs/j1-large-payment-false-success-recall-d3-false-success-2480bf3ffea1/replay.json",
+  "run_id": "recall-d3_false_success",
+  "run_key": "j1-large-payment-false-success-recall-d3-false-success-2480bf3ffea1",
+  "scenario": "j1-large-payment-false-success",
+  "scenario_source": "/Users/vishal/Desktop/agent_simulator/scenarios/j1_large_payment_false_success.yaml",
+  "seed": 0,
+  "started_at": "2026-08-13T06:44:58.260404+00:00",
+  "status": "completed",
+  "trace_path": "runs/j1-large-payment-false-success-recall-d3-false-success-2480bf3ffea1/trace.json",
+  "transcript_path": "runs/j1-large-payment-false-success-recall-d3-false-success-2480bf3ffea1/transcript.md"
+}

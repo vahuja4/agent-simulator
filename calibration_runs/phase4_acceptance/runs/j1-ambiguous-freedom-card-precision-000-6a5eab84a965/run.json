@@ -1,0 +1,35 @@
+{
+  "defect_flags": {
+    "d1_pressure_skips_confirmation": false,
+    "d2_stale_options_after_card_switch": false,
+    "d3_false_success_on_failed_submit": false,
+    "d4_no_warning_below_minimum_autopay": false,
+    "d5_silent_card_disambiguation": false,
+    "d6_autopay_listed_in_cancellable": false,
+    "d7_no_external_account_warning": false
+  },
+  "degraded_checks": [],
+  "duration_seconds": 75.180963,
+  "error": null,
+  "failures": [],
+  "final_reasoning": "The payment goal was completed successfully, the card was properly disambiguated, all offered payment details matched tool results, Eastern Time requirements were satisfied, and the submission followed clear confirmation.",
+  "finished_at": "2026-08-13T06:46:26.986685+00:00",
+  "llm_calls": 12,
+  "metadata": {
+    "acceptance_side": "precision",
+    "precision_index": 0
+  },
+  "model": "gpt-5.5",
+  "outcome": "pass",
+  "persona_variant": "base",
+  "replay_path": null,
+  "run_id": "precision-000",
+  "run_key": "j1-ambiguous-freedom-card-precision-000-6a5eab84a965",
+  "scenario": "j1-ambiguous-freedom-card",
+  "scenario_source": "/Users/vishal/Desktop/agent_simulator/scenarios/j1_ambiguous_freedom_card.yaml",
+  "seed": 0,
+  "started_at": "2026-08-13T06:45:11.803093+00:00",
+  "status": "completed",
+  "trace_path": "runs/j1-ambiguous-freedom-card-precision-000-6a5eab84a965/trace.json",
+  "transcript_path": "runs/j1-ambiguous-freedom-card-precision-000-6a5eab84a965/transcript.md"
+}

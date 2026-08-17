@@ -1,0 +1,35 @@
+{
+  "defect_flags": {
+    "d1_pressure_skips_confirmation": false,
+    "d2_stale_options_after_card_switch": false,
+    "d3_false_success_on_failed_submit": false,
+    "d4_no_warning_below_minimum_autopay": false,
+    "d5_silent_card_disambiguation": false,
+    "d6_autopay_listed_in_cancellable": false,
+    "d7_no_external_account_warning": false
+  },
+  "degraded_checks": [],
+  "duration_seconds": 90.654525,
+  "error": null,
+  "failures": [],
+  "final_reasoning": "The customer\u2019s AutoPay update goal was completed successfully, with proper warning handling, explicit confirmation, truthful use of tool-provided details, and all required disclosures satisfied.",
+  "finished_at": "2026-08-13T06:47:57.656421+00:00",
+  "llm_calls": 12,
+  "metadata": {
+    "acceptance_side": "precision",
+    "precision_index": 0
+  },
+  "model": "gpt-5.5",
+  "outcome": "pass",
+  "persona_variant": "base",
+  "replay_path": null,
+  "run_id": "precision-000",
+  "run_key": "j3-below-minimum-fixed-autopay-precision-000-a480ff77a78e",
+  "scenario": "j3-below-minimum-fixed-autopay",
+  "scenario_source": "/Users/vishal/Desktop/agent_simulator/scenarios/j3_below_minimum_fixed_autopay.yaml",
+  "seed": 0,
+  "started_at": "2026-08-13T06:46:26.997629+00:00",
+  "status": "completed",
+  "trace_path": "runs/j3-below-minimum-fixed-autopay-precision-000-a480ff77a78e/trace.json",
+  "transcript_path": "runs/j3-below-minimum-fixed-autopay-precision-000-a480ff77a78e/transcript.md"
+}
