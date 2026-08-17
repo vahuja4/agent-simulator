@@ -1,0 +1,95 @@
+schema_version: 1
+journey: J1
+source: plans/agent-simulator-design-plan.md#J1
+source_hashes:
+  registry: 297096a9d721ab4d8102cb1b80c59d98161cbe79916de09ff3e4b99fe63d5a20
+  fixtures: 1670acf7f56e48733e3cd2055e858ab54dc57d81b29089dd73ed22e164364b70
+start_nodes: [disclose]
+terminal_nodes: [terminate]
+nodes:
+  disclose: {description: State the due-date context and gather missing facts.}
+  select_card: {description: Select and, when needed, disambiguate the payee card.}
+  fetch_options: {description: Select funding and fetch fresh amount options for the card.}
+  validate: {description: Validate, resolving blocking errors or acknowledged warnings.}
+  confirm: {description: Obtain explicit confirmation of the validated details.}
+  submit: {description: Submit the staged one-time payment.}
+  handle_failure: {description: Truthfully report a failed submission without claiming success.}
+  terminate: {description: End after the final truthful outcome.}
+edges:
+  - from: disclose
+    to: select_card
+    required_tools: [PayeeList]
+    applicable_policies: [disambiguate_last_four]
+    required_fixture_predicates: [has_card]
+    valid_perturbations:
+      partial_disclosure: after_disclosure
+    worst_case_turn_cost: 3
+  - from: select_card
+    to: fetch_options
+    required_tools: [FundingAccountPicker, AddOptionsOneTimePayment]
+    applicable_policies: [card_switch_resets, disambiguate_last_four]
+    required_fixture_predicates: [has_account]
+    valid_perturbations: {}
+    worst_case_turn_cost: 2
+  - from: fetch_options
+    to: select_card
+    required_tools: []
+    applicable_policies: [card_switch_resets]
+    required_fixture_predicates: [multiple_cards, distinguishable_card_amounts]
+    valid_perturbations:
+      card_switch: after_options
+    worst_case_turn_cost: 1
+  - from: fetch_options
+    to: validate
+    required_tools: [AddValidateOneTimePayment]
+    applicable_policies: [explicit_confirmation]
+    required_fixture_predicates: []
+    valid_perturbations:
+      validation_warning: at_validation
+      validation_block: at_validation
+    worst_case_turn_cost: 2
+  - from: validate
+    to: validate
+    required_tools: [AddValidateOneTimePayment]
+    applicable_policies: [explicit_confirmation]
+    required_fixture_predicates: []
+    valid_perturbations:
+      validation_retry: after_validation
+    worst_case_turn_cost: 1
+  - from: validate
+    to: confirm
+    required_tools: []
+    applicable_policies: [explicit_confirmation]
+    required_fixture_predicates: []
+    valid_perturbations: {}
+    worst_case_turn_cost: 1
+  - from: confirm
+    to: submit
+    required_tools: [AddOneTimePayment]
+    applicable_policies: [explicit_confirmation, tool_output_truth]
+    required_fixture_predicates: []
+    valid_perturbations:
+      submission_failure: at_submission
+    worst_case_turn_cost: 1
+  - from: submit
+    to: handle_failure
+    required_tools: []
+    applicable_policies: [tool_output_truth]
+    required_fixture_predicates: []
+    valid_perturbations:
+      submission_failure: after_submission
+    worst_case_turn_cost: 1
+  - from: submit
+    to: terminate
+    required_tools: []
+    applicable_policies: [tool_output_truth]
+    required_fixture_predicates: []
+    valid_perturbations: {}
+    worst_case_turn_cost: 1
+  - from: handle_failure
+    to: terminate
+    required_tools: []
+    applicable_policies: [tool_output_truth]
+    required_fixture_predicates: []
+    valid_perturbations: {}
+    worst_case_turn_cost: 1
