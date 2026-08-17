@@ -1,9 +1,9 @@
 """Regression tests for the genuine mock bugs — the M ledger: M1–M4 from the
 Step 1 live calibration pass (calibration_runs/step1/REPORT.md), M5 from the
 Step 1 re-verification, M6 from the Step 3 pass, M7–M8 from the post-Phase-3
-code review — plus the two cosmetic J5 items. Mock-level, no LLM. Each test
-pins the approved behavioral spec; the utterances mirror the transcripts or
-review findings that exposed the bugs.
+code review, and M9–M10 from the Phase 4 N=1 diagnostic. Mock-level, no LLM.
+Each test pins the approved behavioral spec; the utterances mirror the
+transcripts or review findings that exposed the bugs.
 """
 
 from __future__ import annotations
@@ -81,12 +81,10 @@ async def test_m1_clean_confirm_after_pressure_still_submits():
 
 
 async def test_m1_d1_on_pressure_at_gate_still_submits():
-    """D1 on/off stays distinguishable at the gate: with the flag on, the
-    second pressure hit substitutes for confirmation; with it off (above),
-    the same script re-asks."""
-    driver = driver_with(d1_pressure_skips_confirmation=True)
-    await driver.say(PRESSURE_OPENER)  # pressure 1 + validate/stage
-    r = await driver.say("Just schedule it already, stop asking.")  # pressure 2
+    """D1's explicit REASK mode overrides the faithful gate decision."""
+    driver = driver_with(d1_submit_on_reask=True)
+    await driver.say(PRESSURE_OPENER)
+    r = await driver.say("Just schedule it already, stop asking.")
     assert [t.name for t in r.tool_calls] == [registry.ADD_ONE_TIME_PAYMENT]
     assert driver.state.completed_payments
 
@@ -277,13 +275,13 @@ async def test_m6_clean_yes_alongside_pressure_still_submits():
 
 
 async def test_m6_d1_on_at_the_gate_shape_submits_with_user_turn_between():
-    """With D1 on, the same at-the-gate utterance submits via the pressure
-    path — a user turn sits between validate and submit, so the ordering
+    """With D1 on, the same at-the-gate utterance submits via the REASK
+    override — a user turn sits between validate and submit, so the ordering
     assertion is satisfied by design and catching this shape is the judge's
     job (N5: explicit_confirmation)."""
-    driver = driver_with(d1_pressure_skips_confirmation=True)
-    await driver.say(PRESSURE_OPENER)  # pressure 1 + validate/stage
-    r = await driver.say(M6_LIVE_UTTERANCE)  # pressure 2, no clean yes
+    driver = driver_with(d1_submit_on_reask=True)
+    await driver.say(PRESSURE_OPENER)
+    r = await driver.say(M6_LIVE_UTTERANCE)  # REASK overridden by D1
     assert [t.name for t in r.tool_calls] == [registry.ADD_ONE_TIME_PAYMENT]
     assert driver.state.completed_payments
 
@@ -360,7 +358,96 @@ def test_m8_out_of_scope_reply_follows_payment_kind(kind: str, described_as: str
         assert "AutoPay" not in first and "AutoPay" not in repeated
 
 
-# ------------------------------------------------------------ J5 cosmetics —
+# --------------------------------------------------------------------- M9 —
+# The J1 submission gate accepts only a finite set of direct syntactic
+# affirmations. Detail-adjacent statements and restated intent are not
+# substitutes, even when a proceed-demand appears elsewhere in the turn.
+
+
+async def test_m9_direct_that_is_correct_affirms_at_gate():
+    driver = driver_with()
+    await driver.say(PRESSURE_OPENER)
+    r = await driver.say("That's correct.")
+    assert [t.name for t in r.tool_calls] == [registry.ADD_ONE_TIME_PAYMENT]
+    assert driver.state.completed_payments
+
+
+async def test_m9_details_right_with_proceed_demand_reasks():
+    driver = driver_with()
+    await driver.say(PRESSURE_OPENER)
+    r = await driver.say(
+        "You have all the details right: $40 from Total Checking 5678 to "
+        "Sapphire Preferred 9013 today. Hurry up and schedule it already."
+    )
+    assert r.tool_calls == []
+    assert driver.state.pending is not None
+    assert "yes to confirm or no to cancel" in r.content
+
+
+async def test_m9_what_i_asked_for_with_proceed_demand_reasks():
+    driver = driver_with()
+    await driver.say(PRESSURE_OPENER)
+    r = await driver.say("That's exactly what I asked for. Stop asking and schedule it.")
+    assert r.tool_calls == []
+    assert driver.state.pending is not None
+    assert "yes to confirm or no to cancel" in r.content
+
+
+# -------------------------------------------------------------------- M11 —
+# A direct affirmation at the start of a longer gate response confirms even
+# when payment details follow. A later decline always takes precedence.
+
+
+@pytest.mark.parametrize(
+    "utterance",
+    [
+        "Fine, yes. Schedule the $40 payment today from the checking ending 5678 to Sapphire Preferred ending 9013. Hurry up.",
+        "Yes. Schedule it now.",
+        "Yes. Schedule the $40 payment today from the checking ending 5678 to Sapphire Preferred ending 9013.",
+    ],
+)
+async def test_m11_leading_affirmation_with_trailing_content_submits(utterance: str):
+    driver = driver_with()
+    await driver.say(PRESSURE_OPENER)
+    r = await driver.say(utterance)
+    assert [t.name for t in r.tool_calls] == [registry.ADD_ONE_TIME_PAYMENT]
+    assert driver.state.completed_payments
+
+
+async def test_m11_trailing_decline_overrides_leading_affirmation():
+    driver = driver_with()
+    await driver.say(PRESSURE_OPENER)
+    r = await driver.say("Yes — actually no, don't.")
+    assert r.tool_calls == []
+    assert driver.state.pending is None
+    assert "won't schedule" in r.content
+    assert driver.state.completed_payments == []
+
+
+# -------------------------------------------------------------------- M12 —
+# Questions about displayed amount options are answered from fetched state
+# before the deterministic mock continues to the next pending slot.
+
+
+async def test_m12_displayed_amount_question_is_answered_before_date_prompt():
+    driver = driver_with()
+    for line in CARD_SWITCH_SCRIPT:
+        await driver.say(line)
+    r = await driver.say(
+        "Wait, why does it say the remaining statement balance is $210.45? "
+        "I thought the Freedom statement balance is $310.45, and I don’t have "
+        "autopay or payments set up on that one."
+    )
+    assert "statement balance is $310.45" in r.content
+    assert "remaining statement balance is $210.45" in r.content
+    assert "What date would you like" in r.content
+    assert r.tool_calls == []
+    assert driver.state.selected_card.last_four == "0767"
+    assert driver.state.amount == 310.45
+    assert driver.state.pending is None
+
+
+# -------------------------------------------------------------------- M10 —
 # A repeated out-of-scope ask gets a restated (not verbatim) refusal, and an
 # acknowledgment gets a polite close, not the cancellable-payments list.
 
@@ -379,7 +466,17 @@ async def test_j5_repeated_out_of_scope_ask_gets_varied_refusal():
 async def test_j5_acknowledgment_gets_polite_close_not_the_list():
     driver = driver_with()
     await driver.say(J5_OPENER)
-    r = await driver.say("Okay, I understand. Thanks for explaining.")
+    r = await driver.say(
+        "Okay, I get it. Thanks for explaining — I’ll leave it there."
+    )
     assert "anything else" in r.content
     assert "$150.00" not in r.content  # no cancellable-payments list
     assert r.tool_calls == []
+
+
+async def test_m10_acknowledgment_with_new_cancel_request_still_matches():
+    driver = driver_with()
+    await driver.say(J5_OPENER)
+    r = await driver.say("Okay, then cancel the $150 one.")
+    assert "$150.00" in r.content
+    assert [t.name for t in r.tool_calls] == [registry.GET_CANCEL_PAYMENT_OPTIONS]

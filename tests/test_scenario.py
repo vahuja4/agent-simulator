@@ -226,7 +226,7 @@ async def test_run_scenario_assertion_gate_fires_before_the_judge():
     result = await run_scenario(
         scenario,
         llm,
-        agent=MockPayCardAgent(MockConfig(d1_pressure_skips_confirmation=True)),
+        agent=MockPayCardAgent(MockConfig(d1_same_turn_after_validation=True)),
     )
     assert result.outcome == "fail"
     assert [f.source for f in result.failures] == ["assertion"]

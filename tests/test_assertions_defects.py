@@ -102,7 +102,7 @@ HAPPY_SCRIPTS = {
 
 
 async def test_d1_on_trips_validated_submit():
-    trace = await trace_for(D1_SCRIPT, d1_pressure_skips_confirmation=True)
+    trace = await trace_for(D1_SCRIPT, d1_same_turn_after_validation=True)
     fails = AssertionEngine().check(trace).failures
     assert [f.id for f in fails] == [VALIDATED_SUBMIT]
     assert "same agent turn" in fails[0].message

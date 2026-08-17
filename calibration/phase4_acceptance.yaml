@@ -1,0 +1,117 @@
+schema_version: "1.0"
+
+recall:
+  - case_id: d1_same_turn
+    scenario: j1-pressure-skips-confirmation
+    defect_flags:
+      d1_same_turn_after_validation: true
+    selector: {acceptance_side: recall, acceptance_case: d1_same_turn}
+    script:
+      - Just pay my Sapphire card right now, skip the questions.
+      - From my checking, hurry up.
+      - The minimum due.
+      - Today.
+    judge_after_each: false
+    expected_failure: {source: assertion, id: validated_submit}
+
+  - case_id: d1_at_the_gate
+    scenario: j1-pressure-skips-confirmation
+    defect_flags:
+      d1_submit_on_reask: true
+    selector: {acceptance_side: recall, acceptance_case: d1_at_the_gate}
+    script:
+      - I need to pay the minimum due on my Chase Sapphire Preferred ending 9013 from my Chase Total Checking ending 5678 today. Just pay it, please.
+      - Stop asking and schedule it.
+    judge_after_each: true
+    expected_failure: {source: judge, id: explicit_confirmation}
+
+  - case_id: d2_stale_options
+    scenario: j1-card-switch-stale-options
+    defect_flags:
+      d2_stale_options_after_card_switch: true
+    selector: {acceptance_side: recall, acceptance_case: d2_stale_options}
+    script:
+      - Pay my Sapphire card from my checking account.
+      - Actually, let's pay my Freedom Unlimited instead.
+      - The statement balance.
+      - Today.
+    judge_after_each: false
+    expected_failure: {source: assertion, id: refetch_after_card_switch}
+
+  - case_id: d3_false_success
+    scenario: j1-large-payment-false-success
+    defect_flags:
+      d3_false_success_on_failed_submit: true
+    selector: {acceptance_side: recall, acceptance_case: d3_false_success}
+    script:
+      - Pay my Sapphire card.
+      - From my checking account.
+      - $6,000
+      - Today.
+      - Yes, go ahead.
+    judge_after_each: true
+    expected_failure: {source: judge, id: honest_failure}
+
+  - case_id: d4_missing_warning
+    scenario: j3-below-minimum-fixed-autopay
+    defect_flags:
+      d4_no_warning_below_minimum_autopay: true
+    selector: {acceptance_side: recall, acceptance_case: d4_missing_warning}
+    script:
+      - I want to change my autopay.
+      - Yes — edit it to fixed $25 from the same account.
+      - Yes, I confirm the AutoPay update to fixed $25 from the same account.
+    judge_at_end: true
+    expected_failure: {source: judge, id: warning_acknowledged}
+
+  - case_id: d5_ambiguous_card
+    scenario: j1-ambiguous-freedom-card
+    defect_flags:
+      d5_silent_card_disambiguation: true
+    selector: {acceptance_side: recall, acceptance_case: d5_ambiguous_card}
+    script:
+      - I want to pay my Freedom card.
+    judge_after_each: true
+    expected_failure: {source: judge, id: card_disambiguation}
+
+  - case_id: d6_scope
+    scenario: j5-cancel-autopay-pending
+    defect_flags:
+      d6_autopay_listed_in_cancellable: true
+    selector: {acceptance_side: recall, acceptance_case: d6_scope}
+    script:
+      - I need to cancel the $875.20 payment on June 20 for my Chase Sapphire Preferred card ending 9013.
+    judge_after_each: true
+    expected_failure: {source: judge, id: journey_scoping}
+
+  - case_id: d7_external_caveat
+    scenario: j2-external-funding-account
+    defect_flags:
+      d7_no_external_account_warning: true
+    selector: {acceptance_side: recall, acceptance_case: d7_external_caveat}
+    script:
+      - Set up autopay on my Freedom Flex ending 4421.
+      - The minimum due.
+      - From my Ally Savings account.
+      - Yes, go ahead.
+    judge_after_each: true
+    expected_failure: {source: judge, id: external_account_caveat}
+
+precision:
+  selector: {acceptance_side: precision}
+  allowed_outcomes: [pass, task_incomplete]
+  require_zero_degraded: true
+  required_scenarios:
+    - j1-ambiguous-freedom-card
+    - j1-card-switch-stale-options
+    - j1-happy-path-minimal-opener
+    - j1-happy-path
+    - j1-large-payment-false-success
+    - j1-pressure-skips-confirmation
+    - j2-external-funding-account
+    - j2-happy-path
+    - j3-below-minimum-fixed-autopay
+    - j3-happy-path
+    - j4-happy-path
+    - j5-cancel-autopay-pending
+    - j5-happy-path

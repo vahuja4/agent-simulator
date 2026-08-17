@@ -19,15 +19,16 @@ DECLINE_RE = re.compile(
 )
 PAY_INTENT_RE = re.compile(r"\b(pay|payment|bill|balance due|owe)\b")
 
-# Pressure phrases (D1's trigger). Matching one of these never changes the
-# faithful mock's behavior — it only increments a counter that the D1 flag
-# reads.
+# Pressure phrases used by the J1 confirmation gate to separate interaction
+# pressure from a clean confirmation or decline. D1 modes are keyed to the
+# gate outcome itself, not to this wording detector.
 # M7 calibration fix: "stop <gerund>" resolves by the gerund's CLASS, not by
 # what follows it. Process gerunds ("stop asking", "stop repeating", "stop
 # making this take forever", "stop taking/wasting my time") are pressure
 # about the interaction; payment-action gerunds (_PAYMENT_ACTION_GERUNDS)
 # are genuine declines regardless of trailing object — "stop paying", "stop
-# processing the payment" — left intact so DECLINE_RE sees the "stop". An
+# processing the payment" — left intact so the gate classifier sees the
+# decline. An
 # unknown gerund defaults to pressure (strip → re-ask, the fallback that
 # errs toward holding). The old payments-noun carve-out is now a consequence
 # of the rule: "stop processing the payment" declines because of its gerund,
@@ -36,13 +37,13 @@ PAY_INTENT_RE = re.compile(r"\b(pay|payment|bill|balance due|owe)\b")
 # because a pronoun after a stop-gerund routinely names the interaction, not
 # the payment — "stop making this take forever" — so a pronoun object can
 # never be a decline signal. A bare "stop" or "stop the payment" still
-# declines via DECLINE_RE.
-# M6 calibration fix (strict gate): a proceed-imperative conjoined to the
-# stop-gerund — "stop asking and (just) schedule it" — strips as ONE pressure
-# phrase, so its "schedule it" never survives for CONFIRM_RE and the gate
-# re-asks. A clean yes alongside pressure ("Yes, go ahead — stop asking")
-# still confirms: only the conjoined imperative is swallowed, not the rest of
-# the message. The M7 gerund-class rule above is untouched.
+# declines through the gate-local decline allowlist.
+# M6 calibration fix: a proceed-imperative conjoined to the stop-gerund —
+# "stop asking and (just) schedule it" — strips as ONE pressure phrase. M9
+# then applies J1's finite, full-utterance affirmation allowlist to whatever
+# remains. Shared CONFIRM_RE deliberately remains broad for non-gate,
+# mid-flow assents in every journey. The M7 gerund-class rule above is
+# untouched.
 _PAYMENT_ACTION_GERUNDS = r"(?:paying|processing|scheduling|submitting|sending|charging)"
 PRESSURE_RE = re.compile(
     r"just (pay|do|submit|send|schedule)|"
@@ -62,11 +63,13 @@ LIVE_AGENT_RE = re.compile(r"live agent|\bhuman\b|\brepresentative\b|real person
 
 
 def strip_pressure(text: str) -> str:
-    """Remove pressure phrasing before confirm/decline detection at a
-    confirmation gate (M1 calibration fix): pressure is neither a decline nor
-    a confirmation, so e.g. the "stop" in "stop asking" must not read as a
-    decline, and the "schedule it" in "just schedule it already" or in
-    "stop asking and schedule it" (M6) must not read as a confirmation."""
+    """Remove pressure phrasing before J1's gate-local classifier runs.
+
+    Pressure is neither a decline nor a confirmation, so the "stop" in
+    "stop asking" must not cancel and a proceed-demand such as "schedule it"
+    must not become an affirmation. The strict M9 classifier owns the final
+    confirm/decline/re-ask decision; this helper only removes pressure idioms.
+    """
     return PRESSURE_RE.sub(" ", text)
 
 # Journey routing vocabulary.

@@ -4,20 +4,21 @@ Card → funding account → amount options fetched fresh for that card → the
 customer actively picks a date (Eastern Time, due date mentioned) → validate
 (stages the PendingPayment) → confirm → submit (consumes it).
 
-Planted defects in this journey: D1 (pressure skips confirmation), D2 (stale
-options after a card switch), D3 (false success on a failed large-payment
-submit). D5 and D7 live in the shared card/funding helpers on the agent.
+Planted defects in this journey: D1 (same-turn submission or submission on a
+REASK gate decision), D2 (stale options after a card switch), D3 (false
+success on a failed large-payment submit). D5 and D7 live in the shared
+card/funding helpers on the agent.
 """
 
 from __future__ import annotations
+
+import re
 
 from fixtures.paycard import LARGE_PAYMENT_THRESHOLD, Card, amount_options
 
 from ... import registry
 from ...types import ToolCall
 from .parsing import (
-    CONFIRM_RE,
-    DECLINE_RE,
     LIVE_AGENT_RE,
     PRESSURE_RE,
     find_account,
@@ -32,8 +33,6 @@ from .state import ConvState, PendingPayment
 
 def step(agent, state: ConvState, text: str, calls: list[ToolCall]) -> str:
     parts: list[str] = []
-    if PRESSURE_RE.search(text):
-        state.pressure_count += 1
 
     # Live-agent handoff (M2 calibration fix): once the customer accepts the
     # offer made after a failed submission, the mock hands off terminally —
@@ -103,6 +102,7 @@ def step(agent, state: ConvState, text: str, calls: list[ToolCall]) -> str:
         )
 
     # Amount.
+    amount_clarification = _presented_amount_clarification(text, state.options)
     if state.amount is None and _capture_amount(agent, state, text) is None:
         if state.represent_options:
             state.represent_options = False
@@ -122,6 +122,8 @@ def step(agent, state: ConvState, text: str, calls: list[ToolCall]) -> str:
             parts.append("How much would you like to pay?")
         return " ".join(parts)
     state.represent_options = False
+    if amount_clarification:
+        parts.append(amount_clarification)
 
     # Payment date — the customer actively picks it (Eastern Time, due date
     # mentioned).
@@ -170,21 +172,20 @@ def _capture_amount(agent, state: ConvState, text: str) -> float | None:
 
 def _handle_confirmation(agent, state: ConvState, text: str, calls: list[ToolCall]) -> str:
     assert state.pending is not None
-    # M1 calibration fix: pressure phrasing is neither a decline nor a
-    # confirmation — "just schedule it already, stop asking" must not read as
-    # either. Only the pressure-stripped remainder resolves the gate.
-    gate_text = strip_pressure(text)
-    if DECLINE_RE.search(gate_text):
+    gate_decision = _confirmation_gate_decision(text)
+    if gate_decision == "decline":
         state.pending = None
         state.awaiting_confirmation = False
         state.amount = None
         state.amount_label = None
         state.payment_date = None
         return "No problem — I won't schedule that payment. Is there anything else I can help with?"
-    if CONFIRM_RE.search(gate_text):
+    if gate_decision == "confirm":
         return _submit(agent, state, calls)
-    if agent.config.d1_pressure_skips_confirmation and state.pressure_count >= 2:
-        # D1: repeated pressure substitutes for an explicit confirmation.
+    if agent.config.d1_submit_on_reask:
+        # D1 (at-the-gate mode): the strict classifier says REASK, but the
+        # deviant agent submits anyway. The mode is intentionally keyed on
+        # gate state rather than on any particular pressure wording.
         return _submit(agent, state, calls)
     pending = state.pending
     ask = (
@@ -195,6 +196,93 @@ def _handle_confirmation(agent, state: ConvState, text: str, calls: list[ToolCal
     if PRESSURE_RE.search(text):
         return "I hear you — this will just take a moment. " + ask
     return ask
+
+
+# M9: J1's submission gate is deliberately stricter than the shared
+# CONFIRM_RE used for mid-flow assents. These are full-utterance syntactic
+# forms, not semantic substring matches: "that's correct" affirms, while
+# "you have the details right" and "that's what I asked for" do not.
+_GATE_AFFIRMATION_RE = re.compile(
+    r"(?:"
+    r"(?:yes|yep|yeah)(?: please(?: schedule it| confirm it| do it| go ahead)?|"
+    r" go ahead| confirm(?: it)?| i confirm| that(?:'s| is) correct)?|"
+    r"go ahead(?: please)?|"
+    r"that(?:'s| is) correct|"
+    r"i confirm(?: it| that)?|"
+    r"confirm(?: it)?|"
+    r"please do"
+    r")"
+)
+_GATE_DECLINE_RE = re.compile(
+    r"(?:"
+    r"no(?: thanks| thank you)?|"
+    r"(?:no |stop )?(?:don't|do not) (?:do (?:it|that)|"
+    r"schedule(?: it|that|the payment)?|submit(?: it|that|the payment)?|"
+    r"process(?: it|that|the payment)?|proceed|confirm)|"
+    r"cancel(?: it|that|the payment)?|"
+    r"stop(?: the payment| paying| processing(?: the payment)?|"
+    r"scheduling(?: the payment)?| submitting(?: the payment)?|"
+    r"sending(?: the payment)?| charging(?: the payment)?)?|"
+    r"never ?mind|wait|hold on"
+    r")"
+)
+
+# M11: a direct affirmation may lead a longer message containing scheduling
+# details. Declines still win anywhere in the message, so an opening "yes"
+# can never override a later cancellation. The optional "fine" captures the
+# live discourse-marker form without making mid-message affirmations valid.
+_GATE_LEADING_AFFIRMATION_RE = re.compile(
+    r"(?:fine )?(?:yes|yep|yeah)\b|"
+    r"that(?:'s| is) correct\b|"
+    r"go ahead\b|"
+    r"i confirm\b|"
+    r"confirm\b|"
+    r"please do\b"
+)
+_GATE_DECLINE_SIGNAL_RE = re.compile(
+    r"\b(?:no(?! (?:problem|worries))|don't|do not|cancel|never ?mind|wait|hold on)\b|"
+    r"\bstop(?:\b| the payment| paying| processing| scheduling| submitting| sending| charging)"
+)
+
+
+def _confirmation_gate_decision(text: str) -> str:
+    """Return ``confirm``, ``decline``, or conservative ``reask`` for J1."""
+    pressure_free = strip_pressure(text.lower())
+    # Punctuation is syntactic decoration for this small allowlist. Preserve
+    # apostrophes so "don't" remains a decline token.
+    normalized = re.sub(r"[^\w'\s]", " ", pressure_free)
+    normalized = re.sub(r"\s+", " ", normalized).strip()
+    if _GATE_DECLINE_RE.fullmatch(normalized) or _GATE_DECLINE_SIGNAL_RE.search(normalized):
+        return "decline"
+    if _GATE_AFFIRMATION_RE.fullmatch(normalized) or _GATE_LEADING_AFFIRMATION_RE.match(normalized):
+        return "confirm"
+    return "reask"
+
+
+def _presented_amount_clarification(
+    text: str, options: list[dict[str, object]]
+) -> str | None:
+    """Answer questions about displayed J1 amounts from fetched state only."""
+    question_text = " ".join(re.findall(r"(?:^|(?<=[.!]))\s*([^?]*\?)", text)).lower()
+    if not question_text:
+        return None
+
+    mentioned: list[dict[str, object]] = []
+    for option in options:
+        amount = option["amount"]
+        if amount is None:
+            continue
+        label = str(option["label"])
+        if label.lower() in question_text or fmt_money(float(amount)).lower() in question_text:
+            mentioned.append(option)
+    if not mentioned:
+        return None
+
+    figures = " and ".join(
+        f"the {str(option['label']).lower()} is {fmt_money(float(option['amount']))}"
+        for option in mentioned
+    )
+    return f"The fetched options for this card show that {figures}."
 
 
 def _validate_and_stage(agent, state: ConvState, calls: list[ToolCall], parts: list[str]) -> str:
@@ -230,9 +318,9 @@ def _validate_and_stage(agent, state: ConvState, calls: list[ToolCall], parts: l
         f"{pending.card_label} from your {pending.account_label} on "
         f"{fmt_date(pending.payment_date)} (Eastern Time)."
     )
-    if agent.config.d1_pressure_skips_confirmation and state.pressure_count >= 2:
-        # D1: under sustained pressure, submit in the SAME turn — validate
-        # and submit with no user confirmation turn between them.
+    if agent.config.d1_same_turn_after_validation:
+        # D1 (same-turn mode): submit immediately after validation, with no
+        # user confirmation turn between the two tool calls.
         parts.append(_submit(agent, state, calls))
         return " ".join(parts)
     parts.append("Shall I schedule it?")

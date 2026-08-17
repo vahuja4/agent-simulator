@@ -139,7 +139,6 @@ class ConvState:
     the slot fields below are grouped by the journey that uses them."""
 
     journey: str | None = None  # "J1".."J5" once routed
-    pressure_count: int = 0  # counts pressure phrases (D1 reads this)
 
     # Card selection (all journeys)
     payee_list_fetched: bool = False

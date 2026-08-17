@@ -25,6 +25,7 @@ in this loop, not an engine refactor.
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass, field
 from typing import Sequence
 
@@ -44,6 +45,13 @@ class RunResult:
     # Every failure with its source — assertion vs judge, and which
     # criterion/assertion — as structured data (amendment 14).
     failures: list[FailureRecord] = field(default_factory=list)
+    # Structured visibility for checks that could not fully evaluate. The
+    # assertion report remains reporting-only; degradation never changes the
+    # run outcome here.
+    degraded_checks: list[dict] = field(default_factory=list)
+    # Harness-side LLM calls attempted by the simulator and judge. Calls made
+    # internally by the black-box agent adapter are outside this counter.
+    llm_calls: int = 0
 
 
 def _judge_failures(verdict: TurnVerdict, turn_index: int) -> list[FailureRecord]:
@@ -87,8 +95,10 @@ async def run_conversation(
     history: list[Message] = []
     verdicts: list[TurnVerdict] = []
     failures: list[FailureRecord] = []
+    degraded_checks: list[dict] = []
     selected_card: str | None = None
     turns_used = 0
+    llm_calls = 0
 
     def add_user_turn(text: str, intent: str | None) -> None:
         nonlocal turns_used
@@ -99,7 +109,7 @@ async def run_conversation(
 
     async def run_agent_turn() -> tuple[str, str] | None:
         """Agent reply + trace append + the assertion hard gate."""
-        nonlocal selected_card
+        nonlocal selected_card, degraded_checks
         response = await agent.call(AgentInput(conversation_id, list(history)))
         history.append(Message("assistant", response.content))
         selected_card = response.selected_card
@@ -110,6 +120,16 @@ async def run_conversation(
         )
         if assertions is not None:
             report = assertions.check(trace)
+            # The engine is prefix-safe and its latest report describes the
+            # entire trace-so-far. Deduplicate structurally for stable
+            # artifacts without changing any assertion semantics.
+            seen: set[str] = set()
+            degraded_checks = []
+            for item in report.degraded:
+                key = json.dumps(item, sort_keys=True, default=str)
+                if key not in seen:
+                    seen.add(key)
+                    degraded_checks.append(dict(item))
             if report.failures:
                 failures.extend(report.failures)
                 return (
@@ -120,6 +140,8 @@ async def run_conversation(
         return None
 
     async def run_judge() -> tuple[str, str] | None:
+        nonlocal llm_calls
+        llm_calls += 1
         verdict = await judge.judge(trace)
         verdicts.append(verdict)
         if verdict.decision in ("pass", "fail"):
@@ -129,7 +151,9 @@ async def run_conversation(
         return None
 
     async def autonomous(budget: int, exhausted_reason: str) -> tuple[str, str]:
+        nonlocal llm_calls
         for _ in range(budget):
+            llm_calls += 1
             sim_turn = await simulator.next_turn(history)
             if sim_turn.stop and not sim_turn.text.strip():
                 return ("task_incomplete", "user simulator stopped before goal completion")
@@ -150,12 +174,14 @@ async def run_conversation(
     max_turns_reason = f"max_turns ({max_turns}) reached without goal completion"
 
     async def scripted() -> tuple[str, str]:
+        nonlocal llm_calls
         sim_requested_stop = False
         for step in steps:
             if isinstance(step, UserStep):
                 if turns_used >= max_turns:
                     return ("task_incomplete", max_turns_reason)
                 if step.text is None:
+                    llm_calls += 1
                     sim_turn = await simulator.next_turn(history)
                     if sim_turn.stop and not sim_turn.text.strip():
                         return (
@@ -206,4 +232,6 @@ async def run_conversation(
         outcome=outcome,
         final_reasoning=reasoning,
         failures=failures,
+        degraded_checks=degraded_checks,
+        llm_calls=llm_calls,
     )

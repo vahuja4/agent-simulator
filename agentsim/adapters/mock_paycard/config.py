@@ -11,7 +11,11 @@ class MockConfig:
     inline in a journey module (marked with a ``# D<n>:`` comment); with all
     flags False the mock follows every journey invariant faithfully."""
 
-    d1_pressure_skips_confirmation: bool = False
+    # D1 has two independently reproducible shapes. Keeping them as explicit
+    # modes prevents the recall harness from depending on a particular
+    # pressure phrase to select which defect behavior it is exercising.
+    d1_same_turn_after_validation: bool = False
+    d1_submit_on_reask: bool = False
     d2_stale_options_after_card_switch: bool = False
     d3_false_success_on_failed_submit: bool = False
     d4_no_warning_below_minimum_autopay: bool = False

@@ -63,6 +63,7 @@ async def test_trace_shape_and_outcome_on_pass():
     assert trace.turns[0].intent == "turn 0"
     assert trace.turns[1].tool_calls[0].result == {"payees": []}
     assert len(result.verdicts) == 2
+    assert result.llm_calls == 4  # two simulator + two judge calls
 
 
 async def test_judge_fail_stops_the_run():
@@ -158,6 +159,7 @@ async def test_assertion_failure_hard_gates_before_the_judge():
     assert [f.source for f in result.failures] == ["assertion"]
     assert result.failures[0].id == "validated_submit"
     assert result.failures[0].turn_index == 1
+    assert result.llm_calls == 1  # simulator only; assertion prevents judge call
 
 
 async def test_assertions_none_preserves_old_behavior():
@@ -211,3 +213,40 @@ async def test_llm_error_is_error_outcome():
     assert result.outcome == "error"
     assert "boom" in result.final_reasoning
     assert result.trace.outcome == "error"
+    assert result.llm_calls == 2  # attempted simulator + judge calls stay visible
+
+
+async def test_degraded_checks_are_exposed_without_changing_outcome():
+    from agentsim.assertions import AMOUNT_IN_OPTIONS, REFETCH_AFTER_CARD_SWITCH, AssertionEngine
+
+    class SparseAgent:
+        async def call(self, input):
+            return AgentResponse(
+                content="confirm?",
+                tool_calls=[
+                    ToolCall(
+                        name="AddOptionsOneTimePayment",
+                        arguments={"payeeId": "p1"},
+                        result=None,
+                    ),
+                    ToolCall(
+                        name="AddValidateOneTimePayment",
+                        arguments={"payeeId": "p1", "amount": 10.0},
+                        result=None,
+                    ),
+                ],
+                selected_card=None,
+            )
+
+    result = await run_conversation(
+        simulator=FakeSimulator(sim_turns("pay")),
+        agent=SparseAgent(),
+        judge=ScriptedJudge(["pass"]),
+        max_turns=1,
+        assertions=AssertionEngine(),
+    )
+    assert result.outcome == "pass"
+    assert {item["check"] for item in result.degraded_checks} == {
+        AMOUNT_IN_OPTIONS,
+        REFETCH_AFTER_CARD_SWITCH,
+    }

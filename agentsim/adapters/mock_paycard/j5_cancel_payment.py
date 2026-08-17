@@ -40,6 +40,7 @@ _ACK_RE = re.compile(
     r"\bthanks\b|\bthank you\b|\bokay\b|\bok\b|\balright\b|\bunderstood\b|"
     r"\bi understand\b|\bgot it\b|\bmakes sense\b"
 )
+_REFERENCE_RE = re.compile(r"\b(?:it|that|this one|that one)\b")
 
 
 def step(agent, state: ConvState, text: str, calls: list[ToolCall]) -> str:
@@ -75,6 +76,16 @@ def step(agent, state: ConvState, text: str, calls: list[ToolCall]) -> str:
 
     # Identify which payment to cancel.
     if state.selected_payment is None:
+        # M10: once an out-of-scope explanation has been given, recognize a
+        # pure acknowledgment/close before trying to resolve pronouns to the
+        # lone cancellable payment. A genuine new cancellation request still
+        # falls through because it contains "cancel".
+        if (
+            state.out_of_scope_explained
+            and _ACK_RE.search(text)
+            and not _CANCEL_RE.search(text)
+        ):
+            return "You're welcome — is there anything else I can help you with?"
         matched, blocked_reply = _match_payment(agent, state, text)
         if blocked_reply is not None:
             return blocked_reply
@@ -182,7 +193,7 @@ def _match_payment(
 
     # A lone cancellable payment can be picked by simple assent/reference.
     if len(state.cancellable) == 1:
-        if CONFIRM_RE.search(text) or _CANCEL_RE.search(text) or "that" in text or "it" in text:
+        if CONFIRM_RE.search(text) or _CANCEL_RE.search(text) or _REFERENCE_RE.search(text):
             return state.cancellable[0], None
     return None, None
 

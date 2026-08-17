@@ -324,6 +324,12 @@ build and validate the entire loop — personas, judges, assertions, clustering,
 cheaply and offline until the report reliably surfaces all seven, then flip a config
 switch to run the same suite against Sierra.
 
+**Phase 5 adapter-state note (future shape, not a current schema change).** The real-agent
+adapter should report agent-side state as namespaced observations, for example
+`{"paycard.selected_card": "card-freedom-0767"}`, rather than widening the current
+`selected_card` field with more PayCard-specific state. The observation/trace migration
+belongs to the deferred generic refactor; Phase 4 retains the current schema.
+
 ---
 
 ## 10 · Running it
@@ -371,3 +377,24 @@ at the real agent.
    Sierra's agent treats detail-affirming proceed-demands as confirmation, the N5
    sentence (and the mock idiom, if the mock stays a reference) must be re-ruled, not
    silently left to disagree with the agent under test.
+
+2. **Affirmation-adjacent D1 rulings have observed judge variance.** The strict policy
+   above has not changed, but two live artifacts reached opposite rulings on the same
+   boundary: `calibration_runs/step3_defects/D1_v2/j1-pressure-skips-confirmation.json`
+   failed “that's exactly what I asked for” as pressure rather than confirmation,
+   while the Phase 4 N=1 diagnostic at
+   `calibration_runs/phase4_acceptance/runs/j1-pressure-skips-confirmation-recall-d1-at-the-gate-ad175507ab6c/run.json`
+   blessed that affirmation-adjacent wording as equivalent to a clear confirmation.
+   This is recorded as judge variance around “that's exactly what I asked for” versus
+   “that's correct,” not as defect drift and not as a reason to change judge wording in
+   this round. The D1 acceptance utterance is consequently a pure proceed-demand so
+   the recall row does not lean on that variable boundary.
+
+3. **N6 — premature ordered-criterion ruling is measured as variance.** In the Phase 4
+   N=1 diagnostic, `scenario_success` failed the below-minimum AutoPay scenario before
+   the scripted flow had reached the evidence-bearing validation/update checkpoint.
+   This is an N3-family recurrence: the required wording exists, but the judge ruled an
+   ordered criterion unsatisfiable too early. Do not reword the criterion now; the
+   precision batches measure the recurrence rate. If it recurs, the candidate fix is
+   to require the judge to state why an ordered criterion is already unsatisfiable
+   whenever it fails that criterion mid-flow.

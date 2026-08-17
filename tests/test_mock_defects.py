@@ -28,7 +28,7 @@ D1_SCRIPT = [
 
 
 async def test_d1_on_pressure_submits_without_confirmation():
-    driver = driver_with(d1_pressure_skips_confirmation=True)
+    driver = driver_with(d1_same_turn_after_validation=True)
     for line in D1_SCRIPT[:-1]:
         await driver.say(line)
     r = await driver.say(D1_SCRIPT[-1])
