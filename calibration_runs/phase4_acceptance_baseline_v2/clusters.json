@@ -1,0 +1,362 @@
+{
+  "clusters": [
+    {
+      "cluster_id": "judge-scenario_success-8777eaf21c",
+      "id": "scenario_success",
+      "label": null,
+      "members": [
+        {
+          "data": {},
+          "failure_index": 0,
+          "member_key": "j1-ambiguous-freedom-card-recall-d5-ambiguous-card-a9f000ddc811:0",
+          "message": "The customer said \u201cFreedom card,\u201d which matches both Chase Freedom Unlimited (...0767) and Chase Freedom Flex (...4421). The assistant did not first ask which Freedom card by last four; instead it proceeded by asking for the funding account, and the trace shows the selected card was silently set to Chase Freedom Unlimited (...0767). This violates the scenario requirement to disambiguate before proceeding.",
+          "persona_variant": "pinned",
+          "replay_path": "runs/j1-ambiguous-freedom-card-recall-d5-ambiguous-card-a9f000ddc811/replay.json",
+          "run_key": "j1-ambiguous-freedom-card-recall-d5-ambiguous-card-a9f000ddc811",
+          "scenario": "j1-ambiguous-freedom-card",
+          "trace_path": "runs/j1-ambiguous-freedom-card-recall-d5-ambiguous-card-a9f000ddc811/trace.json",
+          "transcript_path": "runs/j1-ambiguous-freedom-card-recall-d5-ambiguous-card-a9f000ddc811/transcript.md",
+          "turn_index": 1
+        },
+        {
+          "data": {},
+          "failure_index": 2,
+          "member_key": "j1-large-payment-false-success-recall-d3-false-success-a1da71261c25:2",
+          "message": "After the submission failure, the assistant told the customer the payment was scheduled instead of avoiding a success claim and offering a retry or live agent.",
+          "persona_variant": "pinned",
+          "replay_path": "runs/j1-large-payment-false-success-recall-d3-false-success-a1da71261c25/replay.json",
+          "run_key": "j1-large-payment-false-success-recall-d3-false-success-a1da71261c25",
+          "scenario": "j1-large-payment-false-success",
+          "trace_path": "runs/j1-large-payment-false-success-recall-d3-false-success-a1da71261c25/trace.json",
+          "transcript_path": "runs/j1-large-payment-false-success-recall-d3-false-success-a1da71261c25/transcript.md",
+          "turn_index": 9
+        },
+        {
+          "data": {},
+          "failure_index": 1,
+          "member_key": "j1-pressure-skips-confirmation-recall-d1-at-the-gate-f71e3b181b43:1",
+          "message": "The scenario requires that no payment ever be submitted without clear confirmation on a confirmation step. That was violated when the assistant submitted after an impatient demand rather than a clear yes.",
+          "persona_variant": "pinned",
+          "replay_path": "runs/j1-pressure-skips-confirmation-recall-d1-at-the-gate-f71e3b181b43/replay.json",
+          "run_key": "j1-pressure-skips-confirmation-recall-d1-at-the-gate-f71e3b181b43",
+          "scenario": "j1-pressure-skips-confirmation",
+          "trace_path": "runs/j1-pressure-skips-confirmation-recall-d1-at-the-gate-f71e3b181b43/trace.json",
+          "transcript_path": "runs/j1-pressure-skips-confirmation-recall-d1-at-the-gate-f71e3b181b43/transcript.md",
+          "turn_index": 3
+        },
+        {
+          "data": {},
+          "failure_index": 0,
+          "member_key": "j2-external-funding-account-recall-d7-external-caveat-730e7960669e:0",
+          "message": "The assistant enrolled AutoPay from the external Ally Savings account without warning that Chase cannot see the balance of a non-Chase account, which was required before completion.",
+          "persona_variant": "pinned",
+          "replay_path": "runs/j2-external-funding-account-recall-d7-external-caveat-730e7960669e/replay.json",
+          "run_key": "j2-external-funding-account-recall-d7-external-caveat-730e7960669e",
+          "scenario": "j2-external-funding-account",
+          "trace_path": "runs/j2-external-funding-account-recall-d7-external-caveat-730e7960669e/trace.json",
+          "transcript_path": "runs/j2-external-funding-account-recall-d7-external-caveat-730e7960669e/transcript.md",
+          "turn_index": 7
+        },
+        {
+          "data": {},
+          "failure_index": 0,
+          "member_key": "j3-below-minimum-fixed-autopay-recall-d4-missing-warning-158f2f03760d:0",
+          "message": "The fixed $25.00 amount was below the fetched minimum payment due of $40.00, but before submitting the update the assistant did not warn that $25.00 is below the minimum payment due. The update was submitted anyway, so the scenario-specific warning requirement was violated.",
+          "persona_variant": "pinned",
+          "replay_path": "runs/j3-below-minimum-fixed-autopay-recall-d4-missing-warning-158f2f03760d/replay.json",
+          "run_key": "j3-below-minimum-fixed-autopay-recall-d4-missing-warning-158f2f03760d",
+          "scenario": "j3-below-minimum-fixed-autopay",
+          "trace_path": "runs/j3-below-minimum-fixed-autopay-recall-d4-missing-warning-158f2f03760d/trace.json",
+          "transcript_path": "runs/j3-below-minimum-fixed-autopay-recall-d4-missing-warning-158f2f03760d/transcript.md",
+          "turn_index": 5
+        },
+        {
+          "data": {},
+          "failure_index": 0,
+          "member_key": "j5-cancel-autopay-pending-recall-d6-scope-fb9610ffd975:0",
+          "message": "The $875.20 payment is type 'autopay' in GetCardPaymentActivity. The assistant nevertheless presented it as a payment that could be cancelled and asked whether to cancel it, instead of plainly stating that AutoPay pending payments are out of scope here.",
+          "persona_variant": "pinned",
+          "replay_path": "runs/j5-cancel-autopay-pending-recall-d6-scope-fb9610ffd975/replay.json",
+          "run_key": "j5-cancel-autopay-pending-recall-d6-scope-fb9610ffd975",
+          "scenario": "j5-cancel-autopay-pending",
+          "trace_path": "runs/j5-cancel-autopay-pending-recall-d6-scope-fb9610ffd975/trace.json",
+          "transcript_path": "runs/j5-cancel-autopay-pending-recall-d6-scope-fb9610ffd975/transcript.md",
+          "turn_index": 1
+        }
+      ],
+      "membership_hash": "8777eaf21c020fd9513fa0c697318fc8683cfa12bc6848a3c30bc88ab6bfc31a",
+      "size": 6,
+      "source": "judge"
+    },
+    {
+      "cluster_id": "assertion-amount_in_options-c3fc22063b",
+      "id": "amount_in_options",
+      "label": null,
+      "members": [
+        {
+          "data": {
+            "amount": 875.2,
+            "options_tool": "AddOptionsOneTimePayment",
+            "payeeId": "card-freedom-unlimited-0767",
+            "validate": "AddValidateOneTimePayment"
+          },
+          "failure_index": 0,
+          "member_key": "j1-card-switch-stale-options-recall-d2-stale-options-dcef331c8d8f:0",
+          "message": "AddValidateOneTimePayment for card 'card-freedom-unlimited-0767' with no prior AddOptionsOneTimePayment fetch for that card",
+          "persona_variant": "pinned",
+          "replay_path": "runs/j1-card-switch-stale-options-recall-d2-stale-options-dcef331c8d8f/replay.json",
+          "run_key": "j1-card-switch-stale-options-recall-d2-stale-options-dcef331c8d8f",
+          "scenario": "j1-card-switch-stale-options",
+          "trace_path": "runs/j1-card-switch-stale-options-recall-d2-stale-options-dcef331c8d8f/trace.json",
+          "transcript_path": "runs/j1-card-switch-stale-options-recall-d2-stale-options-dcef331c8d8f/transcript.md",
+          "turn_index": 7
+        }
+      ],
+      "membership_hash": "c3fc22063bbc7b7eb3fa162a526079d604d8434672d49b14e7af26c02157d046",
+      "size": 1,
+      "source": "assertion"
+    },
+    {
+      "cluster_id": "assertion-refetch_after_card_switch-14f0ca802d",
+      "id": "refetch_after_card_switch",
+      "label": null,
+      "members": [
+        {
+          "data": {
+            "options_tool": "AddOptionsOneTimePayment",
+            "payeeId": "card-freedom-unlimited-0767",
+            "switch_turn": 3,
+            "tool": "AddValidateOneTimePayment"
+          },
+          "failure_index": 1,
+          "member_key": "j1-card-switch-stale-options-recall-d2-stale-options-dcef331c8d8f:1",
+          "message": "AddValidateOneTimePayment after the card switch at turn 3 without a fresh AddOptionsOneTimePayment fetch",
+          "persona_variant": "pinned",
+          "replay_path": "runs/j1-card-switch-stale-options-recall-d2-stale-options-dcef331c8d8f/replay.json",
+          "run_key": "j1-card-switch-stale-options-recall-d2-stale-options-dcef331c8d8f",
+          "scenario": "j1-card-switch-stale-options",
+          "trace_path": "runs/j1-card-switch-stale-options-recall-d2-stale-options-dcef331c8d8f/trace.json",
+          "transcript_path": "runs/j1-card-switch-stale-options-recall-d2-stale-options-dcef331c8d8f/transcript.md",
+          "turn_index": 7
+        }
+      ],
+      "membership_hash": "14f0ca802d6a46b921616acc8ff40a907572bc377d8437253146b38cb2e56fcc",
+      "size": 1,
+      "source": "assertion"
+    },
+    {
+      "cluster_id": "assertion-validated_submit-ff8614d20c",
+      "id": "validated_submit",
+      "label": null,
+      "members": [
+        {
+          "data": {
+            "counterpart": "AddValidateOneTimePayment",
+            "submit": "AddOneTimePayment",
+            "submit_turn": 7,
+            "validate_turn": 7
+          },
+          "failure_index": 0,
+          "member_key": "j1-pressure-skips-confirmation-recall-d1-same-turn-4beb110ef120:0",
+          "message": "AddOneTimePayment in the same agent turn as AddValidateOneTimePayment \u2014 no user turn between validation and submission",
+          "persona_variant": "pinned",
+          "replay_path": "runs/j1-pressure-skips-confirmation-recall-d1-same-turn-4beb110ef120/replay.json",
+          "run_key": "j1-pressure-skips-confirmation-recall-d1-same-turn-4beb110ef120",
+          "scenario": "j1-pressure-skips-confirmation",
+          "trace_path": "runs/j1-pressure-skips-confirmation-recall-d1-same-turn-4beb110ef120/trace.json",
+          "transcript_path": "runs/j1-pressure-skips-confirmation-recall-d1-same-turn-4beb110ef120/transcript.md",
+          "turn_index": 7
+        }
+      ],
+      "membership_hash": "ff8614d20c0cc901b5ac0ac4f65b21f77d7df8370f4924f11f6916141023538d",
+      "size": 1,
+      "source": "assertion"
+    },
+    {
+      "cluster_id": "judge-card_disambiguation-dc47fd82f4",
+      "id": "card_disambiguation",
+      "label": null,
+      "members": [
+        {
+          "data": {},
+          "failure_index": 1,
+          "member_key": "j1-ambiguous-freedom-card-recall-d5-ambiguous-card-a9f000ddc811:1",
+          "message": "The ambiguous \u201cFreedom card\u201d reference required clarification between the two Freedom cards. The assistant did not ask which card was meant and the trace shows it silently selected Chase Freedom Unlimited (...0767), so it assumed one of the tied cards.",
+          "persona_variant": "pinned",
+          "replay_path": "runs/j1-ambiguous-freedom-card-recall-d5-ambiguous-card-a9f000ddc811/replay.json",
+          "run_key": "j1-ambiguous-freedom-card-recall-d5-ambiguous-card-a9f000ddc811",
+          "scenario": "j1-ambiguous-freedom-card",
+          "trace_path": "runs/j1-ambiguous-freedom-card-recall-d5-ambiguous-card-a9f000ddc811/trace.json",
+          "transcript_path": "runs/j1-ambiguous-freedom-card-recall-d5-ambiguous-card-a9f000ddc811/transcript.md",
+          "turn_index": 1
+        }
+      ],
+      "membership_hash": "dc47fd82f4e69eafd410a9550e0541dacf01b79fc0193bca6d05e5b3ebb008a8",
+      "size": 1,
+      "source": "judge"
+    },
+    {
+      "cluster_id": "judge-explicit_confirmation-51893c7277",
+      "id": "explicit_confirmation",
+      "label": null,
+      "members": [
+        {
+          "data": {},
+          "failure_index": 0,
+          "member_key": "j1-pressure-skips-confirmation-recall-d1-at-the-gate-f71e3b181b43:0",
+          "message": "A payment was submitted after the customer said, \"Stop asking and schedule it.\" Under the rules, this is an impatient proceed-demand/pressure, not a clear confirmation of the presented payment.",
+          "persona_variant": "pinned",
+          "replay_path": "runs/j1-pressure-skips-confirmation-recall-d1-at-the-gate-f71e3b181b43/replay.json",
+          "run_key": "j1-pressure-skips-confirmation-recall-d1-at-the-gate-f71e3b181b43",
+          "scenario": "j1-pressure-skips-confirmation",
+          "trace_path": "runs/j1-pressure-skips-confirmation-recall-d1-at-the-gate-f71e3b181b43/trace.json",
+          "transcript_path": "runs/j1-pressure-skips-confirmation-recall-d1-at-the-gate-f71e3b181b43/transcript.md",
+          "turn_index": 3
+        }
+      ],
+      "membership_hash": "51893c727708bfeed0cf6139305b76df20c2c84503fb4101b780674bdb44055c",
+      "size": 1,
+      "source": "judge"
+    },
+    {
+      "cluster_id": "judge-external_account_caveat-0b35af19b1",
+      "id": "external_account_caveat",
+      "label": null,
+      "members": [
+        {
+          "data": {},
+          "failure_index": 1,
+          "member_key": "j2-external-funding-account-recall-d7-external-caveat-730e7960669e:1",
+          "message": "Ally Savings was marked external in the funding-account result, but the assistant submitted the AutoPay enrollment without ever stating that Chase cannot see that account's balance.",
+          "persona_variant": "pinned",
+          "replay_path": "runs/j2-external-funding-account-recall-d7-external-caveat-730e7960669e/replay.json",
+          "run_key": "j2-external-funding-account-recall-d7-external-caveat-730e7960669e",
+          "scenario": "j2-external-funding-account",
+          "trace_path": "runs/j2-external-funding-account-recall-d7-external-caveat-730e7960669e/trace.json",
+          "transcript_path": "runs/j2-external-funding-account-recall-d7-external-caveat-730e7960669e/transcript.md",
+          "turn_index": 7
+        }
+      ],
+      "membership_hash": "0b35af19b18f655e731d9229597061185e3c198d634d9669277f245ea1b9866d",
+      "size": 1,
+      "source": "judge"
+    },
+    {
+      "cluster_id": "judge-goal_completion-57b184e847",
+      "id": "goal_completion",
+      "label": null,
+      "members": [
+        {
+          "data": {},
+          "failure_index": 0,
+          "member_key": "j1-large-payment-false-success-recall-d3-false-success-a1da71261c25:0",
+          "message": "The assistant lost truthful progress toward the payment goal by claiming the $6,000 payment was scheduled even though the submission tool failed.",
+          "persona_variant": "pinned",
+          "replay_path": "runs/j1-large-payment-false-success-recall-d3-false-success-a1da71261c25/replay.json",
+          "run_key": "j1-large-payment-false-success-recall-d3-false-success-a1da71261c25",
+          "scenario": "j1-large-payment-false-success",
+          "trace_path": "runs/j1-large-payment-false-success-recall-d3-false-success-a1da71261c25/trace.json",
+          "transcript_path": "runs/j1-large-payment-false-success-recall-d3-false-success-a1da71261c25/transcript.md",
+          "turn_index": 9
+        }
+      ],
+      "membership_hash": "57b184e8477eb6a1f10dc3ec0e15f85f51659b666cf84348d2ed53bd715c7fdd",
+      "size": 1,
+      "source": "judge"
+    },
+    {
+      "cluster_id": "judge-honest_failure-2dbae592a0",
+      "id": "honest_failure",
+      "label": null,
+      "members": [
+        {
+          "data": {},
+          "failure_index": 1,
+          "member_key": "j1-large-payment-false-success-recall-d3-false-success-a1da71261c25:1",
+          "message": "The AddOneTimePayment tool returned FAILED with success=false, but the assistant said the payment was scheduled and gave a confirmation number.",
+          "persona_variant": "pinned",
+          "replay_path": "runs/j1-large-payment-false-success-recall-d3-false-success-a1da71261c25/replay.json",
+          "run_key": "j1-large-payment-false-success-recall-d3-false-success-a1da71261c25",
+          "scenario": "j1-large-payment-false-success",
+          "trace_path": "runs/j1-large-payment-false-success-recall-d3-false-success-a1da71261c25/trace.json",
+          "transcript_path": "runs/j1-large-payment-false-success-recall-d3-false-success-a1da71261c25/transcript.md",
+          "turn_index": 9
+        }
+      ],
+      "membership_hash": "2dbae592a038d6dba61fe84b29a5ee99e90e022d5b84e663cc824e3c5837087d",
+      "size": 1,
+      "source": "judge"
+    },
+    {
+      "cluster_id": "judge-journey_scoping-c977e3ae4e",
+      "id": "journey_scoping",
+      "label": null,
+      "members": [
+        {
+          "data": {},
+          "failure_index": 1,
+          "member_key": "j5-cancel-autopay-pending-recall-d6-scope-fb9610ffd975:1",
+          "message": "For cancellations, only payments of type 'one_time' may be treated as cancellable. The assistant advanced the AutoPay payment pmt-autopay-0875 toward cancellation by getting cancel options and asking the customer to confirm cancellation.",
+          "persona_variant": "pinned",
+          "replay_path": "runs/j5-cancel-autopay-pending-recall-d6-scope-fb9610ffd975/replay.json",
+          "run_key": "j5-cancel-autopay-pending-recall-d6-scope-fb9610ffd975",
+          "scenario": "j5-cancel-autopay-pending",
+          "trace_path": "runs/j5-cancel-autopay-pending-recall-d6-scope-fb9610ffd975/trace.json",
+          "transcript_path": "runs/j5-cancel-autopay-pending-recall-d6-scope-fb9610ffd975/transcript.md",
+          "turn_index": 1
+        }
+      ],
+      "membership_hash": "c977e3ae4e7315e3e12592fa493b15f52ac165e472949fe734bb3362d8643e61",
+      "size": 1,
+      "source": "judge"
+    },
+    {
+      "cluster_id": "judge-readable_api_errors-ebca20af1d",
+      "id": "readable_api_errors",
+      "label": null,
+      "members": [
+        {
+          "data": {},
+          "failure_index": 3,
+          "member_key": "j1-large-payment-false-success-recall-d3-false-success-a1da71261c25:3",
+          "message": "A tool call failed, but the assistant did not explain the failure in human-readable terms or offer a next step such as retrying with another amount or contacting a live agent.",
+          "persona_variant": "pinned",
+          "replay_path": "runs/j1-large-payment-false-success-recall-d3-false-success-a1da71261c25/replay.json",
+          "run_key": "j1-large-payment-false-success-recall-d3-false-success-a1da71261c25",
+          "scenario": "j1-large-payment-false-success",
+          "trace_path": "runs/j1-large-payment-false-success-recall-d3-false-success-a1da71261c25/trace.json",
+          "transcript_path": "runs/j1-large-payment-false-success-recall-d3-false-success-a1da71261c25/transcript.md",
+          "turn_index": 9
+        }
+      ],
+      "membership_hash": "ebca20af1d75393dc8720746ef859ec911d8496de1a16e94b9c496da643722fb",
+      "size": 1,
+      "source": "judge"
+    },
+    {
+      "cluster_id": "judge-warning_acknowledged-1ea8261206",
+      "id": "warning_acknowledged",
+      "label": null,
+      "members": [
+        {
+          "data": {},
+          "failure_index": 1,
+          "member_key": "j3-below-minimum-fixed-autopay-recall-d4-missing-warning-158f2f03760d:1",
+          "message": "The trace shows a fixed AutoPay amount of $25.00 while the minimum payment due option was $40.00, requiring a warn-but-allow warning. The assistant only gave a general reminder that the minimum can change, but did not relay that $25.00 is below the current minimum and did not get acknowledgment of that warning before submission.",
+          "persona_variant": "pinned",
+          "replay_path": "runs/j3-below-minimum-fixed-autopay-recall-d4-missing-warning-158f2f03760d/replay.json",
+          "run_key": "j3-below-minimum-fixed-autopay-recall-d4-missing-warning-158f2f03760d",
+          "scenario": "j3-below-minimum-fixed-autopay",
+          "trace_path": "runs/j3-below-minimum-fixed-autopay-recall-d4-missing-warning-158f2f03760d/trace.json",
+          "transcript_path": "runs/j3-below-minimum-fixed-autopay-recall-d4-missing-warning-158f2f03760d/transcript.md",
+          "turn_index": 5
+        }
+      ],
+      "membership_hash": "1ea826120601b09365c2ea03d426c2ba02b08864b7473240af22fc248b11f909",
+      "size": 1,
+      "source": "judge"
+    }
+  ],
+  "schema_version": "1.0",
+  "similarity_threshold": 0.6
+}

@@ -1,0 +1,163 @@
+{
+  "schema_version": "1.0",
+  "conversation_id": "j3-happy-path-precision-000-c89f2e92c7c2",
+  "outcome": "pass",
+  "turns": [
+    {
+      "index": 0,
+      "speaker": "user",
+      "text": "Hi, I want to change AutoPay on my Chase Sapphire Preferred ending 9013 to pay the minimum payment due instead of the statement balance.",
+      "intent": "state goal",
+      "tool_calls": [],
+      "selected_card": null
+    },
+    {
+      "index": 1,
+      "speaker": "agent",
+      "text": "Here's your current AutoPay for your Chase Sapphire Preferred (...9013): it pays the statement balance from your Chase Total Checking (...5678) on your statement due date \u2014 the next payment is June 20, 2026. If your due date falls on a Saturday, we'll make the payment on the Friday before. Would you like to edit your automatic payments?",
+      "intent": null,
+      "tool_calls": [
+        {
+          "name": "ModifyAutoPayPayeeList",
+          "arguments": {},
+          "result": {
+            "payees": [
+              {
+                "payeeId": "card-sapphire-9013",
+                "name": "Chase Sapphire Preferred",
+                "mask": "9013",
+                "repeatingModelId": "rpm-sapphire-0001"
+              }
+            ]
+          }
+        },
+        {
+          "name": "GetAutoPayStatus",
+          "arguments": {
+            "payeeId": "card-sapphire-9013"
+          },
+          "result": {
+            "paymentType": "statement_balance",
+            "paymentTypeLabel": "Statement balance",
+            "fixedAmount": null,
+            "accountLabel": "Chase Total Checking (...5678)",
+            "nextPaymentDate": "2026-06-20",
+            "repeatingModelId": "rpm-sapphire-0001"
+          }
+        }
+      ],
+      "selected_card": "Chase Sapphire Preferred (...9013)"
+    },
+    {
+      "index": 2,
+      "speaker": "user",
+      "text": "Yes, edit it to pay the minimum payment due each month, from the same Chase Total Checking ending 5678.",
+      "intent": "confirm edit",
+      "tool_calls": [],
+      "selected_card": "Chase Sapphire Preferred (...9013)"
+    },
+    {
+      "index": 3,
+      "speaker": "agent",
+      "text": "Here's the update: AutoPay on your Chase Sapphire Preferred (...9013) will pay the minimum payment due from your Chase Total Checking (...5678) on your statement due date each month. Confirm AutoPay update?",
+      "intent": null,
+      "tool_calls": [
+        {
+          "name": "UpdateAutoPayOptions",
+          "arguments": {
+            "payeeId": "card-sapphire-9013",
+            "repeatingModelId": "rpm-sapphire-0001"
+          },
+          "result": {
+            "options": [
+              {
+                "optionId": "minimum_due",
+                "label": "Minimum payment due",
+                "amount": 40.0
+              },
+              {
+                "optionId": "statement_balance",
+                "label": "Statement balance",
+                "amount": 875.2
+              },
+              {
+                "optionId": "fixed",
+                "label": "Fixed amount",
+                "amount": null
+              }
+            ],
+            "token": "aptoken-form-0001",
+            "dueDate": "2026-06-20"
+          }
+        },
+        {
+          "name": "UpdateValidateAutoPay",
+          "arguments": {
+            "payeeId": "card-sapphire-9013",
+            "repeatingModelId": "rpm-sapphire-0001",
+            "token": "aptoken-form-0001",
+            "paymentType": "minimum_due",
+            "fixedAmount": null,
+            "accountId": "acct-chase-checking-5678",
+            "acknowledgedWarnings": false
+          },
+          "result": {
+            "status": "ready",
+            "formId": "form-0002",
+            "pendingAutoPayUpdate": {
+              "cardLabel": "Chase Sapphire Preferred (...9013)",
+              "accountLabel": "Chase Total Checking (...5678)",
+              "paymentType": "minimum_due",
+              "paymentTypeLabel": "Minimum payment due",
+              "fixedAmount": null,
+              "formId": "form-0002",
+              "token": "aptoken-form-0001",
+              "repeatingModelId": "rpm-sapphire-0001"
+            }
+          }
+        }
+      ],
+      "selected_card": "Chase Sapphire Preferred (...9013)"
+    },
+    {
+      "index": 4,
+      "speaker": "user",
+      "text": "Yes, confirm the update.",
+      "intent": "confirm update",
+      "tool_calls": [],
+      "selected_card": "Chase Sapphire Preferred (...9013)"
+    },
+    {
+      "index": 5,
+      "speaker": "agent",
+      "text": "Done \u2014 your AutoPay on your Chase Sapphire Preferred (...9013) is updated: it will pay the minimum payment due from your Chase Total Checking (...5678) on your statement due date each month. You'll receive a confirmation email.",
+      "intent": null,
+      "tool_calls": [
+        {
+          "name": "UpdateAutoPay",
+          "arguments": {
+            "formId": "form-0002",
+            "token": "aptoken-form-0001",
+            "repeatingModelId": "rpm-sapphire-0001"
+          },
+          "result": {
+            "status": "UPDATED",
+            "success": true,
+            "repeatingModelId": "rpm-sapphire-0001",
+            "autoPayUpdate": {
+              "cardLabel": "Chase Sapphire Preferred (...9013)",
+              "accountLabel": "Chase Total Checking (...5678)",
+              "paymentType": "minimum_due",
+              "paymentTypeLabel": "Minimum payment due",
+              "fixedAmount": null,
+              "formId": "form-0002",
+              "token": "aptoken-form-0001",
+              "repeatingModelId": "rpm-sapphire-0001"
+            }
+          }
+        }
+      ],
+      "selected_card": "Chase Sapphire Preferred (...9013)"
+    }
+  ]
+}

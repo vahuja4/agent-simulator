@@ -1,0 +1,212 @@
+{
+  "schema_version": "1.0",
+  "conversation_id": "j1-happy-path-precision-000-2280a7bdb42b",
+  "outcome": "pass",
+  "turns": [
+    {
+      "index": 0,
+      "speaker": "user",
+      "text": "Hi, I\u2019d like to make a payment on my Chase Freedom Unlimited card ending in 0767.",
+      "intent": "state goal",
+      "tool_calls": [],
+      "selected_card": null
+    },
+    {
+      "index": 1,
+      "speaker": "agent",
+      "text": "Which account should the payment come from? You have: Chase Total Checking (...5678), Ally Savings (...9999).",
+      "intent": null,
+      "tool_calls": [
+        {
+          "name": "PayeeList",
+          "arguments": {},
+          "result": {
+            "payees": [
+              {
+                "payeeId": "card-sapphire-9013",
+                "name": "Chase Sapphire Preferred",
+                "mask": "9013",
+                "dueDate": "2026-06-20"
+              },
+              {
+                "payeeId": "card-freedom-unlimited-0767",
+                "name": "Chase Freedom Unlimited",
+                "mask": "0767",
+                "dueDate": "2026-06-25"
+              },
+              {
+                "payeeId": "card-freedom-flex-4421",
+                "name": "Chase Freedom Flex",
+                "mask": "4421",
+                "dueDate": "2026-06-28"
+              }
+            ]
+          }
+        },
+        {
+          "name": "FundingAccountPicker",
+          "arguments": {},
+          "result": {
+            "accounts": [
+              {
+                "accountId": "acct-chase-checking-5678",
+                "name": "Chase Total Checking",
+                "mask": "5678",
+                "type": "chase"
+              },
+              {
+                "accountId": "acct-ally-savings-9999",
+                "name": "Ally Savings",
+                "mask": "9999",
+                "type": "external"
+              }
+            ]
+          }
+        }
+      ],
+      "selected_card": "Chase Freedom Unlimited (...0767)"
+    },
+    {
+      "index": 2,
+      "speaker": "user",
+      "text": "Please use my Chase Total Checking account ending in 5678.",
+      "intent": "choose funding account",
+      "tool_calls": [],
+      "selected_card": "Chase Freedom Unlimited (...0767)"
+    },
+    {
+      "index": 3,
+      "speaker": "agent",
+      "text": "Here are the payment options for your Chase Freedom Unlimited (...0767) \u2014 Minimum payment due: $35.00; Statement balance: $310.45; Remaining statement balance: $210.45; Current balance: $432.10 \u2014 or another amount of your choice. Your payment due date is June 25, 2026. How much would you like to pay?",
+      "intent": null,
+      "tool_calls": [
+        {
+          "name": "AddOptionsOneTimePayment",
+          "arguments": {
+            "payeeId": "card-freedom-unlimited-0767"
+          },
+          "result": {
+            "options": [
+              {
+                "optionId": "minimum_due",
+                "label": "Minimum payment due",
+                "amount": 35.0
+              },
+              {
+                "optionId": "statement_balance",
+                "label": "Statement balance",
+                "amount": 310.45
+              },
+              {
+                "optionId": "remaining_statement_balance",
+                "label": "Remaining statement balance",
+                "amount": 210.45
+              },
+              {
+                "optionId": "current_balance",
+                "label": "Current balance",
+                "amount": 432.1
+              },
+              {
+                "optionId": "other",
+                "label": "Other amount",
+                "amount": null
+              }
+            ],
+            "dueDate": "2026-06-25",
+            "timezone": "America/New_York"
+          }
+        }
+      ],
+      "selected_card": "Chase Freedom Unlimited (...0767)"
+    },
+    {
+      "index": 4,
+      "speaker": "user",
+      "text": "I\u2019d like to pay the statement balance, $310.45.",
+      "intent": "pick amount",
+      "tool_calls": [],
+      "selected_card": "Chase Freedom Unlimited (...0767)"
+    },
+    {
+      "index": 5,
+      "speaker": "agent",
+      "text": "What date would you like the payment to be made? Dates are in Eastern Time, and your due date is June 25, 2026.",
+      "intent": null,
+      "tool_calls": [],
+      "selected_card": "Chase Freedom Unlimited (...0767)"
+    },
+    {
+      "index": 6,
+      "speaker": "user",
+      "text": "Please make the payment on the due date, June 25, 2026.",
+      "intent": "choose date",
+      "tool_calls": [],
+      "selected_card": "Chase Freedom Unlimited (...0767)"
+    },
+    {
+      "index": 7,
+      "speaker": "agent",
+      "text": "Here's what I have: a payment of $310.45 to your Chase Freedom Unlimited (...0767) from your Chase Total Checking (...5678) on June 25, 2026 (Eastern Time). Shall I schedule it?",
+      "intent": null,
+      "tool_calls": [
+        {
+          "name": "AddValidateOneTimePayment",
+          "arguments": {
+            "payeeId": "card-freedom-unlimited-0767",
+            "accountId": "acct-chase-checking-5678",
+            "amount": 310.45,
+            "paymentDate": "2026-06-25"
+          },
+          "result": {
+            "status": "ready",
+            "formId": "form-0001",
+            "pendingPayment": {
+              "cardLabel": "Chase Freedom Unlimited (...0767)",
+              "accountLabel": "Chase Total Checking (...5678)",
+              "amount": 310.45,
+              "paymentDate": "2026-06-25",
+              "formId": "form-0001"
+            }
+          }
+        }
+      ],
+      "selected_card": "Chase Freedom Unlimited (...0767)"
+    },
+    {
+      "index": 8,
+      "speaker": "user",
+      "text": "Yes, please schedule it.",
+      "intent": "confirm",
+      "tool_calls": [],
+      "selected_card": "Chase Freedom Unlimited (...0767)"
+    },
+    {
+      "index": 9,
+      "speaker": "agent",
+      "text": "Done! Your payment of $310.45 to your Chase Freedom Unlimited (...0767) from your Chase Total Checking (...5678) is scheduled for June 25, 2026 (Eastern Time). Your confirmation number is CONF-0001.",
+      "intent": null,
+      "tool_calls": [
+        {
+          "name": "AddOneTimePayment",
+          "arguments": {
+            "formId": "form-0001"
+          },
+          "result": {
+            "status": "SCHEDULED",
+            "success": true,
+            "confirmationNumber": "CONF-0001",
+            "payment": {
+              "cardLabel": "Chase Freedom Unlimited (...0767)",
+              "accountLabel": "Chase Total Checking (...5678)",
+              "amount": 310.45,
+              "paymentDate": "2026-06-25",
+              "formId": "form-0001"
+            }
+          }
+        }
+      ],
+      "selected_card": "Chase Freedom Unlimited (...0767)"
+    }
+  ]
+}

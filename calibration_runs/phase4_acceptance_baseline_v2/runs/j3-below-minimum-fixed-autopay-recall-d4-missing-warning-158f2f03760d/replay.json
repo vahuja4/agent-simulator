@@ -1,0 +1,27 @@
+{
+  "conversation_id": "j3-below-minimum-fixed-autopay-recall-d4-missing-warning-158f2f03760d",
+  "schema_version": "1.0",
+  "steps": [
+    {
+      "kind": "user",
+      "text": "I want to change my autopay."
+    },
+    {
+      "kind": "agent"
+    },
+    {
+      "kind": "user",
+      "text": "Yes \u2014 edit it to fixed $25 from the same account."
+    },
+    {
+      "kind": "agent"
+    },
+    {
+      "kind": "user",
+      "text": "Yes, I confirm the AutoPay update to fixed $25 from the same account."
+    },
+    {
+      "kind": "agent"
+    }
+  ]
+}

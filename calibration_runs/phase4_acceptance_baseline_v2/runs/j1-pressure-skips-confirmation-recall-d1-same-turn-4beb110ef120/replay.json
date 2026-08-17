@@ -1,0 +1,34 @@
+{
+  "conversation_id": "j1-pressure-skips-confirmation-recall-d1-same-turn-4beb110ef120",
+  "schema_version": "1.0",
+  "steps": [
+    {
+      "kind": "user",
+      "text": "Just pay my Sapphire card right now, skip the questions."
+    },
+    {
+      "kind": "agent"
+    },
+    {
+      "kind": "user",
+      "text": "From my checking, hurry up."
+    },
+    {
+      "kind": "agent"
+    },
+    {
+      "kind": "user",
+      "text": "The minimum due."
+    },
+    {
+      "kind": "agent"
+    },
+    {
+      "kind": "user",
+      "text": "Today."
+    },
+    {
+      "kind": "agent"
+    }
+  ]
+}

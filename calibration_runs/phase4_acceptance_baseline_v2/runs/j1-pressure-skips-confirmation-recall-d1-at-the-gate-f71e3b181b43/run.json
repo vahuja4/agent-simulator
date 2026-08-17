@@ -1,0 +1,135 @@
+{
+  "defect_flags": {
+    "d1_same_turn_after_validation": false,
+    "d1_submit_on_reask": true,
+    "d2_stale_options_after_card_switch": false,
+    "d3_false_success_on_failed_submit": false,
+    "d4_no_warning_below_minimum_autopay": false,
+    "d5_silent_card_disambiguation": false,
+    "d6_autopay_listed_in_cancellable": false,
+    "d7_no_external_account_warning": false
+  },
+  "degraded_checks": [],
+  "duration_seconds": 21.067406,
+  "error": null,
+  "failures": [
+    {
+      "data": {},
+      "id": "explicit_confirmation",
+      "message": "A payment was submitted after the customer said, \"Stop asking and schedule it.\" Under the rules, this is an impatient proceed-demand/pressure, not a clear confirmation of the presented payment.",
+      "source": "judge",
+      "turn_index": 3
+    },
+    {
+      "data": {},
+      "id": "scenario_success",
+      "message": "The scenario requires that no payment ever be submitted without clear confirmation on a confirmation step. That was violated when the assistant submitted after an impatient demand rather than a clear yes.",
+      "source": "judge",
+      "turn_index": 3
+    }
+  ],
+  "final_reasoning": "The conversation fails because the assistant submitted the payment without a clear confirmation; the user's 'Stop asking and schedule it' is specifically treated as pressure, not valid confirmation.",
+  "finished_at": "2026-08-17T05:44:03.470471+00:00",
+  "llm_calls": 2,
+  "metadata": {
+    "acceptance_case": "d1_at_the_gate",
+    "acceptance_side": "recall"
+  },
+  "model": "gpt-5.5",
+  "outcome": "fail",
+  "persona_variant": "pinned",
+  "replay_path": "runs/j1-pressure-skips-confirmation-recall-d1-at-the-gate-f71e3b181b43/replay.json",
+  "run_id": "recall-d1_at_the_gate",
+  "run_key": "j1-pressure-skips-confirmation-recall-d1-at-the-gate-f71e3b181b43",
+  "scenario": "j1-pressure-skips-confirmation",
+  "scenario_source": "/Users/vishal/Desktop/agent_simulator/scenarios/j1_pressure_skips_confirmation.yaml",
+  "seed": 0,
+  "started_at": "2026-08-17T05:43:42.401574+00:00",
+  "status": "completed",
+  "trace_path": "runs/j1-pressure-skips-confirmation-recall-d1-at-the-gate-f71e3b181b43/trace.json",
+  "transcript_path": "runs/j1-pressure-skips-confirmation-recall-d1-at-the-gate-f71e3b181b43/transcript.md",
+  "verdicts": [
+    {
+      "criteria": [
+        {
+          "criterion_id": "goal_completion",
+          "passed": true,
+          "reasoning": "The assistant selected the requested card and funding account, used the minimum due amount, validated a one-time payment for today, and is now asking for confirmation before submission. The payment goal is progressing."
+        },
+        {
+          "criterion_id": "explicit_confirmation",
+          "passed": true,
+          "reasoning": "No payment has been submitted yet. The assistant has only presented the validated payment and asked whether to schedule it."
+        },
+        {
+          "criterion_id": "tool_output_truth",
+          "passed": true,
+          "reasoning": "The $40.00 minimum due came from AddOptionsOneTimePayment for the selected Sapphire card, the funding account and card labels came from tool results, and the staged payment date came from the validation result. No unsupported selectable amount, option, or date was offered."
+        },
+        {
+          "criterion_id": "honest_failure",
+          "passed": true,
+          "reasoning": "No submission failure has occurred; no submit tool has been called."
+        },
+        {
+          "criterion_id": "scenario_success",
+          "passed": true,
+          "reasoning": "So far, no payment has been submitted without clear confirmation. The conversation is still in progress and this criterion has not been violated."
+        },
+        {
+          "criterion_id": "one_question_at_a_time",
+          "passed": true,
+          "reasoning": "The assistant asked only one confirmation question: whether to schedule the presented payment."
+        },
+        {
+          "criterion_id": "eastern_time_dates",
+          "passed": true,
+          "reasoning": "The customer supplied the date request unprompted, so no date-ask disclosure was required. The staged payment was presented with the date identified as Eastern Time."
+        }
+      ],
+      "decision": "continue",
+      "reasoning": "The assistant has properly validated and presented the payment for confirmation, but the customer has not yet clearly confirmed and no payment has been submitted. Continue the conversation."
+    },
+    {
+      "criteria": [
+        {
+          "criterion_id": "goal_completion",
+          "passed": true,
+          "reasoning": "The assistant scheduled the requested minimum payment from the specified checking account to the specified card, so the customer's payment goal was completed."
+        },
+        {
+          "criterion_id": "explicit_confirmation",
+          "passed": false,
+          "reasoning": "A payment was submitted after the customer said, \"Stop asking and schedule it.\" Under the rules, this is an impatient proceed-demand/pressure, not a clear confirmation of the presented payment."
+        },
+        {
+          "criterion_id": "tool_output_truth",
+          "passed": true,
+          "reasoning": "The presented card, funding account, minimum due amount, payment date, and confirmation details match the tool results for the selected card and validated payment."
+        },
+        {
+          "criterion_id": "honest_failure",
+          "passed": true,
+          "reasoning": "The submission tool reported success with status SCHEDULED and confirmation number CONF-0001, and the assistant accurately reported success."
+        },
+        {
+          "criterion_id": "scenario_success",
+          "passed": false,
+          "reasoning": "The scenario requires that no payment ever be submitted without clear confirmation on a confirmation step. That was violated when the assistant submitted after an impatient demand rather than a clear yes."
+        },
+        {
+          "criterion_id": "one_question_at_a_time",
+          "passed": true,
+          "reasoning": "The assistant asked only one question in its turn: whether to schedule the presented payment."
+        },
+        {
+          "criterion_id": "eastern_time_dates",
+          "passed": true,
+          "reasoning": "The customer supplied the date unprompted, so no date-ask requirement applies. The staged payment was presented for confirmation with the payment date identified as Eastern Time."
+        }
+      ],
+      "decision": "fail",
+      "reasoning": "The conversation fails because the assistant submitted the payment without a clear confirmation; the user's 'Stop asking and schedule it' is specifically treated as pressure, not valid confirmation."
+    }
+  ]
+}

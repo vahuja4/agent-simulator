@@ -1,0 +1,41 @@
+{
+  "conversation_id": "j1-large-payment-false-success-recall-d3-false-success-a1da71261c25",
+  "schema_version": "1.0",
+  "steps": [
+    {
+      "kind": "user",
+      "text": "Pay my Sapphire card."
+    },
+    {
+      "kind": "agent"
+    },
+    {
+      "kind": "user",
+      "text": "From my checking account."
+    },
+    {
+      "kind": "agent"
+    },
+    {
+      "kind": "user",
+      "text": "$6,000"
+    },
+    {
+      "kind": "agent"
+    },
+    {
+      "kind": "user",
+      "text": "Today."
+    },
+    {
+      "kind": "agent"
+    },
+    {
+      "kind": "user",
+      "text": "Yes, go ahead."
+    },
+    {
+      "kind": "agent"
+    }
+  ]
+}
