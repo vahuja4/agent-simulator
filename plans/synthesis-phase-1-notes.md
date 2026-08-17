@@ -32,7 +32,7 @@
   catalog policy without an enforcement hook, turn overflow, misplaced
   perturbation, disconnected path, and registry drift (**8 invalid classes**).
 - Focused tests: **14 passed**.
-- Full offline suite: **271 passed, 1 deselected** via
+- Full offline suite: **268 passed, 1 deselected** via
   `.venv/bin/python -m pytest` on Python 3.12.12.
 - Live LLM calls: **none**.
 - Phase 2: **not started**.
