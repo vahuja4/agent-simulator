@@ -76,7 +76,7 @@ def main() -> None:
     load_dotenv()
     if not os.environ.get("OPENAI_API_KEY"):
         raise SystemExit("OPENAI_API_KEY not set (environment or .env)")
-    asyncio.run(realize_catalog(load_manifest_sample(), OpenAILLM()))
+    asyncio.run(realize_catalog(load_manifest_sample(), OpenAILLM(), report=print))
 
 
 if __name__ == "__main__":

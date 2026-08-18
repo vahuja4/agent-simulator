@@ -159,30 +159,138 @@ async def test_truncation_retries_once_with_larger_budget() -> None:
 
 
 @pytest.mark.asyncio
-async def test_catalog_realizes_one_maximal_policy_member_and_records_class(
+async def test_catalog_preserves_marked_records_and_yamls_outside_sample(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     maximal = load_blueprint(BLUEPRINT)
     subset = replace(maximal, id="policy-subset", policies=())
     manifest_path = tmp_path / "manifest.json"
-    manifest_path.write_text(json.dumps({"counts": {}}))
+    marked_record = {
+        "scenario_id": "marked-prior-candidate",
+        "blueprint_id": "marked-prior-candidate",
+        "behavioral_class_key": "prior-class",
+        "status": "unexecutable_blueprint",
+        "unexecutable_reasons": ["prior reason"],
+    }
+    manifest_path.write_text(
+        json.dumps({"counts": {}, "realized_scenarios": [marked_record]})
+    )
     monkeypatch.setattr(realize, "DEFAULT_YAML_DIR", tmp_path / "yaml")
     monkeypatch.setattr(realize, "DEFAULT_MANIFEST", manifest_path)
     (tmp_path / "yaml").mkdir()
-    (tmp_path / "yaml" / "stale.yaml").write_text("stale: true\n")
+    marked_yaml = tmp_path / "yaml" / "marked-prior-candidate.yaml"
+    marked_yaml.write_text("preserved: exactly\n")
     llm = StubLLM([valid_output()])
+    reports: list[str] = []
 
-    paths = await realize.realize_catalog((subset, maximal), llm)
+    paths = await realize.realize_catalog(
+        (subset, maximal), llm, report=reports.append
+    )
     manifest = json.loads(manifest_path.read_text())
 
     assert llm.calls == 1
     assert len(paths) == 1
-    assert not (tmp_path / "yaml" / "stale.yaml").exists()
+    assert marked_yaml.read_text() == "preserved: exactly\n"
     assert load_scenario(paths[0]).name == maximal.id
     assert manifest["realized_scenarios"] == [
+        marked_record,
         {
             "scenario_id": maximal.id,
             "blueprint_id": maximal.id,
             "behavioral_class_key": behavioral_class_key(maximal),
-        }
+            "attempt_count": 1,
+            "realization_outcome": "first_try_success",
+        },
     ]
+    assert reports[-1].endswith(
+        "realized=1 reused=0 retried=0 failed=0 preserved=1"
+    )
+
+
+@pytest.mark.asyncio
+async def test_catalog_reuses_valid_overlap_without_rewriting_yaml(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    blueprint = load_blueprint(BLUEPRINT)
+    yaml_dir = tmp_path / "yaml"
+    yaml_dir.mkdir()
+    yaml_path = yaml_dir / f"{blueprint.id}.yaml"
+    yaml_path.write_text(
+        yaml.safe_dump(realize.build_scenario(blueprint, valid_output()), sort_keys=False)
+    )
+    original_bytes = yaml_path.read_bytes()
+    record = {
+        "scenario_id": blueprint.id,
+        "blueprint_id": blueprint.id,
+        "behavioral_class_key": behavioral_class_key(blueprint),
+    }
+    manifest_path = tmp_path / "manifest.json"
+    manifest_path.write_text(json.dumps({"realized_scenarios": [record]}))
+    monkeypatch.setattr(realize, "DEFAULT_YAML_DIR", yaml_dir)
+    monkeypatch.setattr(realize, "DEFAULT_MANIFEST", manifest_path)
+    reports: list[str] = []
+    llm = StubLLM([])
+
+    paths = await realize.realize_catalog(
+        (blueprint,), llm, report=reports.append
+    )
+
+    assert paths == (yaml_path,)
+    assert llm.calls == 0
+    assert yaml_path.read_bytes() == original_bytes
+    assert json.loads(manifest_path.read_text())["realized_scenarios"] == [record]
+    assert reports[0].startswith(f"reused {blueprint.id}:")
+    assert reports[-1].endswith(
+        "realized=0 reused=1 retried=0 failed=0 preserved=0"
+    )
+
+
+@pytest.mark.asyncio
+async def test_catalog_records_attempt_counts_for_each_outcome(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    original = load_blueprint(BLUEPRINT)
+    blueprints = tuple(
+        replace(original, id=candidate_id)
+        for candidate_id in ("first-try", "retried", "failed")
+    )
+    invalid = valid_output()
+    invalid["goal"] += " Use account ending 9999."
+    llm = StubLLM(
+        [
+            valid_output(),
+            deepcopy(invalid),
+            valid_output(),
+            deepcopy(invalid),
+            deepcopy(invalid),
+        ]
+    )
+    manifest_path = tmp_path / "manifest.json"
+    manifest_path.write_text(json.dumps({"realized_scenarios": []}))
+    monkeypatch.setattr(realize, "DEFAULT_YAML_DIR", tmp_path / "yaml")
+    monkeypatch.setattr(realize, "DEFAULT_MANIFEST", manifest_path)
+    monkeypatch.setattr(
+        realize, "behavioral_representatives", lambda candidates: tuple(candidates)
+    )
+    reports: list[str] = []
+
+    paths = await realize.realize_catalog(
+        blueprints, llm, report=reports.append
+    )
+    records = {
+        record["blueprint_id"]: record
+        for record in json.loads(manifest_path.read_text())["realized_scenarios"]
+    }
+
+    assert len(paths) == 2
+    assert llm.calls == 5
+    assert records["first-try"]["attempt_count"] == 1
+    assert records["first-try"]["realization_outcome"] == "first_try_success"
+    assert records["retried"]["attempt_count"] == 2
+    assert records["retried"]["realization_outcome"] == "retried_once"
+    assert records["failed"]["attempt_count"] == 2
+    assert records["failed"]["realization_outcome"] == "failed_closed"
+    assert records["failed"]["status"] == "failed_closed"
+    assert reports[-1].endswith(
+        "realized=2 reused=0 retried=1 failed=1 preserved=0"
+    )

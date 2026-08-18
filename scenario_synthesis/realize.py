@@ -5,13 +5,15 @@ from __future__ import annotations
 import json
 import re
 from collections.abc import Mapping, Sequence
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 import yaml
 
 from agentsim import registry
 from agentsim.llm import LLMClient, LLMTruncationError
+from agentsim.scenario import ScenarioError, load_scenario
 
 from .blueprint import Blueprint
 from .sample import behavioral_class_key, behavioral_representatives
@@ -24,6 +26,22 @@ DEFAULT_MANIFEST = ROOT / "generated_scenarios" / "manifest.json"
 
 class RealizationError(ValueError):
     """The model output is not a fact-equivalent scenario realization."""
+
+
+@dataclass(frozen=True)
+class RealizationSummary:
+    realized: int
+    reused: int
+    retried: int
+    failed: int
+    preserved: int
+
+    def __str__(self) -> str:
+        return (
+            "realization summary: "
+            f"realized={self.realized} reused={self.reused} retried={self.retried} "
+            f"failed={self.failed} preserved={self.preserved}"
+        )
 
 
 def load_trait_whitelist(path: str | Path = TRAIT_FILE) -> dict[str, tuple[str, ...]]:
@@ -85,6 +103,18 @@ async def realize_blueprint(
     trait_path: str | Path = TRAIT_FILE,
 ) -> dict[str, Any]:
     """Realize once, retrying exactly once after a rejected model response."""
+    scenario, _attempt_count = await _realize_blueprint_with_attempts(
+        blueprint, llm, trait_path=trait_path
+    )
+    return scenario
+
+
+async def _realize_blueprint_with_attempts(
+    blueprint: Blueprint,
+    llm: LLMClient,
+    *,
+    trait_path: str | Path = TRAIT_FILE,
+) -> tuple[dict[str, Any], int]:
     whitelist = load_trait_whitelist(trait_path)
     schema = realization_schema(whitelist)
     rejection: str | None = None
@@ -103,7 +133,7 @@ async def realize_blueprint(
                 effort="none",
                 max_tokens=8192 if attempt == 0 else 16384,
             )
-            return build_scenario(blueprint, raw, whitelist=whitelist)
+            return build_scenario(blueprint, raw, whitelist=whitelist), attempt + 1
         except (RealizationError, LLMTruncationError) as exc:
             rejection = str(exc)
             if attempt == 1:
@@ -145,41 +175,160 @@ def build_scenario(
 
 
 def write_scenario(scenario: Mapping[str, Any], blueprint: Blueprint) -> Path:
-    """Write a realization to the sole production output directory."""
+    """Create a realization without overwriting any existing artifact."""
     DEFAULT_YAML_DIR.mkdir(parents=True, exist_ok=True)
     target = DEFAULT_YAML_DIR / f"{blueprint.id}.yaml"
-    target.write_text(yaml.safe_dump(dict(scenario), sort_keys=False))
+    with target.open("x") as stream:
+        stream.write(yaml.safe_dump(dict(scenario), sort_keys=False))
     return target
 
 
 async def realize_catalog(
-    blueprints: Sequence[Blueprint], llm: LLMClient
+    blueprints: Sequence[Blueprint],
+    llm: LLMClient,
+    *,
+    report: Callable[[str], None] | None = None,
 ) -> tuple[Path, ...]:
-    """Realize exactly one maximal-policy member of every behavior class."""
+    """Realize missing representatives while preserving prior batches."""
     representatives = behavioral_representatives(blueprints)
-    entries: list[dict[str, str]] = []
-    realized: list[tuple[dict[str, Any], Blueprint]] = []
+    manifest = json.loads(DEFAULT_MANIFEST.read_text())
+    entries = list(manifest.get("realized_scenarios", []))
+    if not all(isinstance(entry, dict) for entry in entries):
+        raise RealizationError("manifest realized_scenarios must be a list of records")
+
+    candidate_ids = {blueprint.id for blueprint in representatives}
+    preserved = sum(
+        entry.get("blueprint_id") not in candidate_ids for entry in entries
+    )
+    paths: list[Path] = []
+    realized = reused = retried = failed = 0
+
     for blueprint in representatives:
-        scenario = await realize_blueprint(blueprint, llm)
-        realized.append((scenario, blueprint))
-        entries.append(
-            {
-                "scenario_id": blueprint.id,
+        existing_index = next(
+            (
+                index
+                for index, entry in enumerate(entries)
+                if entry.get("blueprint_id") == blueprint.id
+            ),
+            None,
+        )
+        existing = entries[existing_index] if existing_index is not None else None
+        reusable_path = _reusable_path(existing, blueprint)
+        if reusable_path is not None:
+            paths.append(reusable_path)
+            reused += 1
+            if report is not None:
+                report(f"reused {blueprint.id}: {reusable_path}")
+            continue
+
+        target = DEFAULT_YAML_DIR / f"{blueprint.id}.yaml"
+        if target.exists():
+            record: dict[str, Any] = {
                 "blueprint_id": blueprint.id,
                 "behavioral_class_key": behavioral_class_key(blueprint),
+                "status": "failed_closed",
+                "attempt_count": 0,
+                "realization_outcome": "failed_closed",
+                "error": "existing YAML is not reusable and was not overwritten",
             }
-        )
+            failed += 1
+        else:
+            try:
+                scenario, attempt_count = await _realize_blueprint_with_attempts(
+                    blueprint, llm
+                )
+            except (RealizationError, LLMTruncationError) as exc:
+                record = {
+                    "blueprint_id": blueprint.id,
+                    "behavioral_class_key": behavioral_class_key(blueprint),
+                    "status": "failed_closed",
+                    "attempt_count": 2,
+                    "realization_outcome": "failed_closed",
+                    "error": str(exc),
+                }
+                failed += 1
+            else:
+                paths.append(write_scenario(scenario, blueprint))
+                record = {
+                    "scenario_id": blueprint.id,
+                    "blueprint_id": blueprint.id,
+                    "behavioral_class_key": behavioral_class_key(blueprint),
+                    "attempt_count": attempt_count,
+                    "realization_outcome": (
+                        "first_try_success" if attempt_count == 1 else "retried_once"
+                    ),
+                }
+                realized += 1
+                retried += attempt_count == 2
 
-    expected_names = {f"{blueprint.id}.yaml" for _, blueprint in realized}
-    DEFAULT_YAML_DIR.mkdir(parents=True, exist_ok=True)
-    for stale in sorted(DEFAULT_YAML_DIR.glob("*.yaml")):
-        if stale.name not in expected_names:
-            stale.unlink()
-    paths = [write_scenario(scenario, blueprint) for scenario, blueprint in realized]
-    manifest = json.loads(DEFAULT_MANIFEST.read_text())
+        if existing_index is None:
+            entries.append(record)
+        else:
+            entries[existing_index] = record
+
     manifest["realized_scenarios"] = entries
     DEFAULT_MANIFEST.write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n")
+    summary = RealizationSummary(
+        realized=realized,
+        reused=reused,
+        retried=retried,
+        failed=failed,
+        preserved=preserved,
+    )
+    if report is not None:
+        report(str(summary))
     return tuple(paths)
+
+
+def _reusable_path(
+    entry: Mapping[str, Any] | None, blueprint: Blueprint
+) -> Path | None:
+    if entry is None or "status" in entry:
+        return None
+    if (
+        entry.get("scenario_id") != blueprint.id
+        or entry.get("behavioral_class_key") != behavioral_class_key(blueprint)
+    ):
+        return None
+    path = DEFAULT_YAML_DIR / f"{blueprint.id}.yaml"
+    try:
+        scenario = load_scenario(path)
+        raw = yaml.safe_load(path.read_text())
+    except (OSError, ScenarioError, yaml.YAMLError):
+        return None
+    if not isinstance(raw, Mapping):
+        return None
+    expected_assertions = [
+        (assertion.type, assertion.fields) for assertion in blueprint.tool_assertions
+    ]
+    actual_assertions = [
+        (assertion.type, assertion.fields) for assertion in scenario.tool_assertions
+    ]
+    if (
+        scenario.name != blueprint.id
+        or scenario.journey != blueprint.journey
+        or tuple(card.last_four for card in scenario.knowledge_cards)
+        != blueprint.fixture_bindings.cards
+        or tuple(account.last_four for account in scenario.knowledge_accounts)
+        != blueprint.fixture_bindings.accounts
+        or scenario.max_turns != blueprint.max_turns
+        or actual_assertions != expected_assertions
+    ):
+        return None
+    prose = "\n".join(
+        [
+            str(raw.get("description", "")),
+            str(raw.get("persona", {}).get("name", "")),
+            str(raw.get("persona", {}).get("traits", "")),
+            str(raw.get("goal", "")),
+            *(str(item) for item in raw.get("success_criteria", [])),
+        ]
+    )
+    try:
+        _check_equivalence(blueprint, prose)
+    except RealizationError:
+        return None
+    return path
 
 
 def _prompt(blueprint: Blueprint) -> str:
