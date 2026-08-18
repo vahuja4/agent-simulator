@@ -22,7 +22,11 @@ edges:
     applicable_policies: [disambiguate_last_four]
     required_fixture_predicates: [has_card]
     valid_perturbations:
-      partial_disclosure: after_disclosure
+      partial_disclosure:
+        position: after_disclosure
+        executable_trigger:
+          goal_facts:
+            disclosure_style: one_fact_at_a_time
     worst_case_turn_cost: 3
   - from: select_card
     to: fetch_options
@@ -37,7 +41,10 @@ edges:
     applicable_policies: [card_switch_resets]
     required_fixture_predicates: [multiple_cards, distinguishable_card_amounts]
     valid_perturbations:
-      card_switch: after_options
+      card_switch:
+        position: after_options
+        executable_trigger:
+          binding_condition: distinct_goal_fact_cards
     worst_case_turn_cost: 1
   - from: fetch_options
     to: validate
@@ -45,16 +52,32 @@ edges:
     applicable_policies: [explicit_confirmation]
     required_fixture_predicates: []
     valid_perturbations:
-      validation_warning: at_validation
-      validation_block: at_validation
+      validation_warning:
+        position: at_validation
+        executable_trigger:
+          goal_facts:
+            validation_outcome: warning
+        non_executable_against: mock
+      validation_block:
+        position: at_validation
+        executable_trigger:
+          goal_facts:
+            validation_outcome: blocking_error
+        non_executable_against: mock
     worst_case_turn_cost: 2
   - from: validate
     to: validate
     required_tools: [AddValidateOneTimePayment]
     applicable_policies: [explicit_confirmation]
     required_fixture_predicates: []
+    non_executable_against: mock
     valid_perturbations:
-      validation_retry: after_validation
+      validation_retry:
+        position: after_validation
+        executable_trigger:
+          goal_facts:
+            validation_outcome: retry
+        non_executable_against: mock
     worst_case_turn_cost: 1
   - from: validate
     to: confirm
@@ -69,15 +92,32 @@ edges:
     applicable_policies: [explicit_confirmation, tool_output_truth]
     required_fixture_predicates: []
     valid_perturbations:
-      submission_failure: at_submission
+      submission_failure:
+        position: at_submission
+        executable_trigger:
+          goal_facts:
+            amount_type: custom
+            amount:
+              greater_than_fixture_constant: LARGE_PAYMENT_THRESHOLD
     worst_case_turn_cost: 1
   - from: submit
     to: handle_failure
     required_tools: []
     applicable_policies: [tool_output_truth]
     required_fixture_predicates: []
+    executable_trigger:
+      goal_facts:
+        amount_type: custom
+        amount:
+          greater_than_fixture_constant: LARGE_PAYMENT_THRESHOLD
     valid_perturbations:
-      submission_failure: after_submission
+      submission_failure:
+        position: after_submission
+        executable_trigger:
+          goal_facts:
+            amount_type: custom
+            amount:
+              greater_than_fixture_constant: LARGE_PAYMENT_THRESHOLD
     worst_case_turn_cost: 1
   - from: submit
     to: terminate

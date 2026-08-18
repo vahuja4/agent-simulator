@@ -5,20 +5,33 @@ from __future__ import annotations
 import hashlib
 import itertools
 import json
-from collections import defaultdict
+import shutil
+from collections import Counter, defaultdict
 from collections.abc import Iterable, Iterator, Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
 from agentsim.scenario import ToolAssertion
-from fixtures.paycard import CARDS, FUNDING_ACCOUNTS
+from fixtures.paycard import CARDS, FUNDING_ACCOUNTS, LARGE_PAYMENT_THRESHOLD
 
-from .blueprint import Blueprint, FixtureBindings, Perturbation, Provenance, dump_blueprint
+from .blueprint import (
+    Blueprint,
+    FixtureBindings,
+    Perturbation,
+    Provenance,
+    dump_blueprint,
+    load_blueprint,
+)
 from .policies import POLICIES, Policy
 from .sample import behavioral_representatives, sample_blueprints, stratum_counts
-from .validator import BlueprintValidationError, BlueprintValidator, _fixture_predicate
+from .validator import (
+    BlueprintValidationError,
+    BlueprintValidator,
+    _fixture_predicate,
+    _perturbation_specs,
+)
 
-GENERATOR_VERSION = "phase-2-v1"
+GENERATOR_VERSION = "phase-4.1-v1"
 DEFAULT_OUTPUT_ROOT = Path(__file__).resolve().parents[1] / "generated_scenarios"
 CARD_SWITCH_EDGE = ("fetch_options", "select_card")
 MAX_PERTURBATIONS = 2
@@ -29,12 +42,23 @@ def enumerate_blueprints(
 ) -> tuple[Blueprint, ...]:
     """Return every deduplicated valid J1 blueprint in canonical order."""
     validator = validator or BlueprintValidator()
+    return _enumerate_blueprints(validator=validator, seed=seed)
+
+
+def _enumerate_blueprints(
+    *,
+    validator: BlueprintValidator,
+    seed: int,
+    include_non_executable: bool = False,
+) -> tuple[Blueprint, ...]:
     graph = validator.graph
     predicate_names = _predicate_names(graph, validator.policy_catalog)
     fixture_classes = _fixture_equivalence_classes(predicate_names)
     candidates: dict[tuple[Any, ...], Blueprint] = {}
 
-    for path, edges in _procedure_paths(graph):
+    for path, edges in _procedure_paths(
+        graph, include_non_executable=include_non_executable
+    ):
         applicable = {
             policy_id
             for edge in edges
@@ -42,7 +66,9 @@ def enumerate_blueprints(
         }
         for policies in _compatible_policy_sets(applicable, validator.policy_catalog):
             assertions = _tool_assertions(policies, validator.policy_catalog)
-            for perturbations in _perturbation_variants(edges):
+            for perturbations in _perturbation_variants(
+                edges, include_non_executable=include_non_executable
+            ):
                 for fixture_class, bindings in fixture_classes:
                     blueprint = Blueprint(
                         id="pending",
@@ -50,7 +76,7 @@ def enumerate_blueprints(
                         procedure_path=path,
                         policies=policies,
                         fixture_bindings=bindings,
-                        goal_facts=_goal_facts(path, bindings),
+                        goal_facts=_goal_facts(path, bindings, perturbations),
                         perturbations=perturbations,
                         tool_assertions=assertions,
                         max_turns=sum(int(edge.get("worst_case_turn_cost", 0)) for edge in edges),
@@ -66,7 +92,10 @@ def enumerate_blueprints(
                         continue
                     blueprint = _with_canonical_id(blueprint, key)
                     try:
-                        validator.validate(blueprint)
+                        if include_non_executable:
+                            validator.validate_without_executability(blueprint)
+                        else:
+                            validator.validate(blueprint)
                     except BlueprintValidationError as exc:
                         if "drift:" in str(exc):
                             raise
@@ -98,10 +127,19 @@ def write_generation(
 ) -> dict[str, Any]:
     """Enumerate J1, write all blueprints, and record a reproducible sample."""
     validator = validator or BlueprintValidator()
-    blueprints = enumerate_blueprints(validator=validator, seed=seed)
-    representatives = behavioral_representatives(blueprints)
-    sample = sample_blueprints(blueprints, seed=seed, per_stratum=per_stratum)
     root = Path(output_root)
+    existing_manifest = _load_existing_manifest(root / "manifest.json")
+    artifact_statuses = _existing_artifact_statuses(
+        root, existing_manifest, validator
+    )
+    _archive_unexecutable_blueprints(root, artifact_statuses)
+    blueprints = enumerate_blueprints(validator=validator, seed=seed)
+    pre_filter = _enumerate_blueprints(
+        validator=validator, seed=seed, include_non_executable=True
+    )
+    representatives = behavioral_representatives(blueprints)
+    pre_filter_representatives = behavioral_representatives(pre_filter)
+    sample = sample_blueprints(blueprints, seed=seed, per_stratum=per_stratum)
     blueprint_dir = root / "blueprints"
     blueprint_dir.mkdir(parents=True, exist_ok=True)
     expected_names = {f"{blueprint.id}.yaml" for blueprint in blueprints}
@@ -124,12 +162,33 @@ def write_generation(
             "behavioral_classes": len(representatives),
             "sample": len(sample),
         },
+        "executable_space_audit": {
+            "environment": "mock",
+            "deduped_space_before": len(pre_filter),
+            "deduped_space_after": len(blueprints),
+            "deduped_space_excluded": len(pre_filter) - len(blueprints),
+            "behavioral_classes_before": len(pre_filter_representatives),
+            "behavioral_classes_after": len(representatives),
+            "behavioral_classes_excluded": len(pre_filter_representatives)
+            - len(representatives),
+            "excluded": _exclusion_counts(pre_filter, validator),
+        },
         "sampling_unit": "behavioral_class",
         "per_stratum_counts": counts,
         "sample_per_stratum": per_stratum,
         "sample_ids": [blueprint.id for blueprint in sample],
-        "realized_scenarios": [],
+        "realized_scenarios": _annotate_records(
+            existing_manifest.get("realized_scenarios", []), artifact_statuses
+        ),
     }
+    for preserved in ("dry_run_summary", "dry_runs"):
+        if preserved in existing_manifest:
+            value = existing_manifest[preserved]
+            manifest[preserved] = (
+                _annotate_records(value, artifact_statuses)
+                if preserved == "dry_runs"
+                else value
+            )
     root.mkdir(parents=True, exist_ok=True)
     (root / "manifest.json").write_text(
         json.dumps(manifest, indent=2, sort_keys=True) + "\n"
@@ -137,8 +196,79 @@ def write_generation(
     return manifest
 
 
+def _load_existing_manifest(path: Path) -> dict[str, Any]:
+    if not path.exists():
+        return {}
+    loaded = json.loads(path.read_text())
+    return loaded if isinstance(loaded, dict) else {}
+
+
+def _existing_artifact_statuses(
+    root: Path,
+    manifest: Mapping[str, Any],
+    validator: BlueprintValidator,
+) -> dict[str, tuple[str, ...]]:
+    statuses: dict[str, tuple[str, ...]] = {}
+    records = list(manifest.get("realized_scenarios", [])) + list(
+        manifest.get("dry_runs", [])
+    )
+    for record in records:
+        if not isinstance(record, Mapping):
+            continue
+        blueprint_id = record.get("blueprint_id")
+        if not isinstance(blueprint_id, str):
+            continue
+        previous = record.get("unexecutable_reasons", [])
+        if record.get("status") == "unexecutable_blueprint" and isinstance(
+            previous, list
+        ):
+            statuses[blueprint_id] = tuple(str(item) for item in previous)
+            continue
+        path = root / "blueprints" / f"{blueprint_id}.yaml"
+        if not path.exists():
+            continue
+        errors = validator.executability_errors(load_blueprint(path))
+        if errors:
+            statuses[blueprint_id] = errors
+    return statuses
+
+
+def _annotate_records(
+    records: Any, statuses: Mapping[str, tuple[str, ...]]
+) -> list[Any]:
+    if not isinstance(records, list):
+        return []
+    annotated: list[Any] = []
+    for record in records:
+        if not isinstance(record, Mapping):
+            annotated.append(record)
+            continue
+        item = dict(record)
+        blueprint_id = item.get("blueprint_id")
+        reasons = statuses.get(str(blueprint_id))
+        if reasons:
+            item["status"] = "unexecutable_blueprint"
+            item["unexecutable_reasons"] = list(reasons)
+        annotated.append(item)
+    return annotated
+
+
+def _archive_unexecutable_blueprints(
+    root: Path, statuses: Mapping[str, tuple[str, ...]]
+) -> None:
+    archive = root / "unexecutable_blueprints"
+    for blueprint_id in sorted(statuses):
+        source = root / "blueprints" / f"{blueprint_id}.yaml"
+        target = archive / source.name
+        if source.exists() and not target.exists():
+            archive.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(source, target)
+
+
 def _procedure_paths(
     graph: Mapping[str, Any],
+    *,
+    include_non_executable: bool = False,
 ) -> Iterator[tuple[tuple[str, ...], tuple[Mapping[str, Any], ...]]]:
     adjacency: dict[str, list[Mapping[str, Any]]] = defaultdict(list)
     for edge in graph.get("edges", []):
@@ -156,6 +286,11 @@ def _procedure_paths(
             yield path, traversed
             return
         for edge in adjacency.get(node, []):
+            if (
+                not include_non_executable
+                and edge.get("non_executable_against") == "mock"
+            ):
+                continue
             pair = (str(edge["from"]), str(edge["to"]))
             if pair in cyclic_edges and cycle_counts.get(pair, 0) >= 1:
                 continue
@@ -188,11 +323,19 @@ def _compatible_policy_sets(
 
 def _perturbation_variants(
     edges: Iterable[Mapping[str, Any]],
+    *,
+    include_non_executable: bool = False,
 ) -> tuple[tuple[Perturbation, ...], ...]:
     placements: list[Perturbation] = []
     seen: set[tuple[str, str]] = set()
     for edge in edges:
-        for kind, position in edge.get("valid_perturbations", {}).items():
+        for kind, spec in _perturbation_specs(edge).items():
+            if (
+                not include_non_executable
+                and spec.get("non_executable_against") == "mock"
+            ):
+                continue
+            position = spec["position"]
             pair = (str(kind), str(position))
             if pair not in seen:
                 placements.append(Perturbation(*pair))
@@ -273,8 +416,12 @@ def _tool_assertions(
     return tuple(assertions)
 
 
-def _goal_facts(path: Sequence[str], bindings: FixtureBindings) -> dict[str, str]:
-    facts = {
+def _goal_facts(
+    path: Sequence[str],
+    bindings: FixtureBindings,
+    perturbations: Sequence[Perturbation],
+) -> dict[str, Any]:
+    facts: dict[str, Any] = {
         "card_last_four": bindings.cards[0],
         "account_last_four": bindings.accounts[0],
         "amount_type": "statement_balance",
@@ -283,9 +430,62 @@ def _goal_facts(path: Sequence[str], bindings: FixtureBindings) -> dict[str, str
     if CARD_SWITCH_EDGE in set(zip(path, path[1:])) and len(bindings.cards) > 1:
         facts["initial_card_last_four"] = bindings.cards[0]
         facts["final_card_last_four"] = bindings.cards[1]
+    perturbation_types = {item.type for item in perturbations}
+    if "partial_disclosure" in perturbation_types:
+        facts["disclosure_style"] = "one_fact_at_a_time"
+    if "submission_failure" in perturbation_types or "handle_failure" in path:
+        facts["amount_type"] = "custom"
+        facts["amount"] = LARGE_PAYMENT_THRESHOLD + 1000.0
     if "handle_failure" in path:
         facts["expected_outcome"] = "submission_failure_reported_truthfully"
     return facts
+
+
+def _exclusion_counts(
+    pre_filter: Sequence[Blueprint], validator: BlueprintValidator
+) -> dict[str, Any]:
+    edge_index = {
+        (str(edge["from"]), str(edge["to"])): edge
+        for edge in validator.graph.get("edges", [])
+    }
+
+    def reasons(blueprint: Blueprint) -> tuple[tuple[str, str], ...]:
+        found: set[tuple[str, str]] = set()
+        edges = [
+            edge_index[pair]
+            for pair in zip(blueprint.procedure_path, blueprint.procedure_path[1:])
+        ]
+        for edge in edges:
+            if edge.get("non_executable_against") == "mock":
+                found.add(("edges", f"{edge['from']}->{edge['to']}"))
+        declarations = {
+            (kind, spec["position"]): spec
+            for edge in edges
+            for kind, spec in _perturbation_specs(edge).items()
+        }
+        for perturbation in blueprint.perturbations:
+            spec = declarations.get((perturbation.type, perturbation.position), {})
+            if spec.get("non_executable_against") == "mock":
+                found.add(("perturbations", perturbation.type))
+        return tuple(sorted(found))
+
+    deduped: Counter[tuple[str, str]] = Counter()
+    for blueprint in pre_filter:
+        deduped.update(reasons(blueprint))
+    classes: Counter[tuple[str, str]] = Counter()
+    for blueprint in behavioral_representatives(pre_filter):
+        classes.update(reasons(blueprint))
+
+    result: dict[str, dict[str, dict[str, int]]] = {
+        "perturbations": {},
+        "edges": {},
+    }
+    for category, name in sorted(set(deduped) | set(classes)):
+        result[category][name] = {
+            "deduped_blueprints": deduped[(category, name)],
+            "behavioral_classes": classes[(category, name)],
+        }
+    return result
 
 
 def _with_canonical_id(blueprint: Blueprint, key: tuple[Any, ...]) -> Blueprint:

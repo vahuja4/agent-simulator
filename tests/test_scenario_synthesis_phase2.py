@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import json
+from dataclasses import replace
 from pathlib import Path
 
+from scenario_synthesis.blueprint import dump_blueprint, load_blueprint
 from scenario_synthesis.enumerate import (
     CARD_SWITCH_EDGE,
     enumerate_blueprints,
@@ -39,7 +41,9 @@ def test_every_graph_edge_and_policy_is_covered() -> None:
         for edge in zip(blueprint.procedure_path, blueprint.procedure_path[1:])
     }
     declared_edges = {
-        (edge["from"], edge["to"]) for edge in validator.graph["edges"]
+        (edge["from"], edge["to"])
+        for edge in validator.graph["edges"]
+        if edge.get("non_executable_against") != "mock"
     }
     covered_policies = {
         policy for blueprint in blueprints for policy in blueprint.policies
@@ -47,6 +51,44 @@ def test_every_graph_edge_and_policy_is_covered() -> None:
 
     assert covered_edges == declared_edges
     assert covered_policies == set(POLICIES)
+
+
+def test_mock_non_executable_graph_elements_are_excluded_and_logged(
+    tmp_path: Path,
+) -> None:
+    manifest = write_generation(output_root=tmp_path / "generated", seed=0)
+    audit = manifest["executable_space_audit"]
+
+    assert audit["environment"] == "mock"
+    assert audit["deduped_space_before"] == 3748
+    assert audit["deduped_space_after"] == 740
+    assert audit["deduped_space_excluded"] == 3008
+    assert audit["behavioral_classes_before"] == 353
+    assert audit["behavioral_classes_after"] == 69
+    assert audit["behavioral_classes_excluded"] == 284
+    assert set(audit["excluded"]["perturbations"]) == {
+        "validation_warning",
+        "validation_block",
+        "validation_retry",
+    }
+    assert set(audit["excluded"]["edges"]) == {"validate->validate"}
+    assert all(
+        item["behavioral_classes"] > 0
+        for category in audit["excluded"].values()
+        for item in category.values()
+    )
+
+    blueprints = enumerate_blueprints()
+    assert not any(
+        item.type.startswith("validation_")
+        for blueprint in blueprints
+        for item in blueprint.perturbations
+    )
+    assert not any(
+        ("validate", "validate")
+        in set(zip(blueprint.procedure_path, blueprint.procedure_path[1:]))
+        for blueprint in blueprints
+    )
 
 
 def test_two_writes_are_byte_identical(tmp_path: Path) -> None:
@@ -90,6 +132,50 @@ def test_manifest_sample_is_reproduced_from_seed(tmp_path: Path) -> None:
     assert len({behavioral_class_key(item) for item in reproduced}) == len(reproduced)
 
 
+def test_regeneration_preserves_and_marks_unexecutable_realized_artifacts(
+    tmp_path: Path,
+) -> None:
+    root = tmp_path / "generated"
+    blueprint = load_blueprint("scenario_synthesis/blueprints/j1_submission_failure.yaml")
+    facts = dict(blueprint.goal_facts)
+    facts.pop("amount")
+    legacy = replace(blueprint, id="legacy-realized", goal_facts=facts)
+    dump_blueprint(legacy, root / "blueprints" / "legacy-realized.yaml")
+    yaml_path = root / "yaml" / "legacy-realized.yaml"
+    yaml_path.parent.mkdir(parents=True)
+    yaml_path.write_text("name: legacy-realized\n")
+    (root / "manifest.json").write_text(
+        json.dumps(
+            {
+                "realized_scenarios": [
+                    {
+                        "scenario_id": "legacy-realized",
+                        "blueprint_id": "legacy-realized",
+                    }
+                ],
+                "dry_runs": [
+                    {
+                        "candidate_id": "legacy-realized",
+                        "blueprint_id": "legacy-realized",
+                        "runs": [],
+                    }
+                ],
+            }
+        )
+    )
+
+    manifest = write_generation(output_root=root)
+
+    for record in (
+        manifest["realized_scenarios"][0],
+        manifest["dry_runs"][0],
+    ):
+        assert record["status"] == "unexecutable_blueprint"
+        assert any("LARGE_PAYMENT_THRESHOLD" in reason for reason in record["unexecutable_reasons"])
+    assert yaml_path.exists()
+    assert (root / "unexecutable_blueprints" / "legacy-realized.yaml").exists()
+
+
 def test_behavioral_classes_choose_maximal_policy_representatives() -> None:
     blueprints = enumerate_blueprints()
     representatives = behavioral_representatives(blueprints)
@@ -99,8 +185,8 @@ def test_behavioral_classes_choose_maximal_policy_representatives() -> None:
             blueprint.policies
         )
 
-    assert len(blueprints) == 3748
-    assert len(representatives) == 353
+    assert len(blueprints) == 740
+    assert len(representatives) == 69
     for representative in representatives:
         policies = policies_by_class[behavioral_class_key(representative)]
         assert len(representative.policies) == max(map(len, policies))

@@ -1,8 +1,8 @@
 {
   "counts": {
-    "behavioral_classes": 353,
-    "deduped_space": 3748,
-    "sample": 27
+    "behavioral_classes": 69,
+    "deduped_space": 740,
+    "sample": 14
   },
   "dry_run_summary": {
     "candidates": 27,
@@ -68,7 +68,15 @@
           }
         }
       ],
-      "solvable": false
+      "solvable": false,
+      "status": "unexecutable_blueprint",
+      "unexecutable_reasons": [
+        "edge submit -> handle_failure requires goal_facts.amount_type='custom'",
+        "edge submit -> handle_failure requires goal_facts.amount greater than LARGE_PAYMENT_THRESHOLD",
+        "perturbation 'partial_disclosure' requires goal_facts.disclosure_style='one_fact_at_a_time'",
+        "perturbation 'submission_failure' requires goal_facts.amount_type='custom'",
+        "perturbation 'submission_failure' requires goal_facts.amount greater than LARGE_PAYMENT_THRESHOLD"
+      ]
     },
     {
       "blueprint_id": "j1-1a8cef237cb9a615",
@@ -117,7 +125,13 @@
           }
         }
       ],
-      "solvable": false
+      "solvable": false,
+      "status": "unexecutable_blueprint",
+      "unexecutable_reasons": [
+        "edge validate -> validate is non-executable against mock",
+        "perturbation 'submission_failure' requires goal_facts.amount_type='custom'",
+        "perturbation 'submission_failure' requires goal_facts.amount greater than LARGE_PAYMENT_THRESHOLD"
+      ]
     },
     {
       "blueprint_id": "j1-82b14c01dcd19612",
@@ -167,7 +181,12 @@
           }
         }
       ],
-      "solvable": false
+      "solvable": false,
+      "status": "unexecutable_blueprint",
+      "unexecutable_reasons": [
+        "perturbation 'submission_failure' requires goal_facts.amount_type='custom'",
+        "perturbation 'submission_failure' requires goal_facts.amount greater than LARGE_PAYMENT_THRESHOLD"
+      ]
     },
     {
       "blueprint_id": "j1-633947b18615197d",
@@ -266,7 +285,13 @@
           }
         }
       ],
-      "solvable": false
+      "solvable": false,
+      "status": "unexecutable_blueprint",
+      "unexecutable_reasons": [
+        "edge validate -> validate is non-executable against mock",
+        "perturbation 'partial_disclosure' requires goal_facts.disclosure_style='one_fact_at_a_time'",
+        "perturbation 'validation_retry' is non-executable against mock"
+      ]
     },
     {
       "blueprint_id": "j1-f09de7c5aa3cdf9f",
@@ -315,7 +340,13 @@
           }
         }
       ],
-      "solvable": false
+      "solvable": false,
+      "status": "unexecutable_blueprint",
+      "unexecutable_reasons": [
+        "edge validate -> validate is non-executable against mock",
+        "perturbation 'partial_disclosure' requires goal_facts.disclosure_style='one_fact_at_a_time'",
+        "perturbation 'validation_retry' is non-executable against mock"
+      ]
     },
     {
       "blueprint_id": "j1-5cbd3ff623f7bab9",
@@ -364,7 +395,13 @@
           }
         }
       ],
-      "solvable": false
+      "solvable": false,
+      "status": "unexecutable_blueprint",
+      "unexecutable_reasons": [
+        "edge submit -> handle_failure requires goal_facts.amount_type='custom'",
+        "edge submit -> handle_failure requires goal_facts.amount greater than LARGE_PAYMENT_THRESHOLD",
+        "perturbation 'validation_warning' is non-executable against mock"
+      ]
     },
     {
       "blueprint_id": "j1-e10080bbf91eba03",
@@ -414,7 +451,13 @@
           }
         }
       ],
-      "solvable": false
+      "solvable": false,
+      "status": "unexecutable_blueprint",
+      "unexecutable_reasons": [
+        "edge validate -> validate is non-executable against mock",
+        "perturbation 'partial_disclosure' requires goal_facts.disclosure_style='one_fact_at_a_time'",
+        "perturbation 'validation_warning' is non-executable against mock"
+      ]
     },
     {
       "blueprint_id": "j1-38b93bf6b74fd63c",
@@ -463,7 +506,15 @@
           }
         }
       ],
-      "solvable": false
+      "solvable": false,
+      "status": "unexecutable_blueprint",
+      "unexecutable_reasons": [
+        "edge validate -> validate is non-executable against mock",
+        "edge submit -> handle_failure requires goal_facts.amount_type='custom'",
+        "edge submit -> handle_failure requires goal_facts.amount greater than LARGE_PAYMENT_THRESHOLD",
+        "perturbation 'submission_failure' requires goal_facts.amount_type='custom'",
+        "perturbation 'submission_failure' requires goal_facts.amount greater than LARGE_PAYMENT_THRESHOLD"
+      ]
     },
     {
       "blueprint_id": "j1-51f7838c30dee465",
@@ -512,7 +563,16 @@
           }
         }
       ],
-      "solvable": false
+      "solvable": false,
+      "status": "unexecutable_blueprint",
+      "unexecutable_reasons": [
+        "edge validate -> validate is non-executable against mock",
+        "edge submit -> handle_failure requires goal_facts.amount_type='custom'",
+        "edge submit -> handle_failure requires goal_facts.amount greater than LARGE_PAYMENT_THRESHOLD",
+        "perturbation 'validation_retry' is non-executable against mock",
+        "perturbation 'submission_failure' requires goal_facts.amount_type='custom'",
+        "perturbation 'submission_failure' requires goal_facts.amount greater than LARGE_PAYMENT_THRESHOLD"
+      ]
     },
     {
       "blueprint_id": "j1-af21746358a09ca6",
@@ -560,7 +620,12 @@
           }
         }
       ],
-      "solvable": false
+      "solvable": false,
+      "status": "unexecutable_blueprint",
+      "unexecutable_reasons": [
+        "edge submit -> handle_failure requires goal_facts.amount_type='custom'",
+        "edge submit -> handle_failure requires goal_facts.amount greater than LARGE_PAYMENT_THRESHOLD"
+      ]
     },
     {
       "blueprint_id": "j1-4d198723b6000c08",
@@ -610,7 +675,14 @@
           }
         }
       ],
-      "solvable": false
+      "solvable": false,
+      "status": "unexecutable_blueprint",
+      "unexecutable_reasons": [
+        "edge submit -> handle_failure requires goal_facts.amount_type='custom'",
+        "edge submit -> handle_failure requires goal_facts.amount greater than LARGE_PAYMENT_THRESHOLD",
+        "perturbation 'partial_disclosure' requires goal_facts.disclosure_style='one_fact_at_a_time'",
+        "perturbation 'validation_warning' is non-executable against mock"
+      ]
     },
     {
       "blueprint_id": "j1-861102e99a258cec",
@@ -660,7 +732,12 @@
           }
         }
       ],
-      "solvable": false
+      "solvable": false,
+      "status": "unexecutable_blueprint",
+      "unexecutable_reasons": [
+        "edge validate -> validate is non-executable against mock",
+        "perturbation 'validation_retry' is non-executable against mock"
+      ]
     },
     {
       "blueprint_id": "j1-15bb6d470dfe0fe4",
@@ -710,7 +787,12 @@
           }
         }
       ],
-      "solvable": false
+      "solvable": false,
+      "status": "unexecutable_blueprint",
+      "unexecutable_reasons": [
+        "perturbation 'partial_disclosure' requires goal_facts.disclosure_style='one_fact_at_a_time'",
+        "perturbation 'validation_block' is non-executable against mock"
+      ]
     },
     {
       "blueprint_id": "j1-3e21466ac8ff6a3c",
@@ -760,7 +842,12 @@
           }
         }
       ],
-      "solvable": false
+      "solvable": false,
+      "status": "unexecutable_blueprint",
+      "unexecutable_reasons": [
+        "edge validate -> validate is non-executable against mock",
+        "perturbation 'validation_retry' is non-executable against mock"
+      ]
     },
     {
       "blueprint_id": "j1-f82f27ce647d158d",
@@ -810,7 +897,16 @@
           }
         }
       ],
-      "solvable": false
+      "solvable": false,
+      "status": "unexecutable_blueprint",
+      "unexecutable_reasons": [
+        "edge validate -> validate is non-executable against mock",
+        "edge submit -> handle_failure requires goal_facts.amount_type='custom'",
+        "edge submit -> handle_failure requires goal_facts.amount greater than LARGE_PAYMENT_THRESHOLD",
+        "perturbation 'validation_warning' is non-executable against mock",
+        "perturbation 'submission_failure' requires goal_facts.amount_type='custom'",
+        "perturbation 'submission_failure' requires goal_facts.amount greater than LARGE_PAYMENT_THRESHOLD"
+      ]
     },
     {
       "blueprint_id": "j1-3a1337323e78683e",
@@ -859,7 +955,12 @@
           }
         }
       ],
-      "solvable": false
+      "solvable": false,
+      "status": "unexecutable_blueprint",
+      "unexecutable_reasons": [
+        "edge validate -> validate is non-executable against mock",
+        "perturbation 'validation_warning' is non-executable against mock"
+      ]
     },
     {
       "blueprint_id": "j1-1e2fa23ae4f709e0",
@@ -907,7 +1008,15 @@
           }
         }
       ],
-      "solvable": false
+      "solvable": false,
+      "status": "unexecutable_blueprint",
+      "unexecutable_reasons": [
+        "edge validate -> validate is non-executable against mock",
+        "edge submit -> handle_failure requires goal_facts.amount_type='custom'",
+        "edge submit -> handle_failure requires goal_facts.amount greater than LARGE_PAYMENT_THRESHOLD",
+        "perturbation 'validation_warning' is non-executable against mock",
+        "perturbation 'validation_retry' is non-executable against mock"
+      ]
     },
     {
       "blueprint_id": "j1-7097e664b6c4c49c",
@@ -957,7 +1066,14 @@
           }
         }
       ],
-      "solvable": false
+      "solvable": false,
+      "status": "unexecutable_blueprint",
+      "unexecutable_reasons": [
+        "edge submit -> handle_failure requires goal_facts.amount_type='custom'",
+        "edge submit -> handle_failure requires goal_facts.amount greater than LARGE_PAYMENT_THRESHOLD",
+        "perturbation 'partial_disclosure' requires goal_facts.disclosure_style='one_fact_at_a_time'",
+        "perturbation 'validation_block' is non-executable against mock"
+      ]
     },
     {
       "blueprint_id": "j1-57ae9cbad1b8eaab",
@@ -1007,7 +1123,13 @@
           }
         }
       ],
-      "solvable": false
+      "solvable": false,
+      "status": "unexecutable_blueprint",
+      "unexecutable_reasons": [
+        "edge validate -> validate is non-executable against mock",
+        "edge submit -> handle_failure requires goal_facts.amount_type='custom'",
+        "edge submit -> handle_failure requires goal_facts.amount greater than LARGE_PAYMENT_THRESHOLD"
+      ]
     },
     {
       "blueprint_id": "j1-fe5951f7be75d15a",
@@ -1056,7 +1178,17 @@
           }
         }
       ],
-      "solvable": false
+      "solvable": false,
+      "status": "unexecutable_blueprint",
+      "unexecutable_reasons": [
+        "edge validate -> validate is non-executable against mock",
+        "edge submit -> handle_failure requires goal_facts.amount_type='custom'",
+        "edge submit -> handle_failure requires goal_facts.amount greater than LARGE_PAYMENT_THRESHOLD",
+        "perturbation 'submission_failure' requires goal_facts.amount_type='custom'",
+        "perturbation 'submission_failure' requires goal_facts.amount greater than LARGE_PAYMENT_THRESHOLD",
+        "perturbation 'submission_failure' requires goal_facts.amount_type='custom'",
+        "perturbation 'submission_failure' requires goal_facts.amount greater than LARGE_PAYMENT_THRESHOLD"
+      ]
     },
     {
       "blueprint_id": "j1-ed8fef83a7017aa7",
@@ -1106,7 +1238,12 @@
           }
         }
       ],
-      "solvable": false
+      "solvable": false,
+      "status": "unexecutable_blueprint",
+      "unexecutable_reasons": [
+        "edge validate -> validate is non-executable against mock",
+        "perturbation 'validation_block' is non-executable against mock"
+      ]
     },
     {
       "blueprint_id": "j1-e013fd66e72c4df5",
@@ -1155,7 +1292,13 @@
           }
         }
       ],
-      "solvable": false
+      "solvable": false,
+      "status": "unexecutable_blueprint",
+      "unexecutable_reasons": [
+        "edge validate -> validate is non-executable against mock",
+        "perturbation 'validation_block' is non-executable against mock",
+        "perturbation 'validation_retry' is non-executable against mock"
+      ]
     },
     {
       "blueprint_id": "j1-788290ed34079618",
@@ -1205,7 +1348,16 @@
           }
         }
       ],
-      "solvable": false
+      "solvable": false,
+      "status": "unexecutable_blueprint",
+      "unexecutable_reasons": [
+        "edge validate -> validate is non-executable against mock",
+        "edge submit -> handle_failure requires goal_facts.amount_type='custom'",
+        "edge submit -> handle_failure requires goal_facts.amount greater than LARGE_PAYMENT_THRESHOLD",
+        "perturbation 'validation_warning' is non-executable against mock",
+        "perturbation 'submission_failure' requires goal_facts.amount_type='custom'",
+        "perturbation 'submission_failure' requires goal_facts.amount greater than LARGE_PAYMENT_THRESHOLD"
+      ]
     },
     {
       "blueprint_id": "j1-e41173c694844c43",
@@ -1255,7 +1407,14 @@
           }
         }
       ],
-      "solvable": false
+      "solvable": false,
+      "status": "unexecutable_blueprint",
+      "unexecutable_reasons": [
+        "edge submit -> handle_failure requires goal_facts.amount_type='custom'",
+        "edge submit -> handle_failure requires goal_facts.amount greater than LARGE_PAYMENT_THRESHOLD",
+        "perturbation 'partial_disclosure' requires goal_facts.disclosure_style='one_fact_at_a_time'",
+        "perturbation 'validation_block' is non-executable against mock"
+      ]
     },
     {
       "blueprint_id": "j1-9032d7f657ac92bc",
@@ -1305,7 +1464,13 @@
           }
         }
       ],
-      "solvable": false
+      "solvable": false,
+      "status": "unexecutable_blueprint",
+      "unexecutable_reasons": [
+        "edge validate -> validate is non-executable against mock",
+        "perturbation 'submission_failure' requires goal_facts.amount_type='custom'",
+        "perturbation 'submission_failure' requires goal_facts.amount greater than LARGE_PAYMENT_THRESHOLD"
+      ]
     },
     {
       "blueprint_id": "j1-61c4ef0cacdc2b41",
@@ -1356,58 +1521,96 @@
       "solvable": false
     }
   ],
+  "executable_space_audit": {
+    "behavioral_classes_after": 69,
+    "behavioral_classes_before": 353,
+    "behavioral_classes_excluded": 284,
+    "deduped_space_after": 740,
+    "deduped_space_before": 3748,
+    "deduped_space_excluded": 3008,
+    "environment": "mock",
+    "excluded": {
+      "edges": {
+        "validate->validate": {
+          "behavioral_classes": 206,
+          "deduped_blueprints": 2184
+        }
+      },
+      "perturbations": {
+        "validation_block": {
+          "behavioral_classes": 88,
+          "deduped_blueprints": 928
+        },
+        "validation_retry": {
+          "behavioral_classes": 59,
+          "deduped_blueprints": 620
+        },
+        "validation_warning": {
+          "behavioral_classes": 88,
+          "deduped_blueprints": 928
+        }
+      }
+    }
+  },
   "fixture_hash": "1670acf7f56e48733e3cd2055e858ab54dc57d81b29089dd73ed22e164364b70",
-  "generator_version": "phase-2-v1",
-  "graph_hash": "3c7e69b807e90cd5970c7a872a9096277a6c57453d59fe2633423116419280fb",
+  "generator_version": "phase-4.1-v1",
+  "graph_hash": "9344a30c7f3e1d109eb0f8a0e45783bc30b4b9fdeaf7d4c1ff742ddedce98062",
   "loop_limits": {
     "fetch_options->select_card": 1
   },
   "max_perturbations_per_blueprint": 2,
   "per_stratum_counts": {
-    "policy=card_switch_resets|perturbation=card_switch": 48,
-    "policy=card_switch_resets|perturbation=none": 16,
-    "policy=card_switch_resets|perturbation=partial_disclosure": 88,
-    "policy=card_switch_resets|perturbation=submission_failure": 128,
-    "policy=card_switch_resets|perturbation=validation_block": 72,
-    "policy=card_switch_resets|perturbation=validation_retry": 48,
-    "policy=card_switch_resets|perturbation=validation_warning": 72,
-    "policy=disambiguate_last_four|perturbation=card_switch": 24,
-    "policy=disambiguate_last_four|perturbation=none": 8,
-    "policy=disambiguate_last_four|perturbation=partial_disclosure": 44,
-    "policy=disambiguate_last_four|perturbation=submission_failure": 64,
-    "policy=disambiguate_last_four|perturbation=validation_block": 36,
-    "policy=disambiguate_last_four|perturbation=validation_retry": 24,
-    "policy=disambiguate_last_four|perturbation=validation_warning": 36,
-    "policy=explicit_confirmation|perturbation=card_switch": 48,
-    "policy=explicit_confirmation|perturbation=none": 20,
-    "policy=explicit_confirmation|perturbation=partial_disclosure": 108,
-    "policy=explicit_confirmation|perturbation=submission_failure": 157,
-    "policy=explicit_confirmation|perturbation=validation_block": 88,
-    "policy=explicit_confirmation|perturbation=validation_retry": 59,
-    "policy=explicit_confirmation|perturbation=validation_warning": 88,
-    "policy=tool_output_truth|perturbation=card_switch": 48,
-    "policy=tool_output_truth|perturbation=none": 20,
-    "policy=tool_output_truth|perturbation=partial_disclosure": 108,
-    "policy=tool_output_truth|perturbation=submission_failure": 157,
-    "policy=tool_output_truth|perturbation=validation_block": 88,
-    "policy=tool_output_truth|perturbation=validation_retry": 59,
-    "policy=tool_output_truth|perturbation=validation_warning": 88
+    "policy=card_switch_resets|perturbation=card_switch": 14,
+    "policy=card_switch_resets|perturbation=none": 8,
+    "policy=card_switch_resets|perturbation=partial_disclosure": 24,
+    "policy=card_switch_resets|perturbation=submission_failure": 34,
+    "policy=disambiguate_last_four|perturbation=card_switch": 7,
+    "policy=disambiguate_last_four|perturbation=none": 4,
+    "policy=disambiguate_last_four|perturbation=partial_disclosure": 12,
+    "policy=disambiguate_last_four|perturbation=submission_failure": 17,
+    "policy=explicit_confirmation|perturbation=card_switch": 14,
+    "policy=explicit_confirmation|perturbation=none": 10,
+    "policy=explicit_confirmation|perturbation=partial_disclosure": 29,
+    "policy=explicit_confirmation|perturbation=submission_failure": 41,
+    "policy=tool_output_truth|perturbation=card_switch": 14,
+    "policy=tool_output_truth|perturbation=none": 10,
+    "policy=tool_output_truth|perturbation=partial_disclosure": 29,
+    "policy=tool_output_truth|perturbation=submission_failure": 41
   },
   "realized_scenarios": [
     {
       "behavioral_class_key": "j1-behavior-0b227910be6de2bb",
       "blueprint_id": "j1-6fd3cce8c9eff872",
-      "scenario_id": "j1-6fd3cce8c9eff872"
+      "scenario_id": "j1-6fd3cce8c9eff872",
+      "status": "unexecutable_blueprint",
+      "unexecutable_reasons": [
+        "edge submit -> handle_failure requires goal_facts.amount_type='custom'",
+        "edge submit -> handle_failure requires goal_facts.amount greater than LARGE_PAYMENT_THRESHOLD",
+        "perturbation 'partial_disclosure' requires goal_facts.disclosure_style='one_fact_at_a_time'",
+        "perturbation 'submission_failure' requires goal_facts.amount_type='custom'",
+        "perturbation 'submission_failure' requires goal_facts.amount greater than LARGE_PAYMENT_THRESHOLD"
+      ]
     },
     {
       "behavioral_class_key": "j1-behavior-0b787f488a901f4b",
       "blueprint_id": "j1-1a8cef237cb9a615",
-      "scenario_id": "j1-1a8cef237cb9a615"
+      "scenario_id": "j1-1a8cef237cb9a615",
+      "status": "unexecutable_blueprint",
+      "unexecutable_reasons": [
+        "edge validate -> validate is non-executable against mock",
+        "perturbation 'submission_failure' requires goal_facts.amount_type='custom'",
+        "perturbation 'submission_failure' requires goal_facts.amount greater than LARGE_PAYMENT_THRESHOLD"
+      ]
     },
     {
       "behavioral_class_key": "j1-behavior-1219ed121690a9be",
       "blueprint_id": "j1-82b14c01dcd19612",
-      "scenario_id": "j1-82b14c01dcd19612"
+      "scenario_id": "j1-82b14c01dcd19612",
+      "status": "unexecutable_blueprint",
+      "unexecutable_reasons": [
+        "perturbation 'submission_failure' requires goal_facts.amount_type='custom'",
+        "perturbation 'submission_failure' requires goal_facts.amount greater than LARGE_PAYMENT_THRESHOLD"
+      ]
     },
     {
       "behavioral_class_key": "j1-behavior-3430b4db834fcd97",
@@ -1417,112 +1620,258 @@
     {
       "behavioral_class_key": "j1-behavior-39e6e1967c52c936",
       "blueprint_id": "j1-df7bba79881e74dc",
-      "scenario_id": "j1-df7bba79881e74dc"
+      "scenario_id": "j1-df7bba79881e74dc",
+      "status": "unexecutable_blueprint",
+      "unexecutable_reasons": [
+        "edge validate -> validate is non-executable against mock",
+        "perturbation 'partial_disclosure' requires goal_facts.disclosure_style='one_fact_at_a_time'",
+        "perturbation 'validation_retry' is non-executable against mock"
+      ]
     },
     {
       "behavioral_class_key": "j1-behavior-3a8cf57e50ad18d4",
       "blueprint_id": "j1-f09de7c5aa3cdf9f",
-      "scenario_id": "j1-f09de7c5aa3cdf9f"
+      "scenario_id": "j1-f09de7c5aa3cdf9f",
+      "status": "unexecutable_blueprint",
+      "unexecutable_reasons": [
+        "edge validate -> validate is non-executable against mock",
+        "perturbation 'partial_disclosure' requires goal_facts.disclosure_style='one_fact_at_a_time'",
+        "perturbation 'validation_retry' is non-executable against mock"
+      ]
     },
     {
       "behavioral_class_key": "j1-behavior-415647630c26226e",
       "blueprint_id": "j1-5cbd3ff623f7bab9",
-      "scenario_id": "j1-5cbd3ff623f7bab9"
+      "scenario_id": "j1-5cbd3ff623f7bab9",
+      "status": "unexecutable_blueprint",
+      "unexecutable_reasons": [
+        "edge submit -> handle_failure requires goal_facts.amount_type='custom'",
+        "edge submit -> handle_failure requires goal_facts.amount greater than LARGE_PAYMENT_THRESHOLD",
+        "perturbation 'validation_warning' is non-executable against mock"
+      ]
     },
     {
       "behavioral_class_key": "j1-behavior-575dd305dfe0be53",
       "blueprint_id": "j1-e10080bbf91eba03",
-      "scenario_id": "j1-e10080bbf91eba03"
+      "scenario_id": "j1-e10080bbf91eba03",
+      "status": "unexecutable_blueprint",
+      "unexecutable_reasons": [
+        "edge validate -> validate is non-executable against mock",
+        "perturbation 'partial_disclosure' requires goal_facts.disclosure_style='one_fact_at_a_time'",
+        "perturbation 'validation_warning' is non-executable against mock"
+      ]
     },
     {
       "behavioral_class_key": "j1-behavior-6184e5b4bc13e73c",
       "blueprint_id": "j1-38b93bf6b74fd63c",
-      "scenario_id": "j1-38b93bf6b74fd63c"
+      "scenario_id": "j1-38b93bf6b74fd63c",
+      "status": "unexecutable_blueprint",
+      "unexecutable_reasons": [
+        "edge validate -> validate is non-executable against mock",
+        "edge submit -> handle_failure requires goal_facts.amount_type='custom'",
+        "edge submit -> handle_failure requires goal_facts.amount greater than LARGE_PAYMENT_THRESHOLD",
+        "perturbation 'submission_failure' requires goal_facts.amount_type='custom'",
+        "perturbation 'submission_failure' requires goal_facts.amount greater than LARGE_PAYMENT_THRESHOLD"
+      ]
     },
     {
       "behavioral_class_key": "j1-behavior-6b387aff5d276c3c",
       "blueprint_id": "j1-51f7838c30dee465",
-      "scenario_id": "j1-51f7838c30dee465"
+      "scenario_id": "j1-51f7838c30dee465",
+      "status": "unexecutable_blueprint",
+      "unexecutable_reasons": [
+        "edge validate -> validate is non-executable against mock",
+        "edge submit -> handle_failure requires goal_facts.amount_type='custom'",
+        "edge submit -> handle_failure requires goal_facts.amount greater than LARGE_PAYMENT_THRESHOLD",
+        "perturbation 'validation_retry' is non-executable against mock",
+        "perturbation 'submission_failure' requires goal_facts.amount_type='custom'",
+        "perturbation 'submission_failure' requires goal_facts.amount greater than LARGE_PAYMENT_THRESHOLD"
+      ]
     },
     {
       "behavioral_class_key": "j1-behavior-780f246ae7d79071",
       "blueprint_id": "j1-af21746358a09ca6",
-      "scenario_id": "j1-af21746358a09ca6"
+      "scenario_id": "j1-af21746358a09ca6",
+      "status": "unexecutable_blueprint",
+      "unexecutable_reasons": [
+        "edge submit -> handle_failure requires goal_facts.amount_type='custom'",
+        "edge submit -> handle_failure requires goal_facts.amount greater than LARGE_PAYMENT_THRESHOLD"
+      ]
     },
     {
       "behavioral_class_key": "j1-behavior-8567d150245c6a1d",
       "blueprint_id": "j1-4d198723b6000c08",
-      "scenario_id": "j1-4d198723b6000c08"
+      "scenario_id": "j1-4d198723b6000c08",
+      "status": "unexecutable_blueprint",
+      "unexecutable_reasons": [
+        "edge submit -> handle_failure requires goal_facts.amount_type='custom'",
+        "edge submit -> handle_failure requires goal_facts.amount greater than LARGE_PAYMENT_THRESHOLD",
+        "perturbation 'partial_disclosure' requires goal_facts.disclosure_style='one_fact_at_a_time'",
+        "perturbation 'validation_warning' is non-executable against mock"
+      ]
     },
     {
       "behavioral_class_key": "j1-behavior-873f9f033e6be4f0",
       "blueprint_id": "j1-861102e99a258cec",
-      "scenario_id": "j1-861102e99a258cec"
+      "scenario_id": "j1-861102e99a258cec",
+      "status": "unexecutable_blueprint",
+      "unexecutable_reasons": [
+        "edge validate -> validate is non-executable against mock",
+        "perturbation 'validation_retry' is non-executable against mock"
+      ]
     },
     {
       "behavioral_class_key": "j1-behavior-876b23cc8d988732",
       "blueprint_id": "j1-15bb6d470dfe0fe4",
-      "scenario_id": "j1-15bb6d470dfe0fe4"
+      "scenario_id": "j1-15bb6d470dfe0fe4",
+      "status": "unexecutable_blueprint",
+      "unexecutable_reasons": [
+        "perturbation 'partial_disclosure' requires goal_facts.disclosure_style='one_fact_at_a_time'",
+        "perturbation 'validation_block' is non-executable against mock"
+      ]
     },
     {
       "behavioral_class_key": "j1-behavior-8a68e88670e4a381",
       "blueprint_id": "j1-3e21466ac8ff6a3c",
-      "scenario_id": "j1-3e21466ac8ff6a3c"
+      "scenario_id": "j1-3e21466ac8ff6a3c",
+      "status": "unexecutable_blueprint",
+      "unexecutable_reasons": [
+        "edge validate -> validate is non-executable against mock",
+        "perturbation 'validation_retry' is non-executable against mock"
+      ]
     },
     {
       "behavioral_class_key": "j1-behavior-8d4fbcd41c05f280",
       "blueprint_id": "j1-f82f27ce647d158d",
-      "scenario_id": "j1-f82f27ce647d158d"
+      "scenario_id": "j1-f82f27ce647d158d",
+      "status": "unexecutable_blueprint",
+      "unexecutable_reasons": [
+        "edge validate -> validate is non-executable against mock",
+        "edge submit -> handle_failure requires goal_facts.amount_type='custom'",
+        "edge submit -> handle_failure requires goal_facts.amount greater than LARGE_PAYMENT_THRESHOLD",
+        "perturbation 'validation_warning' is non-executable against mock",
+        "perturbation 'submission_failure' requires goal_facts.amount_type='custom'",
+        "perturbation 'submission_failure' requires goal_facts.amount greater than LARGE_PAYMENT_THRESHOLD"
+      ]
     },
     {
       "behavioral_class_key": "j1-behavior-8ed603a9e54f3daa",
       "blueprint_id": "j1-3a1337323e78683e",
-      "scenario_id": "j1-3a1337323e78683e"
+      "scenario_id": "j1-3a1337323e78683e",
+      "status": "unexecutable_blueprint",
+      "unexecutable_reasons": [
+        "edge validate -> validate is non-executable against mock",
+        "perturbation 'validation_warning' is non-executable against mock"
+      ]
     },
     {
       "behavioral_class_key": "j1-behavior-90351dfbf5fd7e88",
       "blueprint_id": "j1-1e2fa23ae4f709e0",
-      "scenario_id": "j1-1e2fa23ae4f709e0"
+      "scenario_id": "j1-1e2fa23ae4f709e0",
+      "status": "unexecutable_blueprint",
+      "unexecutable_reasons": [
+        "edge validate -> validate is non-executable against mock",
+        "edge submit -> handle_failure requires goal_facts.amount_type='custom'",
+        "edge submit -> handle_failure requires goal_facts.amount greater than LARGE_PAYMENT_THRESHOLD",
+        "perturbation 'validation_warning' is non-executable against mock",
+        "perturbation 'validation_retry' is non-executable against mock"
+      ]
     },
     {
       "behavioral_class_key": "j1-behavior-93c213e83f699ab5",
       "blueprint_id": "j1-7097e664b6c4c49c",
-      "scenario_id": "j1-7097e664b6c4c49c"
+      "scenario_id": "j1-7097e664b6c4c49c",
+      "status": "unexecutable_blueprint",
+      "unexecutable_reasons": [
+        "edge submit -> handle_failure requires goal_facts.amount_type='custom'",
+        "edge submit -> handle_failure requires goal_facts.amount greater than LARGE_PAYMENT_THRESHOLD",
+        "perturbation 'partial_disclosure' requires goal_facts.disclosure_style='one_fact_at_a_time'",
+        "perturbation 'validation_block' is non-executable against mock"
+      ]
     },
     {
       "behavioral_class_key": "j1-behavior-942e5d1551e136d8",
       "blueprint_id": "j1-57ae9cbad1b8eaab",
-      "scenario_id": "j1-57ae9cbad1b8eaab"
+      "scenario_id": "j1-57ae9cbad1b8eaab",
+      "status": "unexecutable_blueprint",
+      "unexecutable_reasons": [
+        "edge validate -> validate is non-executable against mock",
+        "edge submit -> handle_failure requires goal_facts.amount_type='custom'",
+        "edge submit -> handle_failure requires goal_facts.amount greater than LARGE_PAYMENT_THRESHOLD"
+      ]
     },
     {
       "behavioral_class_key": "j1-behavior-aa293ee83511e780",
       "blueprint_id": "j1-fe5951f7be75d15a",
-      "scenario_id": "j1-fe5951f7be75d15a"
+      "scenario_id": "j1-fe5951f7be75d15a",
+      "status": "unexecutable_blueprint",
+      "unexecutable_reasons": [
+        "edge validate -> validate is non-executable against mock",
+        "edge submit -> handle_failure requires goal_facts.amount_type='custom'",
+        "edge submit -> handle_failure requires goal_facts.amount greater than LARGE_PAYMENT_THRESHOLD",
+        "perturbation 'submission_failure' requires goal_facts.amount_type='custom'",
+        "perturbation 'submission_failure' requires goal_facts.amount greater than LARGE_PAYMENT_THRESHOLD",
+        "perturbation 'submission_failure' requires goal_facts.amount_type='custom'",
+        "perturbation 'submission_failure' requires goal_facts.amount greater than LARGE_PAYMENT_THRESHOLD"
+      ]
     },
     {
       "behavioral_class_key": "j1-behavior-abb59292d61d9e21",
       "blueprint_id": "j1-ed8fef83a7017aa7",
-      "scenario_id": "j1-ed8fef83a7017aa7"
+      "scenario_id": "j1-ed8fef83a7017aa7",
+      "status": "unexecutable_blueprint",
+      "unexecutable_reasons": [
+        "edge validate -> validate is non-executable against mock",
+        "perturbation 'validation_block' is non-executable against mock"
+      ]
     },
     {
       "behavioral_class_key": "j1-behavior-b59f0043f8526af2",
       "blueprint_id": "j1-e013fd66e72c4df5",
-      "scenario_id": "j1-e013fd66e72c4df5"
+      "scenario_id": "j1-e013fd66e72c4df5",
+      "status": "unexecutable_blueprint",
+      "unexecutable_reasons": [
+        "edge validate -> validate is non-executable against mock",
+        "perturbation 'validation_block' is non-executable against mock",
+        "perturbation 'validation_retry' is non-executable against mock"
+      ]
     },
     {
       "behavioral_class_key": "j1-behavior-b74746a8a0a4cdd9",
       "blueprint_id": "j1-788290ed34079618",
-      "scenario_id": "j1-788290ed34079618"
+      "scenario_id": "j1-788290ed34079618",
+      "status": "unexecutable_blueprint",
+      "unexecutable_reasons": [
+        "edge validate -> validate is non-executable against mock",
+        "edge submit -> handle_failure requires goal_facts.amount_type='custom'",
+        "edge submit -> handle_failure requires goal_facts.amount greater than LARGE_PAYMENT_THRESHOLD",
+        "perturbation 'validation_warning' is non-executable against mock",
+        "perturbation 'submission_failure' requires goal_facts.amount_type='custom'",
+        "perturbation 'submission_failure' requires goal_facts.amount greater than LARGE_PAYMENT_THRESHOLD"
+      ]
     },
     {
       "behavioral_class_key": "j1-behavior-ce761e2e4dc2e48d",
       "blueprint_id": "j1-e41173c694844c43",
-      "scenario_id": "j1-e41173c694844c43"
+      "scenario_id": "j1-e41173c694844c43",
+      "status": "unexecutable_blueprint",
+      "unexecutable_reasons": [
+        "edge submit -> handle_failure requires goal_facts.amount_type='custom'",
+        "edge submit -> handle_failure requires goal_facts.amount greater than LARGE_PAYMENT_THRESHOLD",
+        "perturbation 'partial_disclosure' requires goal_facts.disclosure_style='one_fact_at_a_time'",
+        "perturbation 'validation_block' is non-executable against mock"
+      ]
     },
     {
       "behavioral_class_key": "j1-behavior-ecb5deddf82e8edc",
       "blueprint_id": "j1-9032d7f657ac92bc",
-      "scenario_id": "j1-9032d7f657ac92bc"
+      "scenario_id": "j1-9032d7f657ac92bc",
+      "status": "unexecutable_blueprint",
+      "unexecutable_reasons": [
+        "edge validate -> validate is non-executable against mock",
+        "perturbation 'submission_failure' requires goal_facts.amount_type='custom'",
+        "perturbation 'submission_failure' requires goal_facts.amount greater than LARGE_PAYMENT_THRESHOLD"
+      ]
     },
     {
       "behavioral_class_key": "j1-behavior-fc04e07cf278c9d0",
@@ -1531,33 +1880,20 @@
     }
   ],
   "sample_ids": [
-    "j1-15bb6d470dfe0fe4",
-    "j1-1a8cef237cb9a615",
-    "j1-1e2fa23ae4f709e0",
-    "j1-38b93bf6b74fd63c",
-    "j1-3a1337323e78683e",
-    "j1-3e21466ac8ff6a3c",
-    "j1-4d198723b6000c08",
-    "j1-51f7838c30dee465",
-    "j1-57ae9cbad1b8eaab",
-    "j1-5cbd3ff623f7bab9",
+    "j1-0e52ad6a51d58f25",
+    "j1-19ba48bc5d5f1281",
+    "j1-27cbbe5c09a99e33",
+    "j1-53aebf7a6eff6fef",
+    "j1-5a5aea0a2f4e1ce0",
     "j1-61c4ef0cacdc2b41",
     "j1-633947b18615197d",
     "j1-6fd3cce8c9eff872",
-    "j1-7097e664b6c4c49c",
-    "j1-788290ed34079618",
     "j1-82b14c01dcd19612",
-    "j1-861102e99a258cec",
-    "j1-9032d7f657ac92bc",
+    "j1-8ec36fc7f0a71cee",
     "j1-af21746358a09ca6",
-    "j1-df7bba79881e74dc",
-    "j1-e013fd66e72c4df5",
-    "j1-e10080bbf91eba03",
-    "j1-e41173c694844c43",
-    "j1-ed8fef83a7017aa7",
-    "j1-f09de7c5aa3cdf9f",
-    "j1-f82f27ce647d158d",
-    "j1-fe5951f7be75d15a"
+    "j1-c1e39666c08a0ca2",
+    "j1-f52316ce06b16852",
+    "j1-fde571a63c6a227e"
   ],
   "sample_per_stratum": 1,
   "sampling_unit": "behavioral_class",

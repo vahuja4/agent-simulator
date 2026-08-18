@@ -10,7 +10,7 @@ import yaml
 
 from agentsim import registry
 from agentsim.scenario import _ASSERTION_TYPES
-from fixtures.paycard import CARDS, FUNDING_ACCOUNTS, Card
+from fixtures.paycard import CARDS, FUNDING_ACCOUNTS, LARGE_PAYMENT_THRESHOLD, Card
 
 from .blueprint import Blueprint
 from .policies import POLICIES, Policy
@@ -55,7 +55,28 @@ class BlueprintValidator:
         self._check_bindings(blueprint, traversed, errors)
         self._check_policies(blueprint, traversed, errors)
         self._check_turns(blueprint, traversed, errors)
+        self._check_edge_triggers(blueprint, traversed, errors)
         self._check_perturbations(blueprint, traversed, errors)
+        if errors:
+            raise BlueprintValidationError("; ".join(errors))
+
+    def executability_errors(self, blueprint: Blueprint) -> tuple[str, ...]:
+        """Return graph-trigger failures without applying provenance drift guards."""
+        errors: list[str] = []
+        traversed = self._check_path(blueprint, errors)
+        self._check_edge_triggers(blueprint, traversed, errors)
+        self._check_perturbations(blueprint, traversed, errors)
+        return tuple(errors)
+
+    def validate_without_executability(self, blueprint: Blueprint) -> None:
+        """Apply the pre-Phase-4.1 structural checks for audit comparisons."""
+        errors: list[str] = []
+        self._check_drift(blueprint, errors)
+        traversed = self._check_path(blueprint, errors)
+        self._check_tools(blueprint, traversed, errors)
+        self._check_bindings(blueprint, traversed, errors)
+        self._check_policies(blueprint, traversed, errors)
+        self._check_turns(blueprint, traversed, errors)
         if errors:
             raise BlueprintValidationError("; ".join(errors))
 
@@ -211,16 +232,110 @@ class BlueprintValidator:
         self, blueprint: Blueprint, edges: list[dict[str, Any]], errors: list[str]
     ) -> None:
         declared = {
-            (kind, position)
+            (kind, spec["position"]): spec
             for edge in edges
-            for kind, position in edge.get("valid_perturbations", {}).items()
+            for kind, spec in _perturbation_specs(edge).items()
         }
         for perturbation in blueprint.perturbations:
-            if (perturbation.type, perturbation.position) not in declared:
+            spec = declared.get((perturbation.type, perturbation.position))
+            if spec is None:
                 errors.append(
                     f"perturbation {perturbation.type!r} is invalid at "
                     f"{perturbation.position!r}"
                 )
+                continue
+            if spec.get("non_executable_against") == "mock":
+                errors.append(
+                    f"perturbation {perturbation.type!r} is non-executable against mock"
+                )
+                continue
+            trigger = spec.get("executable_trigger")
+            if not isinstance(trigger, Mapping):
+                errors.append(
+                    f"perturbation {perturbation.type!r} has no executable trigger"
+                )
+                continue
+            _check_trigger(
+                blueprint,
+                trigger,
+                f"perturbation {perturbation.type!r}",
+                errors,
+            )
+
+    def _check_edge_triggers(
+        self, blueprint: Blueprint, edges: list[dict[str, Any]], errors: list[str]
+    ) -> None:
+        for edge in edges:
+            label = f"edge {edge.get('from')} -> {edge.get('to')}"
+            if edge.get("non_executable_against") == "mock":
+                errors.append(f"{label} is non-executable against mock")
+                continue
+            trigger = edge.get("executable_trigger")
+            if trigger is not None:
+                if not isinstance(trigger, Mapping):
+                    errors.append(f"{label} has an invalid executable trigger")
+                    continue
+                _check_trigger(blueprint, trigger, label, errors)
+
+
+def _perturbation_specs(edge: Mapping[str, Any]) -> dict[str, dict[str, Any]]:
+    specs: dict[str, dict[str, Any]] = {}
+    for kind, raw in edge.get("valid_perturbations", {}).items():
+        if isinstance(raw, str):
+            specs[str(kind)] = {"position": raw}
+        elif isinstance(raw, Mapping):
+            specs[str(kind)] = dict(raw)
+    return specs
+
+
+def _check_trigger(
+    blueprint: Blueprint,
+    trigger: Mapping[str, Any],
+    label: str,
+    errors: list[str],
+) -> None:
+    facts = trigger.get("goal_facts", {})
+    if not isinstance(facts, Mapping):
+        errors.append(f"{label} executable trigger goal_facts must be a mapping")
+        return
+    for fact, expected in facts.items():
+        actual = blueprint.goal_facts.get(fact)
+        if isinstance(expected, Mapping):
+            constant_name = expected.get("greater_than_fixture_constant")
+            if constant_name != "LARGE_PAYMENT_THRESHOLD":
+                errors.append(f"{label} has unknown trigger constant {constant_name!r}")
+            elif (
+                isinstance(actual, bool)
+                or not isinstance(actual, (int, float))
+                or actual <= LARGE_PAYMENT_THRESHOLD
+            ):
+                errors.append(
+                    f"{label} requires goal_facts.{fact} greater than "
+                    "LARGE_PAYMENT_THRESHOLD"
+                )
+        elif actual != expected:
+            errors.append(f"{label} requires goal_facts.{fact}={expected!r}")
+
+    condition = trigger.get("binding_condition")
+    if condition is None:
+        return
+    if condition != "distinct_goal_fact_cards":
+        errors.append(f"{label} has unknown binding condition {condition!r}")
+        return
+    initial = blueprint.goal_facts.get("initial_card_last_four")
+    final = blueprint.goal_facts.get("final_card_last_four")
+    bound_cards = set(blueprint.fixture_bindings.cards)
+    if (
+        not isinstance(initial, str)
+        or not isinstance(final, str)
+        or initial == final
+        or initial not in bound_cards
+        or final not in bound_cards
+    ):
+        errors.append(
+            f"{label} requires distinct bound initial_card_last_four and "
+            "final_card_last_four goal facts"
+        )
 
 
 def _sha256(path: Path) -> str:
