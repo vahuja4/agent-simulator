@@ -185,6 +185,27 @@ def test_targeted_config_uses_only_policy_mapped_defects() -> None:
     } == set(toggles)
 
 
+def test_dryrun_selection_uses_latest_success_per_blueprint() -> None:
+    original = {
+        "blueprint_id": "j1-shared",
+        "scenario_id": "original-scenario",
+        "batch_label": "batch-2",
+        "realization_outcome": "first_try_success",
+    }
+    reuse = {
+        "blueprint_id": "j1-shared",
+        "scenario_id": "reused-scenario",
+        "batch_label": "batch-2",
+        "realization_outcome": "reused",
+    }
+
+    selected = dryrun.select_successful_realizations(
+        (original, reuse), "batch-2"
+    )
+
+    assert selected == (reuse,)
+
+
 def test_simulator_compliance_criteria_are_separate_from_shared_judge() -> None:
     shared_ids = {criterion.id for criterion in DEFAULT_CRITERIA}
     compliance_ids = {

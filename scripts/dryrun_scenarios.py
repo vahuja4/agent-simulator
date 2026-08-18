@@ -15,18 +15,15 @@ from scenario_synthesis.dryrun import (
     ROOT,
     DryRunCandidate,
     run_dryrun_batch,
+    select_successful_realizations,
 )
 
 
 async def _main(batch_label: str) -> None:
     manifest = json.loads(DEFAULT_MANIFEST.read_text())
-    entries = [
-        entry
-        for entry in manifest.get("realized_scenarios", [])
-        if entry.get("batch_label") == batch_label
-        and "scenario_id" in entry
-        and "status" not in entry
-    ]
+    entries = select_successful_realizations(
+        manifest.get("realized_scenarios", []), batch_label
+    )
     if not entries:
         raise SystemExit(
             f"manifest has no successful realizations for batch {batch_label!r}"

@@ -77,6 +77,23 @@ class DryRunCandidate:
 LLMFactory = Callable[[Blueprint, str], Any]
 
 
+def select_successful_realizations(
+    records: Sequence[Mapping[str, Any]], batch_label: str
+) -> tuple[Mapping[str, Any], ...]:
+    """Select the newest successful realization per blueprint in a batch."""
+    selected: dict[str, Mapping[str, Any]] = {}
+    for record in reversed(records):
+        blueprint_id = record.get("blueprint_id")
+        if (
+            record.get("batch_label") == batch_label
+            and isinstance(blueprint_id, str)
+            and "scenario_id" in record
+            and "status" not in record
+        ):
+            selected.setdefault(blueprint_id, record)
+    return tuple(reversed(selected.values()))
+
+
 def targeted_mock_config(blueprint: Blueprint) -> tuple[MockConfig, tuple[str, ...]]:
     """Enable only defect toggles targeted by the blueprint's policies."""
     toggles = tuple(
