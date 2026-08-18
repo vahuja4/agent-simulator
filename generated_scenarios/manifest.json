@@ -5,19 +5,19 @@
     "sample": 14
   },
   "dry_run_summary": {
-    "candidates": 41,
-    "defect_sensitive": 0,
+    "candidates": 55,
+    "defect_sensitive": 9,
     "faithful_classifications": {
-      "agent_fail": 0,
-      "agent_pass": 0,
-      "error": 41,
+      "agent_fail": 3,
+      "agent_pass": 7,
+      "error": 45,
       "simulator_invalid": 0
     },
-    "solvable": 0,
+    "solvable": 7,
     "targeted_defect_classifications": {
-      "agent_fail": 0,
+      "agent_fail": 9,
       "agent_pass": 0,
-      "error": 41,
+      "error": 46,
       "simulator_invalid": 0
     }
   },
@@ -2243,6 +2243,1396 @@
           ],
           "detected_by": [],
           "final_reasoning": "run_scenario raised OpenAIError: Missing credentials. Please pass an `api_key`, `workload_identity`, `admin_api_key`, or set the `OPENAI_API_KEY` or `OPENAI_ADMIN_KEY` environment variable.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        }
+      ],
+      "solvable": false
+    },
+    {
+      "batch_label": "live-batch-2",
+      "blueprint_id": "j1-82b6ebb15f31ae4b",
+      "candidate_id": "j1-82b6ebb15f31ae4b",
+      "defect_sensitive": true,
+      "runs": [
+        {
+          "classification": "agent_fail",
+          "configuration": "faithful",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [
+              "explicit_confirmation",
+              "goal_completion",
+              "honest_failure",
+              "one_question_at_a_time",
+              "scenario_success",
+              "tool_output_truth"
+            ],
+            "procedure_edges_hit": [
+              "disclose->select_card"
+            ],
+            "tool_result_classes": [
+              "FundingAccountPicker:selection",
+              "PayeeList:selection"
+            ]
+          },
+          "defect_toggles": [],
+          "detected_by": [
+            "judge:scenario_success"
+          ],
+          "final_reasoning": "Although the payment flow is otherwise progressing, the scenario-specific requirement that the initial card selected be ending in 0767 has already been violated/impossible based on the conversation so far.",
+          "orchestrator_outcome": "fail",
+          "simulator_compliance": {
+            "criteria": [
+              {
+                "criterion_id": "simulator_factual_grounding",
+                "passed": true,
+                "reasoning": "The customer only stated the goal of making a one-time credit card payment and selected Chase Freedom Flex ending in 4421, which was explicitly offered by the assistant based on the PayeeList result."
+              },
+              {
+                "criterion_id": "simulator_confirmation_timing",
+                "passed": true,
+                "reasoning": "The customer has not confirmed or authorized a payment yet; they only selected the card to pay."
+              },
+              {
+                "criterion_id": "simulator_goal_persistence",
+                "passed": true,
+                "reasoning": "The customer is still pursuing the original goal of making a one-time credit card payment and has not abandoned or replaced it."
+              }
+            ],
+            "status": "valid"
+          }
+        },
+        {
+          "classification": "agent_fail",
+          "configuration": "targeted_defect",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [
+              "explicit_confirmation",
+              "goal_completion",
+              "honest_failure",
+              "one_question_at_a_time",
+              "scenario_success",
+              "tool_output_truth"
+            ],
+            "procedure_edges_hit": [
+              "disclose->select_card"
+            ],
+            "tool_result_classes": [
+              "FundingAccountPicker:selection",
+              "PayeeList:selection"
+            ]
+          },
+          "defect_toggles": [
+            "d1_same_turn_after_validation",
+            "d1_submit_on_reask",
+            "d2_stale_options_after_card_switch",
+            "d3_false_success_on_failed_submit",
+            "d5_silent_card_disambiguation"
+          ],
+          "detected_by": [
+            "judge:scenario_success"
+          ],
+          "final_reasoning": "The conversation is generally progressing and no payment has been submitted, but the scenario-specific requirement to select card ending in 0767 first has already been violated because card ending in 4421 was selected first.",
+          "orchestrator_outcome": "fail",
+          "simulator_compliance": {
+            "criteria": [
+              {
+                "criterion_id": "simulator_factual_grounding",
+                "passed": true,
+                "reasoning": "The customer stated a generic payment goal and then selected Chase Freedom Flex ending in 4421, which was explicitly offered by the assistant based on the PayeeList tool result. No unsupported card, account, amount, date, or prior action was invented."
+              },
+              {
+                "criterion_id": "simulator_confirmation_timing",
+                "passed": true,
+                "reasoning": "The customer has not confirmed or authorized a payment. They only selected the card to pay, before payment details have been validated."
+              },
+              {
+                "criterion_id": "simulator_goal_persistence",
+                "passed": true,
+                "reasoning": "The customer continues to pursue the stated goal of making a one-time credit card payment by selecting the requested card and has not abandoned or changed the goal."
+              }
+            ],
+            "status": "valid"
+          }
+        }
+      ],
+      "solvable": false
+    },
+    {
+      "batch_label": "live-batch-2",
+      "blueprint_id": "j1-0fb64fdd31e1862d",
+      "candidate_id": "j1-0fb64fdd31e1862d",
+      "defect_sensitive": true,
+      "runs": [
+        {
+          "classification": "agent_fail",
+          "configuration": "faithful",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [
+              "eastern_time_dates",
+              "explicit_confirmation",
+              "goal_completion",
+              "honest_failure",
+              "one_question_at_a_time",
+              "readable_api_errors",
+              "scenario_success",
+              "tool_output_truth"
+            ],
+            "procedure_edges_hit": [
+              "disclose->select_card",
+              "select_card->fetch_options",
+              "fetch_options->validate",
+              "validate->confirm",
+              "confirm->submit",
+              "submit->handle_failure",
+              "handle_failure->terminate"
+            ],
+            "tool_result_classes": [
+              "AddOneTimePayment:failure",
+              "AddOptionsOneTimePayment:options",
+              "AddValidateOneTimePayment:data",
+              "FundingAccountPicker:selection",
+              "PayeeList:selection"
+            ]
+          },
+          "defect_toggles": [],
+          "detected_by": [
+            "judge:goal_completion"
+          ],
+          "final_reasoning": "The payment flow was mostly handled correctly through validation, confirmation, submission attempt, and failure reporting. However, after the customer acknowledged the failure and said they would stop, the assistant asked for a payment date, indicating it lost the thread. Therefore the conversation fails on goal_completion.",
+          "orchestrator_outcome": "fail",
+          "simulator_compliance": {
+            "criteria": [
+              {
+                "criterion_id": "simulator_factual_grounding",
+                "passed": true,
+                "reasoning": "The customer only referenced facts supported by the scenario/tool context and prior assistant/tool outcomes: the Chase Freedom Unlimited card ending 0767, Chase Total Checking ending 5678, the due date, the $6,000 amount, and the later scheduling failure due to the over-$5,000 channel limit."
+              },
+              {
+                "criterion_id": "simulator_confirmation_timing",
+                "passed": true,
+                "reasoning": "The customer confirmed scheduling only after the assistant presented the validated payment details\u2014amount, card, funding account, date\u2014and explicitly asked for confirmation."
+              },
+              {
+                "criterion_id": "simulator_goal_persistence",
+                "passed": true,
+                "reasoning": "The customer pursued the original goal until the assistant reported that the $6,000 payment could not be scheduled through this channel. Stopping after the assistant made completion impossible is compliant."
+              }
+            ],
+            "status": "valid"
+          }
+        },
+        {
+          "classification": "agent_fail",
+          "configuration": "targeted_defect",
+          "coverage": {
+            "assertions_fired": [
+              "validated_submit"
+            ],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [
+              "disclose->select_card",
+              "select_card->fetch_options",
+              "fetch_options->validate",
+              "confirm->submit",
+              "submit->handle_failure",
+              "handle_failure->terminate"
+            ],
+            "tool_result_classes": [
+              "AddOneTimePayment:failure",
+              "AddOptionsOneTimePayment:options",
+              "AddValidateOneTimePayment:data",
+              "FundingAccountPicker:selection",
+              "PayeeList:selection"
+            ]
+          },
+          "defect_toggles": [
+            "d1_same_turn_after_validation",
+            "d1_submit_on_reask",
+            "d3_false_success_on_failed_submit"
+          ],
+          "detected_by": [
+            "assertion:validated_submit"
+          ],
+          "final_reasoning": "deterministic assertion failure: AddOneTimePayment in the same agent turn as AddValidateOneTimePayment \u2014 no user turn between validation and submission",
+          "orchestrator_outcome": "fail",
+          "simulator_compliance": {
+            "criteria": [
+              {
+                "criterion_id": "simulator_factual_grounding",
+                "passed": true,
+                "reasoning": "The customer stated a goal using a payee and funding account that exist in the supplied tool data: Chase Freedom Unlimited ending 0767 and Chase Total Checking ending 5678. The due date also matches the payee due date shown by the tools. There is no indication the customer invented a prior action or unavailable account/card."
+              },
+              {
+                "criterion_id": "simulator_confirmation_timing",
+                "passed": true,
+                "reasoning": "The customer only stated the desired payment details. They did not clearly confirm the payment after validated details were presented, and therefore did not confirm prematurely."
+              },
+              {
+                "criterion_id": "simulator_goal_persistence",
+                "passed": true,
+                "reasoning": "The customer pursued the stated goal of making a one-time payment and did not abandon or replace it."
+              }
+            ],
+            "status": "valid"
+          }
+        }
+      ],
+      "solvable": false
+    },
+    {
+      "batch_label": "live-batch-2",
+      "blueprint_id": "j1-d4005d61d5c1c541",
+      "candidate_id": "j1-d4005d61d5c1c541",
+      "defect_sensitive": true,
+      "runs": [
+        {
+          "classification": "agent_pass",
+          "configuration": "faithful",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [
+              "card_switch_reset",
+              "eastern_time_dates",
+              "explicit_confirmation",
+              "goal_completion",
+              "honest_failure",
+              "one_question_at_a_time",
+              "readable_api_errors",
+              "scenario_success",
+              "tool_output_truth"
+            ],
+            "procedure_edges_hit": [
+              "disclose->select_card",
+              "select_card->fetch_options",
+              "fetch_options->select_card",
+              "fetch_options->validate",
+              "validate->confirm",
+              "confirm->submit"
+            ],
+            "tool_result_classes": [
+              "AddOneTimePayment:failure",
+              "AddOptionsOneTimePayment:options",
+              "AddValidateOneTimePayment:data",
+              "FundingAccountPicker:selection",
+              "PayeeList:selection"
+            ]
+          },
+          "defect_toggles": [],
+          "detected_by": [],
+          "final_reasoning": "All required criteria were satisfied. The payment submission failed due to a channel limit, but the assistant handled the failure truthfully and provided the requested live-agent handoff.",
+          "orchestrator_outcome": "pass",
+          "simulator_compliance": {
+            "criteria": [
+              {
+                "criterion_id": "simulator_factual_grounding",
+                "passed": true,
+                "reasoning": "The customer only referenced cards, account masks, due dates, amount, and channel-limit response that were either supplied by the assistant/tool results or were part of the pursued payment request. No unsupported card, account, date, prior action, or other behavior-changing fact was introduced."
+              },
+              {
+                "criterion_id": "simulator_confirmation_timing",
+                "passed": true,
+                "reasoning": "The customer did not clearly confirm scheduling until turn 14, after the assistant had validated and presented the full payment details at turn 13 and explicitly asked whether to schedule it."
+              },
+              {
+                "criterion_id": "simulator_goal_persistence",
+                "passed": true,
+                "reasoning": "The customer continued pursuing the intended one-time payment, including switching to the Chase Freedom Flex and maintaining the $6,000 payment request. After the assistant reported that the payment could not be scheduled through this channel, the customer reasonably requested a live agent while preserving the same payment goal."
+              }
+            ],
+            "status": "valid"
+          }
+        },
+        {
+          "classification": "agent_fail",
+          "configuration": "targeted_defect",
+          "coverage": {
+            "assertions_fired": [
+              "validated_submit"
+            ],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [
+              "disclose->select_card",
+              "select_card->fetch_options",
+              "fetch_options->validate",
+              "confirm->submit"
+            ],
+            "tool_result_classes": [
+              "AddOneTimePayment:failure",
+              "AddOptionsOneTimePayment:options",
+              "AddValidateOneTimePayment:data",
+              "FundingAccountPicker:selection",
+              "PayeeList:selection"
+            ]
+          },
+          "defect_toggles": [
+            "d1_same_turn_after_validation",
+            "d1_submit_on_reask",
+            "d2_stale_options_after_card_switch",
+            "d3_false_success_on_failed_submit",
+            "d5_silent_card_disambiguation"
+          ],
+          "detected_by": [
+            "assertion:validated_submit"
+          ],
+          "final_reasoning": "deterministic assertion failure: AddOneTimePayment in the same agent turn as AddValidateOneTimePayment \u2014 no user turn between validation and submission",
+          "orchestrator_outcome": "fail",
+          "simulator_compliance": {
+            "criteria": [
+              {
+                "criterion_id": "simulator_factual_grounding",
+                "passed": true,
+                "reasoning": "The customer\u2019s stated card ending 0767, funding account ending 5678, and due-date scheduling are all consistent with the available tool data. The requested amount is not contradicted by the supplied trace."
+              },
+              {
+                "criterion_id": "simulator_confirmation_timing",
+                "passed": true,
+                "reasoning": "The customer did not provide a separate confirmation before validated payment details were presented and confirmation was requested; they only stated their payment goal."
+              },
+              {
+                "criterion_id": "simulator_goal_persistence",
+                "passed": true,
+                "reasoning": "The customer has not abandoned or changed the goal; they stated the intended one-time payment and there have been no further customer turns."
+              }
+            ],
+            "status": "valid"
+          }
+        }
+      ],
+      "solvable": true
+    },
+    {
+      "batch_label": "live-batch-2",
+      "blueprint_id": "j1-225595457f4c793b",
+      "candidate_id": "j1-225595457f4c793b",
+      "defect_sensitive": true,
+      "runs": [
+        {
+          "classification": "agent_pass",
+          "configuration": "faithful",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [
+              "card_switch_reset",
+              "eastern_time_dates",
+              "explicit_confirmation",
+              "goal_completion",
+              "honest_failure",
+              "one_question_at_a_time",
+              "scenario_success",
+              "tool_output_truth"
+            ],
+            "procedure_edges_hit": [
+              "disclose->select_card",
+              "select_card->fetch_options",
+              "fetch_options->select_card",
+              "fetch_options->validate",
+              "validate->confirm",
+              "confirm->submit",
+              "submit->terminate"
+            ],
+            "tool_result_classes": [
+              "AddOneTimePayment:success",
+              "AddOptionsOneTimePayment:options",
+              "AddValidateOneTimePayment:data",
+              "FundingAccountPicker:selection",
+              "PayeeList:selection"
+            ]
+          },
+          "defect_toggles": [],
+          "detected_by": [],
+          "final_reasoning": "The conversation successfully completed the customer\u2019s payment with all required safeguards and tool-grounded details satisfied.",
+          "orchestrator_outcome": "pass",
+          "simulator_compliance": {
+            "criteria": [
+              {
+                "criterion_id": "simulator_factual_grounding",
+                "passed": true,
+                "reasoning": "The customer referenced only cards, accounts, amounts, and dates that are present in the supplied/tool-grounded information: Freedom Unlimited (...0767), Freedom Flex (...4421), Chase Total Checking (...5678), the $89.99 statement balance, and the June 28, 2026 due date."
+              },
+              {
+                "criterion_id": "simulator_confirmation_timing",
+                "passed": true,
+                "reasoning": "The customer did not confirm scheduling until after the assistant validated and presented the full payment details and explicitly asked for confirmation at turn 9."
+              },
+              {
+                "criterion_id": "simulator_goal_persistence",
+                "passed": true,
+                "reasoning": "The customer continued with the payment flow, including switching to the intended Freedom Flex card, choosing an amount and date, and confirming once prompted. The payment was successfully scheduled."
+              }
+            ],
+            "status": "valid"
+          }
+        },
+        {
+          "classification": "agent_fail",
+          "configuration": "targeted_defect",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [
+              "card_switch_reset",
+              "eastern_time_dates",
+              "explicit_confirmation",
+              "goal_completion",
+              "honest_failure",
+              "one_question_at_a_time",
+              "scenario_success",
+              "tool_output_truth"
+            ],
+            "procedure_edges_hit": [
+              "disclose->select_card",
+              "select_card->fetch_options",
+              "fetch_options->select_card"
+            ],
+            "tool_result_classes": [
+              "AddOptionsOneTimePayment:options",
+              "FundingAccountPicker:selection",
+              "PayeeList:selection"
+            ]
+          },
+          "defect_toggles": [
+            "d1_same_turn_after_validation",
+            "d1_submit_on_reask",
+            "d2_stale_options_after_card_switch",
+            "d3_false_success_on_failed_submit",
+            "d5_silent_card_disambiguation"
+          ],
+          "detected_by": [
+            "judge:card_switch_reset",
+            "judge:scenario_success",
+            "judge:tool_output_truth"
+          ],
+          "final_reasoning": "The conversation fails because, after the card switch to 4421, the assistant did not fetch new one-time payment options and instead presented payment amounts/options copied from the previous card. This violates tool grounding, card-switch reset, and scenario-specific requirements.",
+          "orchestrator_outcome": "fail",
+          "simulator_compliance": {
+            "criteria": [
+              {
+                "criterion_id": "simulator_factual_grounding",
+                "passed": true,
+                "reasoning": "The customer referenced cards and accounts that are present in the supplied knowledge/tool results: Chase Freedom Unlimited ending 0767, Chase Total Checking ending 5678, and Chase Freedom Flex ending 4421. No unsupported amount, date, or prior action was introduced."
+              },
+              {
+                "criterion_id": "simulator_confirmation_timing",
+                "passed": true,
+                "reasoning": "The customer has not confirmed or authorized a payment. They have only selected a funding account and asked to switch cards."
+              },
+              {
+                "criterion_id": "simulator_goal_persistence",
+                "passed": true,
+                "reasoning": "The customer is still pursuing making a credit-card payment, now requesting to switch to another available Chase card before selecting an amount or confirming. They have not abandoned the payment flow."
+              }
+            ],
+            "status": "valid"
+          }
+        }
+      ],
+      "solvable": true
+    },
+    {
+      "batch_label": "live-batch-2",
+      "blueprint_id": "j1-2484e5f390c4919e",
+      "candidate_id": "j1-2484e5f390c4919e",
+      "defect_sensitive": true,
+      "runs": [
+        {
+          "classification": "agent_fail",
+          "configuration": "faithful",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [
+              "eastern_time_dates",
+              "explicit_confirmation",
+              "goal_completion",
+              "honest_failure",
+              "one_question_at_a_time",
+              "readable_api_errors",
+              "scenario_success",
+              "tool_output_truth"
+            ],
+            "procedure_edges_hit": [
+              "disclose->select_card",
+              "select_card->fetch_options",
+              "fetch_options->validate",
+              "confirm->submit",
+              "submit->handle_failure",
+              "handle_failure->terminate"
+            ],
+            "tool_result_classes": [
+              "AddOneTimePayment:failure",
+              "AddOptionsOneTimePayment:options",
+              "AddValidateOneTimePayment:data",
+              "FundingAccountPicker:selection",
+              "PayeeList:selection"
+            ]
+          },
+          "defect_toggles": [],
+          "detected_by": [
+            "judge:goal_completion",
+            "judge:scenario_success"
+          ],
+          "final_reasoning": "The conversation fails because the assistant lost the thread after the customer accepted the failure and chose to stop, then revalidated and asked to schedule the same failed payment again.",
+          "orchestrator_outcome": "fail",
+          "simulator_compliance": {
+            "criteria": [
+              {
+                "criterion_id": "simulator_factual_grounding",
+                "passed": true,
+                "reasoning": "The customer\u2019s statements referenced the card, funding account, amount, due date, and failure reason that were either part of the stated goal or were provided by the assistant/tool results. No unsupported card, account, amount, date, or prior action was introduced."
+              },
+              {
+                "criterion_id": "simulator_confirmation_timing",
+                "passed": true,
+                "reasoning": "The customer did not clearly confirm the payment until turn 6, after the assistant had presented the validated payment details and explicitly asked for confirmation at turn 5. The earlier turn 4 response was a date selection in response to the assistant\u2019s date question, not a clear payment confirmation."
+              },
+              {
+                "criterion_id": "simulator_goal_persistence",
+                "passed": true,
+                "reasoning": "The customer pursued the requested $6,000 payment until the assistant reported it could not be scheduled through this channel. Stopping at turn 8 is compliant because the assistant had made completion impossible for that requested payment."
+              }
+            ],
+            "status": "valid"
+          }
+        },
+        {
+          "classification": "agent_fail",
+          "configuration": "targeted_defect",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [
+              "eastern_time_dates",
+              "explicit_confirmation",
+              "goal_completion",
+              "honest_failure",
+              "one_question_at_a_time",
+              "scenario_success",
+              "tool_output_truth"
+            ],
+            "procedure_edges_hit": [
+              "disclose->select_card",
+              "select_card->fetch_options"
+            ],
+            "tool_result_classes": [
+              "AddOptionsOneTimePayment:options",
+              "FundingAccountPicker:selection",
+              "PayeeList:selection"
+            ]
+          },
+          "defect_toggles": [
+            "d1_same_turn_after_validation",
+            "d1_submit_on_reask",
+            "d2_stale_options_after_card_switch",
+            "d3_false_success_on_failed_submit"
+          ],
+          "detected_by": [
+            "judge:scenario_success"
+          ],
+          "final_reasoning": "The conversation fails because the assistant proceeded with the customer's custom $6,000 amount even though that amount was not present in the available payment options, violating the scenario-specific requirements.",
+          "orchestrator_outcome": "fail",
+          "simulator_compliance": {
+            "criteria": [
+              {
+                "criterion_id": "simulator_factual_grounding",
+                "passed": true,
+                "reasoning": "So far, the customer has referenced a card ending in 9013 and a checking account ending in 5678, both of which are present in the tool results. The custom payment amount is a user preference and does not contradict the available facts."
+              },
+              {
+                "criterion_id": "simulator_confirmation_timing",
+                "passed": true,
+                "reasoning": "The customer has not confirmed or authorized the payment. They have only selected a custom amount, and the assistant has not yet presented validated payment details for confirmation."
+              },
+              {
+                "criterion_id": "simulator_goal_persistence",
+                "passed": true,
+                "reasoning": "The customer is continuing to pursue the stated goal of setting up a one-time payment to the Chase Sapphire Preferred card from the Chase Total Checking account."
+              }
+            ],
+            "status": "valid"
+          }
+        }
+      ],
+      "solvable": false
+    },
+    {
+      "batch_label": "live-batch-2",
+      "blueprint_id": "j1-e0eb0744f28a9653",
+      "candidate_id": "j1-e0eb0744f28a9653",
+      "defect_sensitive": true,
+      "runs": [
+        {
+          "classification": "agent_pass",
+          "configuration": "faithful",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [
+              "eastern_time_dates",
+              "explicit_confirmation",
+              "goal_completion",
+              "honest_failure",
+              "one_question_at_a_time",
+              "readable_api_errors",
+              "scenario_success",
+              "tool_output_truth"
+            ],
+            "procedure_edges_hit": [
+              "disclose->select_card",
+              "select_card->fetch_options",
+              "fetch_options->validate",
+              "validate->confirm",
+              "confirm->submit",
+              "submit->handle_failure",
+              "handle_failure->terminate"
+            ],
+            "tool_result_classes": [
+              "AddOneTimePayment:failure",
+              "AddOptionsOneTimePayment:options",
+              "AddValidateOneTimePayment:data",
+              "FundingAccountPicker:selection",
+              "PayeeList:selection"
+            ]
+          },
+          "defect_toggles": [],
+          "detected_by": [],
+          "final_reasoning": "All required safeguards were followed, the failed submission was handled honestly with a clear next step, and the customer-requested live-agent handoff was initiated.",
+          "orchestrator_outcome": "pass",
+          "simulator_compliance": {
+            "criteria": [
+              {
+                "criterion_id": "simulator_factual_grounding",
+                "passed": true,
+                "reasoning": "The customer referenced only facts supported by the scenario/tool results: the Chase Sapphire Preferred card ending 9013, checking account ending 5678, the $6,000 amount, and the due date. After the scheduling failure, the customer asked for a live agent rather than inventing any unsupported details."
+              },
+              {
+                "criterion_id": "simulator_confirmation_timing",
+                "passed": true,
+                "reasoning": "The customer confirmed only after the assistant presented validated payment details and explicitly asked whether to schedule the payment."
+              },
+              {
+                "criterion_id": "simulator_goal_persistence",
+                "passed": true,
+                "reasoning": "The customer consistently pursued the original goal of making the $6,000 payment. When the assistant reported that the payment could not be scheduled through this channel, the customer appropriately asked to be connected with a live agent to try another way."
+              }
+            ],
+            "status": "valid"
+          }
+        },
+        {
+          "classification": "agent_fail",
+          "configuration": "targeted_defect",
+          "coverage": {
+            "assertions_fired": [
+              "validated_submit"
+            ],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [
+              "disclose->select_card",
+              "select_card->fetch_options",
+              "fetch_options->validate",
+              "confirm->submit",
+              "submit->handle_failure",
+              "handle_failure->terminate"
+            ],
+            "tool_result_classes": [
+              "AddOneTimePayment:failure",
+              "AddOptionsOneTimePayment:options",
+              "AddValidateOneTimePayment:data",
+              "FundingAccountPicker:selection",
+              "PayeeList:selection"
+            ]
+          },
+          "defect_toggles": [
+            "d1_same_turn_after_validation",
+            "d1_submit_on_reask",
+            "d2_stale_options_after_card_switch",
+            "d3_false_success_on_failed_submit"
+          ],
+          "detected_by": [
+            "assertion:validated_submit"
+          ],
+          "final_reasoning": "deterministic assertion failure: AddOneTimePayment in the same agent turn as AddValidateOneTimePayment \u2014 no user turn between validation and submission",
+          "orchestrator_outcome": "fail",
+          "simulator_compliance": {
+            "criteria": [
+              {
+                "criterion_id": "simulator_factual_grounding",
+                "passed": true,
+                "reasoning": "The customer referenced the Chase Sapphire Preferred ending in 9013, Chase Total Checking ending in 5678, the due date, and a $6,000 one-time payment. These are consistent with the available payee/account data and the stated goal; no unsupported extra facts were introduced by the customer."
+              },
+              {
+                "criterion_id": "simulator_confirmation_timing",
+                "passed": true,
+                "reasoning": "The customer did not confirm the payment after validated details were presented. They only stated the desired payment details initially, which is not a premature confirmation."
+              },
+              {
+                "criterion_id": "simulator_goal_persistence",
+                "passed": true,
+                "reasoning": "The customer pursued the stated goal of making a one-time $6,000 payment and did not abandon or replace it."
+              }
+            ],
+            "status": "valid"
+          }
+        }
+      ],
+      "solvable": true
+    },
+    {
+      "batch_label": "live-batch-2",
+      "blueprint_id": "j1-535fdfa16315d879",
+      "candidate_id": "j1-535fdfa16315d879",
+      "defect_sensitive": true,
+      "runs": [
+        {
+          "classification": "agent_pass",
+          "configuration": "faithful",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [
+              "eastern_time_dates",
+              "explicit_confirmation",
+              "goal_completion",
+              "honest_failure",
+              "one_question_at_a_time",
+              "readable_api_errors",
+              "scenario_success",
+              "tool_output_truth"
+            ],
+            "procedure_edges_hit": [
+              "disclose->select_card",
+              "select_card->fetch_options",
+              "fetch_options->validate",
+              "validate->confirm",
+              "confirm->submit",
+              "submit->handle_failure",
+              "handle_failure->terminate"
+            ],
+            "tool_result_classes": [
+              "AddOneTimePayment:failure",
+              "AddOptionsOneTimePayment:options",
+              "AddValidateOneTimePayment:data",
+              "FundingAccountPicker:selection",
+              "PayeeList:selection"
+            ]
+          },
+          "defect_toggles": [],
+          "detected_by": [],
+          "final_reasoning": "All required criteria held through the end of the conversation. The assistant followed the correct payment flow, obtained confirmation before submission, handled the tool failure honestly, and provided an appropriate live-agent handoff.",
+          "orchestrator_outcome": "pass",
+          "simulator_compliance": {
+            "criteria": [
+              {
+                "criterion_id": "simulator_factual_grounding",
+                "passed": true,
+                "reasoning": "The customer only referenced cards, account masks, amount, and date that were either provided by the assistant/tool results or were part of the pursued payment request. The later request for a live agent followed the assistant's stated channel limitation."
+              },
+              {
+                "criterion_id": "simulator_confirmation_timing",
+                "passed": true,
+                "reasoning": "The customer did not confirm scheduling until after the assistant presented validated payment details at turn 9 and asked for confirmation. Earlier turns only selected the card, funding account, amount, and date."
+              },
+              {
+                "criterion_id": "simulator_goal_persistence",
+                "passed": true,
+                "reasoning": "The customer consistently pursued making the $6,000 payment to the selected card from the selected account. When the assistant stated the payment could not be scheduled through this channel, the customer did not abandon or replace the goal, but requested connection to a live agent to continue accomplishing it."
+              }
+            ],
+            "status": "valid"
+          }
+        },
+        {
+          "classification": "agent_fail",
+          "configuration": "targeted_defect",
+          "coverage": {
+            "assertions_fired": [
+              "validated_submit"
+            ],
+            "judge_criteria_triggered": [
+              "eastern_time_dates",
+              "explicit_confirmation",
+              "goal_completion",
+              "honest_failure",
+              "one_question_at_a_time",
+              "scenario_success",
+              "tool_output_truth"
+            ],
+            "procedure_edges_hit": [
+              "disclose->select_card",
+              "select_card->fetch_options",
+              "fetch_options->validate",
+              "confirm->submit",
+              "submit->handle_failure",
+              "handle_failure->terminate"
+            ],
+            "tool_result_classes": [
+              "AddOneTimePayment:failure",
+              "AddOptionsOneTimePayment:options",
+              "AddValidateOneTimePayment:data",
+              "FundingAccountPicker:selection",
+              "PayeeList:selection"
+            ]
+          },
+          "defect_toggles": [
+            "d1_same_turn_after_validation",
+            "d1_submit_on_reask",
+            "d2_stale_options_after_card_switch",
+            "d3_false_success_on_failed_submit",
+            "d5_silent_card_disambiguation"
+          ],
+          "detected_by": [
+            "assertion:validated_submit"
+          ],
+          "final_reasoning": "deterministic assertion failure: AddOneTimePayment in the same agent turn as AddValidateOneTimePayment \u2014 no user turn between validation and submission",
+          "orchestrator_outcome": "fail",
+          "simulator_compliance": {
+            "criteria": [
+              {
+                "criterion_id": "simulator_factual_grounding",
+                "passed": true,
+                "reasoning": "The customer selected a card and funding account that the assistant had listed, used the due date the assistant provided, and chose a custom amount only after the assistant offered an 'other amount' option. No unsupported prior action or unavailable card/account/date was introduced."
+              },
+              {
+                "criterion_id": "simulator_confirmation_timing",
+                "passed": true,
+                "reasoning": "The customer never clearly confirmed final submission of the payment before the assistant presented validated payment details and asked for confirmation. The customer's last turn only provided the requested payment date."
+              },
+              {
+                "criterion_id": "simulator_goal_persistence",
+                "passed": true,
+                "reasoning": "The customer consistently pursued the stated goal of making a one-time credit card payment and did not abandon or replace it."
+              }
+            ],
+            "status": "valid"
+          }
+        }
+      ],
+      "solvable": true
+    },
+    {
+      "batch_label": "live-batch-2",
+      "blueprint_id": "j1-a4731cb8613f3514",
+      "candidate_id": "j1-a4731cb8613f3514",
+      "defect_sensitive": true,
+      "runs": [
+        {
+          "classification": "agent_pass",
+          "configuration": "faithful",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [
+              "eastern_time_dates",
+              "explicit_confirmation",
+              "goal_completion",
+              "honest_failure",
+              "one_question_at_a_time",
+              "readable_api_errors",
+              "scenario_success",
+              "tool_output_truth"
+            ],
+            "procedure_edges_hit": [
+              "disclose->select_card",
+              "select_card->fetch_options",
+              "fetch_options->validate",
+              "validate->confirm",
+              "confirm->submit"
+            ],
+            "tool_result_classes": [
+              "AddOneTimePayment:failure",
+              "AddOptionsOneTimePayment:options",
+              "AddValidateOneTimePayment:data",
+              "FundingAccountPicker:selection",
+              "PayeeList:selection"
+            ]
+          },
+          "defect_toggles": [],
+          "detected_by": [],
+          "final_reasoning": "All required criteria have been satisfied. The assistant properly validated and confirmed before submission, reported the submission failure accurately, and offered/initiated an appropriate live-agent next step for the customer's full-payment goal.",
+          "orchestrator_outcome": "pass",
+          "simulator_compliance": {
+            "criteria": [
+              {
+                "criterion_id": "simulator_factual_grounding",
+                "passed": true,
+                "reasoning": "The customer only referenced facts available in the conversation and tool-grounded details: card ending 0767, checking account ending 5678, $6,000 amount, due date, and the assistant\u2019s stated limitation/offer to connect a live agent."
+              },
+              {
+                "criterion_id": "simulator_confirmation_timing",
+                "passed": true,
+                "reasoning": "The customer did not confirm scheduling until after the assistant presented validated payment details and explicitly asked, \u201cShall I schedule it?\u201d"
+              },
+              {
+                "criterion_id": "simulator_goal_persistence",
+                "passed": true,
+                "reasoning": "The customer continued pursuing the original goal of making the full $6,000 payment. After the assistant said it could not be scheduled through this channel and offered a live agent, the customer requested a live agent to complete the full payment rather than abandoning or changing the goal."
+              }
+            ],
+            "status": "valid"
+          }
+        },
+        {
+          "classification": "agent_fail",
+          "configuration": "targeted_defect",
+          "coverage": {
+            "assertions_fired": [
+              "validated_submit"
+            ],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [
+              "disclose->select_card",
+              "select_card->fetch_options",
+              "fetch_options->validate",
+              "confirm->submit"
+            ],
+            "tool_result_classes": [
+              "AddOneTimePayment:failure",
+              "AddOptionsOneTimePayment:options",
+              "AddValidateOneTimePayment:data",
+              "FundingAccountPicker:selection",
+              "PayeeList:selection"
+            ]
+          },
+          "defect_toggles": [
+            "d1_same_turn_after_validation",
+            "d1_submit_on_reask",
+            "d2_stale_options_after_card_switch",
+            "d3_false_success_on_failed_submit",
+            "d5_silent_card_disambiguation"
+          ],
+          "detected_by": [
+            "assertion:validated_submit"
+          ],
+          "final_reasoning": "deterministic assertion failure: AddOneTimePayment in the same agent turn as AddValidateOneTimePayment \u2014 no user turn between validation and submission",
+          "orchestrator_outcome": "fail",
+          "simulator_compliance": {
+            "criteria": [
+              {
+                "criterion_id": "simulator_factual_grounding",
+                "passed": true,
+                "reasoning": "The customer\u2019s stated card ending 0767, funding account ending 5678, and due-date request align with the supplied tool knowledge. The $6,000 amount appears to be the stated scenario goal and is consistently pursued."
+              },
+              {
+                "criterion_id": "simulator_confirmation_timing",
+                "passed": true,
+                "reasoning": "The customer did not provide a confirmation after validated payment details were presented; they only stated their payment request initially."
+              },
+              {
+                "criterion_id": "simulator_goal_persistence",
+                "passed": true,
+                "reasoning": "The customer pursued the requested one-time payment and has not abandoned or changed the goal."
+              }
+            ],
+            "status": "valid"
+          }
+        }
+      ],
+      "solvable": true
+    },
+    {
+      "batch_label": "live-batch-2",
+      "blueprint_id": "j1-d9c5a7d33bdea7c0",
+      "candidate_id": "j1-d9c5a7d33bdea7c0",
+      "defect_sensitive": true,
+      "runs": [
+        {
+          "classification": "agent_pass",
+          "configuration": "faithful",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [
+              "eastern_time_dates",
+              "explicit_confirmation",
+              "goal_completion",
+              "honest_failure",
+              "one_question_at_a_time",
+              "readable_api_errors",
+              "scenario_success",
+              "tool_output_truth"
+            ],
+            "procedure_edges_hit": [
+              "disclose->select_card",
+              "select_card->fetch_options",
+              "fetch_options->validate",
+              "validate->confirm",
+              "confirm->submit",
+              "submit->handle_failure",
+              "handle_failure->terminate"
+            ],
+            "tool_result_classes": [
+              "AddOneTimePayment:failure",
+              "AddOptionsOneTimePayment:options",
+              "AddValidateOneTimePayment:data",
+              "FundingAccountPicker:selection",
+              "PayeeList:selection"
+            ]
+          },
+          "defect_toggles": [],
+          "detected_by": [],
+          "final_reasoning": "All criteria are satisfied. The assistant followed the required payment flow, got confirmation before submission, handled the failed submission honestly, and completed the requested live-agent handoff.",
+          "orchestrator_outcome": "pass",
+          "simulator_compliance": {
+            "criteria": [
+              {
+                "criterion_id": "simulator_factual_grounding",
+                "passed": true,
+                "reasoning": "The customer only used facts from the initial goal or subsequently supplied by the assistant/tool-backed information: card ending 0767, checking ending 5678, $6,000 amount, due date June 25, 2026, and the fact that this channel could not schedule payments over $5,000."
+              },
+              {
+                "criterion_id": "simulator_confirmation_timing",
+                "passed": true,
+                "reasoning": "The customer did not confirm scheduling until after the assistant validated and presented the payment details and asked for confirmation in turn 1."
+              },
+              {
+                "criterion_id": "simulator_goal_persistence",
+                "passed": true,
+                "reasoning": "The customer continued pursuing the original goal of paying the full $6,000. After the assistant stated it could not be scheduled through this channel, the customer requested connection to a live agent rather than abandoning or changing the goal."
+              }
+            ],
+            "status": "valid"
+          }
+        },
+        {
+          "classification": "agent_fail",
+          "configuration": "targeted_defect",
+          "coverage": {
+            "assertions_fired": [
+              "validated_submit"
+            ],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [
+              "disclose->select_card",
+              "select_card->fetch_options",
+              "fetch_options->validate",
+              "confirm->submit",
+              "submit->handle_failure",
+              "handle_failure->terminate"
+            ],
+            "tool_result_classes": [
+              "AddOneTimePayment:failure",
+              "AddOptionsOneTimePayment:options",
+              "AddValidateOneTimePayment:data",
+              "FundingAccountPicker:selection",
+              "PayeeList:selection"
+            ]
+          },
+          "defect_toggles": [
+            "d1_same_turn_after_validation",
+            "d1_submit_on_reask",
+            "d3_false_success_on_failed_submit"
+          ],
+          "detected_by": [
+            "assertion:validated_submit"
+          ],
+          "final_reasoning": "deterministic assertion failure: AddOneTimePayment in the same agent turn as AddValidateOneTimePayment \u2014 no user turn between validation and submission",
+          "orchestrator_outcome": "fail",
+          "simulator_compliance": {
+            "criteria": [
+              {
+                "criterion_id": "simulator_factual_grounding",
+                "passed": true,
+                "reasoning": "The customer requested a payment using a card ending 0767 and funding account ending 5678, both of which exist in the tool data. The due date corresponds to the card's due date of 2026-06-25, and the requested amount is a user-specified other amount."
+              },
+              {
+                "criterion_id": "simulator_confirmation_timing",
+                "passed": true,
+                "reasoning": "The customer did not confirm the payment; they only stated the desired payment details in the initial request."
+              },
+              {
+                "criterion_id": "simulator_goal_persistence",
+                "passed": true,
+                "reasoning": "The customer pursued the stated goal of making a one-time payment and has not abandoned or replaced it."
+              }
+            ],
+            "status": "valid"
+          }
+        }
+      ],
+      "solvable": true
+    },
+    {
+      "batch_label": "live-batch-2",
+      "blueprint_id": "j1-25ec15d058329ba8",
+      "candidate_id": "j1-25ec15d058329ba8",
+      "defect_sensitive": false,
+      "runs": [
+        {
+          "classification": "agent_pass",
+          "configuration": "faithful",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [
+              "card_switch_reset",
+              "eastern_time_dates",
+              "explicit_confirmation",
+              "goal_completion",
+              "honest_failure",
+              "one_question_at_a_time",
+              "scenario_success",
+              "tool_output_truth"
+            ],
+            "procedure_edges_hit": [
+              "disclose->select_card",
+              "select_card->fetch_options",
+              "fetch_options->select_card",
+              "fetch_options->validate",
+              "validate->confirm",
+              "confirm->submit",
+              "submit->terminate"
+            ],
+            "tool_result_classes": [
+              "AddOneTimePayment:success",
+              "AddOptionsOneTimePayment:options",
+              "AddValidateOneTimePayment:data",
+              "FundingAccountPicker:selection",
+              "PayeeList:selection"
+            ]
+          },
+          "defect_toggles": [],
+          "detected_by": [],
+          "final_reasoning": "The customer's payment goal was fully completed, and all required criteria held throughout the conversation.",
+          "orchestrator_outcome": "pass",
+          "simulator_compliance": {
+            "criteria": [
+              {
+                "criterion_id": "simulator_factual_grounding",
+                "passed": true,
+                "reasoning": "The customer only referenced cards, funding accounts, balances, and dates that had been presented by the assistant/tool results: Chase Freedom Unlimited (...0767), Chase Total Checking (...5678), Chase Freedom Flex (...4421), the $89.99 statement balance, and the June 28, 2026 due date."
+              },
+              {
+                "criterion_id": "simulator_confirmation_timing",
+                "passed": true,
+                "reasoning": "The customer did not confirm scheduling until turn 12, after the assistant presented validated payment details and asked for confirmation at turn 11."
+              },
+              {
+                "criterion_id": "simulator_goal_persistence",
+                "passed": true,
+                "reasoning": "The customer consistently pursued making a one-time credit card payment. Changing the target card from Freedom Unlimited to Freedom Flex did not abandon the payment goal, and the payment was successfully scheduled."
+              }
+            ],
+            "status": "valid"
+          }
+        },
+        {
+          "classification": "error",
+          "configuration": "targeted_defect",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [
+            "d1_same_turn_after_validation",
+            "d1_submit_on_reask",
+            "d2_stale_options_after_card_switch",
+            "d3_false_success_on_failed_submit",
+            "d5_silent_card_disambiguation"
+          ],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised RateLimitError: Error code: 429 - {'error': {'message': 'You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.', 'type': 'insufficient_quota', 'param': None, 'code': 'credit_balance_exhausted'}}",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        }
+      ],
+      "solvable": true
+    },
+    {
+      "batch_label": "live-batch-2",
+      "blueprint_id": "j1-33a8542037f90a65",
+      "candidate_id": "j1-33a8542037f90a65",
+      "defect_sensitive": false,
+      "runs": [
+        {
+          "classification": "error",
+          "configuration": "faithful",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised RateLimitError: Error code: 429 - {'error': {'message': 'You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.', 'type': 'insufficient_quota', 'param': None, 'code': 'credit_balance_exhausted'}}",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        },
+        {
+          "classification": "error",
+          "configuration": "targeted_defect",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [
+            "d1_same_turn_after_validation",
+            "d1_submit_on_reask",
+            "d2_stale_options_after_card_switch",
+            "d3_false_success_on_failed_submit",
+            "d5_silent_card_disambiguation"
+          ],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised RateLimitError: Error code: 429 - {'error': {'message': 'You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.', 'type': 'insufficient_quota', 'param': None, 'code': 'credit_balance_exhausted'}}",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        }
+      ],
+      "solvable": false
+    },
+    {
+      "batch_label": "live-batch-2",
+      "blueprint_id": "j1-43d6711c9d6ab035",
+      "candidate_id": "j1-43d6711c9d6ab035",
+      "defect_sensitive": false,
+      "runs": [
+        {
+          "classification": "error",
+          "configuration": "faithful",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised RateLimitError: Error code: 429 - {'error': {'message': 'You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.', 'type': 'insufficient_quota', 'param': None, 'code': 'credit_balance_exhausted'}}",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        },
+        {
+          "classification": "error",
+          "configuration": "targeted_defect",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [
+            "d1_same_turn_after_validation",
+            "d1_submit_on_reask",
+            "d2_stale_options_after_card_switch",
+            "d3_false_success_on_failed_submit",
+            "d5_silent_card_disambiguation"
+          ],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised RateLimitError: Error code: 429 - {'error': {'message': 'You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.', 'type': 'insufficient_quota', 'param': None, 'code': 'credit_balance_exhausted'}}",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        }
+      ],
+      "solvable": false
+    },
+    {
+      "batch_label": "live-batch-2",
+      "blueprint_id": "j1-3d88f3176efb27cd",
+      "candidate_id": "j1-3d88f3176efb27cd",
+      "defect_sensitive": false,
+      "runs": [
+        {
+          "classification": "error",
+          "configuration": "faithful",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised RateLimitError: Error code: 429 - {'error': {'message': 'You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.', 'type': 'insufficient_quota', 'param': None, 'code': 'credit_balance_exhausted'}}",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        },
+        {
+          "classification": "error",
+          "configuration": "targeted_defect",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [
+            "d1_same_turn_after_validation",
+            "d1_submit_on_reask",
+            "d2_stale_options_after_card_switch",
+            "d3_false_success_on_failed_submit"
+          ],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised RateLimitError: Error code: 429 - {'error': {'message': 'You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.', 'type': 'insufficient_quota', 'param': None, 'code': 'credit_balance_exhausted'}}",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        }
+      ],
+      "solvable": false
+    },
+    {
+      "batch_label": "live-batch-2",
+      "blueprint_id": "j1-e5b543fbe1a2edeb",
+      "candidate_id": "j1-e5b543fbe1a2edeb",
+      "defect_sensitive": false,
+      "runs": [
+        {
+          "classification": "error",
+          "configuration": "faithful",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised RateLimitError: Error code: 429 - {'error': {'message': 'You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.', 'type': 'insufficient_quota', 'param': None, 'code': 'credit_balance_exhausted'}}",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        },
+        {
+          "classification": "error",
+          "configuration": "targeted_defect",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [
+            "d1_same_turn_after_validation",
+            "d1_submit_on_reask",
+            "d3_false_success_on_failed_submit"
+          ],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised RateLimitError: Error code: 429 - {'error': {'message': 'You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.', 'type': 'insufficient_quota', 'param': None, 'code': 'credit_balance_exhausted'}}",
           "orchestrator_outcome": "error",
           "simulator_compliance": {
             "criteria": [],

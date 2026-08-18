@@ -88,3 +88,47 @@ faithful plus 27 targeted-defect), with 0/27 solvable and 0/27 defect-sensitive.
 Batch 2 likewise produced no evaluated outcome, but its failure mode differs: batch
 1 recorded `APIConnectionError: Connection error.` for all conversations, whereas
 batch 2 recorded a missing-credentials `OpenAIError` for all conversations.
+
+## Step 2 authorized retry
+
+After explicit follow-up authorization, the dry-run entry point was invoked once
+more with `.env` exported into the process environment. This retry reached live LLM
+evaluation, but the available API balance was exhausted partway through the batch.
+The final nine conversations recorded `RateLimitError` with
+`code: credit_balance_exhausted`: the targeted-defect run for
+`j1-25ec15d058329ba8`, followed by both runs for `j1-33a8542037f90a65`,
+`j1-43d6711c9d6ab035`, `j1-3d88f3176efb27cd`, and
+`j1-e5b543fbe1a2edeb`. No further run was made.
+
+Retry outcomes:
+
+- Solvable rate: 7/14 (50%) faithful `agent_pass`.
+- `simulator_invalid`: 0. There are no compliance-judge reasons; all 19 evaluated
+  conversations were compliance-valid, while the nine quota errors were
+  `not_evaluated`.
+- Defect-sensitive rate among targeted runs: 9/14 (64.3%). Nine targeted runs were
+  `agent_fail`; the remaining five were quota errors.
+- Error count: 9 total, comprising four faithful errors and five targeted-defect
+  errors.
+
+Seven faithful runs did not pass and are findings:
+
+- `j1-82b6ebb15f31ae4b`: `agent_fail`; the required initial card ending in 0767
+  was not selected first.
+- `j1-0fb64fdd31e1862d`: `agent_fail`; after accurately reporting submission
+  failure and the customer choosing to stop, the assistant lost the thread and
+  asked for a payment date.
+- `j1-2484e5f390c4919e`: `agent_fail`; after the customer accepted the submission
+  failure and chose to stop, the assistant revalidated and attempted to schedule
+  the payment again.
+- `j1-33a8542037f90a65`: quota error before evaluation.
+- `j1-43d6711c9d6ab035`: quota error before evaluation.
+- `j1-3d88f3176efb27cd`: quota error before evaluation.
+- `j1-e5b543fbe1a2edeb`: quota error before evaluation.
+
+Compared with `live-batch-1`, which recorded 0/27 solvable, 0/27
+defect-sensitive, and 54 connection errors, the retry produced 19 evaluated
+conversations and demonstrated both faithful success and targeted-defect
+sensitivity before quota exhaustion. Because four faithful candidates and five
+targeted runs were not evaluated, the retry rates are incomplete batch outcomes
+rather than final acceptance rates.
