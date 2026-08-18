@@ -2046,6 +2046,118 @@
       "blueprint_id": "j1-535fdfa16315d879",
       "realization_outcome": "first_try_success",
       "scenario_id": "j1-535fdfa16315d879"
+    },
+    {
+      "attempt_count": 0,
+      "batch_label": "live-batch-2",
+      "behavioral_class_key": "j1-behavior-02a6f5fad6f24874",
+      "blueprint_id": "j1-82b6ebb15f31ae4b",
+      "realization_outcome": "reused",
+      "scenario_id": "j1-82b6ebb15f31ae4b"
+    },
+    {
+      "attempt_count": 2,
+      "batch_label": "live-batch-2",
+      "behavioral_class_key": "j1-behavior-0b227910be6de2bb",
+      "blueprint_id": "j1-0fb64fdd31e1862d",
+      "realization_outcome": "retried_once",
+      "scenario_id": "j1-0fb64fdd31e1862d"
+    },
+    {
+      "attempt_count": 1,
+      "batch_label": "live-batch-2",
+      "behavioral_class_key": "j1-behavior-1219ed121690a9be",
+      "blueprint_id": "j1-d4005d61d5c1c541",
+      "realization_outcome": "first_try_success",
+      "scenario_id": "j1-d4005d61d5c1c541"
+    },
+    {
+      "attempt_count": 0,
+      "batch_label": "live-batch-2",
+      "behavioral_class_key": "j1-behavior-3430b4db834fcd97",
+      "blueprint_id": "j1-225595457f4c793b",
+      "realization_outcome": "reused",
+      "scenario_id": "j1-225595457f4c793b"
+    },
+    {
+      "attempt_count": 0,
+      "batch_label": "live-batch-2",
+      "behavioral_class_key": "j1-behavior-4eb6c110483c65d5",
+      "blueprint_id": "j1-2484e5f390c4919e",
+      "realization_outcome": "reused",
+      "scenario_id": "j1-2484e5f390c4919e"
+    },
+    {
+      "attempt_count": 0,
+      "batch_label": "live-batch-2",
+      "behavioral_class_key": "j1-behavior-64009cad4214c6d2",
+      "blueprint_id": "j1-e0eb0744f28a9653",
+      "realization_outcome": "reused",
+      "scenario_id": "j1-e0eb0744f28a9653"
+    },
+    {
+      "attempt_count": 0,
+      "batch_label": "live-batch-2",
+      "behavioral_class_key": "j1-behavior-6412ea39feec1545",
+      "blueprint_id": "j1-535fdfa16315d879",
+      "realization_outcome": "reused",
+      "scenario_id": "j1-535fdfa16315d879"
+    },
+    {
+      "attempt_count": 0,
+      "batch_label": "live-batch-2",
+      "behavioral_class_key": "j1-behavior-77824b8139968c6b",
+      "blueprint_id": "j1-a4731cb8613f3514",
+      "realization_outcome": "reused",
+      "scenario_id": "j1-a4731cb8613f3514"
+    },
+    {
+      "attempt_count": 1,
+      "batch_label": "live-batch-2",
+      "behavioral_class_key": "j1-behavior-780f246ae7d79071",
+      "blueprint_id": "j1-d9c5a7d33bdea7c0",
+      "realization_outcome": "first_try_success",
+      "scenario_id": "j1-d9c5a7d33bdea7c0"
+    },
+    {
+      "attempt_count": 0,
+      "batch_label": "live-batch-2",
+      "behavioral_class_key": "j1-behavior-9dc9e7dc1a59dece",
+      "blueprint_id": "j1-25ec15d058329ba8",
+      "realization_outcome": "reused",
+      "scenario_id": "j1-25ec15d058329ba8"
+    },
+    {
+      "attempt_count": 0,
+      "batch_label": "live-batch-2",
+      "behavioral_class_key": "j1-behavior-9e434402727a2451",
+      "blueprint_id": "j1-33a8542037f90a65",
+      "realization_outcome": "reused",
+      "scenario_id": "j1-33a8542037f90a65"
+    },
+    {
+      "attempt_count": 0,
+      "batch_label": "live-batch-2",
+      "behavioral_class_key": "j1-behavior-aa2d0e8129eaa199",
+      "blueprint_id": "j1-43d6711c9d6ab035",
+      "realization_outcome": "reused",
+      "scenario_id": "j1-43d6711c9d6ab035"
+    },
+    {
+      "attempt_count": 0,
+      "batch_label": "live-batch-2",
+      "behavioral_class_key": "j1-behavior-aef772f54287b856",
+      "blueprint_id": "j1-3d88f3176efb27cd",
+      "realization_outcome": "reused",
+      "scenario_id": "j1-3d88f3176efb27cd"
+    },
+    {
+      "attempt_count": 0,
+      "batch_label": "live-batch-2",
+      "behavioral_class_key": "j1-behavior-fc04e07cf278c9d0",
+      "blueprint_id": "j1-e5b543fbe1a2edeb",
+      "realization_outcome": "reused",
+      "scenario_id": "j1-e5b543fbe1a2edeb"
     }
   ],
   "sample_ids": [

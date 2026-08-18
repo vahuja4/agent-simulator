@@ -1,0 +1,30 @@
+name: j1-0fb64fdd31e1862d
+journey: J1
+description: A customer wants to make a custom one-time payment on the due date using
+  card ending 0767 for account ending 5678. They disclose details one fact at a time,
+  so the agent should gather the missing payment details, select the specified card,
+  fetch payment options, validate the payment, obtain explicit confirmation, attempt
+  submission, and truthfully report the submission failure if it occurs.
+persona:
+  name: Customer
+  traits: patient, attentive to amounts, answers as asked, decisive
+goal: Make a custom one-time payment of 6000.0 on the due date for account ending
+  5678 using card ending 0767, with any submission failure reported truthfully.
+knowledge:
+  cards:
+  - '0767'
+  accounts:
+  - '5678'
+success_criteria:
+- The agent identifies account ending 5678 and card ending 0767.
+- The agent gathers the custom amount 6000.0 and due-date timing despite partial disclosure.
+- The agent validates the one-time payment before submission.
+- The agent obtains explicit confirmation before submitting the payment.
+- The agent attempts to submit the validated payment.
+- If submission fails, the agent reports the failure truthfully and does not claim
+  the payment succeeded.
+max_turns: 11
+tool_assertions:
+- type: validated_submit
+  submit: AddOneTimePayment
+  validate: AddValidateOneTimePayment
