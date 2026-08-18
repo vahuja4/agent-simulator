@@ -164,25 +164,58 @@ agent failures.
 
 ## Phase 5 — Second journey (J2): the generalization test
 
-**Goal:** Prove the per-journey marginal cost is low. This phase is also a
-**kill criterion**: if authoring the J2 graph + predicates takes longer than
-hand-writing the scenarios it would generate, stop and reassess before J3–J5.
+Split into two sessions. Integration phases (ones that touch many existing layers)
+saturate a single agent session; Phase 4 hit ~25% context before completing and had
+to be checkpointed. 5a authors artifacts; 5b integrates and runs the pipeline.
+
+This phase is also a **kill criterion**: if authoring the J2 graph + predicates
+(5a) takes longer than hand-writing the scenarios it would generate, stop and
+reassess before J3–J5.
+
+### Phase 5a — Author the J2 graph, policies, and predicates
 
 **Build**
 
-- `scenario_synthesis/procedures/j2.yaml` + J2 fixture predicates (external-account
-  warning path, funding-account selection) + policies `external_account_warning`,
-  `warning_path` as perturbation.
-- Re-run enumeration + realization + dry-run for J2. No framework changes expected;
-  if the framework needs changes, that is the finding — record it.
+- `scenario_synthesis/procedures/j2.yaml`, derived from the approved J2 journey
+  definition in `plans/agent-simulator-design-plan.md` (not from the mock), with
+  source hashes recorded as in J1.
+- J2 fixture predicates (external-account availability, AutoPay-enabled funding
+  accounts) + policy catalog additions: `external_account_warning`, with
+  `warning_path` as a perturbation type.
+- Extend the validator only where J2 needs it; record any framework change as a
+  finding in the phase notes.
+- Hand-write blueprints reproducing the existing `scenarios/j2_*.yaml` semantics
+  (the Phase 1-style round-trip check), plus rejection cases for J2-specific
+  invalidity.
 
-**Read boundary:** `scenario_synthesis/`, `agentsim/registry.py` (J2 tools),
-`scenarios/j2_*.yaml`, `agentsim/adapters/mock_paycard/j2_autopay_setup.py` (signatures
-only, for tool-result classes).
+**Read boundary:** `scenario_synthesis/` (graph/policy/validator modules only —
+not realize/dryrun), `agentsim/registry.py` (J2 tools), `fixtures/paycard.py`,
+`scenarios/j2_*.yaml`, the J2 section of `plans/agent-simulator-design-plan.md`.
 
-**Done when:** J2 candidates generate end-to-end, and the phase notes record hours
-spent vs. estimated hand-authoring cost. J3/J4/J5 then become three copies of this
-phase (one session each), only if the gate passes.
+**Done when:** J2 round-trip blueprints validate, J2 rejection cases fail with
+clear reasons, offline suite green, and the phase notes record 5a authoring time
+vs. estimated hand-authoring cost (the kill-criterion input).
+
+### Phase 5b — Run J2 through the pipeline
+
+**Build**
+
+- Enumeration + behavioral-class dedup + sampling over J2 (same machinery, no
+  new sampler logic expected).
+- Realization support for J2 goal facts; policy→defect targeting additions for
+  the J2-relevant toggles (e.g. `external_account_warning` → D7).
+- Stubbed dry-run batch over J2 candidates through the existing two-config
+  Phase 4 machinery.
+
+**Read boundary:** `scenario_synthesis/` (enumerate/sample/realize/dryrun +
+the 5a artifacts), `plans/synthesis-phase-5a-notes.md`,
+`agentsim/adapters/mock_paycard/config.py` (toggle names only). Not the journey
+modules, not orchestrator/judge internals (trust Phase 4's tested seam).
+
+**Done when:** J2 candidates generate end-to-end under stubs, manifest records
+J2 behavioral classes and strata, offline suite green, and the phase notes
+deliver the kill-criterion verdict (5a+5b cost vs. hand-authoring). J3/J4/J5
+then become copies of this two-session pattern, only if the gate passes.
 
 ---
 
@@ -215,8 +248,9 @@ comparison report identifies at least the coverage the curated library lacks.
 | 2 Enumerate + dedup + sample | 1 | No | Space size ⇒ enumeration confirmed |
 | 3 Realization | 1 | Stubbed in tests | Equivalence check holds adversarially |
 | 4 Dry-run + coverage | 1 | Stubbed in tests | Sim-invalid measured separately |
-| 5 J2 generalization | 1 | As Phase 3–4 | Kill criterion: authoring cost |
-| 5b–5d J3, J4, J5 | 1 each | As above | Only after Phase 5 gate |
+| 5a J2 graph + predicates | 1 | No | Kill criterion input: authoring cost |
+| 5b J2 pipeline run | 1 | Stubbed in tests | Kill criterion verdict |
+| 5c–5e J3, J4, J5 | 2 each (a+b) | As above | Only after Phase 5 gate |
 | 6 Promotion | 1 | No | Human review only |
 
 Useful scenarios can exist after Phase 3; Phases 5b–5d and 6 are optional until the
