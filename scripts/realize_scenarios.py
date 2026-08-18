@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import asyncio
+import argparse
 import json
 import os
 from pathlib import Path
@@ -73,10 +74,20 @@ def load_manifest_sample(
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--batch-label", required=True)
+    args = parser.parse_args()
     load_dotenv()
     if not os.environ.get("OPENAI_API_KEY"):
         raise SystemExit("OPENAI_API_KEY not set (environment or .env)")
-    asyncio.run(realize_catalog(load_manifest_sample(), OpenAILLM(), report=print))
+    asyncio.run(
+        realize_catalog(
+            load_manifest_sample(),
+            OpenAILLM(),
+            batch_label=args.batch_label,
+            report=print,
+        )
+    )
 
 
 if __name__ == "__main__":

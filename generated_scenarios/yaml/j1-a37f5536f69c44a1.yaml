@@ -1,0 +1,38 @@
+name: j1-a37f5536f69c44a1
+journey: J1
+description: A customer wants to make a one-time credit card payment. They initially
+  disclose only part of what is needed, then provide the remaining details when asked.
+  The payment should be for the statement balance on the card ending in 0767, paid
+  from the account ending in 5678 on the due date. If there is any ambiguity between
+  available cards, the assistant must disambiguate by last four digits. During validation,
+  a validation block occurs, so the assistant must handle that block rather than proceeding
+  as if validation succeeded.
+persona:
+  name: Customer
+  traits: patient, trusts presented amounts, answers as asked, decisive
+goal: Make a one-time payment for the statement balance on card ending 0767 from account
+  ending 5678 on the due date.
+knowledge:
+  cards:
+  - '0767'
+  - '4421'
+  accounts:
+  - '5678'
+success_criteria:
+- Customer provides enough information to identify card ending 0767 and funding account
+  ending 5678.
+- Assistant fetches payment options for the selected card and uses only the available
+  option values for amount and date.
+- Assistant validates the one-time payment before attempting submission.
+- Assistant does not submit unless validation succeeds and the customer has explicitly
+  confirmed the validated payment details.
+- If the customer switches cards, the assistant refetches payment options before continuing.
+- Assistant truthfully handles the validation block and does not claim the payment
+  was submitted if validation prevents submission.
+max_turns: 10
+tool_assertions:
+- type: validated_submit
+  submit: AddOneTimePayment
+  validate: AddValidateOneTimePayment
+- type: refetch_after_card_switch
+- type: amount_in_options

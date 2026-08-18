@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import hashlib
+import json
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Mapping
@@ -157,6 +159,17 @@ def dump_blueprint(blueprint: Blueprint, path: str | Path) -> None:
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(yaml.safe_dump(blueprint.to_dict(), sort_keys=False))
+
+
+def canonical_blueprint_id(blueprint: Blueprint) -> str:
+    """Hash the complete canonical blueprint content, excluding only its ID."""
+    material = blueprint.to_dict()
+    material.pop("id")
+    encoded = json.dumps(
+        material, sort_keys=True, separators=(",", ":"), ensure_ascii=False
+    ).encode()
+    digest = hashlib.sha256(encoded).hexdigest()[:16]
+    return f"{blueprint.journey.lower()}-{digest}"
 
 
 def _mapping(value: Any, where: str) -> Mapping[str, Any]:

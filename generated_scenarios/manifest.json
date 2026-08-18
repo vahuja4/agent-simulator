@@ -23,8 +23,9 @@
   },
   "dry_runs": [
     {
-      "blueprint_id": "j1-6fd3cce8c9eff872",
-      "candidate_id": "j1-6fd3cce8c9eff872",
+      "batch_label": "live-batch-1",
+      "blueprint_id": "j1-893c89aca4ffd761",
+      "candidate_id": "j1-893c89aca4ffd761",
       "defect_sensitive": false,
       "runs": [
         {
@@ -79,8 +80,9 @@
       ]
     },
     {
-      "blueprint_id": "j1-1a8cef237cb9a615",
-      "candidate_id": "j1-1a8cef237cb9a615",
+      "batch_label": "live-batch-1",
+      "blueprint_id": "j1-fb6b690c15415aa2",
+      "candidate_id": "j1-fb6b690c15415aa2",
       "defect_sensitive": false,
       "runs": [
         {
@@ -134,8 +136,9 @@
       ]
     },
     {
-      "blueprint_id": "j1-82b14c01dcd19612",
-      "candidate_id": "j1-82b14c01dcd19612",
+      "batch_label": "live-batch-1",
+      "blueprint_id": "j1-cf2f090a2069215f",
+      "candidate_id": "j1-cf2f090a2069215f",
       "defect_sensitive": false,
       "runs": [
         {
@@ -189,8 +192,9 @@
       ]
     },
     {
-      "blueprint_id": "j1-633947b18615197d",
-      "candidate_id": "j1-633947b18615197d",
+      "batch_label": "live-batch-1",
+      "blueprint_id": "j1-225595457f4c793b",
+      "candidate_id": "j1-225595457f4c793b",
       "defect_sensitive": false,
       "runs": [
         {
@@ -239,8 +243,9 @@
       "solvable": false
     },
     {
-      "blueprint_id": "j1-df7bba79881e74dc",
-      "candidate_id": "j1-df7bba79881e74dc",
+      "batch_label": "live-batch-1",
+      "blueprint_id": "j1-2d33e21a27e0da0d",
+      "candidate_id": "j1-2d33e21a27e0da0d",
       "defect_sensitive": false,
       "runs": [
         {
@@ -294,8 +299,9 @@
       ]
     },
     {
-      "blueprint_id": "j1-f09de7c5aa3cdf9f",
-      "candidate_id": "j1-f09de7c5aa3cdf9f",
+      "batch_label": "live-batch-1",
+      "blueprint_id": "j1-79fee1e600a40f89",
+      "candidate_id": "j1-79fee1e600a40f89",
       "defect_sensitive": false,
       "runs": [
         {
@@ -349,8 +355,9 @@
       ]
     },
     {
-      "blueprint_id": "j1-5cbd3ff623f7bab9",
-      "candidate_id": "j1-5cbd3ff623f7bab9",
+      "batch_label": "live-batch-1",
+      "blueprint_id": "j1-e277e3d45f349722",
+      "candidate_id": "j1-e277e3d45f349722",
       "defect_sensitive": false,
       "runs": [
         {
@@ -404,8 +411,9 @@
       ]
     },
     {
-      "blueprint_id": "j1-e10080bbf91eba03",
-      "candidate_id": "j1-e10080bbf91eba03",
+      "batch_label": "live-batch-1",
+      "blueprint_id": "j1-85dbf007529f1b4d",
+      "candidate_id": "j1-85dbf007529f1b4d",
       "defect_sensitive": false,
       "runs": [
         {
@@ -460,8 +468,9 @@
       ]
     },
     {
-      "blueprint_id": "j1-38b93bf6b74fd63c",
-      "candidate_id": "j1-38b93bf6b74fd63c",
+      "batch_label": "live-batch-1",
+      "blueprint_id": "j1-bf5e7cf3e29e3006",
+      "candidate_id": "j1-bf5e7cf3e29e3006",
       "defect_sensitive": false,
       "runs": [
         {
@@ -517,8 +526,9 @@
       ]
     },
     {
-      "blueprint_id": "j1-51f7838c30dee465",
-      "candidate_id": "j1-51f7838c30dee465",
+      "batch_label": "live-batch-1",
+      "blueprint_id": "j1-73b2cd259cf187df",
+      "candidate_id": "j1-73b2cd259cf187df",
       "defect_sensitive": false,
       "runs": [
         {
@@ -575,8 +585,9 @@
       ]
     },
     {
-      "blueprint_id": "j1-af21746358a09ca6",
-      "candidate_id": "j1-af21746358a09ca6",
+      "batch_label": "live-batch-1",
+      "blueprint_id": "j1-d99609eb16c576cc",
+      "candidate_id": "j1-d99609eb16c576cc",
       "defect_sensitive": false,
       "runs": [
         {
@@ -628,8 +639,9 @@
       ]
     },
     {
-      "blueprint_id": "j1-4d198723b6000c08",
-      "candidate_id": "j1-4d198723b6000c08",
+      "batch_label": "live-batch-1",
+      "blueprint_id": "j1-0d64354fd7908d7b",
+      "candidate_id": "j1-0d64354fd7908d7b",
       "defect_sensitive": false,
       "runs": [
         {
@@ -685,8 +697,9 @@
       ]
     },
     {
-      "blueprint_id": "j1-861102e99a258cec",
-      "candidate_id": "j1-861102e99a258cec",
+      "batch_label": "live-batch-1",
+      "blueprint_id": "j1-df887a8345b75639",
+      "candidate_id": "j1-df887a8345b75639",
       "defect_sensitive": false,
       "runs": [
         {
@@ -740,8 +753,9 @@
       ]
     },
     {
-      "blueprint_id": "j1-15bb6d470dfe0fe4",
-      "candidate_id": "j1-15bb6d470dfe0fe4",
+      "batch_label": "live-batch-1",
+      "blueprint_id": "j1-a37f5536f69c44a1",
+      "candidate_id": "j1-a37f5536f69c44a1",
       "defect_sensitive": false,
       "runs": [
         {
@@ -795,8 +809,9 @@
       ]
     },
     {
-      "blueprint_id": "j1-3e21466ac8ff6a3c",
-      "candidate_id": "j1-3e21466ac8ff6a3c",
+      "batch_label": "live-batch-1",
+      "blueprint_id": "j1-53425021f42b818b",
+      "candidate_id": "j1-53425021f42b818b",
       "defect_sensitive": false,
       "runs": [
         {
@@ -850,8 +865,9 @@
       ]
     },
     {
-      "blueprint_id": "j1-f82f27ce647d158d",
-      "candidate_id": "j1-f82f27ce647d158d",
+      "batch_label": "live-batch-1",
+      "blueprint_id": "j1-ffd32fa113061751",
+      "candidate_id": "j1-ffd32fa113061751",
       "defect_sensitive": false,
       "runs": [
         {
@@ -909,8 +925,9 @@
       ]
     },
     {
-      "blueprint_id": "j1-3a1337323e78683e",
-      "candidate_id": "j1-3a1337323e78683e",
+      "batch_label": "live-batch-1",
+      "blueprint_id": "j1-cf740eaf50c4ff70",
+      "candidate_id": "j1-cf740eaf50c4ff70",
       "defect_sensitive": false,
       "runs": [
         {
@@ -963,8 +980,9 @@
       ]
     },
     {
-      "blueprint_id": "j1-1e2fa23ae4f709e0",
-      "candidate_id": "j1-1e2fa23ae4f709e0",
+      "batch_label": "live-batch-1",
+      "blueprint_id": "j1-77dbe30de9e37c22",
+      "candidate_id": "j1-77dbe30de9e37c22",
       "defect_sensitive": false,
       "runs": [
         {
@@ -1019,8 +1037,9 @@
       ]
     },
     {
-      "blueprint_id": "j1-7097e664b6c4c49c",
-      "candidate_id": "j1-7097e664b6c4c49c",
+      "batch_label": "live-batch-1",
+      "blueprint_id": "j1-499d5cb95d7d7d7a",
+      "candidate_id": "j1-499d5cb95d7d7d7a",
       "defect_sensitive": false,
       "runs": [
         {
@@ -1076,8 +1095,9 @@
       ]
     },
     {
-      "blueprint_id": "j1-57ae9cbad1b8eaab",
-      "candidate_id": "j1-57ae9cbad1b8eaab",
+      "batch_label": "live-batch-1",
+      "blueprint_id": "j1-a7069cfccb050154",
+      "candidate_id": "j1-a7069cfccb050154",
       "defect_sensitive": false,
       "runs": [
         {
@@ -1132,8 +1152,9 @@
       ]
     },
     {
-      "blueprint_id": "j1-fe5951f7be75d15a",
-      "candidate_id": "j1-fe5951f7be75d15a",
+      "batch_label": "live-batch-1",
+      "blueprint_id": "j1-ade6fdfaff6f3c22",
+      "candidate_id": "j1-ade6fdfaff6f3c22",
       "defect_sensitive": false,
       "runs": [
         {
@@ -1191,8 +1212,9 @@
       ]
     },
     {
-      "blueprint_id": "j1-ed8fef83a7017aa7",
-      "candidate_id": "j1-ed8fef83a7017aa7",
+      "batch_label": "live-batch-1",
+      "blueprint_id": "j1-91c596bf43dc7a96",
+      "candidate_id": "j1-91c596bf43dc7a96",
       "defect_sensitive": false,
       "runs": [
         {
@@ -1246,8 +1268,9 @@
       ]
     },
     {
-      "blueprint_id": "j1-e013fd66e72c4df5",
-      "candidate_id": "j1-e013fd66e72c4df5",
+      "batch_label": "live-batch-1",
+      "blueprint_id": "j1-6443e95e2279e240",
+      "candidate_id": "j1-6443e95e2279e240",
       "defect_sensitive": false,
       "runs": [
         {
@@ -1301,8 +1324,9 @@
       ]
     },
     {
-      "blueprint_id": "j1-788290ed34079618",
-      "candidate_id": "j1-788290ed34079618",
+      "batch_label": "live-batch-1",
+      "blueprint_id": "j1-91088839e031046d",
+      "candidate_id": "j1-91088839e031046d",
       "defect_sensitive": false,
       "runs": [
         {
@@ -1360,8 +1384,9 @@
       ]
     },
     {
-      "blueprint_id": "j1-e41173c694844c43",
-      "candidate_id": "j1-e41173c694844c43",
+      "batch_label": "live-batch-1",
+      "blueprint_id": "j1-443f5760a346c43b",
+      "candidate_id": "j1-443f5760a346c43b",
       "defect_sensitive": false,
       "runs": [
         {
@@ -1417,8 +1442,9 @@
       ]
     },
     {
-      "blueprint_id": "j1-9032d7f657ac92bc",
-      "candidate_id": "j1-9032d7f657ac92bc",
+      "batch_label": "live-batch-1",
+      "blueprint_id": "j1-37f7a44fdb9fd189",
+      "candidate_id": "j1-37f7a44fdb9fd189",
       "defect_sensitive": false,
       "runs": [
         {
@@ -1473,8 +1499,9 @@
       ]
     },
     {
-      "blueprint_id": "j1-61c4ef0cacdc2b41",
-      "candidate_id": "j1-61c4ef0cacdc2b41",
+      "batch_label": "live-batch-1",
+      "blueprint_id": "j1-e5b543fbe1a2edeb",
+      "candidate_id": "j1-e5b543fbe1a2edeb",
       "defect_sensitive": false,
       "runs": [
         {
@@ -1579,9 +1606,10 @@
   },
   "realized_scenarios": [
     {
+      "batch_label": "live-batch-1",
       "behavioral_class_key": "j1-behavior-0b227910be6de2bb",
-      "blueprint_id": "j1-6fd3cce8c9eff872",
-      "scenario_id": "j1-6fd3cce8c9eff872",
+      "blueprint_id": "j1-893c89aca4ffd761",
+      "scenario_id": "j1-893c89aca4ffd761",
       "status": "unexecutable_blueprint",
       "unexecutable_reasons": [
         "edge submit -> handle_failure requires goal_facts.amount_type='custom'",
@@ -1592,9 +1620,10 @@
       ]
     },
     {
+      "batch_label": "live-batch-1",
       "behavioral_class_key": "j1-behavior-0b787f488a901f4b",
-      "blueprint_id": "j1-1a8cef237cb9a615",
-      "scenario_id": "j1-1a8cef237cb9a615",
+      "blueprint_id": "j1-fb6b690c15415aa2",
+      "scenario_id": "j1-fb6b690c15415aa2",
       "status": "unexecutable_blueprint",
       "unexecutable_reasons": [
         "edge validate -> validate is non-executable against mock",
@@ -1603,9 +1632,10 @@
       ]
     },
     {
+      "batch_label": "live-batch-1",
       "behavioral_class_key": "j1-behavior-1219ed121690a9be",
-      "blueprint_id": "j1-82b14c01dcd19612",
-      "scenario_id": "j1-82b14c01dcd19612",
+      "blueprint_id": "j1-cf2f090a2069215f",
+      "scenario_id": "j1-cf2f090a2069215f",
       "status": "unexecutable_blueprint",
       "unexecutable_reasons": [
         "perturbation 'submission_failure' requires goal_facts.amount_type='custom'",
@@ -1613,14 +1643,16 @@
       ]
     },
     {
+      "batch_label": "live-batch-1",
       "behavioral_class_key": "j1-behavior-3430b4db834fcd97",
-      "blueprint_id": "j1-633947b18615197d",
-      "scenario_id": "j1-633947b18615197d"
+      "blueprint_id": "j1-225595457f4c793b",
+      "scenario_id": "j1-225595457f4c793b"
     },
     {
+      "batch_label": "live-batch-1",
       "behavioral_class_key": "j1-behavior-39e6e1967c52c936",
-      "blueprint_id": "j1-df7bba79881e74dc",
-      "scenario_id": "j1-df7bba79881e74dc",
+      "blueprint_id": "j1-2d33e21a27e0da0d",
+      "scenario_id": "j1-2d33e21a27e0da0d",
       "status": "unexecutable_blueprint",
       "unexecutable_reasons": [
         "edge validate -> validate is non-executable against mock",
@@ -1629,9 +1661,10 @@
       ]
     },
     {
+      "batch_label": "live-batch-1",
       "behavioral_class_key": "j1-behavior-3a8cf57e50ad18d4",
-      "blueprint_id": "j1-f09de7c5aa3cdf9f",
-      "scenario_id": "j1-f09de7c5aa3cdf9f",
+      "blueprint_id": "j1-79fee1e600a40f89",
+      "scenario_id": "j1-79fee1e600a40f89",
       "status": "unexecutable_blueprint",
       "unexecutable_reasons": [
         "edge validate -> validate is non-executable against mock",
@@ -1640,9 +1673,10 @@
       ]
     },
     {
+      "batch_label": "live-batch-1",
       "behavioral_class_key": "j1-behavior-415647630c26226e",
-      "blueprint_id": "j1-5cbd3ff623f7bab9",
-      "scenario_id": "j1-5cbd3ff623f7bab9",
+      "blueprint_id": "j1-e277e3d45f349722",
+      "scenario_id": "j1-e277e3d45f349722",
       "status": "unexecutable_blueprint",
       "unexecutable_reasons": [
         "edge submit -> handle_failure requires goal_facts.amount_type='custom'",
@@ -1651,9 +1685,10 @@
       ]
     },
     {
+      "batch_label": "live-batch-1",
       "behavioral_class_key": "j1-behavior-575dd305dfe0be53",
-      "blueprint_id": "j1-e10080bbf91eba03",
-      "scenario_id": "j1-e10080bbf91eba03",
+      "blueprint_id": "j1-85dbf007529f1b4d",
+      "scenario_id": "j1-85dbf007529f1b4d",
       "status": "unexecutable_blueprint",
       "unexecutable_reasons": [
         "edge validate -> validate is non-executable against mock",
@@ -1662,9 +1697,10 @@
       ]
     },
     {
+      "batch_label": "live-batch-1",
       "behavioral_class_key": "j1-behavior-6184e5b4bc13e73c",
-      "blueprint_id": "j1-38b93bf6b74fd63c",
-      "scenario_id": "j1-38b93bf6b74fd63c",
+      "blueprint_id": "j1-bf5e7cf3e29e3006",
+      "scenario_id": "j1-bf5e7cf3e29e3006",
       "status": "unexecutable_blueprint",
       "unexecutable_reasons": [
         "edge validate -> validate is non-executable against mock",
@@ -1675,9 +1711,10 @@
       ]
     },
     {
+      "batch_label": "live-batch-1",
       "behavioral_class_key": "j1-behavior-6b387aff5d276c3c",
-      "blueprint_id": "j1-51f7838c30dee465",
-      "scenario_id": "j1-51f7838c30dee465",
+      "blueprint_id": "j1-73b2cd259cf187df",
+      "scenario_id": "j1-73b2cd259cf187df",
       "status": "unexecutable_blueprint",
       "unexecutable_reasons": [
         "edge validate -> validate is non-executable against mock",
@@ -1689,9 +1726,10 @@
       ]
     },
     {
+      "batch_label": "live-batch-1",
       "behavioral_class_key": "j1-behavior-780f246ae7d79071",
-      "blueprint_id": "j1-af21746358a09ca6",
-      "scenario_id": "j1-af21746358a09ca6",
+      "blueprint_id": "j1-d99609eb16c576cc",
+      "scenario_id": "j1-d99609eb16c576cc",
       "status": "unexecutable_blueprint",
       "unexecutable_reasons": [
         "edge submit -> handle_failure requires goal_facts.amount_type='custom'",
@@ -1699,9 +1737,10 @@
       ]
     },
     {
+      "batch_label": "live-batch-1",
       "behavioral_class_key": "j1-behavior-8567d150245c6a1d",
-      "blueprint_id": "j1-4d198723b6000c08",
-      "scenario_id": "j1-4d198723b6000c08",
+      "blueprint_id": "j1-0d64354fd7908d7b",
+      "scenario_id": "j1-0d64354fd7908d7b",
       "status": "unexecutable_blueprint",
       "unexecutable_reasons": [
         "edge submit -> handle_failure requires goal_facts.amount_type='custom'",
@@ -1711,9 +1750,10 @@
       ]
     },
     {
+      "batch_label": "live-batch-1",
       "behavioral_class_key": "j1-behavior-873f9f033e6be4f0",
-      "blueprint_id": "j1-861102e99a258cec",
-      "scenario_id": "j1-861102e99a258cec",
+      "blueprint_id": "j1-df887a8345b75639",
+      "scenario_id": "j1-df887a8345b75639",
       "status": "unexecutable_blueprint",
       "unexecutable_reasons": [
         "edge validate -> validate is non-executable against mock",
@@ -1721,9 +1761,10 @@
       ]
     },
     {
+      "batch_label": "live-batch-1",
       "behavioral_class_key": "j1-behavior-876b23cc8d988732",
-      "blueprint_id": "j1-15bb6d470dfe0fe4",
-      "scenario_id": "j1-15bb6d470dfe0fe4",
+      "blueprint_id": "j1-a37f5536f69c44a1",
+      "scenario_id": "j1-a37f5536f69c44a1",
       "status": "unexecutable_blueprint",
       "unexecutable_reasons": [
         "perturbation 'partial_disclosure' requires goal_facts.disclosure_style='one_fact_at_a_time'",
@@ -1731,9 +1772,10 @@
       ]
     },
     {
+      "batch_label": "live-batch-1",
       "behavioral_class_key": "j1-behavior-8a68e88670e4a381",
-      "blueprint_id": "j1-3e21466ac8ff6a3c",
-      "scenario_id": "j1-3e21466ac8ff6a3c",
+      "blueprint_id": "j1-53425021f42b818b",
+      "scenario_id": "j1-53425021f42b818b",
       "status": "unexecutable_blueprint",
       "unexecutable_reasons": [
         "edge validate -> validate is non-executable against mock",
@@ -1741,9 +1783,10 @@
       ]
     },
     {
+      "batch_label": "live-batch-1",
       "behavioral_class_key": "j1-behavior-8d4fbcd41c05f280",
-      "blueprint_id": "j1-f82f27ce647d158d",
-      "scenario_id": "j1-f82f27ce647d158d",
+      "blueprint_id": "j1-ffd32fa113061751",
+      "scenario_id": "j1-ffd32fa113061751",
       "status": "unexecutable_blueprint",
       "unexecutable_reasons": [
         "edge validate -> validate is non-executable against mock",
@@ -1755,9 +1798,10 @@
       ]
     },
     {
+      "batch_label": "live-batch-1",
       "behavioral_class_key": "j1-behavior-8ed603a9e54f3daa",
-      "blueprint_id": "j1-3a1337323e78683e",
-      "scenario_id": "j1-3a1337323e78683e",
+      "blueprint_id": "j1-cf740eaf50c4ff70",
+      "scenario_id": "j1-cf740eaf50c4ff70",
       "status": "unexecutable_blueprint",
       "unexecutable_reasons": [
         "edge validate -> validate is non-executable against mock",
@@ -1765,9 +1809,10 @@
       ]
     },
     {
+      "batch_label": "live-batch-1",
       "behavioral_class_key": "j1-behavior-90351dfbf5fd7e88",
-      "blueprint_id": "j1-1e2fa23ae4f709e0",
-      "scenario_id": "j1-1e2fa23ae4f709e0",
+      "blueprint_id": "j1-77dbe30de9e37c22",
+      "scenario_id": "j1-77dbe30de9e37c22",
       "status": "unexecutable_blueprint",
       "unexecutable_reasons": [
         "edge validate -> validate is non-executable against mock",
@@ -1778,9 +1823,10 @@
       ]
     },
     {
+      "batch_label": "live-batch-1",
       "behavioral_class_key": "j1-behavior-93c213e83f699ab5",
-      "blueprint_id": "j1-7097e664b6c4c49c",
-      "scenario_id": "j1-7097e664b6c4c49c",
+      "blueprint_id": "j1-499d5cb95d7d7d7a",
+      "scenario_id": "j1-499d5cb95d7d7d7a",
       "status": "unexecutable_blueprint",
       "unexecutable_reasons": [
         "edge submit -> handle_failure requires goal_facts.amount_type='custom'",
@@ -1790,9 +1836,10 @@
       ]
     },
     {
+      "batch_label": "live-batch-1",
       "behavioral_class_key": "j1-behavior-942e5d1551e136d8",
-      "blueprint_id": "j1-57ae9cbad1b8eaab",
-      "scenario_id": "j1-57ae9cbad1b8eaab",
+      "blueprint_id": "j1-a7069cfccb050154",
+      "scenario_id": "j1-a7069cfccb050154",
       "status": "unexecutable_blueprint",
       "unexecutable_reasons": [
         "edge validate -> validate is non-executable against mock",
@@ -1801,9 +1848,10 @@
       ]
     },
     {
+      "batch_label": "live-batch-1",
       "behavioral_class_key": "j1-behavior-aa293ee83511e780",
-      "blueprint_id": "j1-fe5951f7be75d15a",
-      "scenario_id": "j1-fe5951f7be75d15a",
+      "blueprint_id": "j1-ade6fdfaff6f3c22",
+      "scenario_id": "j1-ade6fdfaff6f3c22",
       "status": "unexecutable_blueprint",
       "unexecutable_reasons": [
         "edge validate -> validate is non-executable against mock",
@@ -1816,9 +1864,10 @@
       ]
     },
     {
+      "batch_label": "live-batch-1",
       "behavioral_class_key": "j1-behavior-abb59292d61d9e21",
-      "blueprint_id": "j1-ed8fef83a7017aa7",
-      "scenario_id": "j1-ed8fef83a7017aa7",
+      "blueprint_id": "j1-91c596bf43dc7a96",
+      "scenario_id": "j1-91c596bf43dc7a96",
       "status": "unexecutable_blueprint",
       "unexecutable_reasons": [
         "edge validate -> validate is non-executable against mock",
@@ -1826,9 +1875,10 @@
       ]
     },
     {
+      "batch_label": "live-batch-1",
       "behavioral_class_key": "j1-behavior-b59f0043f8526af2",
-      "blueprint_id": "j1-e013fd66e72c4df5",
-      "scenario_id": "j1-e013fd66e72c4df5",
+      "blueprint_id": "j1-6443e95e2279e240",
+      "scenario_id": "j1-6443e95e2279e240",
       "status": "unexecutable_blueprint",
       "unexecutable_reasons": [
         "edge validate -> validate is non-executable against mock",
@@ -1837,9 +1887,10 @@
       ]
     },
     {
+      "batch_label": "live-batch-1",
       "behavioral_class_key": "j1-behavior-b74746a8a0a4cdd9",
-      "blueprint_id": "j1-788290ed34079618",
-      "scenario_id": "j1-788290ed34079618",
+      "blueprint_id": "j1-91088839e031046d",
+      "scenario_id": "j1-91088839e031046d",
       "status": "unexecutable_blueprint",
       "unexecutable_reasons": [
         "edge validate -> validate is non-executable against mock",
@@ -1851,9 +1902,10 @@
       ]
     },
     {
+      "batch_label": "live-batch-1",
       "behavioral_class_key": "j1-behavior-ce761e2e4dc2e48d",
-      "blueprint_id": "j1-e41173c694844c43",
-      "scenario_id": "j1-e41173c694844c43",
+      "blueprint_id": "j1-443f5760a346c43b",
+      "scenario_id": "j1-443f5760a346c43b",
       "status": "unexecutable_blueprint",
       "unexecutable_reasons": [
         "edge submit -> handle_failure requires goal_facts.amount_type='custom'",
@@ -1863,9 +1915,10 @@
       ]
     },
     {
+      "batch_label": "live-batch-1",
       "behavioral_class_key": "j1-behavior-ecb5deddf82e8edc",
-      "blueprint_id": "j1-9032d7f657ac92bc",
-      "scenario_id": "j1-9032d7f657ac92bc",
+      "blueprint_id": "j1-37f7a44fdb9fd189",
+      "scenario_id": "j1-37f7a44fdb9fd189",
       "status": "unexecutable_blueprint",
       "unexecutable_reasons": [
         "edge validate -> validate is non-executable against mock",
@@ -1874,26 +1927,142 @@
       ]
     },
     {
+      "batch_label": "live-batch-1",
       "behavioral_class_key": "j1-behavior-fc04e07cf278c9d0",
-      "blueprint_id": "j1-61c4ef0cacdc2b41",
-      "scenario_id": "j1-61c4ef0cacdc2b41"
+      "blueprint_id": "j1-e5b543fbe1a2edeb",
+      "scenario_id": "j1-e5b543fbe1a2edeb"
+    },
+    {
+      "attempt_count": 2,
+      "batch_label": "live-batch-2",
+      "behavioral_class_key": "j1-behavior-4eb6c110483c65d5",
+      "blueprint_id": "j1-2484e5f390c4919e",
+      "realization_outcome": "retried_once",
+      "scenario_id": "j1-2484e5f390c4919e"
+    },
+    {
+      "attempt_count": 1,
+      "batch_label": "live-batch-2",
+      "behavioral_class_key": "j1-behavior-9e434402727a2451",
+      "blueprint_id": "j1-33a8542037f90a65",
+      "realization_outcome": "first_try_success",
+      "scenario_id": "j1-33a8542037f90a65"
+    },
+    {
+      "attempt_count": 1,
+      "batch_label": "live-batch-2",
+      "behavioral_class_key": "j1-behavior-aa2d0e8129eaa199",
+      "blueprint_id": "j1-43d6711c9d6ab035",
+      "realization_outcome": "first_try_success",
+      "scenario_id": "j1-43d6711c9d6ab035"
+    },
+    {
+      "attempt_count": 1,
+      "batch_label": "live-batch-2",
+      "behavioral_class_key": "j1-behavior-aef772f54287b856",
+      "blueprint_id": "j1-3d88f3176efb27cd",
+      "realization_outcome": "first_try_success",
+      "scenario_id": "j1-3d88f3176efb27cd"
+    },
+    {
+      "attempt_count": 1,
+      "batch_label": "live-batch-2",
+      "behavioral_class_key": "j1-behavior-64009cad4214c6d2",
+      "blueprint_id": "j1-e0eb0744f28a9653",
+      "realization_outcome": "first_try_success",
+      "scenario_id": "j1-e0eb0744f28a9653"
+    },
+    {
+      "attempt_count": 0,
+      "batch_label": "live-batch-2",
+      "behavioral_class_key": "j1-behavior-fc04e07cf278c9d0",
+      "blueprint_id": "j1-e5b543fbe1a2edeb",
+      "realization_outcome": "reused",
+      "scenario_id": "j1-e5b543fbe1a2edeb"
+    },
+    {
+      "attempt_count": 0,
+      "batch_label": "live-batch-2",
+      "behavioral_class_key": "j1-behavior-3430b4db834fcd97",
+      "blueprint_id": "j1-225595457f4c793b",
+      "realization_outcome": "reused",
+      "scenario_id": "j1-225595457f4c793b"
+    },
+    {
+      "attempt_count": 0,
+      "batch_label": "live-batch-2",
+      "behavioral_class_key": "j1-behavior-0b227910be6de2bb",
+      "blueprint_id": "j1-0fb64fdd31e1862d",
+      "error": "existing YAML is not reusable and was not overwritten",
+      "realization_outcome": "failed_closed",
+      "status": "failed_closed"
+    },
+    {
+      "attempt_count": 0,
+      "batch_label": "live-batch-2",
+      "behavioral_class_key": "j1-behavior-1219ed121690a9be",
+      "blueprint_id": "j1-d4005d61d5c1c541",
+      "error": "existing YAML is not reusable and was not overwritten",
+      "realization_outcome": "failed_closed",
+      "status": "failed_closed"
+    },
+    {
+      "attempt_count": 1,
+      "batch_label": "live-batch-2",
+      "behavioral_class_key": "j1-behavior-77824b8139968c6b",
+      "blueprint_id": "j1-a4731cb8613f3514",
+      "realization_outcome": "first_try_success",
+      "scenario_id": "j1-a4731cb8613f3514"
+    },
+    {
+      "attempt_count": 0,
+      "batch_label": "live-batch-2",
+      "behavioral_class_key": "j1-behavior-780f246ae7d79071",
+      "blueprint_id": "j1-d9c5a7d33bdea7c0",
+      "error": "existing YAML is not reusable and was not overwritten",
+      "realization_outcome": "failed_closed",
+      "status": "failed_closed"
+    },
+    {
+      "attempt_count": 1,
+      "batch_label": "live-batch-2",
+      "behavioral_class_key": "j1-behavior-02a6f5fad6f24874",
+      "blueprint_id": "j1-82b6ebb15f31ae4b",
+      "realization_outcome": "first_try_success",
+      "scenario_id": "j1-82b6ebb15f31ae4b"
+    },
+    {
+      "attempt_count": 1,
+      "batch_label": "live-batch-2",
+      "behavioral_class_key": "j1-behavior-9dc9e7dc1a59dece",
+      "blueprint_id": "j1-25ec15d058329ba8",
+      "realization_outcome": "first_try_success",
+      "scenario_id": "j1-25ec15d058329ba8"
+    },
+    {
+      "attempt_count": 1,
+      "batch_label": "live-batch-2",
+      "behavioral_class_key": "j1-behavior-6412ea39feec1545",
+      "blueprint_id": "j1-535fdfa16315d879",
+      "realization_outcome": "first_try_success",
+      "scenario_id": "j1-535fdfa16315d879"
     }
   ],
   "sample_ids": [
-    "j1-0e52ad6a51d58f25",
-    "j1-19ba48bc5d5f1281",
-    "j1-27cbbe5c09a99e33",
-    "j1-53aebf7a6eff6fef",
-    "j1-5a5aea0a2f4e1ce0",
-    "j1-61c4ef0cacdc2b41",
-    "j1-633947b18615197d",
-    "j1-6fd3cce8c9eff872",
-    "j1-82b14c01dcd19612",
-    "j1-8ec36fc7f0a71cee",
-    "j1-af21746358a09ca6",
-    "j1-c1e39666c08a0ca2",
-    "j1-f52316ce06b16852",
-    "j1-fde571a63c6a227e"
+    "j1-2484e5f390c4919e",
+    "j1-33a8542037f90a65",
+    "j1-43d6711c9d6ab035",
+    "j1-3d88f3176efb27cd",
+    "j1-e0eb0744f28a9653",
+    "j1-e5b543fbe1a2edeb",
+    "j1-225595457f4c793b",
+    "j1-0fb64fdd31e1862d",
+    "j1-d4005d61d5c1c541",
+    "j1-a4731cb8613f3514",
+    "j1-d9c5a7d33bdea7c0",
+    "j1-82b6ebb15f31ae4b",
+    "j1-25ec15d058329ba8",
+    "j1-535fdfa16315d879"
   ],
   "sample_per_stratum": 1,
   "sampling_unit": "behavioral_class",

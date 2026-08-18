@@ -184,7 +184,7 @@ async def test_catalog_preserves_marked_records_and_yamls_outside_sample(
     reports: list[str] = []
 
     paths = await realize.realize_catalog(
-        (subset, maximal), llm, report=reports.append
+        (subset, maximal), llm, batch_label="batch-2", report=reports.append
     )
     manifest = json.loads(manifest_path.read_text())
 
@@ -198,6 +198,7 @@ async def test_catalog_preserves_marked_records_and_yamls_outside_sample(
             "scenario_id": maximal.id,
             "blueprint_id": maximal.id,
             "behavioral_class_key": behavioral_class_key(maximal),
+            "batch_label": "batch-2",
             "attempt_count": 1,
             "realization_outcome": "first_try_success",
         },
@@ -232,13 +233,21 @@ async def test_catalog_reuses_valid_overlap_without_rewriting_yaml(
     llm = StubLLM([])
 
     paths = await realize.realize_catalog(
-        (blueprint,), llm, report=reports.append
+        (blueprint,), llm, batch_label="batch-2", report=reports.append
     )
 
     assert paths == (yaml_path,)
     assert llm.calls == 0
     assert yaml_path.read_bytes() == original_bytes
-    assert json.loads(manifest_path.read_text())["realized_scenarios"] == [record]
+    assert json.loads(manifest_path.read_text())["realized_scenarios"] == [
+        record,
+        {
+            **record,
+            "batch_label": "batch-2",
+            "attempt_count": 0,
+            "realization_outcome": "reused",
+        },
+    ]
     assert reports[0].startswith(f"reused {blueprint.id}:")
     assert reports[-1].endswith(
         "realized=0 reused=1 retried=0 failed=0 preserved=0"
@@ -275,7 +284,7 @@ async def test_catalog_records_attempt_counts_for_each_outcome(
     reports: list[str] = []
 
     paths = await realize.realize_catalog(
-        blueprints, llm, report=reports.append
+        blueprints, llm, batch_label="batch-2", report=reports.append
     )
     records = {
         record["blueprint_id"]: record
@@ -294,3 +303,35 @@ async def test_catalog_records_attempt_counts_for_each_outcome(
     assert reports[-1].endswith(
         "realized=2 reused=0 retried=1 failed=1 preserved=0"
     )
+
+
+@pytest.mark.asyncio
+async def test_catalog_appends_collision_without_mutating_prior_batch(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    blueprint = load_blueprint(BLUEPRINT)
+    historical = {
+        "scenario_id": blueprint.id,
+        "blueprint_id": blueprint.id,
+        "behavioral_class_key": behavioral_class_key(blueprint),
+        "batch_label": "batch-1",
+        "status": "unexecutable_blueprint",
+        "unexecutable_reasons": ["historical reason"],
+    }
+    manifest_path = tmp_path / "manifest.json"
+    manifest_path.write_text(json.dumps({"realized_scenarios": [historical]}))
+    yaml_dir = tmp_path / "yaml"
+    yaml_dir.mkdir()
+    (yaml_dir / f"{blueprint.id}.yaml").write_text("historical: artifact\n")
+    monkeypatch.setattr(realize, "DEFAULT_YAML_DIR", yaml_dir)
+    monkeypatch.setattr(realize, "DEFAULT_MANIFEST", manifest_path)
+
+    await realize.realize_catalog(
+        (blueprint,), StubLLM([]), batch_label="batch-2"
+    )
+
+    records = json.loads(manifest_path.read_text())["realized_scenarios"]
+    assert records[0] == historical
+    assert records[1]["batch_label"] == "batch-2"
+    assert records[1]["status"] == "failed_closed"
+    assert records[1]["attempt_count"] == 0

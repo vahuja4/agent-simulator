@@ -1,0 +1,39 @@
+id: j1-8e232b85180b0d1c
+journey: J1
+procedure_path:
+- disclose
+- select_card
+- fetch_options
+- select_card
+- fetch_options
+- validate
+- confirm
+- submit
+- terminate
+policies: []
+fixture_bindings:
+  cards:
+  - '9013'
+  - '0767'
+  accounts:
+  - '5678'
+goal_facts:
+  card_last_four: '9013'
+  account_last_four: '5678'
+  amount_type: statement_balance
+  date: due_date
+  initial_card_last_four: '9013'
+  final_card_last_four: '0767'
+  disclosure_style: one_fact_at_a_time
+perturbations:
+- type: partial_disclosure
+  position: after_disclosure
+- type: card_switch
+  position: after_options
+tool_assertions: []
+max_turns: 13
+provenance:
+  generator_version: phase-4.1-v1
+  seed: 0
+  graph_hash: 9344a30c7f3e1d109eb0f8a0e45783bc30b4b9fdeaf7d4c1ff742ddedce98062
+  fixture_hash: 1670acf7f56e48733e3cd2055e858ab54dc57d81b29089dd73ed22e164364b70

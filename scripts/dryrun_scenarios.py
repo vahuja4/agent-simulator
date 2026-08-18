@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import asyncio
+import argparse
 import json
 
 from agentsim.llm import OpenAILLM
@@ -17,11 +18,19 @@ from scenario_synthesis.dryrun import (
 )
 
 
-async def _main() -> None:
+async def _main(batch_label: str) -> None:
     manifest = json.loads(DEFAULT_MANIFEST.read_text())
-    entries = manifest.get("realized_scenarios", [])
+    entries = [
+        entry
+        for entry in manifest.get("realized_scenarios", [])
+        if entry.get("batch_label") == batch_label
+        and "scenario_id" in entry
+        and "status" not in entry
+    ]
     if not entries:
-        raise SystemExit("manifest has no realized scenarios; run realization explicitly first")
+        raise SystemExit(
+            f"manifest has no successful realizations for batch {batch_label!r}"
+        )
     candidates = []
     for entry in entries:
         blueprint_id = entry["blueprint_id"]
@@ -35,9 +44,12 @@ async def _main() -> None:
     await run_dryrun_batch(
         candidates,
         lambda _blueprint, _configuration: OpenAILLM(),
+        batch_label=batch_label,
         manifest_path=DEFAULT_MANIFEST,
     )
 
 
 if __name__ == "__main__":
-    asyncio.run(_main())
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--batch-label", required=True)
+    asyncio.run(_main(parser.parse_args().batch_label))

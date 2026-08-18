@@ -1,0 +1,39 @@
+name: j1-e277e3d45f349722
+journey: J1
+description: The user wants to make a one-time credit card payment. They provide the
+  relevant account ending in 5678 and choose the card ending in 9013. The payment
+  should be for the statement balance and scheduled for the due date. During validation,
+  a warning is presented, so the assistant must explain it and obtain explicit confirmation
+  before submitting. If submission fails, the assistant must report that failure truthfully
+  and stop without claiming the payment was made.
+persona:
+  name: Jordan
+  traits: patient, attentive to amounts, concise upfront, decisive
+goal: Submit a one-time payment for the statement balance on card 9013 from account
+  5678 for the due date, but truthfully report the submission failure if the payment
+  cannot be completed.
+knowledge:
+  cards:
+  - '9013'
+  - '0767'
+  accounts:
+  - '5678'
+success_criteria:
+- The assistant identifies account 5678 and card 9013 before proceeding.
+- The assistant fetches the available payment options for card 9013 and uses an amount
+  that appears in those options.
+- The assistant validates the one-time payment before attempting submission.
+- If validation returns a warning, the assistant communicates the warning and obtains
+  explicit user confirmation before submitting.
+- The assistant submits the validated payment only after confirmation.
+- If the submit call fails, the assistant truthfully reports the failure and does
+  not state or imply that the payment was successful.
+- If the user switches cards at any point, the assistant refetches payment options
+  for the newly selected card and treats any prior validation as reset.
+max_turns: 11
+tool_assertions:
+- type: validated_submit
+  submit: AddOneTimePayment
+  validate: AddValidateOneTimePayment
+- type: refetch_after_card_switch
+- type: amount_in_options

@@ -1,0 +1,38 @@
+name: j1-499d5cb95d7d7d7a
+journey: J1
+description: The customer wants to make a one-time credit card payment. They initially
+  disclose only part of the needed information, using account ending in 5678 and intending
+  to pay the statement balance on the due date with card ending in 0767. During the
+  flow, they switch the payment card to the card ending in 4421, requiring the payment
+  options to be fetched again before validation. After validation and explicit confirmation,
+  the payment submission fails, and the failure must be reported truthfully.
+persona:
+  name: Customer
+  traits: patient, attentive to amounts, answers as asked, changes mind once
+goal: Make a one-time payment for the statement balance on the due date for account
+  ending in 5678, ultimately using card ending in 4421, and truthfully report that
+  the submitted payment failed.
+knowledge:
+  cards:
+  - '0767'
+  - '4421'
+  accounts:
+  - '5678'
+success_criteria:
+- Collect the initially partial payment details without assuming missing information.
+- "Disambiguate and select the payment card ending in 0767 first, then handle the\
+  \ customer\u2019s switch to card ending in 4421."
+- Refetch payment options after the card switch, and ensure the statement balance
+  amount comes from the available options.
+- Validate the one-time payment before submission and obtain explicit customer confirmation
+  before submitting.
+- Submit the validated payment using AddOneTimePayment only after AddValidateOneTimePayment
+  succeeds.
+- Truthfully report the submission failure and do not claim the payment was successful.
+max_turns: 14
+tool_assertions:
+- type: validated_submit
+  submit: AddOneTimePayment
+  validate: AddValidateOneTimePayment
+- type: refetch_after_card_switch
+- type: amount_in_options

@@ -1,0 +1,40 @@
+name: j1-3d88f3176efb27cd
+journey: J1
+description: A customer wants to make a one-time payment from bank account ending
+  in 5678 toward the statement balance due on the due date. They initially select
+  card ending in 9013, but then switch to card ending in 0767 before proceeding. After
+  switching cards, the payment options must be fetched again, and the statement balance
+  amount presented in those options should be used. The customer must explicitly confirm
+  the validated payment details before the payment is submitted.
+persona:
+  name: Customer
+  traits: patient, trusts presented amounts, concise upfront, changes mind once
+goal: Make a one-time payment for the statement balance due on the due date to card
+  ending in 0767, using bank account ending in 5678, after first selecting card ending
+  in 9013 and then switching cards.
+knowledge:
+  cards:
+  - '9013'
+  - '0767'
+  accounts:
+  - '5678'
+success_criteria:
+- Customer discloses they want to pay the statement balance due on the due date from
+  account ending in 5678.
+- Customer initially selects card ending in 9013.
+- Payment options are fetched for card ending in 9013.
+- Customer switches to card ending in 0767 before validation or submission.
+- Payment options are fetched again after the card switch for card ending in 0767.
+- The payment amount used is the statement balance amount from the fetched payment
+  options for card ending in 0767.
+- Payment is validated with AddValidateOneTimePayment before submission.
+- Customer explicitly confirms the validated payment details.
+- Payment is submitted with AddOneTimePayment only after validation and explicit confirmation.
+- Conversation terminates after successful submission.
+max_turns: 13
+tool_assertions:
+- type: validated_submit
+  submit: AddOneTimePayment
+  validate: AddValidateOneTimePayment
+- type: refetch_after_card_switch
+- type: amount_in_options

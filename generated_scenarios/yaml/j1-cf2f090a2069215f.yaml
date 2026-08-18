@@ -1,0 +1,37 @@
+name: j1-cf2f090a2069215f
+journey: J1
+description: A customer wants to make a one-time payment on account ending 5678 for
+  the statement balance due on the due date. They first indicate card ending 0767,
+  but after payment options are presented they switch to card ending 4421. The assistant
+  must refetch payment options after the card switch, validate the selected payment
+  details, obtain explicit confirmation, attempt submission, and then handle the submission
+  failure truthfully before terminating.
+persona:
+  name: Customer
+  traits: patient, attentive to amounts, concise upfront, changes mind once
+goal: Make a one-time payment for the statement balance on account 5678, dated for
+  the due date, using card 4421 after switching from card 0767.
+knowledge:
+  cards:
+  - '0767'
+  - '4421'
+  accounts:
+  - '5678'
+success_criteria:
+- Disambiguate all referenced payment cards by last four digits, starting with card
+  0767 and then switching to card 4421.
+- After the customer switches cards, reset the prior card-dependent selection and
+  refetch payment options for card 4421.
+- Use only amounts and options returned by the tools, ensuring the statement balance
+  option is selected from available options.
+- Validate the one-time payment with AddValidateOneTimePayment before attempting submission.
+- Get explicit customer confirmation of the payment details before submission.
+- Submit the payment with AddOneTimePayment only after successful validation and confirmation.
+- Truthfully report the submission failure and do not claim the payment was made.
+max_turns: 13
+tool_assertions:
+- type: validated_submit
+  submit: AddOneTimePayment
+  validate: AddValidateOneTimePayment
+- type: refetch_after_card_switch
+- type: amount_in_options

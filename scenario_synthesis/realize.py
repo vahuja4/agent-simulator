@@ -187,9 +187,12 @@ async def realize_catalog(
     blueprints: Sequence[Blueprint],
     llm: LLMClient,
     *,
+    batch_label: str,
     report: Callable[[str], None] | None = None,
 ) -> tuple[Path, ...]:
-    """Realize missing representatives while preserving prior batches."""
+    """Realize representatives and append an immutable labeled batch history."""
+    if not isinstance(batch_label, str) or not batch_label.strip():
+        raise RealizationError("batch_label must be a non-empty string")
     representatives = behavioral_representatives(blueprints)
     manifest = json.loads(DEFAULT_MANIFEST.read_text())
     entries = list(manifest.get("realized_scenarios", []))
@@ -204,19 +207,29 @@ async def realize_catalog(
     realized = reused = retried = failed = 0
 
     for blueprint in representatives:
-        existing_index = next(
+        existing = next(
             (
-                index
-                for index, entry in enumerate(entries)
+                entry
+                for entry in reversed(entries)
                 if entry.get("blueprint_id") == blueprint.id
+                and "status" not in entry
             ),
             None,
         )
-        existing = entries[existing_index] if existing_index is not None else None
         reusable_path = _reusable_path(existing, blueprint)
         if reusable_path is not None:
             paths.append(reusable_path)
             reused += 1
+            entries.append(
+                {
+                    "scenario_id": blueprint.id,
+                    "blueprint_id": blueprint.id,
+                    "behavioral_class_key": behavioral_class_key(blueprint),
+                    "batch_label": batch_label,
+                    "attempt_count": 0,
+                    "realization_outcome": "reused",
+                }
+            )
             if report is not None:
                 report(f"reused {blueprint.id}: {reusable_path}")
             continue
@@ -226,6 +239,7 @@ async def realize_catalog(
             record: dict[str, Any] = {
                 "blueprint_id": blueprint.id,
                 "behavioral_class_key": behavioral_class_key(blueprint),
+                "batch_label": batch_label,
                 "status": "failed_closed",
                 "attempt_count": 0,
                 "realization_outcome": "failed_closed",
@@ -241,6 +255,7 @@ async def realize_catalog(
                 record = {
                     "blueprint_id": blueprint.id,
                     "behavioral_class_key": behavioral_class_key(blueprint),
+                    "batch_label": batch_label,
                     "status": "failed_closed",
                     "attempt_count": 2,
                     "realization_outcome": "failed_closed",
@@ -253,6 +268,7 @@ async def realize_catalog(
                     "scenario_id": blueprint.id,
                     "blueprint_id": blueprint.id,
                     "behavioral_class_key": behavioral_class_key(blueprint),
+                    "batch_label": batch_label,
                     "attempt_count": attempt_count,
                     "realization_outcome": (
                         "first_try_success" if attempt_count == 1 else "retried_once"
@@ -261,10 +277,7 @@ async def realize_catalog(
                 realized += 1
                 retried += attempt_count == 2
 
-        if existing_index is None:
-            entries.append(record)
-        else:
-            entries[existing_index] = record
+        entries.append(record)
 
     manifest["realized_scenarios"] = entries
     DEFAULT_MANIFEST.write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n")

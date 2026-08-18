@@ -4,7 +4,11 @@ import json
 from dataclasses import replace
 from pathlib import Path
 
-from scenario_synthesis.blueprint import dump_blueprint, load_blueprint
+from scenario_synthesis.blueprint import (
+    canonical_blueprint_id,
+    dump_blueprint,
+    load_blueprint,
+)
 from scenario_synthesis.enumerate import (
     CARD_SWITCH_EDGE,
     enumerate_blueprints,
@@ -30,6 +34,15 @@ def test_enumeration_is_valid_deduped_and_loop_bounded() -> None:
         edges = tuple(zip(blueprint.procedure_path, blueprint.procedure_path[1:]))
         assert edges.count(CARD_SWITCH_EDGE) <= 1
         assert len(blueprint.perturbations) <= 2
+
+
+def test_blueprint_identity_includes_goal_facts_but_behavioral_class_does_not() -> None:
+    blueprint = load_blueprint("scenario_synthesis/blueprints/j1_submission_failure.yaml")
+    corrected_facts = {**blueprint.goal_facts, "amount_type": "custom", "amount": 6000}
+    corrected = replace(blueprint, goal_facts=corrected_facts)
+
+    assert canonical_blueprint_id(blueprint) != canonical_blueprint_id(corrected)
+    assert behavioral_class_key(blueprint) == behavioral_class_key(corrected)
 
 
 def test_every_graph_edge_and_policy_is_covered() -> None:
@@ -132,7 +145,7 @@ def test_manifest_sample_is_reproduced_from_seed(tmp_path: Path) -> None:
     assert len({behavioral_class_key(item) for item in reproduced}) == len(reproduced)
 
 
-def test_regeneration_preserves_and_marks_unexecutable_realized_artifacts(
+def test_regeneration_archives_unexecutable_artifact_without_mutating_history(
     tmp_path: Path,
 ) -> None:
     root = tmp_path / "generated"
@@ -166,12 +179,12 @@ def test_regeneration_preserves_and_marks_unexecutable_realized_artifacts(
 
     manifest = write_generation(output_root=root)
 
-    for record in (
-        manifest["realized_scenarios"][0],
-        manifest["dry_runs"][0],
-    ):
-        assert record["status"] == "unexecutable_blueprint"
-        assert any("LARGE_PAYMENT_THRESHOLD" in reason for reason in record["unexecutable_reasons"])
+    assert manifest["realized_scenarios"] == [
+        {"scenario_id": "legacy-realized", "blueprint_id": "legacy-realized"}
+    ]
+    assert manifest["dry_runs"] == [
+        {"candidate_id": "legacy-realized", "blueprint_id": "legacy-realized", "runs": []}
+    ]
     assert yaml_path.exists()
     assert (root / "unexecutable_blueprints" / "legacy-realized.yaml").exists()
 

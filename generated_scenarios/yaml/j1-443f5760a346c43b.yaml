@@ -1,0 +1,43 @@
+name: j1-443f5760a346c43b
+journey: J1
+description: A customer wants to make a one-time credit card payment. They initially
+  provide only partial payment details, then need to clarify the exact card because
+  multiple cards are available. The payment should be for the statement balance on
+  card ending 0767, paid from account ending 5678 on the due date. The flow includes
+  validation before submission, explicit confirmation, and a truthful report if submission
+  fails.
+persona:
+  name: Customer
+  traits: patient, attentive to amounts, answers as asked, decisive
+goal: Submit a one-time payment for the statement balance on card ending 0767 from
+  account ending 5678 on the due date, and if the payment submission fails, report
+  the failure truthfully rather than claiming success.
+knowledge:
+  cards:
+  - '0767'
+  - '4421'
+  accounts:
+  - '5678'
+success_criteria:
+- Disclose the intent to make a one-time payment, but initially provide only partial
+  details until asked for the missing information.
+- Disambiguate between available cards ending 0767 and 4421, then select card ending
+  0767.
+- After the card is selected, fetch or refetch the available payment options for that
+  card.
+- Use only an amount that appears in the available payment options, specifically the
+  statement balance.
+- Validate the payment with AddValidateOneTimePayment before attempting submission.
+- Obtain explicit confirmation before submitting the payment.
+- Submit the validated payment using AddOneTimePayment for card ending 0767, account
+  ending 5678, statement balance, on the due date.
+- If submission fails, accurately report that the payment was not completed rather
+  than implying it was successful.
+- End the interaction after the failure is handled truthfully.
+max_turns: 11
+tool_assertions:
+- type: validated_submit
+  submit: AddOneTimePayment
+  validate: AddValidateOneTimePayment
+- type: refetch_after_card_switch
+- type: amount_in_options

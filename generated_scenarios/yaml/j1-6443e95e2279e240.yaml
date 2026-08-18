@@ -1,0 +1,41 @@
+name: j1-6443e95e2279e240
+journey: J1
+description: A cardholder wants to make a one-time payment using account 5678 for
+  the statement balance due on the due date for card 9013. During validation there
+  is a validation block, so the payment details must be validated again before proceeding.
+  Any explicit confirmation must reflect the validated tool output, and if the card
+  is switched, payment options must be refetched and prior selections reset.
+persona:
+  name: Jordan
+  traits: patient, attentive to amounts, concise upfront, decisive
+goal: Make a one-time payment for the statement balance due on the due date for card
+  9013 from account 5678, validating successfully and then submitting only after explicit
+  confirmation.
+knowledge:
+  cards:
+  - '9013'
+  - '0767'
+  accounts:
+  - '5678'
+success_criteria:
+- User discloses intent to pay the statement balance on the due date for card 9013
+  using account 5678.
+- Assistant selects card 9013 and fetches available payment options before validation.
+- The selected payment amount is one of the amounts returned in the available payment
+  options.
+- If the user switches cards, the assistant refetches options for the new card and
+  resets prior payment selections.
+- Assistant handles the validation block by retrying validation with AddValidateOneTimePayment
+  before confirmation.
+- Assistant obtains explicit user confirmation using the validated payment details
+  from tool output.
+- Assistant submits the payment with AddOneTimePayment only after successful validation
+  and explicit confirmation.
+- Assistant terminates the flow after the validated payment submission is complete.
+max_turns: 11
+tool_assertions:
+- type: validated_submit
+  submit: AddOneTimePayment
+  validate: AddValidateOneTimePayment
+- type: refetch_after_card_switch
+- type: amount_in_options

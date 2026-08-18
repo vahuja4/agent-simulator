@@ -1,0 +1,35 @@
+name: j1-e0eb0744f28a9653
+journey: J1
+description: The customer wants to make a one-time payment but discloses details one
+  at a time. They intend to pay a custom amount of $6,000 on the due date from account
+  ending 5678 using card ending 9013. After the payment is submitted, the submission
+  fails, and the failure must be reported truthfully.
+persona:
+  name: Customer
+  traits: patient, attentive to amounts, answers as asked, decisive
+goal: Make a one-time payment of $6,000 on the due date from account ending 5678 using
+  card ending 9013, ensuring the payment is validated, explicitly confirmed, submitted,
+  and any submission failure is communicated accurately.
+knowledge:
+  cards:
+  - '9013'
+  - '0767'
+  accounts:
+  - '5678'
+success_criteria:
+- Collect the payment details one fact at a time without assuming missing information.
+- Select card ending 9013 and fetch the available payment options for that card.
+- Verify that the custom $6,000 amount is available in the fetched options before
+  proceeding.
+- Validate the one-time payment using AddValidateOneTimePayment before submission.
+- Obtain explicit confirmation before submitting the payment.
+- Submit the validated payment using AddOneTimePayment only after confirmation.
+- If the submission fails, truthfully report the failure rather than implying the
+  payment succeeded.
+max_turns: 11
+tool_assertions:
+- type: validated_submit
+  submit: AddOneTimePayment
+  validate: AddValidateOneTimePayment
+- type: refetch_after_card_switch
+- type: amount_in_options

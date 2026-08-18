@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import hashlib
 import itertools
 import json
 import shutil
@@ -19,6 +18,7 @@ from .blueprint import (
     FixtureBindings,
     Perturbation,
     Provenance,
+    canonical_blueprint_id,
     dump_blueprint,
     load_blueprint,
 )
@@ -177,18 +177,12 @@ def write_generation(
         "per_stratum_counts": counts,
         "sample_per_stratum": per_stratum,
         "sample_ids": [blueprint.id for blueprint in sample],
-        "realized_scenarios": _annotate_records(
-            existing_manifest.get("realized_scenarios", []), artifact_statuses
-        ),
+        "realized_scenarios": list(existing_manifest.get("realized_scenarios", [])),
     }
     for preserved in ("dry_run_summary", "dry_runs"):
         if preserved in existing_manifest:
             value = existing_manifest[preserved]
-            manifest[preserved] = (
-                _annotate_records(value, artifact_statuses)
-                if preserved == "dry_runs"
-                else value
-            )
+            manifest[preserved] = value
     root.mkdir(parents=True, exist_ok=True)
     (root / "manifest.json").write_text(
         json.dumps(manifest, indent=2, sort_keys=True) + "\n"
@@ -231,26 +225,6 @@ def _existing_artifact_statuses(
         if errors:
             statuses[blueprint_id] = errors
     return statuses
-
-
-def _annotate_records(
-    records: Any, statuses: Mapping[str, tuple[str, ...]]
-) -> list[Any]:
-    if not isinstance(records, list):
-        return []
-    annotated: list[Any] = []
-    for record in records:
-        if not isinstance(record, Mapping):
-            annotated.append(record)
-            continue
-        item = dict(record)
-        blueprint_id = item.get("blueprint_id")
-        reasons = statuses.get(str(blueprint_id))
-        if reasons:
-            item["status"] = "unexecutable_blueprint"
-            item["unexecutable_reasons"] = list(reasons)
-        annotated.append(item)
-    return annotated
 
 
 def _archive_unexecutable_blueprints(
@@ -491,8 +465,8 @@ def _exclusion_counts(
 def _with_canonical_id(blueprint: Blueprint, key: tuple[Any, ...]) -> Blueprint:
     from dataclasses import replace
 
-    digest = hashlib.sha256(repr(_sortable_key(key)).encode()).hexdigest()[:16]
-    return replace(blueprint, id=f"j1-{digest}")
+    del key  # Deduplication and identity intentionally use different material.
+    return replace(blueprint, id=canonical_blueprint_id(blueprint))
 
 
 def _sortable_key(key: tuple[Any, ...]) -> tuple[Any, ...]:

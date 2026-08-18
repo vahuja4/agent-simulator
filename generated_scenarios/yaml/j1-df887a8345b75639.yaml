@@ -1,0 +1,43 @@
+name: j1-df887a8345b75639
+journey: J1
+description: The user wants to make a one-time credit card payment. They disclose
+  that they want to pay the statement balance on the due date from account ending
+  5678, and they must select the card ending 0767 when prompted to disambiguate between
+  the available cards ending 0767 and 4421. After the payment options are fetched,
+  the payment should be validated; if validation must be retried after validation,
+  the user remains patient and proceeds through the retry. The user expects an explicit
+  confirmation before submission, and the submitted payment must match the validated
+  payment details.
+persona:
+  name: Concise cardholder
+  traits: patient, attentive to amounts, concise upfront, decisive
+goal: Make a one-time payment of the statement balance for the card ending 0767 on
+  the due date, using the account ending 5678.
+knowledge:
+  cards:
+  - '0767'
+  - '4421'
+  accounts:
+  - '5678'
+success_criteria:
+- The assistant disambiguates the card last four and selects card ending 0767, not
+  4421.
+- The assistant fetches payment options for the selected card before validation.
+- The payment amount is the statement balance from the fetched payment options, not
+  an invented or user-supplied amount.
+- The payment date is the due date from the fetched payment options.
+- The funding account used is the account ending 5678.
+- If validation is retried after the first validation attempt, the assistant completes
+  the retry without changing the requested payment details.
+- The assistant obtains explicit user confirmation after successful validation and
+  before submitting the payment.
+- The submitted payment is made through AddOneTimePayment and matches the validated
+  AddValidateOneTimePayment details.
+- The assistant terminates the flow after submission.
+max_turns: 11
+tool_assertions:
+- type: validated_submit
+  submit: AddOneTimePayment
+  validate: AddValidateOneTimePayment
+- type: refetch_after_card_switch
+- type: amount_in_options

@@ -1,0 +1,36 @@
+name: j1-43d6711c9d6ab035
+journey: J1
+description: The customer wants to make a one-time credit card payment. They will
+  disclose that they want to pay the statement balance on card ending in 0767 from
+  account ending in 5678 on the due date. If asked to choose between available cards,
+  they will select card 0767 rather than card 4421. They expect the agent to fetch
+  the available payment options, use the exact amount provided by those options, validate
+  the payment, obtain explicit confirmation, and then submit it.
+persona:
+  name: Customer
+  traits: patient, trusts presented amounts, concise upfront, decisive
+goal: Make a one-time payment of the statement balance for card ending in 0767, paid
+  from account ending in 5678 on the due date.
+knowledge:
+  cards:
+  - '0767'
+  - '4421'
+  accounts:
+  - '5678'
+success_criteria:
+- The agent disambiguates the card selection and uses card ending in 0767, not card
+  ending in 4421.
+- The agent fetches payment options for the selected card and uses the statement balance
+  amount returned in those options.
+- The agent validates the one-time payment with AddValidateOneTimePayment before submitting
+  it.
+- The agent asks for and receives explicit confirmation before submitting the payment.
+- The agent submits the validated payment using AddOneTimePayment with account ending
+  in 5678 and the due date.
+max_turns: 10
+tool_assertions:
+- type: validated_submit
+  submit: AddOneTimePayment
+  validate: AddValidateOneTimePayment
+- type: refetch_after_card_switch
+- type: amount_in_options

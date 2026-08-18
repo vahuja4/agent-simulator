@@ -123,11 +123,15 @@ async def test_seeded_stubbed_batch_records_two_runs_and_separate_classes(
         )
 
     records = await dryrun.run_dryrun_batch(
-        candidates, llm_factory, manifest_path=manifest_path
+        candidates,
+        llm_factory,
+        batch_label="batch-2",
+        manifest_path=manifest_path,
     )
     manifest = json.loads(manifest_path.read_text())
 
     assert len(records) == 2
+    assert {record["batch_label"] for record in records} == {"batch-2"}
     assert len(manifest["dry_runs"]) == 2  # neither failure class filtered a candidate
     by_id = {item["candidate_id"]: item for item in records}
     switch_runs = {run["configuration"]: run for run in by_id["card-switch"]["runs"]}

@@ -125,11 +125,20 @@ async def run_dryrun_batch(
     candidates: Sequence[DryRunCandidate],
     llm_factory: LLMFactory,
     *,
+    batch_label: str,
     manifest_path: str | Path = DEFAULT_MANIFEST,
 ) -> tuple[dict[str, Any], ...]:
     """Append a batch of measurements and refresh non-feedback summaries."""
+    if not isinstance(batch_label, str) or not batch_label.strip():
+        raise ValueError("batch_label must be a non-empty string")
     records = tuple(
-        [await dry_run_candidate(candidate, llm_factory) for candidate in candidates]
+        [
+            {
+                **await dry_run_candidate(candidate, llm_factory),
+                "batch_label": batch_label,
+            }
+            for candidate in candidates
+        ]
     )
     path = Path(manifest_path)
     manifest = json.loads(path.read_text())

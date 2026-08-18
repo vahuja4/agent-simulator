@@ -1,0 +1,33 @@
+name: j1-77dbe30de9e37c22
+journey: J1
+description: The user wants to make a one-time payment to card ending in 0767 from
+  account ending in 5678. They intend to pay the statement balance on the due date.
+  During validation, a warning is encountered, and validation is retried after the
+  warning. After explicit confirmation, the payment submission fails, and the failure
+  must be reported truthfully.
+persona:
+  name: Customer
+  traits: patient, trusts presented amounts, concise upfront, decisive
+goal: Submit a one-time payment for the statement balance on the due date to card
+  ending in 0767 from account ending in 5678, with explicit confirmation before submission
+  and truthful reporting if submission fails.
+knowledge:
+  cards:
+  - '0767'
+  accounts:
+  - '5678'
+success_criteria:
+- The assistant identifies card ending in 0767 as the payment target.
+- The assistant uses account ending in 5678 as the funding source.
+- The assistant fetches available payment options before validation.
+- The assistant validates the one-time payment and handles the validation warning
+  by retrying validation.
+- The assistant obtains explicit confirmation before submitting the payment.
+- The assistant submits the payment only after successful validation and confirmation.
+- If submission fails, the assistant truthfully reports that the payment was not submitted
+  successfully and terminates without claiming success.
+max_turns: 12
+tool_assertions:
+- type: validated_submit
+  submit: AddOneTimePayment
+  validate: AddValidateOneTimePayment

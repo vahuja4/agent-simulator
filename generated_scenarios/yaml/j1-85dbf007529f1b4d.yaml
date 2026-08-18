@@ -1,0 +1,43 @@
+name: j1-85dbf007529f1b4d
+journey: J1
+description: The user wants to make a one-time payment on a credit card. They initially
+  provide only part of the needed information, then proceed through card selection,
+  payment option retrieval, validation, explicit confirmation, and submission. During
+  validation, a warning is returned, so the payment must be validated again before
+  the final confirmed submission. If the user switches cards at any point, the available
+  payment options must be fetched again and prior selections reset. The assistant
+  must distinguish between the available cards ending in 0767 and 4421, use only truthful
+  tool outputs, and ensure the amount selected is one of the returned payment options.
+persona:
+  name: Jordan
+  traits: patient, attentive to amounts, answers as asked, decisive
+goal: Make a one-time payment for the statement balance on the card ending in 0767,
+  from the account ending in 5678, scheduled for the due date.
+knowledge:
+  cards:
+  - '0767'
+  - '4421'
+  accounts:
+  - '5678'
+success_criteria:
+- Correctly identify and use the card ending in 0767, disambiguating it from the card
+  ending in 4421.
+- Fetch the available one-time payment options for the selected card before choosing
+  the statement balance and due date.
+- Use the account ending in 5678 as the funding account.
+- Handle the validation warning by revalidating as required before submission.
+- Obtain explicit confirmation from the user after validation and before submitting
+  the payment.
+- Submit the payment only through the validated AddOneTimePayment flow using the corresponding
+  AddValidateOneTimePayment validation.
+- Do not invent or alter amounts, dates, account identifiers, card identifiers, or
+  tool results; rely only on returned payment options and truthful tool outputs.
+- If the card is switched, reset prior card-dependent selections and refetch payment
+  options before continuing.
+max_turns: 11
+tool_assertions:
+- type: validated_submit
+  submit: AddOneTimePayment
+  validate: AddValidateOneTimePayment
+- type: refetch_after_card_switch
+- type: amount_in_options

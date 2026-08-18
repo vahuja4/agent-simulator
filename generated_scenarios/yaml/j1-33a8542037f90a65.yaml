@@ -1,0 +1,43 @@
+name: j1-33a8542037f90a65
+journey: J1
+description: The customer wants to make a one-time payment of $6,000 on the account
+  ending in 5678, using a custom amount due on the due date. They initially choose
+  the card ending in 0767, but after payment options are presented, they switch to
+  the card ending in 4421. The payment options must be fetched again after the card
+  switch, and the custom amount must be confirmed as available in the options. After
+  validation and explicit confirmation, the payment submission fails, and the assistant
+  must report that failure truthfully.
+persona:
+  name: Customer
+  traits: patient, attentive to amounts, concise upfront, changes mind once
+goal: Make a one-time payment of $6,000 on the due date for account ending in 5678,
+  ultimately using card ending in 4421, while truthfully reporting the submission
+  failure.
+knowledge:
+  cards:
+  - '0767'
+  - '4421'
+  accounts:
+  - '5678'
+success_criteria:
+- Customer discloses they want to pay $6,000 on the due date for account ending in
+  5678.
+- Assistant disambiguates and selects the intended payment card by last four digits,
+  initially card ending in 0767.
+- Assistant fetches payment options for card ending in 0767.
+- When the customer switches to card ending in 4421, the assistant treats the card
+  switch as resetting prior options and fetches payment options again.
+- Assistant verifies that the $6,000 custom amount is included in the fetched options
+  for card ending in 4421.
+- Assistant validates the one-time payment before submission.
+- Assistant obtains explicit confirmation before submitting the payment.
+- Assistant submits the validated payment using card ending in 4421.
+- When submission fails, assistant truthfully reports the failure and does not claim
+  the payment was successful.
+max_turns: 14
+tool_assertions:
+- type: validated_submit
+  submit: AddOneTimePayment
+  validate: AddValidateOneTimePayment
+- type: refetch_after_card_switch
+- type: amount_in_options
