@@ -47,3 +47,44 @@ run.
 ## Step 2
 
 Not run. The live dry-run gate remains pending because Step 1 failed.
+
+## Step 2 completion
+
+Phase 4.4 selection-gate verification resolved exactly 14 records for
+`live-batch-2`, representing 14 unique blueprint IDs. The authorized dry-run entry
+point was invoked once. It returned normally after recording both configurations
+for every candidate, but all 28 conversations failed before judge evaluation with
+`OpenAIError: Missing credentials. Please pass an api_key, workload_identity,
+admin_api_key, or set the OPENAI_API_KEY or OPENAI_ADMIN_KEY environment variable.`
+No candidate was edited, deleted, or re-run.
+
+Recorded outcomes:
+
+- Solvable rate: 0/14 (0%) faithful `agent_pass`.
+- `simulator_invalid`: 0. There are no compliance-judge reasons; compliance was
+  `not_evaluated` for every run because the missing-credentials error occurred first.
+- Defect-sensitive rate among targeted runs: 0/14 (0%).
+- Error count: 28 total, comprising 14 faithful errors and 14 targeted-defect errors.
+
+All 14 faithful runs failed and are findings:
+
+- `j1-82b6ebb15f31ae4b`
+- `j1-0fb64fdd31e1862d`
+- `j1-d4005d61d5c1c541`
+- `j1-225595457f4c793b`
+- `j1-2484e5f390c4919e`
+- `j1-e0eb0744f28a9653`
+- `j1-535fdfa16315d879`
+- `j1-a4731cb8613f3514`
+- `j1-d9c5a7d33bdea7c0`
+- `j1-25ec15d058329ba8`
+- `j1-33a8542037f90a65`
+- `j1-43d6711c9d6ab035`
+- `j1-3d88f3176efb27cd`
+- `j1-e5b543fbe1a2edeb`
+
+Comparison with `live-batch-1`: batch 1 recorded 27 candidates and 54 errors (27
+faithful plus 27 targeted-defect), with 0/27 solvable and 0/27 defect-sensitive.
+Batch 2 likewise produced no evaluated outcome, but its failure mode differs: batch
+1 recorded `APIConnectionError: Connection error.` for all conversations, whereas
+batch 2 recorded a missing-credentials `OpenAIError` for all conversations.

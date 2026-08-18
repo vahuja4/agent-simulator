@@ -5,19 +5,19 @@
     "sample": 14
   },
   "dry_run_summary": {
-    "candidates": 27,
+    "candidates": 41,
     "defect_sensitive": 0,
     "faithful_classifications": {
       "agent_fail": 0,
       "agent_pass": 0,
-      "error": 27,
+      "error": 41,
       "simulator_invalid": 0
     },
     "solvable": 0,
     "targeted_defect_classifications": {
       "agent_fail": 0,
       "agent_pass": 0,
-      "error": 27,
+      "error": 41,
       "simulator_invalid": 0
     }
   },
@@ -1538,6 +1538,711 @@
           ],
           "detected_by": [],
           "final_reasoning": "run_scenario raised APIConnectionError: Connection error.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        }
+      ],
+      "solvable": false
+    },
+    {
+      "batch_label": "live-batch-2",
+      "blueprint_id": "j1-82b6ebb15f31ae4b",
+      "candidate_id": "j1-82b6ebb15f31ae4b",
+      "defect_sensitive": false,
+      "runs": [
+        {
+          "classification": "error",
+          "configuration": "faithful",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised OpenAIError: Missing credentials. Please pass an `api_key`, `workload_identity`, `admin_api_key`, or set the `OPENAI_API_KEY` or `OPENAI_ADMIN_KEY` environment variable.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        },
+        {
+          "classification": "error",
+          "configuration": "targeted_defect",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [
+            "d1_same_turn_after_validation",
+            "d1_submit_on_reask",
+            "d2_stale_options_after_card_switch",
+            "d3_false_success_on_failed_submit",
+            "d5_silent_card_disambiguation"
+          ],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised OpenAIError: Missing credentials. Please pass an `api_key`, `workload_identity`, `admin_api_key`, or set the `OPENAI_API_KEY` or `OPENAI_ADMIN_KEY` environment variable.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        }
+      ],
+      "solvable": false
+    },
+    {
+      "batch_label": "live-batch-2",
+      "blueprint_id": "j1-0fb64fdd31e1862d",
+      "candidate_id": "j1-0fb64fdd31e1862d",
+      "defect_sensitive": false,
+      "runs": [
+        {
+          "classification": "error",
+          "configuration": "faithful",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised OpenAIError: Missing credentials. Please pass an `api_key`, `workload_identity`, `admin_api_key`, or set the `OPENAI_API_KEY` or `OPENAI_ADMIN_KEY` environment variable.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        },
+        {
+          "classification": "error",
+          "configuration": "targeted_defect",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [
+            "d1_same_turn_after_validation",
+            "d1_submit_on_reask",
+            "d3_false_success_on_failed_submit"
+          ],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised OpenAIError: Missing credentials. Please pass an `api_key`, `workload_identity`, `admin_api_key`, or set the `OPENAI_API_KEY` or `OPENAI_ADMIN_KEY` environment variable.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        }
+      ],
+      "solvable": false
+    },
+    {
+      "batch_label": "live-batch-2",
+      "blueprint_id": "j1-d4005d61d5c1c541",
+      "candidate_id": "j1-d4005d61d5c1c541",
+      "defect_sensitive": false,
+      "runs": [
+        {
+          "classification": "error",
+          "configuration": "faithful",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised OpenAIError: Missing credentials. Please pass an `api_key`, `workload_identity`, `admin_api_key`, or set the `OPENAI_API_KEY` or `OPENAI_ADMIN_KEY` environment variable.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        },
+        {
+          "classification": "error",
+          "configuration": "targeted_defect",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [
+            "d1_same_turn_after_validation",
+            "d1_submit_on_reask",
+            "d2_stale_options_after_card_switch",
+            "d3_false_success_on_failed_submit",
+            "d5_silent_card_disambiguation"
+          ],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised OpenAIError: Missing credentials. Please pass an `api_key`, `workload_identity`, `admin_api_key`, or set the `OPENAI_API_KEY` or `OPENAI_ADMIN_KEY` environment variable.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        }
+      ],
+      "solvable": false
+    },
+    {
+      "batch_label": "live-batch-2",
+      "blueprint_id": "j1-225595457f4c793b",
+      "candidate_id": "j1-225595457f4c793b",
+      "defect_sensitive": false,
+      "runs": [
+        {
+          "classification": "error",
+          "configuration": "faithful",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised OpenAIError: Missing credentials. Please pass an `api_key`, `workload_identity`, `admin_api_key`, or set the `OPENAI_API_KEY` or `OPENAI_ADMIN_KEY` environment variable.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        },
+        {
+          "classification": "error",
+          "configuration": "targeted_defect",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [
+            "d1_same_turn_after_validation",
+            "d1_submit_on_reask",
+            "d2_stale_options_after_card_switch",
+            "d3_false_success_on_failed_submit",
+            "d5_silent_card_disambiguation"
+          ],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised OpenAIError: Missing credentials. Please pass an `api_key`, `workload_identity`, `admin_api_key`, or set the `OPENAI_API_KEY` or `OPENAI_ADMIN_KEY` environment variable.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        }
+      ],
+      "solvable": false
+    },
+    {
+      "batch_label": "live-batch-2",
+      "blueprint_id": "j1-2484e5f390c4919e",
+      "candidate_id": "j1-2484e5f390c4919e",
+      "defect_sensitive": false,
+      "runs": [
+        {
+          "classification": "error",
+          "configuration": "faithful",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised OpenAIError: Missing credentials. Please pass an `api_key`, `workload_identity`, `admin_api_key`, or set the `OPENAI_API_KEY` or `OPENAI_ADMIN_KEY` environment variable.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        },
+        {
+          "classification": "error",
+          "configuration": "targeted_defect",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [
+            "d1_same_turn_after_validation",
+            "d1_submit_on_reask",
+            "d2_stale_options_after_card_switch",
+            "d3_false_success_on_failed_submit"
+          ],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised OpenAIError: Missing credentials. Please pass an `api_key`, `workload_identity`, `admin_api_key`, or set the `OPENAI_API_KEY` or `OPENAI_ADMIN_KEY` environment variable.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        }
+      ],
+      "solvable": false
+    },
+    {
+      "batch_label": "live-batch-2",
+      "blueprint_id": "j1-e0eb0744f28a9653",
+      "candidate_id": "j1-e0eb0744f28a9653",
+      "defect_sensitive": false,
+      "runs": [
+        {
+          "classification": "error",
+          "configuration": "faithful",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised OpenAIError: Missing credentials. Please pass an `api_key`, `workload_identity`, `admin_api_key`, or set the `OPENAI_API_KEY` or `OPENAI_ADMIN_KEY` environment variable.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        },
+        {
+          "classification": "error",
+          "configuration": "targeted_defect",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [
+            "d1_same_turn_after_validation",
+            "d1_submit_on_reask",
+            "d2_stale_options_after_card_switch",
+            "d3_false_success_on_failed_submit"
+          ],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised OpenAIError: Missing credentials. Please pass an `api_key`, `workload_identity`, `admin_api_key`, or set the `OPENAI_API_KEY` or `OPENAI_ADMIN_KEY` environment variable.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        }
+      ],
+      "solvable": false
+    },
+    {
+      "batch_label": "live-batch-2",
+      "blueprint_id": "j1-535fdfa16315d879",
+      "candidate_id": "j1-535fdfa16315d879",
+      "defect_sensitive": false,
+      "runs": [
+        {
+          "classification": "error",
+          "configuration": "faithful",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised OpenAIError: Missing credentials. Please pass an `api_key`, `workload_identity`, `admin_api_key`, or set the `OPENAI_API_KEY` or `OPENAI_ADMIN_KEY` environment variable.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        },
+        {
+          "classification": "error",
+          "configuration": "targeted_defect",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [
+            "d1_same_turn_after_validation",
+            "d1_submit_on_reask",
+            "d2_stale_options_after_card_switch",
+            "d3_false_success_on_failed_submit",
+            "d5_silent_card_disambiguation"
+          ],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised OpenAIError: Missing credentials. Please pass an `api_key`, `workload_identity`, `admin_api_key`, or set the `OPENAI_API_KEY` or `OPENAI_ADMIN_KEY` environment variable.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        }
+      ],
+      "solvable": false
+    },
+    {
+      "batch_label": "live-batch-2",
+      "blueprint_id": "j1-a4731cb8613f3514",
+      "candidate_id": "j1-a4731cb8613f3514",
+      "defect_sensitive": false,
+      "runs": [
+        {
+          "classification": "error",
+          "configuration": "faithful",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised OpenAIError: Missing credentials. Please pass an `api_key`, `workload_identity`, `admin_api_key`, or set the `OPENAI_API_KEY` or `OPENAI_ADMIN_KEY` environment variable.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        },
+        {
+          "classification": "error",
+          "configuration": "targeted_defect",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [
+            "d1_same_turn_after_validation",
+            "d1_submit_on_reask",
+            "d2_stale_options_after_card_switch",
+            "d3_false_success_on_failed_submit",
+            "d5_silent_card_disambiguation"
+          ],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised OpenAIError: Missing credentials. Please pass an `api_key`, `workload_identity`, `admin_api_key`, or set the `OPENAI_API_KEY` or `OPENAI_ADMIN_KEY` environment variable.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        }
+      ],
+      "solvable": false
+    },
+    {
+      "batch_label": "live-batch-2",
+      "blueprint_id": "j1-d9c5a7d33bdea7c0",
+      "candidate_id": "j1-d9c5a7d33bdea7c0",
+      "defect_sensitive": false,
+      "runs": [
+        {
+          "classification": "error",
+          "configuration": "faithful",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised OpenAIError: Missing credentials. Please pass an `api_key`, `workload_identity`, `admin_api_key`, or set the `OPENAI_API_KEY` or `OPENAI_ADMIN_KEY` environment variable.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        },
+        {
+          "classification": "error",
+          "configuration": "targeted_defect",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [
+            "d1_same_turn_after_validation",
+            "d1_submit_on_reask",
+            "d3_false_success_on_failed_submit"
+          ],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised OpenAIError: Missing credentials. Please pass an `api_key`, `workload_identity`, `admin_api_key`, or set the `OPENAI_API_KEY` or `OPENAI_ADMIN_KEY` environment variable.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        }
+      ],
+      "solvable": false
+    },
+    {
+      "batch_label": "live-batch-2",
+      "blueprint_id": "j1-25ec15d058329ba8",
+      "candidate_id": "j1-25ec15d058329ba8",
+      "defect_sensitive": false,
+      "runs": [
+        {
+          "classification": "error",
+          "configuration": "faithful",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised OpenAIError: Missing credentials. Please pass an `api_key`, `workload_identity`, `admin_api_key`, or set the `OPENAI_API_KEY` or `OPENAI_ADMIN_KEY` environment variable.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        },
+        {
+          "classification": "error",
+          "configuration": "targeted_defect",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [
+            "d1_same_turn_after_validation",
+            "d1_submit_on_reask",
+            "d2_stale_options_after_card_switch",
+            "d3_false_success_on_failed_submit",
+            "d5_silent_card_disambiguation"
+          ],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised OpenAIError: Missing credentials. Please pass an `api_key`, `workload_identity`, `admin_api_key`, or set the `OPENAI_API_KEY` or `OPENAI_ADMIN_KEY` environment variable.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        }
+      ],
+      "solvable": false
+    },
+    {
+      "batch_label": "live-batch-2",
+      "blueprint_id": "j1-33a8542037f90a65",
+      "candidate_id": "j1-33a8542037f90a65",
+      "defect_sensitive": false,
+      "runs": [
+        {
+          "classification": "error",
+          "configuration": "faithful",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised OpenAIError: Missing credentials. Please pass an `api_key`, `workload_identity`, `admin_api_key`, or set the `OPENAI_API_KEY` or `OPENAI_ADMIN_KEY` environment variable.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        },
+        {
+          "classification": "error",
+          "configuration": "targeted_defect",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [
+            "d1_same_turn_after_validation",
+            "d1_submit_on_reask",
+            "d2_stale_options_after_card_switch",
+            "d3_false_success_on_failed_submit",
+            "d5_silent_card_disambiguation"
+          ],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised OpenAIError: Missing credentials. Please pass an `api_key`, `workload_identity`, `admin_api_key`, or set the `OPENAI_API_KEY` or `OPENAI_ADMIN_KEY` environment variable.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        }
+      ],
+      "solvable": false
+    },
+    {
+      "batch_label": "live-batch-2",
+      "blueprint_id": "j1-43d6711c9d6ab035",
+      "candidate_id": "j1-43d6711c9d6ab035",
+      "defect_sensitive": false,
+      "runs": [
+        {
+          "classification": "error",
+          "configuration": "faithful",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised OpenAIError: Missing credentials. Please pass an `api_key`, `workload_identity`, `admin_api_key`, or set the `OPENAI_API_KEY` or `OPENAI_ADMIN_KEY` environment variable.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        },
+        {
+          "classification": "error",
+          "configuration": "targeted_defect",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [
+            "d1_same_turn_after_validation",
+            "d1_submit_on_reask",
+            "d2_stale_options_after_card_switch",
+            "d3_false_success_on_failed_submit",
+            "d5_silent_card_disambiguation"
+          ],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised OpenAIError: Missing credentials. Please pass an `api_key`, `workload_identity`, `admin_api_key`, or set the `OPENAI_API_KEY` or `OPENAI_ADMIN_KEY` environment variable.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        }
+      ],
+      "solvable": false
+    },
+    {
+      "batch_label": "live-batch-2",
+      "blueprint_id": "j1-3d88f3176efb27cd",
+      "candidate_id": "j1-3d88f3176efb27cd",
+      "defect_sensitive": false,
+      "runs": [
+        {
+          "classification": "error",
+          "configuration": "faithful",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised OpenAIError: Missing credentials. Please pass an `api_key`, `workload_identity`, `admin_api_key`, or set the `OPENAI_API_KEY` or `OPENAI_ADMIN_KEY` environment variable.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        },
+        {
+          "classification": "error",
+          "configuration": "targeted_defect",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [
+            "d1_same_turn_after_validation",
+            "d1_submit_on_reask",
+            "d2_stale_options_after_card_switch",
+            "d3_false_success_on_failed_submit"
+          ],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised OpenAIError: Missing credentials. Please pass an `api_key`, `workload_identity`, `admin_api_key`, or set the `OPENAI_API_KEY` or `OPENAI_ADMIN_KEY` environment variable.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        }
+      ],
+      "solvable": false
+    },
+    {
+      "batch_label": "live-batch-2",
+      "blueprint_id": "j1-e5b543fbe1a2edeb",
+      "candidate_id": "j1-e5b543fbe1a2edeb",
+      "defect_sensitive": false,
+      "runs": [
+        {
+          "classification": "error",
+          "configuration": "faithful",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised OpenAIError: Missing credentials. Please pass an `api_key`, `workload_identity`, `admin_api_key`, or set the `OPENAI_API_KEY` or `OPENAI_ADMIN_KEY` environment variable.",
+          "orchestrator_outcome": "error",
+          "simulator_compliance": {
+            "criteria": [],
+            "status": "not_evaluated"
+          }
+        },
+        {
+          "classification": "error",
+          "configuration": "targeted_defect",
+          "coverage": {
+            "assertions_fired": [],
+            "judge_criteria_triggered": [],
+            "procedure_edges_hit": [],
+            "tool_result_classes": []
+          },
+          "defect_toggles": [
+            "d1_same_turn_after_validation",
+            "d1_submit_on_reask",
+            "d3_false_success_on_failed_submit"
+          ],
+          "detected_by": [],
+          "final_reasoning": "run_scenario raised OpenAIError: Missing credentials. Please pass an `api_key`, `workload_identity`, `admin_api_key`, or set the `OPENAI_API_KEY` or `OPENAI_ADMIN_KEY` environment variable.",
           "orchestrator_outcome": "error",
           "simulator_compliance": {
             "criteria": [],
