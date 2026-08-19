@@ -49,6 +49,8 @@ Do not violate these without explicit instruction in the current prompt.
 
 ## Agent skills
 
+After completing any implement, debugging, or review task, run the compound skill before ending the session.
+
 ### Issue tracker
 
 Issues are tracked as local Markdown files under `.scratch/`. See `docs/agents/issue-tracker.md`.
