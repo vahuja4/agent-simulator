@@ -11,12 +11,15 @@ from __future__ import annotations
 
 import json
 import os
+import re
 from typing import Any, Protocol
 
 import openai
 from openai import AsyncOpenAI
 
 DEFAULT_MODEL = os.environ.get("AGENTSIM_MODEL", "gpt-5.5")
+
+_DATED_MODEL_SUFFIX = re.compile(r"-\d{4}-\d{2}-\d{2}$")
 
 _client: AsyncOpenAI | None = None
 
@@ -27,6 +30,16 @@ class LLMError(Exception):
 
 class LLMTruncationError(LLMError):
     """The model exhausted its completion budget before finishing output."""
+
+
+def model_family(model: str) -> str:
+    """Return the stable family name for a model alias or dated snapshot."""
+    return _DATED_MODEL_SUFFIX.sub("", model.strip().lower())
+
+
+def models_share_family(simulator_model: str, judge_model: str) -> bool:
+    """Whether simulator and judge model identifiers name the same family."""
+    return model_family(simulator_model) == model_family(judge_model)
 
 
 class LLMClient(Protocol):
@@ -108,7 +121,7 @@ class OpenAILLM:
     """LLMClient backed by the module-level ``structured()`` OpenAI call."""
 
     def __init__(self, model: str | None = None) -> None:
-        self.model = model
+        self.model = model or DEFAULT_MODEL
 
     async def structured(
         self,

@@ -30,6 +30,13 @@ Do not violate these without explicit instruction in the current prompt.
   never as a side effect of tests or other commands.
 - Do not silently mutate committed scenario YAML files. Persona variation
   uses overlay files.
+- Simulator and judge must be from different model families for any reported
+  run (acceptance-gate runs and Phase 5 live runs). Development runs against
+  the mock may share a model. Separation will be achieved by changing the
+  simulator family while keeping the calibrated judge model fixed, and the
+  new simulator model requires a persona-fidelity spot-check before reported
+  use. The model-family enforcement flag is default-off during development
+  and becomes mandatory-on at Phase 5.
 
 ## Hygiene
 

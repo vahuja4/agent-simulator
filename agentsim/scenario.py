@@ -18,6 +18,7 @@ AssertionEngine hard-gates every turn in the orchestrator.
 
 from __future__ import annotations
 
+import warnings
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -30,7 +31,7 @@ from . import registry
 from .assertions import AssertionEngine
 from .criteria import active_criteria
 from .judge import DEFAULT_CRITERIA, Criterion, GeneralJudge
-from .llm import LLMClient
+from .llm import LLMClient, models_share_family
 from .orchestrator import RunResult, run_conversation
 from .simulator import Persona, UserSimulator, render_knowledge
 
@@ -53,6 +54,10 @@ _ASSERTION_TYPES: dict[str, tuple[set[str], set[str]]] = {
 class ScenarioError(Exception):
     """A scenario file failed validation. The message names the file and
     field so library authors can fix it without reading the loader."""
+
+
+class ModelFamilySeparationError(ValueError):
+    """A run required distinct simulator and judge model families."""
 
 
 @dataclass(frozen=True)
@@ -276,15 +281,50 @@ def build_judge(scenario: Scenario, llm: LLMClient) -> GeneralJudge:
     )
 
 
+def check_model_family_separation(
+    simulator_model: str,
+    judge_model: str,
+    *,
+    enforce: bool = False,
+) -> None:
+    """Warn on a shared model family, or reject it when enforcement is on."""
+    if not models_share_family(simulator_model, judge_model):
+        return
+    message = (
+        "simulator and judge use the same model family "
+        f"({simulator_model!r} and {judge_model!r}); reported runs require "
+        "different model families"
+    )
+    if enforce:
+        raise ModelFamilySeparationError(message)
+    warnings.warn(message, UserWarning, stacklevel=2)
+
+
+def _client_model(llm: LLMClient) -> str | None:
+    model = getattr(llm, "model", None)
+    return model if isinstance(model, str) and model.strip() else None
+
+
 async def run_scenario(
     scenario: Scenario,
     llm: LLMClient,
     agent=None,
     *,
+    judge_llm: LLMClient | None = None,
+    enforce_model_family_separation: bool = False,
     conversation_id: str | None = None,
 ) -> RunResult:
     """One conversation for one scenario against the given agent adapter
     (default: a fresh faithful MockPayCardAgent)."""
+    judge_llm = judge_llm or llm
+    simulator_model = _client_model(llm)
+    judge_model = _client_model(judge_llm)
+    if simulator_model is not None and judge_model is not None:
+        check_model_family_separation(
+            simulator_model,
+            judge_model,
+            enforce=enforce_model_family_separation,
+        )
     if agent is None:
         from .adapters import MockPayCardAgent
 
@@ -292,7 +332,7 @@ async def run_scenario(
     return await run_conversation(
         simulator=build_simulator(scenario, llm),
         agent=agent,
-        judge=build_judge(scenario, llm),
+        judge=build_judge(scenario, judge_llm),
         conversation_id=conversation_id or scenario.name,
         max_turns=scenario.max_turns,
         assertions=build_assertions(scenario),

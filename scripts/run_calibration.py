@@ -15,6 +15,7 @@ judge-caught defects.
 
 Phase 4 acceptance (recall + precision in one resumable batch):
     python scripts/run_calibration.py --acceptance --runs 1 --out DIR
+        [--simulator-model MODEL] [--enforce-model-family-separation]
 
 Earlier calibration usage:
     python scripts/run_calibration.py [--out DIR] [--concurrency N]
@@ -136,15 +137,29 @@ def render_run(scenario: Scenario, result: RunResult) -> str:
 
 
 async def run_one(
-    scenario: Scenario, sem: asyncio.Semaphore, out_dir: Path, defect: str | None
+    scenario: Scenario,
+    sem: asyncio.Semaphore,
+    out_dir: Path,
+    defect: str | None,
+    *,
+    simulator_model: str,
+    judge_model: str,
+    enforce_model_family_separation: bool,
 ) -> dict:
-    llm = OpenAILLM()
+    simulator_llm = OpenAILLM(simulator_model)
+    judge_llm = OpenAILLM(judge_model)
     agent = None
     if defect is not None:
         agent = MockPayCardAgent(MockConfig(**{DEFECT_FLAGS[defect]: True}))
     async with sem:
         print(f"[start] {scenario.name}", flush=True)
-        result = await run_scenario(scenario, llm, agent=agent)
+        result = await run_scenario(
+            scenario,
+            simulator_llm,
+            agent=agent,
+            judge_llm=judge_llm,
+            enforce_model_family_separation=enforce_model_family_separation,
+        )
     user_turns = sum(1 for t in result.trace.turns if t.speaker == "user")
     agent_turns = sum(1 for t in result.trace.turns if t.speaker == "agent")
     tools = [tc.name for t in result.trace.turns for tc in t.tool_calls]
@@ -261,12 +276,13 @@ async def _run_phase4_acceptance(args) -> int:
     output = Path(args.out)
 
     async def execute(spec: BatchRunSpec) -> RunResult:
-        llm = OpenAILLM(spec.model)
+        simulator_llm = OpenAILLM(getattr(args, "simulator_model", None) or spec.model)
+        judge_llm = OpenAILLM(spec.model)
         target = MockPayCardAgent(MockConfig(**spec.defect_flags))
         if spec.script is not None:
             return await run_conversation(
                 agent=target,
-                judge=build_judge(spec.scenario, llm),
+                judge=build_judge(spec.scenario, judge_llm),
                 conversation_id=spec.run_key,
                 max_turns=spec.scenario.max_turns,
                 assertions=build_assertions(spec.scenario),
@@ -274,8 +290,12 @@ async def _run_phase4_acceptance(args) -> int:
             )
         return await run_scenario(
             spec.scenario,
-            llm,
+            simulator_llm,
             agent=target,
+            judge_llm=judge_llm,
+            enforce_model_family_separation=getattr(
+                args, "enforce_model_family_separation", False
+            ),
             conversation_id=spec.run_key,
         )
 
@@ -288,6 +308,11 @@ async def _run_phase4_acceptance(args) -> int:
             "runs_per_precision_scenario": args.runs,
             "acceptance_matrix": str(matrix_path),
             "model": args.model,
+            "judge_model": args.model,
+            "simulator_model": getattr(args, "simulator_model", None) or args.model,
+            "enforce_model_family_separation": getattr(
+                args, "enforce_model_family_separation", False
+            ),
             "seed": args.seed,
         },
     )
@@ -348,6 +373,16 @@ async def main() -> int:
     parser.add_argument("--runs", type=int, default=1, help="precision runs per scenario")
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--model", default=DEFAULT_MODEL)
+    parser.add_argument(
+        "--simulator-model",
+        default=None,
+        help="simulator model (default: --model; use a different family for reported runs)",
+    )
+    parser.add_argument(
+        "--enforce-model-family-separation",
+        action="store_true",
+        help="error if simulator and judge model families match",
+    )
     parser.add_argument("--retry-errors", action="store_true")
     parser.add_argument("--acceptance", action="store_true", help="run both Phase 4 gates")
     parser.add_argument(
@@ -388,7 +423,20 @@ async def main() -> int:
         scenarios = [s for s in scenarios if s.name in set(args.only)]
 
     sem = asyncio.Semaphore(args.concurrency)
-    rows = await asyncio.gather(*(run_one(s, sem, out_dir, args.defect) for s in scenarios))
+    rows = await asyncio.gather(
+        *(
+            run_one(
+                s,
+                sem,
+                out_dir,
+                args.defect,
+                simulator_model=args.simulator_model or args.model,
+                judge_model=args.model,
+                enforce_model_family_separation=args.enforce_model_family_separation,
+            )
+            for s in scenarios
+        )
+    )
 
     (out_dir / "summary.json").write_text(json.dumps(list(rows), indent=2))
 

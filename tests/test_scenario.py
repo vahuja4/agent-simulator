@@ -10,11 +10,14 @@ from pathlib import Path
 import pytest
 
 from agentsim import registry
+from agentsim.llm import models_share_family
 from agentsim.scenario import (
+    ModelFamilySeparationError,
     Scenario,
     ScenarioError,
     build_assertions,
     build_judge,
+    check_model_family_separation,
     load_library,
     load_scenario,
     run_scenario,
@@ -45,6 +48,21 @@ tool_assertions:
   - type: must_not_call
     tool: CancelPayment
 """
+
+
+def test_model_family_comparison_normalizes_dated_snapshots():
+    assert models_share_family("gpt-5.5", "GPT-5.5-2026-08-01")
+    assert not models_share_family("gpt-5.5", "gpt-6")
+
+
+def test_matching_model_family_warns_by_default():
+    with pytest.warns(UserWarning, match="same model family"):
+        check_model_family_separation("gpt-5.5", "gpt-5.5-2026-08-01")
+
+
+def test_matching_model_family_enforcement_raises():
+    with pytest.raises(ModelFamilySeparationError, match="same model family"):
+        check_model_family_separation("gpt-5.5", "gpt-5.5", enforce=True)
 
 
 def write(tmp_path: Path, text: str, name: str = "s.yaml") -> Path:
