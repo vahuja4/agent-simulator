@@ -46,3 +46,13 @@ Do not violate these without explicit instruction in the current prompt.
 - Honor all prompt-imposed file-reading and evidence boundaries.
   Otherwise inspect only files relevant to the task; do not browse old
   calibration transcripts, build plans, or unrelated artifacts.
+
+## Agent skills
+
+### Issue tracker
+
+Issues are tracked as local Markdown files under `.scratch/`. See `docs/agents/issue-tracker.md`.
+
+### Domain docs
+
+Domain documentation uses a single-context layout. See `docs/agents/domain.md`.
