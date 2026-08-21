@@ -64,6 +64,18 @@ python -c 'import sys; sys.modules["readline"] = None; import pytest; raise Syst
   pending slot in the same reply, with no LLM or new tool call. This is recorded as
   N6-family ruling variance because a prior sample explicitly declined to penalize the
   same behavior.
+- **M13 observed, untriaged:** in two Luna defects-off card-switch seeds, the simulated
+  user explicitly requested the Freedom Unlimited $310.45 statement balance, but the
+  faithful mock validated the $210.45 remaining statement balance. See
+  `docs/reports/luna-gate-failure-evidence.md`; no mock change was authorized.
+- **M14 observed, untriaged:** in two Luna defects-off pressure seeds, the simulated
+  user explicitly requested today / August 21, 2026, but the faithful mock validated or
+  repeated June 10, 2026. See the same evidence pack; no mock change was authorized.
+- **M15 observed, untriaged:** in two Luna defects-off J5 seeds, the faithful mock
+  correctly explained that the requested $875.20 AutoPay payment was not cancellable,
+  then resolved the user's repeated request to an unrelated $150 one-time payment.
+  This is M10-adjacent but uses an insistence rather than acknowledgment shape. No mock
+  change was authorized.
 
 The one-command live batch was attempted at:
 
