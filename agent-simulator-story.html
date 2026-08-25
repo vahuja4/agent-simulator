@@ -1,0 +1,734 @@
+<title>The Agent Simulator</title>
+<style>
+  :root {
+    --bg: #f4f6f5;
+    --surface: #ffffff;
+    --ink: #1d2a32;
+    --muted: #5c6b76;
+    --line: #d3dad8;
+    --accent: #0f766e;      /* petrol teal — knowledge / the machine */
+    --goal: #b7791f;        /* amber — goals & API calls */
+    --persona: #7c4a8f;     /* plum — personas & customers */
+    --bug: #b0392e;         /* semantic: failures & curveballs */
+    --ok: #2e7d4f;          /* semantic: pass */
+    --chip-goal-bg: #f6ecd9;
+    --chip-know-bg: #ddefec;
+    --chip-persona-bg: #eee2f2;
+    --chip-bug-bg: #f6e2df;
+    --chip-ok-bg: #e0efe5;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #131a1e;
+      --surface: #1b2429;
+      --ink: #e7eceb;
+      --muted: #97a5ab;
+      --line: #33414a;
+      --accent: #45b8ab;
+      --goal: #d9a04a;
+      --persona: #b583c7;
+      --bug: #e07364;
+      --ok: #62b585;
+      --chip-goal-bg: #33291a;
+      --chip-know-bg: #17302d;
+      --chip-persona-bg: #2d2233;
+      --chip-bug-bg: #362020;
+      --chip-ok-bg: #1b3024;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #131a1e;
+    --surface: #1b2429;
+    --ink: #e7eceb;
+    --muted: #97a5ab;
+    --line: #33414a;
+    --accent: #45b8ab;
+    --goal: #d9a04a;
+    --persona: #b583c7;
+    --bug: #e07364;
+    --ok: #62b585;
+    --chip-goal-bg: #33291a;
+    --chip-know-bg: #17302d;
+    --chip-persona-bg: #2d2233;
+    --chip-bug-bg: #362020;
+    --chip-ok-bg: #1b3024;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Avenir Next", "Avenir", "Segoe UI", system-ui, sans-serif;
+    line-height: 1.55;
+    margin: 0;
+  }
+  main {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 3.5rem 1.25rem 5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 4.5rem;
+  }
+  .eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--accent);
+    margin: 0 0 0.75rem;
+  }
+  h1 {
+    font-size: clamp(2.4rem, 7vw, 3.6rem);
+    font-weight: 700;
+    line-height: 1.05;
+    margin: 0 0 1rem;
+    text-wrap: balance;
+  }
+  .lede {
+    font-size: 1.2rem;
+    color: var(--muted);
+    max-width: 34em;
+    margin: 0;
+    text-wrap: balance;
+  }
+  section h2 {
+    font-size: 1.7rem;
+    font-weight: 700;
+    line-height: 1.15;
+    margin: 0 0 0.4rem;
+    text-wrap: balance;
+  }
+  .step {
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--muted);
+    margin: 0 0 0.5rem;
+  }
+  section > p {
+    color: var(--muted);
+    font-size: 1.05rem;
+    max-width: 36em;
+    margin: 0 0 1.5rem;
+  }
+  section > p strong { color: var(--ink); font-weight: 600; }
+  section > p a, aside.example a, footer a { color: var(--accent); }
+  figure {
+    margin: 0;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 1.5rem 1.25rem 1rem;
+    overflow-x: auto;
+  }
+  figure svg { display: block; max-width: 100%; height: auto; margin: 0 auto; }
+  figcaption {
+    font-size: 0.85rem;
+    color: var(--muted);
+    text-align: center;
+    margin-top: 0.9rem;
+  }
+  aside.example {
+    margin-top: 0.85rem;
+    background: var(--surface);
+    border: 1px dashed var(--accent);
+    border-radius: 10px;
+    padding: 0.9rem 1.1rem;
+    font-size: 0.92rem;
+  }
+  aside.example .ex-label {
+    display: block;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 0.4rem;
+  }
+  aside.example p { margin: 0.3rem 0; color: var(--ink); }
+  aside.example .who { font-weight: 700; }
+  aside.example .note { color: var(--muted); font-size: 0.85rem; }
+  aside.example code, footer code {
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 0.85em;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 0.1em 0.35em;
+  }
+  footer {
+    border-top: 1px solid var(--line);
+    padding-top: 1.5rem;
+    font-size: 0.9rem;
+    color: var(--muted);
+  }
+  .svg-label { font-family: "Avenir Next", "Segoe UI", system-ui, sans-serif; }
+</style>
+
+<main>
+  <header>
+    <p class="eyebrow">The whole story, start to finish</p>
+    <h1>The Agent Simulator</h1>
+    <p class="lede">Before a bank lets an AI assistant handle real card
+    payments, someone has to break it on purpose. This machine invents
+    customers, conversations, and a referee — and delivers a ranked list of
+    the assistant’s bugs.</p>
+  </header>
+
+  <section>
+    <p class="step">1 · The rig</p>
+    <h2>An AI customer talks to the assistant being tested</h2>
+    <p>One AI role-plays a bank customer. It chats with the payment assistant,
+    trying to get something done — while a judge watches every turn for
+    mistakes.</p>
+    <figure>
+      <svg viewBox="0 0 700 240" role="img" aria-label="A simulated customer chats back and forth with the payment assistant under test, while a judge watches the conversation.">
+        <defs>
+          <marker id="w1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+          </marker>
+        </defs>
+        <g fill="none" stroke="currentColor" stroke-width="1.5">
+          <rect x="30" y="60" width="180" height="90" rx="10"/>
+          <rect x="490" y="60" width="180" height="90" rx="10"/>
+        </g>
+        <text class="svg-label" x="120" y="98" text-anchor="middle" font-size="15" font-weight="600" fill="currentColor">AI customer</text>
+        <text class="svg-label" x="120" y="120" text-anchor="middle" font-size="12" fill="var(--muted)">played by a model</text>
+        <text class="svg-label" x="580" y="98" text-anchor="middle" font-size="15" font-weight="600" fill="currentColor">Payment assistant</text>
+        <text class="svg-label" x="580" y="120" text-anchor="middle" font-size="12" fill="var(--muted)">the thing being tested</text>
+        <g stroke="currentColor" stroke-width="1.5" fill="none">
+          <line x1="215" y1="85" x2="483" y2="85" marker-end="url(#w1)"/>
+          <line x1="483" y1="125" x2="215" y2="125" marker-end="url(#w1)"/>
+        </g>
+        <text class="svg-label" x="349" y="76" text-anchor="middle" font-size="12" fill="var(--muted)">“I’d like to pay my card ending 0767”</text>
+        <text class="svg-label" x="349" y="145" text-anchor="middle" font-size="12" fill="var(--muted)">“Which account should I pay from?”</text>
+        <g fill="none" stroke="var(--accent)" stroke-width="1.5">
+          <rect x="280" y="180" width="140" height="42" rx="21"/>
+        </g>
+        <text class="svg-label" x="350" y="206" text-anchor="middle" font-size="13" font-weight="600" fill="var(--accent)">Judge watches</text>
+        <line x1="350" y1="178" x2="350" y2="160" stroke="var(--accent)" stroke-width="1.5" stroke-dasharray="4 4"/>
+      </svg>
+      <figcaption>The conversation is the test. Real customers are slow and expensive — so a machine plays thousands of them.</figcaption>
+    </figure>
+  </section>
+
+  <section>
+    <p class="step">2 · The customer</p>
+    <h2>A believable customer is three ingredients</h2>
+    <p>Each fake customer is built from a <strong>goal</strong>,
+    <strong>knowledge</strong>, and a <strong>persona</strong> — chosen
+    together so they make sense as one person (the recipe comes from the
+    <a href="https://aclanthology.org/2026.findings-eacl.147/">SAGE paper</a>
+    on grounded user simulators).</p>
+    <figure>
+      <svg viewBox="0 0 700 330" role="img" aria-label="Three ingredient cards — goal, knowledge, and persona — combine into one simulated customer named Jordan.">
+        <defs>
+          <marker id="w2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+          </marker>
+        </defs>
+        <g fill="none" stroke-width="1.5">
+          <rect x="20" y="30" width="200" height="110" rx="10" stroke="var(--goal)" fill="var(--chip-goal-bg)"/>
+          <rect x="250" y="30" width="200" height="110" rx="10" stroke="var(--accent)" fill="var(--chip-know-bg)"/>
+          <rect x="480" y="30" width="200" height="110" rx="10" stroke="var(--persona)" fill="var(--chip-persona-bg)"/>
+        </g>
+        <text class="svg-label" x="120" y="58" text-anchor="middle" font-size="12" font-weight="700" letter-spacing="1" fill="var(--goal)">GOAL</text>
+        <text class="svg-label" x="120" y="84" text-anchor="middle" font-size="13" fill="var(--ink)">“Pay the statement</text>
+        <text class="svg-label" x="120" y="102" text-anchor="middle" font-size="13" fill="var(--ink)">balance on my card”</text>
+        <text class="svg-label" x="350" y="58" text-anchor="middle" font-size="12" font-weight="700" letter-spacing="1" fill="var(--accent)">KNOWLEDGE</text>
+        <text class="svg-label" x="350" y="84" text-anchor="middle" font-size="13" fill="var(--ink)">cards · balances · due dates</text>
+        <text class="svg-label" x="350" y="102" text-anchor="middle" font-size="13" fill="var(--ink)">AutoPay status</text>
+        <text class="svg-label" x="580" y="58" text-anchor="middle" font-size="12" font-weight="700" letter-spacing="1" fill="var(--persona)">PERSONA</text>
+        <text class="svg-label" x="580" y="84" text-anchor="middle" font-size="13" fill="var(--ink)">“Jordan” — polite,</text>
+        <text class="svg-label" x="580" y="102" text-anchor="middle" font-size="13" fill="var(--ink)">cooperative, to the point</text>
+        <g stroke="currentColor" stroke-width="1.5" fill="none">
+          <line x1="120" y1="145" x2="320" y2="218" marker-end="url(#w2)"/>
+          <line x1="350" y1="145" x2="350" y2="218" marker-end="url(#w2)"/>
+          <line x1="580" y1="145" x2="380" y2="218" marker-end="url(#w2)"/>
+        </g>
+        <g fill="none" stroke="currentColor" stroke-width="1.5">
+          <rect x="230" y="228" width="240" height="70" rx="35"/>
+        </g>
+        <circle cx="272" cy="263" r="16" fill="none" stroke="currentColor" stroke-width="1.5"/>
+        <path d="M264,270 a10,7 0 0 1 16,0" fill="none" stroke="currentColor" stroke-width="1.5"/>
+        <circle cx="272" cy="258" r="4.5" fill="none" stroke="currentColor" stroke-width="1.5"/>
+        <text class="svg-label" x="308" y="258" font-size="14" font-weight="600" fill="currentColor">One simulated</text>
+        <text class="svg-label" x="308" y="277" font-size="14" font-weight="600" fill="currentColor">customer</text>
+      </svg>
+      <figcaption>What they want · what they know · who they are.</figcaption>
+    </figure>
+    <aside class="example">
+      <span class="ex-label">A real customer from the test library</span>
+      <p>“Jordan” wants to pay the statement balance on the Chase Freedom Unlimited
+      (ending 0767) from Chase Total Checking (ending 5678), on the due date — and is
+      “polite, cooperative, gets to the point, answers one question at a time.”</p>
+      <p class="note">The same test can be replayed with mood overlays — cautious,
+      concise, impatient — same goal, shorter fuse.</p>
+    </aside>
+  </section>
+
+  <section>
+    <p class="step">3 · The ground rule</p>
+    <h2>Both sides share one reality</h2>
+    <p>The customer’s “memory” is generated from the <strong>same data the
+    bank system runs on</strong> — and it’s told that’s all it knows. It can
+    never invent a card, a balance, or a date. So when the assistant
+    contradicts the customer, that’s a real bug, not a hallucination.</p>
+    <figure>
+      <svg viewBox="0 0 700 270" role="img" aria-label="One shared set of account facts feeds both the bank's system and the simulated customer's memory, so both agree on the same reality.">
+        <defs>
+          <marker id="w3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="var(--accent)"/>
+          </marker>
+        </defs>
+        <path d="M270,190 a80,18 0 0 0 160,0 v40 a80,18 0 0 1 -160,0 z" fill="none" stroke="var(--accent)" stroke-width="1.5"/>
+        <ellipse cx="350" cy="190" rx="80" ry="18" fill="none" stroke="var(--accent)" stroke-width="1.5"/>
+        <text class="svg-label" x="350" y="222" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--accent)">One set of account facts</text>
+        <g fill="none" stroke="currentColor" stroke-width="1.5">
+          <rect x="60" y="30" width="220" height="80" rx="10"/>
+          <rect x="420" y="30" width="220" height="80" rx="10"/>
+        </g>
+        <text class="svg-label" x="170" y="63" text-anchor="middle" font-size="14" font-weight="600" fill="currentColor">Bank’s system</text>
+        <text class="svg-label" x="170" y="84" text-anchor="middle" font-size="12" fill="var(--muted)">what the assistant sees</text>
+        <text class="svg-label" x="530" y="63" text-anchor="middle" font-size="14" font-weight="600" fill="currentColor">Customer’s memory</text>
+        <text class="svg-label" x="530" y="84" text-anchor="middle" font-size="12" fill="var(--muted)">all it’s allowed to know</text>
+        <g stroke="var(--accent)" stroke-width="1.5" fill="none">
+          <line x1="305" y1="172" x2="195" y2="118" marker-end="url(#w3)"/>
+          <line x1="395" y1="172" x2="505" y2="118" marker-end="url(#w3)"/>
+        </g>
+        <text class="svg-label" x="215" y="150" text-anchor="end" font-size="12" fill="var(--muted)">runs on</text>
+        <text class="svg-label" x="487" y="150" text-anchor="start" font-size="12" fill="var(--muted)">written into</text>
+      </svg>
+      <figcaption>Grounding the customer in real data is what surfaces real bugs — the SAGE paper’s central finding.</figcaption>
+    </figure>
+    <aside class="example">
+      <span class="ex-label">One shared fact, word for word</span>
+      <p>The customer’s memory literally contains: <em>“Chase Freedom Unlimited, ending
+      in 0767: current balance $432.10, statement balance $310.45, minimum due
+      $35.00.”</em> If the assistant ever quotes a different statement balance, that
+      mismatch is a genuine bug.</p>
+    </aside>
+  </section>
+
+  <section>
+    <p class="step">4 · Staying sharp</p>
+    <h2>The facts ride along on every turn</h2>
+    <p>Long chats make models forgetful, so the goal and facts are
+    <strong>re-attached next to every reply</strong> the customer writes. And
+    the customer knows how to leave: when the goal is done, it says goodbye
+    with a stop signal.</p>
+    <figure>
+      <svg viewBox="0 0 700 300" role="img" aria-label="A conversation column with alternating chat bubbles; a card holding the goal and facts is re-attached beside the newest turn, and the final bubble carries the stop signal.">
+        <defs>
+          <marker id="w4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="var(--accent)"/>
+          </marker>
+        </defs>
+        <g fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.45">
+          <rect x="120" y="20" width="230" height="34" rx="16"/>
+          <rect x="290" y="66" width="230" height="34" rx="16"/>
+          <rect x="120" y="112" width="230" height="34" rx="16"/>
+          <rect x="290" y="158" width="230" height="34" rx="16"/>
+        </g>
+        <text class="svg-label" x="235" y="42" text-anchor="middle" font-size="12" fill="var(--muted)">turn 1</text>
+        <text class="svg-label" x="405" y="88" text-anchor="middle" font-size="12" fill="var(--muted)">turn 2</text>
+        <text class="svg-label" x="235" y="134" text-anchor="middle" font-size="12" fill="var(--muted)">turn 3</text>
+        <text class="svg-label" x="405" y="180" text-anchor="middle" font-size="12" fill="var(--muted)">turn 4 …</text>
+        <g fill="var(--chip-know-bg)" stroke="var(--accent)" stroke-width="1.5">
+          <rect x="70" y="210" width="180" height="62" rx="8"/>
+        </g>
+        <text class="svg-label" x="160" y="236" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--accent)">goal + facts</text>
+        <text class="svg-label" x="160" y="255" text-anchor="middle" font-size="11.5" fill="var(--muted)">re-attached every turn</text>
+        <line x1="255" y1="236" x2="330" y2="236" stroke="var(--accent)" stroke-width="1.5" marker-end="url(#w4)"/>
+        <g fill="none" stroke="currentColor" stroke-width="1.5">
+          <rect x="340" y="216" width="290" height="40" rx="18"/>
+        </g>
+        <text class="svg-label" x="485" y="241" text-anchor="middle" font-size="13" fill="currentColor">“Done — thanks!  ###STOP###”</text>
+      </svg>
+      <figcaption>The customer may only hang up after the assistant confirms the job is done — or when the goal is truly impossible.</figcaption>
+    </figure>
+  </section>
+
+  <section>
+    <p class="step">5 · The test card</p>
+    <h2>Every test is a small card</h2>
+    <p>A <strong>scenario</strong> bundles one customer with one situation and
+    a definition of success. Some cards were written by hand; the rest are
+    manufactured — that’s next.</p>
+    <figure>
+      <svg viewBox="0 0 700 300" role="img" aria-label="A scenario card with its fields: persona, goal, knowledge, success criteria, hard assertions, and a turn limit.">
+        <rect x="120" y="16" width="460" height="268" rx="12" fill="var(--surface)" stroke="currentColor" stroke-width="1.5"/>
+        <text class="svg-label" x="350" y="48" text-anchor="middle" font-size="15" font-weight="700" fill="currentColor">one scenario  ·  one test</text>
+        <line x1="150" y1="62" x2="550" y2="62" stroke="var(--line)" stroke-width="1.5"/>
+        <g font-size="13" class="svg-label">
+          <text x="160" y="92" font-weight="700" fill="var(--persona)">persona</text>
+          <text x="290" y="92" fill="var(--ink)">“Jordan — polite, gets to the point”</text>
+          <text x="160" y="124" font-weight="700" fill="var(--goal)">goal</text>
+          <text x="290" y="124" fill="var(--ink)">“pay the statement balance on card 0767”</text>
+          <text x="160" y="156" font-weight="700" fill="var(--accent)">knowledge</text>
+          <text x="290" y="156" fill="var(--ink)">which cards &amp; accounts they may know</text>
+          <text x="160" y="188" font-weight="700" fill="var(--ok)">success criteria</text>
+          <text x="290" y="188" fill="var(--ink)">what the judge checks at the end</text>
+          <text x="160" y="220" font-weight="700" fill="var(--bug)">hard assertions</text>
+          <text x="290" y="220" fill="var(--ink)">“validate before submit” — checked by code</text>
+          <text x="160" y="252" font-weight="700" fill="var(--muted)">max turns</text>
+          <text x="290" y="252" fill="var(--ink)">the chat must finish in ~12 turns</text>
+        </g>
+      </svg>
+      <figcaption>The customer plays the top half; the judge and the assertion checker enforce the bottom half.</figcaption>
+    </figure>
+  </section>
+
+  <section>
+    <p class="step">6 · The map</p>
+    <h2>Manufacturing starts with a map of the journey</h2>
+    <p>A card payment is a path: pick a card, fetch options, validate,
+    confirm, submit. The factory keeps this as a <strong>checked map</strong>
+    of steps and legal moves — following the idea of compiling written
+    procedures into graphs before generating any tests
+    (<a href="https://arxiv.org/abs/2409.15934">Arcadinho&nbsp;et&nbsp;al.</a>).
+    <strong>Curveballs live on the map too</strong>: each edge declares which
+    surprises may happen right there.</p>
+    <figure>
+      <svg viewBox="0 0 700 250" role="img" aria-label="The payment journey drawn as a path of steps from start to done, with a loop back when the customer switches cards and a branch for handling a failed submission.">
+        <defs>
+          <marker id="w5" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+          </marker>
+          <marker id="w5a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="var(--bug)"/>
+          </marker>
+        </defs>
+        <g fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="60" cy="110" r="26"/>
+          <circle cx="180" cy="110" r="26"/>
+          <circle cx="300" cy="110" r="26"/>
+          <circle cx="420" cy="110" r="26"/>
+          <circle cx="530" cy="110" r="26"/>
+          <circle cx="636" cy="110" r="26"/>
+        </g>
+        <g stroke="currentColor" stroke-width="1.5" fill="none">
+          <line x1="88" y1="110" x2="148" y2="110" marker-end="url(#w5)"/>
+          <line x1="208" y1="110" x2="268" y2="110" marker-end="url(#w5)"/>
+          <line x1="328" y1="110" x2="388" y2="110" marker-end="url(#w5)"/>
+          <line x1="448" y1="110" x2="498" y2="110" marker-end="url(#w5)"/>
+          <line x1="558" y1="110" x2="604" y2="110" marker-end="url(#w5)"/>
+        </g>
+        <g font-size="11.5" class="svg-label" fill="currentColor" text-anchor="middle">
+          <text x="60" y="106">state</text><text x="60" y="120">goal</text>
+          <text x="180" y="106">pick</text><text x="180" y="120">card</text>
+          <text x="300" y="106">get</text><text x="300" y="120">options</text>
+          <text x="420" y="114">validate</text>
+          <text x="530" y="114">confirm</text>
+          <text x="636" y="114">submit</text>
+        </g>
+        <path d="M290,138 C270,185 210,185 190,138" fill="none" stroke="var(--bug)" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#w5a)"/>
+        <text class="svg-label" x="240" y="192" text-anchor="middle" font-size="11.5" fill="var(--bug)">curveball: customer switches card → start over</text>
+        <line x1="636" y1="138" x2="636" y2="188" stroke="var(--bug)" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#w5a)"/>
+        <text class="svg-label" x="620" y="208" text-anchor="middle" font-size="11.5" fill="var(--bug)">curveball: it fails — admit it</text>
+        <text class="svg-label" x="350" y="34" text-anchor="middle" font-size="12.5" fill="var(--muted)">every legal way through a payment — plus where surprises may strike</text>
+      </svg>
+      <figcaption>The dashed red arrows mark curveball spots — where a surprise is allowed to strike. What a curveball actually is comes next.</figcaption>
+    </figure>
+    <aside class="example">
+      <span class="ex-label">Why a map at all?</span>
+      <p>An AI asked to “write tests” freely will invent steps that don’t exist. A checked
+      map pins down what’s real, and — because coverage becomes countable — proves nothing
+      was missed. The map even carries fingerprints of its source files and halts if they
+      drift.</p>
+    </aside>
+  </section>
+
+  <section>
+    <p class="step">7 · Curveballs</p>
+    <h2>A curveball is a planned surprise, thrown by the customer</h2>
+    <p>Bugs don’t hide on the happy path — they hide in the moment something
+    unexpected happens. A <strong>curveball</strong> is one such moment, built
+    into a test on purpose. Three rules: it strikes only at its
+    <strong>declared spot</strong> on the map, it’s acted out <strong>through
+    the customer or their data</strong> — never by scripting the assistant —
+    and each curveball exists to expose <strong>one specific bug</strong>.</p>
+    <figure>
+      <svg viewBox="0 0 700 380" role="img" aria-label="The card-switch curveball end to end: the test data gives the customer two cards; mid-chat the customer switches cards; a correct assistant fetches fresh options and passes, a buggy assistant reuses the old card's amounts and is caught.">
+        <defs>
+          <marker id="w11" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+          </marker>
+        </defs>
+        <g fill="var(--chip-goal-bg)" stroke="var(--goal)" stroke-width="1.5">
+          <rect x="170" y="18" width="360" height="40" rx="9"/>
+        </g>
+        <text class="svg-label" x="350" y="43" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--goal)">setup: this customer owns TWO cards — …0767 and …4421</text>
+        <g fill="none" stroke="currentColor" stroke-width="1.5">
+          <rect x="60" y="80" width="280" height="34" rx="16"/>
+          <rect x="360" y="126" width="280" height="34" rx="16"/>
+        </g>
+        <text class="svg-label" x="200" y="102" text-anchor="middle" font-size="12" fill="currentColor">“Pay my Freedom Unlimited, 0767”</text>
+        <text class="svg-label" x="500" y="148" text-anchor="middle" font-size="12" fill="currentColor">“Options for 0767: statement $310.45…”</text>
+        <g fill="var(--chip-bug-bg)" stroke="var(--bug)" stroke-width="2">
+          <rect x="60" y="176" width="330" height="40" rx="18"/>
+        </g>
+        <text class="svg-label" x="235" y="201" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--bug)">⚡ “Actually — use my Freedom Flex, 4421.”</text>
+        <text class="svg-label" x="480" y="201" font-size="11" fill="var(--bug)">← the curveball turn</text>
+        <g stroke="currentColor" stroke-width="1.5" fill="none">
+          <line x1="235" y1="220" x2="150" y2="272" marker-end="url(#w11)"/>
+          <line x1="235" y1="220" x2="480" y2="272" marker-end="url(#w11)"/>
+        </g>
+        <g fill="var(--chip-ok-bg)" stroke="var(--ok)" stroke-width="1.5">
+          <rect x="30" y="282" width="300" height="70" rx="9"/>
+        </g>
+        <g fill="var(--chip-bug-bg)" stroke="var(--bug)" stroke-width="1.5">
+          <rect x="380" y="282" width="300" height="70" rx="9"/>
+        </g>
+        <text class="svg-label" x="180" y="306" text-anchor="middle" font-size="12.5" font-weight="700" fill="var(--ok)">✓ correct assistant</text>
+        <text class="svg-label" x="180" y="326" text-anchor="middle" font-size="11.5" fill="var(--ink)">starts fresh: fetches 4421’s own</text>
+        <text class="svg-label" x="180" y="342" text-anchor="middle" font-size="11.5" fill="var(--ink)">options ($89.99) — test passes</text>
+        <text class="svg-label" x="530" y="306" text-anchor="middle" font-size="12.5" font-weight="700" fill="var(--bug)">✗ buggy assistant</text>
+        <text class="svg-label" x="530" y="326" text-anchor="middle" font-size="11.5" fill="var(--ink)">lazily reuses 0767’s amounts</text>
+        <text class="svg-label" x="530" y="342" text-anchor="middle" font-size="11.5" fill="var(--ink)">for 4421 — bug caught</text>
+      </svg>
+      <figcaption>One curveball, end to end: the data makes it possible, the customer throws it, and how the assistant reacts decides the verdict.</figcaption>
+    </figure>
+    <aside class="example">
+      <span class="ex-label">All six curveballs, in plain words</span>
+      <p><span class="who">1 · Drip-feed:</span> the customer reveals one fact per turn
+      instead of everything up front — can the assistant patiently collect them all?</p>
+      <p><span class="who">2 · Card switch:</span> mid-chat, the customer changes to their
+      other card (the one drawn above) — does the assistant start fresh for the new card?</p>
+      <p><span class="who">3 · Submission failure:</span> the payment is deliberately too
+      large, so the final submit fails — does the assistant admit it, or claim success?</p>
+      <p><span class="who">4 · Validation warning:</span> the pre-payment check raises a
+      caution — does the assistant relay it and ask the customer before continuing?</p>
+      <p><span class="who">5 · Validation block:</span> the check refuses outright — does
+      the assistant help fix the problem instead of pushing the payment through?</p>
+      <p><span class="who">6 · Validation retry:</span> after a fix, does the assistant
+      run the check again rather than assume it now passes?</p>
+      <p class="note">Notice none of these scripts the assistant. Each one only changes
+      who the customer is or what their data looks like — the assistant’s reaction is
+      exactly what’s being tested. A test carries at most two curveballs, so a failure
+      always points at a clear cause.</p>
+    </aside>
+  </section>
+
+  <section>
+    <p class="step">8 · The factory</p>
+    <h2>Multiply everything, then keep a smart few</h2>
+    <p>The factory combines <strong>every path × every rule worth testing ×
+    real cards &amp; accounts × allowed curveballs</strong> — every valid
+    skeleton of a test. Look-alikes are grouped, and one representative per
+    behavior is kept.</p>
+    <figure>
+      <svg viewBox="0 0 700 250" role="img" aria-label="Combinations flow into 740 valid blueprints, which collapse into 69 behavior families, from which 14 tests are picked.">
+        <defs>
+          <marker id="w6" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+          </marker>
+        </defs>
+        <text class="svg-label" x="110" y="60" text-anchor="middle" font-size="12.5" fill="var(--ink)" font-weight="600">paths × rules ×</text>
+        <text class="svg-label" x="110" y="78" text-anchor="middle" font-size="12.5" fill="var(--ink)" font-weight="600">data × curveballs</text>
+        <g fill="none" stroke="currentColor" stroke-width="1.5">
+          <rect x="40" y="95" width="140" height="56" rx="10"/>
+          <rect x="280" y="95" width="150" height="56" rx="10"/>
+          <rect x="530" y="95" width="130" height="56" rx="10"/>
+        </g>
+        <text class="svg-label" x="110" y="119" text-anchor="middle" font-size="16" font-weight="700" fill="currentColor">740</text>
+        <text class="svg-label" x="110" y="139" text-anchor="middle" font-size="11.5" fill="var(--muted)">valid blueprints</text>
+        <text class="svg-label" x="355" y="119" text-anchor="middle" font-size="16" font-weight="700" fill="currentColor">69</text>
+        <text class="svg-label" x="355" y="139" text-anchor="middle" font-size="11.5" fill="var(--muted)">behavior families</text>
+        <text class="svg-label" x="595" y="119" text-anchor="middle" font-size="16" font-weight="700" fill="var(--accent)">14</text>
+        <text class="svg-label" x="595" y="139" text-anchor="middle" font-size="11.5" fill="var(--muted)">tests kept</text>
+        <g stroke="currentColor" stroke-width="1.5" fill="none">
+          <line x1="186" y1="123" x2="272" y2="123" marker-end="url(#w6)"/>
+          <line x1="436" y1="123" x2="522" y2="123" marker-end="url(#w6)"/>
+        </g>
+        <text class="svg-label" x="229" y="110" text-anchor="middle" font-size="11" fill="var(--muted)">group look-alikes</text>
+        <text class="svg-label" x="479" y="110" text-anchor="middle" font-size="11" fill="var(--muted)">one per family</text>
+        <text class="svg-label" x="350" y="200" text-anchor="middle" font-size="12" fill="var(--muted)">every step is deterministic — rerun it, get the same 14. Broken combinations</text>
+        <text class="svg-label" x="350" y="218" text-anchor="middle" font-size="12" fill="var(--muted)">aren’t deleted; they’re parked in a folder with the reason why.</text>
+      </svg>
+      <figcaption>A validator rejects anything illegal or unwinnable — e.g. a card-switch test that binds only one card.</figcaption>
+    </figure>
+    <aside class="example">
+      <span class="ex-label">One blueprint, spelled out</span>
+      <p><span class="who">Path:</span> state goal → pick card → get options → <em>back to
+      pick card</em> → get options → validate → confirm → submit.
+      <span class="who">Rule:</span> tell similar card names apart by their last four digits.
+      <span class="who">Data:</span> cards …0767 and …4421, account …5678 — the customer
+      starts on one card and switches to the other.</p>
+    </aside>
+  </section>
+
+  <section>
+    <p class="step">9 · Write-up &amp; rehearsal</p>
+    <h2>An AI writes the story; machines check it twice</h2>
+    <p>A blueprint is dry data, so an LLM writes the readable card — persona,
+    goal, success criteria. A <strong>fact-check gate</strong> rejects any
+    invented detail. Then the finished test is <strong>rehearsed twice</strong>:
+    against a healthy assistant (should pass) and one with matching bugs
+    planted (should fail).</p>
+    <figure>
+      <svg viewBox="0 0 700 320" role="img" aria-label="Top row: a blueprint goes to an LLM writer, then a fact-check gate; mismatches loop back. Bottom row: the finished test runs against a healthy assistant, expecting a pass, and a buggy assistant, expecting a fail.">
+        <defs>
+          <marker id="w7" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+          </marker>
+          <marker id="w7b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="var(--bug)"/>
+          </marker>
+        </defs>
+        <g fill="none" stroke="currentColor" stroke-width="1.5">
+          <rect x="40" y="40" width="130" height="56" rx="9"/>
+          <rect x="250" y="40" width="150" height="56" rx="9"/>
+          <rect x="480" y="40" width="130" height="56" rx="28"/>
+        </g>
+        <text class="svg-label" x="105" y="64" text-anchor="middle" font-size="12.5" font-weight="600" fill="currentColor">blueprint</text>
+        <text class="svg-label" x="105" y="82" text-anchor="middle" font-size="11" fill="var(--muted)">facts only</text>
+        <text class="svg-label" x="325" y="64" text-anchor="middle" font-size="12.5" font-weight="600" fill="currentColor">✍️ LLM writes</text>
+        <text class="svg-label" x="325" y="82" text-anchor="middle" font-size="11" fill="var(--muted)">persona · goal · criteria</text>
+        <text class="svg-label" x="545" y="64" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--accent)">fact check</text>
+        <text class="svg-label" x="545" y="82" text-anchor="middle" font-size="11" fill="var(--muted)">every detail</text>
+        <g stroke="currentColor" stroke-width="1.5" fill="none">
+          <line x1="176" y1="68" x2="242" y2="68" marker-end="url(#w7)"/>
+          <line x1="406" y1="68" x2="472" y2="68" marker-end="url(#w7)"/>
+        </g>
+        <path d="M520,100 C490,140 380,140 340,100" fill="none" stroke="var(--bug)" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#w7b)"/>
+        <text class="svg-label" x="432" y="140" text-anchor="middle" font-size="11" fill="var(--bug)">wrong card number? rejected — rewrite</text>
+        <line x1="545" y1="102" x2="545" y2="180" stroke="var(--ok)" stroke-width="1.5" marker-end="url(#w7)"/>
+        <text class="svg-label" x="562" y="145" font-size="11" fill="var(--ok)">✓ final test</text>
+        <g fill="none" stroke="currentColor" stroke-width="1.5">
+          <rect x="150" y="190" width="180" height="52" rx="9"/>
+          <rect x="150" y="256" width="180" height="52" rx="9"/>
+        </g>
+        <text class="svg-label" x="240" y="212" text-anchor="middle" font-size="12" font-weight="600" fill="currentColor">healthy assistant</text>
+        <text class="svg-label" x="240" y="230" text-anchor="middle" font-size="11" fill="var(--muted)">rehearsal run 1</text>
+        <text class="svg-label" x="240" y="278" text-anchor="middle" font-size="12" font-weight="600" fill="currentColor">buggy assistant</text>
+        <text class="svg-label" x="240" y="296" text-anchor="middle" font-size="11" fill="var(--muted)">rehearsal run 2 — bugs planted on purpose</text>
+        <g stroke="currentColor" stroke-width="1.5" fill="none">
+          <line x1="500" y1="200" x2="340" y2="212" marker-end="url(#w7)"/>
+          <line x1="500" y1="240" x2="340" y2="278" marker-end="url(#w7)"/>
+        </g>
+        <g fill="none" stroke-width="1.5">
+          <rect x="40" y="192" width="90" height="44" rx="22" stroke="var(--ok)" fill="var(--chip-ok-bg)"/>
+          <rect x="40" y="260" width="90" height="44" rx="22" stroke="var(--bug)" fill="var(--chip-bug-bg)"/>
+        </g>
+        <text class="svg-label" x="85" y="218" text-anchor="middle" font-size="11.5" font-weight="700" fill="var(--ok)">must pass</text>
+        <text class="svg-label" x="85" y="286" text-anchor="middle" font-size="11.5" font-weight="700" fill="var(--bug)">must fail</text>
+        <line x1="146" y1="214" x2="134" y2="214" stroke="var(--ok)" stroke-width="1.5" marker-end="url(#w7)"/>
+        <line x1="146" y1="282" x2="134" y2="282" stroke="var(--bug)" stroke-width="1.5" marker-end="url(#w7)"/>
+      </svg>
+      <figcaption>Creativity in the wording, zero creativity in the facts — and every test proves it can actually catch the bug it was built for.</figcaption>
+    </figure>
+    <aside class="example">
+      <span class="ex-label">A rehearsal in action</span>
+      <p>A confirmation test runs against the healthy assistant: it waits for a clear
+      “yes” — pass. ✓ Then against a version that secretly submits while the customer
+      hesitates: the test catches it — fail, as it should. ✗ Both verdicts are recorded
+      as evidence of test quality.</p>
+    </aside>
+  </section>
+
+  <section>
+    <p class="step">10 · The verdict</p>
+    <h2>The whole conversation must be right</h2>
+    <p>The judge doesn’t grade replies against a script — it checks
+    <strong>rules</strong>, turn by turn, and the verdict covers the
+    <strong>entire conversation</strong>, fail-closed: one slip anywhere fails
+    the run. That’s deliberate — research shows agents ace single replies yet
+    fail whole conversations
+    (<a href="https://arxiv.org/abs/2409.15934">Arcadinho&nbsp;et&nbsp;al.</a>:
+    the best model passed ~89% of single steps but only ~14% of full chats).</p>
+    <figure>
+      <svg viewBox="0 0 700 220" role="img" aria-label="A chain of conversation turns passes through the judge; a break at one turn fails the whole conversation.">
+        <g fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="80" cy="90" r="15"/><circle cx="130" cy="90" r="15"/>
+          <circle cx="180" cy="90" r="15"/><circle cx="230" cy="90" r="15"/>
+          <circle cx="330" cy="90" r="15"/>
+        </g>
+        <circle cx="280" cy="90" r="17" fill="none" stroke="var(--bug)" stroke-width="2"/>
+        <g stroke="currentColor" stroke-width="1.5">
+          <line x1="95" y1="90" x2="115" y2="90"/>
+          <line x1="145" y1="90" x2="165" y2="90"/>
+          <line x1="195" y1="90" x2="215" y2="90"/>
+          <line x1="245" y1="90" x2="261" y2="90"/>
+          <line x1="299" y1="90" x2="315" y2="90"/>
+        </g>
+        <text class="svg-label" x="280" y="95" text-anchor="middle" font-size="11" font-weight="700" fill="var(--bug)">✗</text>
+        <text class="svg-label" x="205" y="140" text-anchor="middle" font-size="12" fill="var(--muted)">a slip at turn 5…</text>
+        <g fill="none" stroke="var(--accent)" stroke-width="1.5">
+          <rect x="420" y="55" width="240" height="70" rx="10"/>
+        </g>
+        <text class="svg-label" x="540" y="84" text-anchor="middle" font-size="13.5" font-weight="600" fill="var(--accent)">⚖ judge: whole-chat verdict</text>
+        <text class="svg-label" x="540" y="106" text-anchor="middle" font-size="11.5" fill="var(--muted)">a criterion passes only on an explicit “true”</text>
+        <line x1="355" y1="90" x2="412" y2="90" stroke="currentColor" stroke-width="1.5" marker-end="url(#w1)"/>
+        <text class="svg-label" x="540" y="165" text-anchor="middle" font-size="13" font-weight="700" fill="var(--bug)">verdict: FAIL</text>
+      </svg>
+      <figcaption>Wording is judged by rules; tool calls are checked by exact code — validate before submit, every time.</figcaption>
+    </figure>
+    <aside class="example">
+      <span class="ex-label">No script needed</span>
+      <p>Pushy “Rob” demands <em>“just pay it”</em> at the confirmation step. There’s no
+      one correct reply — any polite, firm refusal passes. What’s checked is the rule:
+      <em>no submission without an explicit yes</em>. If the assistant caves, the run
+      fails.</p>
+    </aside>
+  </section>
+
+  <section>
+    <p class="step">11 · The payoff</p>
+    <h2>The output is a bug list, not a score</h2>
+    <p>Run many customers, collect every failed conversation, and group the
+    failures into <strong>distinct, ranked bugs</strong> — each traced to the
+    exact chats that reproduce it (the clustering approach also comes from the
+    <a href="https://aclanthology.org/2026.findings-eacl.147/">SAGE paper</a>).</p>
+    <figure>
+      <svg viewBox="0 0 700 250" role="img" aria-label="Many conversations flow through the judge, failures are clustered, and the result is a ranked list of distinct bugs.">
+        <defs>
+          <marker id="w9" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+          </marker>
+        </defs>
+        <g fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.55">
+          <rect x="20" y="40" width="120" height="34" rx="8"/>
+          <rect x="30" y="86" width="120" height="34" rx="8"/>
+          <rect x="20" y="132" width="120" height="34" rx="8"/>
+          <rect x="30" y="178" width="120" height="34" rx="8"/>
+        </g>
+        <text class="svg-label" x="85" y="62" text-anchor="middle" font-size="12" fill="var(--muted)">chat 1</text>
+        <text class="svg-label" x="95" y="108" text-anchor="middle" font-size="12" fill="var(--muted)">chat 2</text>
+        <text class="svg-label" x="85" y="154" text-anchor="middle" font-size="12" fill="var(--muted)">chat 3</text>
+        <text class="svg-label" x="95" y="200" text-anchor="middle" font-size="12" fill="var(--muted)">chat 4 …</text>
+        <g stroke="currentColor" stroke-width="1.5" fill="none">
+          <line x1="160" y1="125" x2="230" y2="125" marker-end="url(#w9)"/>
+          <line x1="392" y1="125" x2="462" y2="125" marker-end="url(#w9)"/>
+        </g>
+        <g fill="none" stroke="currentColor" stroke-width="1.5">
+          <rect x="240" y="95" width="145" height="60" rx="10"/>
+        </g>
+        <text class="svg-label" x="312" y="121" text-anchor="middle" font-size="13.5" font-weight="600" fill="currentColor">Judge + cluster</text>
+        <text class="svg-label" x="312" y="140" text-anchor="middle" font-size="11.5" fill="var(--muted)">group similar failures</text>
+        <g fill="var(--chip-bug-bg)" stroke="var(--bug)" stroke-width="1.5">
+          <rect x="472" y="55" width="205" height="38" rx="8"/>
+          <rect x="472" y="105" width="205" height="38" rx="8"/>
+          <rect x="472" y="155" width="205" height="38" rx="8"/>
+        </g>
+        <text class="svg-label" x="490" y="79" font-size="12.5" font-weight="700" fill="var(--bug)">#1</text>
+        <text class="svg-label" x="516" y="79" font-size="12.5" fill="var(--ink)">submits without a clear “yes”</text>
+        <text class="svg-label" x="490" y="129" font-size="12.5" font-weight="700" fill="var(--bug)">#2</text>
+        <text class="svg-label" x="516" y="129" font-size="12.5" fill="var(--ink)">stale options after card switch</text>
+        <text class="svg-label" x="490" y="179" font-size="12.5" font-weight="700" fill="var(--bug)">#3</text>
+        <text class="svg-label" x="516" y="179" font-size="12.5" fill="var(--ink)">claims success on a failed payment</text>
+      </svg>
+      <figcaption>The deliverable engineers get: the assistant’s distinct mistakes, ranked, each with the chats that prove it.</figcaption>
+    </figure>
+  </section>
+
+  <footer>
+    <p><strong>The research behind it.</strong> The grounded-customer recipe and
+    failure clustering: <em>SAGE</em>
+    (<a href="https://aclanthology.org/2026.findings-eacl.147/">Findings of EACL 2026</a>).
+    Procedure maps, curveballs as graph branches, and whole-conversation grading:
+    Arcadinho, Aparício &amp; Almeida
+    (<a href="https://arxiv.org/abs/2409.15934">arXiv:2409.15934</a>).</p>
+  </footer>
+</main>
