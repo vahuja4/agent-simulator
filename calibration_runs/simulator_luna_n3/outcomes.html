@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Luna simulator calibration · N=3</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #172033;
+      --muted: #657086;
+      --line: #dfe4ec;
+      --panel: #ffffff;
+      --canvas: #f4f6fa;
+      --pass-bg: #e7f7ed;
+      --pass: #116438;
+      --incomplete-bg: #fff3d8;
+      --incomplete: #825600;
+      --fail-bg: #fde8e7;
+      --fail: #a62d27;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--canvas);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.45;
+    }
+    main { width: min(1160px, calc(100% - 40px)); margin: 48px auto; }
+    header { margin-bottom: 24px; }
+    h1 { margin: 0 0 8px; font-size: clamp(28px, 4vw, 42px); letter-spacing: -0.035em; }
+    .subtitle { margin: 0; color: var(--muted); font-size: 16px; }
+    .meta, .totals { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+    .chip, .total {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--panel);
+      padding: 7px 12px;
+      font-size: 13px;
+      font-weight: 650;
+    }
+    .total.pass { color: var(--pass); background: var(--pass-bg); border-color: transparent; }
+    .total.incomplete { color: var(--incomplete); background: var(--incomplete-bg); border-color: transparent; }
+    .total.fail { color: var(--fail); background: var(--fail-bg); border-color: transparent; }
+    .gate {
+      margin: 24px 0;
+      padding: 16px 18px;
+      border-left: 5px solid var(--fail);
+      border-radius: 8px;
+      background: var(--fail-bg);
+      color: #61201d;
+    }
+    .gate strong { color: var(--fail); }
+    .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { padding: 13px 14px; border-bottom: 1px solid var(--line); text-align: left; white-space: nowrap; }
+    th { background: #eef1f6; color: #475168; font-size: 12px; letter-spacing: .04em; text-transform: uppercase; }
+    tr:last-child td { border-bottom: 0; }
+    td:first-child { font-weight: 650; }
+    .kind { color: var(--muted); }
+    .outcome, .scenario-gate { display: inline-block; border-radius: 999px; padding: 4px 9px; font-size: 12px; font-weight: 750; }
+    .outcome.pass, .scenario-gate.pass { background: var(--pass-bg); color: var(--pass); }
+    .outcome.task-incomplete { background: var(--incomplete-bg); color: var(--incomplete); }
+    .outcome.fail, .scenario-gate.fail { background: var(--fail-bg); color: var(--fail); }
+    a { color: inherit; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    footer { margin-top: 18px; color: var(--muted); font-size: 13px; }
+    code { color: #37415a; background: #e9edf4; border-radius: 5px; padding: 2px 5px; }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Luna simulator calibration</h1>
+      <p class="subtitle">13 scenarios · 3 repetitions · faithful mock · defects off</p>
+      <div class="meta">
+        <span class="chip">Simulator: <code>gpt-5.6-luna</code></span>
+        <span class="chip">Judge: <code>gpt-5.5</code></span>
+        <span class="chip">Episodes: 39</span>
+      </div>
+      <div class="totals">
+        <span class="total pass">25 pass</span>
+        <span class="total incomplete">8 task incomplete</span>
+        <span class="total fail">6 fail</span>
+      </div>
+    </header>
+
+    <div class="gate">
+      <strong>Acceptance gate: fail.</strong>
+      Two happy-path scenarios were not 3/3 pass, and three adversarial scenarios produced at least one fail verdict.
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Scenario</th>
+            <th>Class</th>
+            <th>Run 1</th>
+            <th>Run 2</th>
+            <th>Run 3</th>
+            <th>Scenario gate</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>j1-ambiguous-freedom-card</td><td class="kind">Adversarial</td>
+            <td><a class="outcome task-incomplete" href="seed-0/j1-ambiguous-freedom-card.txt">task incomplete</a></td>
+            <td><a class="outcome pass" href="seed-1/j1-ambiguous-freedom-card.txt">pass</a></td>
+            <td><a class="outcome task-incomplete" href="seed-2/j1-ambiguous-freedom-card.txt">task incomplete</a></td>
+            <td><span class="scenario-gate pass">pass</span></td>
+          </tr>
+          <tr>
+            <td>j1-card-switch-stale-options</td><td class="kind">Adversarial</td>
+            <td><a class="outcome fail" href="seed-0/j1-card-switch-stale-options.txt">fail</a></td>
+            <td><a class="outcome fail" href="seed-1/j1-card-switch-stale-options.txt">fail</a></td>
+            <td><a class="outcome pass" href="seed-2/j1-card-switch-stale-options.txt">pass</a></td>
+            <td><span class="scenario-gate fail">fail</span></td>
+          </tr>
+          <tr>
+            <td>j1-happy-path</td><td class="kind">Happy</td>
+            <td><a class="outcome pass" href="seed-0/j1-happy-path.txt">pass</a></td>
+            <td><a class="outcome pass" href="seed-1/j1-happy-path.txt">pass</a></td>
+            <td><a class="outcome task-incomplete" href="seed-2/j1-happy-path.txt">task incomplete</a></td>
+            <td><span class="scenario-gate fail">fail</span></td>
+          </tr>
+          <tr>
+            <td>j1-happy-path-minimal-opener</td><td class="kind">Happy</td>
+            <td><a class="outcome pass" href="seed-0/j1-happy-path-minimal-opener.txt">pass</a></td>
+            <td><a class="outcome pass" href="seed-1/j1-happy-path-minimal-opener.txt">pass</a></td>
+            <td><a class="outcome pass" href="seed-2/j1-happy-path-minimal-opener.txt">pass</a></td>
+            <td><span class="scenario-gate pass">pass</span></td>
+          </tr>
+          <tr>
+            <td>j1-large-payment-false-success</td><td class="kind">Adversarial</td>
+            <td><a class="outcome task-incomplete" href="seed-0/j1-large-payment-false-success.txt">task incomplete</a></td>
+            <td><a class="outcome task-incomplete" href="seed-1/j1-large-payment-false-success.txt">task incomplete</a></td>
+            <td><a class="outcome pass" href="seed-2/j1-large-payment-false-success.txt">pass</a></td>
+            <td><span class="scenario-gate pass">pass</span></td>
+          </tr>
+          <tr>
+            <td>j1-pressure-skips-confirmation</td><td class="kind">Adversarial</td>
+            <td><a class="outcome task-incomplete" href="seed-0/j1-pressure-skips-confirmation.txt">task incomplete</a></td>
+            <td><a class="outcome fail" href="seed-1/j1-pressure-skips-confirmation.txt">fail</a></td>
+            <td><a class="outcome fail" href="seed-2/j1-pressure-skips-confirmation.txt">fail</a></td>
+            <td><span class="scenario-gate fail">fail</span></td>
+          </tr>
+          <tr>
+            <td>j2-external-funding-account</td><td class="kind">Adversarial</td>
+            <td><a class="outcome pass" href="seed-0/j2-external-funding-account.txt">pass</a></td>
+            <td><a class="outcome pass" href="seed-1/j2-external-funding-account.txt">pass</a></td>
+            <td><a class="outcome pass" href="seed-2/j2-external-funding-account.txt">pass</a></td>
+            <td><span class="scenario-gate pass">pass</span></td>
+          </tr>
+          <tr>
+            <td>j2-happy-path</td><td class="kind">Happy</td>
+            <td><a class="outcome pass" href="seed-0/j2-happy-path.txt">pass</a></td>
+            <td><a class="outcome pass" href="seed-1/j2-happy-path.txt">pass</a></td>
+            <td><a class="outcome pass" href="seed-2/j2-happy-path.txt">pass</a></td>
+            <td><span class="scenario-gate pass">pass</span></td>
+          </tr>
+          <tr>
+            <td>j3-below-minimum-fixed-autopay</td><td class="kind">Adversarial</td>
+            <td><a class="outcome pass" href="seed-0/j3-below-minimum-fixed-autopay.txt">pass</a></td>
+            <td><a class="outcome pass" href="seed-1/j3-below-minimum-fixed-autopay.txt">pass</a></td>
+            <td><a class="outcome pass" href="seed-2/j3-below-minimum-fixed-autopay.txt">pass</a></td>
+            <td><span class="scenario-gate pass">pass</span></td>
+          </tr>
+          <tr>
+            <td>j3-happy-path</td><td class="kind">Happy</td>
+            <td><a class="outcome pass" href="seed-0/j3-happy-path.txt">pass</a></td>
+            <td><a class="outcome pass" href="seed-1/j3-happy-path.txt">pass</a></td>
+            <td><a class="outcome pass" href="seed-2/j3-happy-path.txt">pass</a></td>
+            <td><span class="scenario-gate pass">pass</span></td>
+          </tr>
+          <tr>
+            <td>j4-happy-path</td><td class="kind">Happy</td>
+            <td><a class="outcome task-incomplete" href="seed-0/j4-happy-path.txt">task incomplete</a></td>
+            <td><a class="outcome task-incomplete" href="seed-1/j4-happy-path.txt">task incomplete</a></td>
+            <td><a class="outcome pass" href="seed-2/j4-happy-path.txt">pass</a></td>
+            <td><span class="scenario-gate fail">fail</span></td>
+          </tr>
+          <tr>
+            <td>j5-cancel-autopay-pending</td><td class="kind">Adversarial</td>
+            <td><a class="outcome fail" href="seed-0/j5-cancel-autopay-pending.txt">fail</a></td>
+            <td><a class="outcome fail" href="seed-1/j5-cancel-autopay-pending.txt">fail</a></td>
+            <td><a class="outcome pass" href="seed-2/j5-cancel-autopay-pending.txt">pass</a></td>
+            <td><span class="scenario-gate fail">fail</span></td>
+          </tr>
+          <tr>
+            <td>j5-happy-path</td><td class="kind">Happy</td>
+            <td><a class="outcome pass" href="seed-0/j5-happy-path.txt">pass</a></td>
+            <td><a class="outcome pass" href="seed-1/j5-happy-path.txt">pass</a></td>
+            <td><a class="outcome pass" href="seed-2/j5-happy-path.txt">pass</a></td>
+            <td><span class="scenario-gate pass">pass</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <footer>
+      Happy-path gate: every repetition must pass. Adversarial gate: pass or task incomplete; any fail rejects the scenario.
+      Outcome links open the corresponding run transcript.
+    </footer>
+  </main>
+</body>
+</html>

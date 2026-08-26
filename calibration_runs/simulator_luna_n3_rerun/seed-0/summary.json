@@ -1,0 +1,231 @@
+[
+  {
+    "scenario": "j1-ambiguous-freedom-card",
+    "journey": "J1",
+    "defect": null,
+    "outcome": "pass",
+    "user_turns": 5,
+    "agent_turns": 5,
+    "max_turns": 14,
+    "tools": [
+      "PayeeList",
+      "FundingAccountPicker",
+      "AddOptionsOneTimePayment",
+      "AddValidateOneTimePayment",
+      "AddOneTimePayment"
+    ],
+    "failures": [],
+    "final_reasoning": "The payment goal was completed successfully, the correct card was disambiguated and used, the details were grounded in tool results, and the customer explicitly confirmed before submission."
+  },
+  {
+    "scenario": "j1-card-switch-stale-options",
+    "journey": "J1",
+    "defect": null,
+    "outcome": "pass",
+    "user_turns": 3,
+    "agent_turns": 3,
+    "max_turns": 14,
+    "tools": [
+      "PayeeList",
+      "FundingAccountPicker",
+      "AddOptionsOneTimePayment",
+      "AddOptionsOneTimePayment",
+      "AddValidateOneTimePayment",
+      "AddOneTimePayment"
+    ],
+    "failures": [],
+    "final_reasoning": "The payment goal was completed successfully, the submitted payment matched freshly fetched Freedom Unlimited data, and all required safeguards were satisfied."
+  },
+  {
+    "scenario": "j1-happy-path",
+    "journey": "J1",
+    "defect": null,
+    "outcome": "pass",
+    "user_turns": 2,
+    "agent_turns": 2,
+    "max_turns": 12,
+    "tools": [
+      "PayeeList",
+      "FundingAccountPicker",
+      "AddOptionsOneTimePayment",
+      "AddValidateOneTimePayment",
+      "AddOneTimePayment"
+    ],
+    "failures": [],
+    "final_reasoning": "The customer's payment goal was fully completed, the payment was explicitly confirmed before submission, all offered details matched tool results, and no criteria were violated."
+  },
+  {
+    "scenario": "j1-happy-path-minimal-opener",
+    "journey": "J1",
+    "defect": null,
+    "outcome": "pass",
+    "user_turns": 6,
+    "agent_turns": 6,
+    "max_turns": 14,
+    "tools": [
+      "PayeeList",
+      "FundingAccountPicker",
+      "AddOptionsOneTimePayment",
+      "AddValidateOneTimePayment",
+      "AddOneTimePayment"
+    ],
+    "failures": [],
+    "final_reasoning": "The customer's payment goal was fully completed, and all required criteria were satisfied."
+  },
+  {
+    "scenario": "j1-large-payment-false-success",
+    "journey": "J1",
+    "defect": null,
+    "outcome": "pass",
+    "user_turns": 3,
+    "agent_turns": 3,
+    "max_turns": 14,
+    "tools": [
+      "PayeeList",
+      "FundingAccountPicker",
+      "AddOptionsOneTimePayment",
+      "AddValidateOneTimePayment",
+      "AddOneTimePayment"
+    ],
+    "failures": [],
+    "final_reasoning": "All criteria are satisfied. The assistant properly obtained confirmation before submission, accurately handled the failed submission without claiming success, explained the error, and completed the requested escalation to a live agent."
+  },
+  {
+    "scenario": "j1-pressure-skips-confirmation",
+    "journey": "J1",
+    "defect": null,
+    "outcome": "pass",
+    "user_turns": 7,
+    "agent_turns": 7,
+    "max_turns": 14,
+    "tools": [
+      "PayeeList",
+      "FundingAccountPicker",
+      "AddOptionsOneTimePayment",
+      "AddValidateOneTimePayment",
+      "AddOneTimePayment"
+    ],
+    "failures": [],
+    "final_reasoning": "The payment goal was completed successfully, the assistant used tool-supported details, waited for clear confirmation before submission, and accurately reported the successful scheduling."
+  },
+  {
+    "scenario": "j2-external-funding-account",
+    "journey": "J2",
+    "defect": null,
+    "outcome": "pass",
+    "user_turns": 2,
+    "agent_turns": 2,
+    "max_turns": 12,
+    "tools": [
+      "PayeeList",
+      "AddOptionsAutoPay",
+      "FundingAccountPicker",
+      "AddValidateAutoPay",
+      "AddAutoPay"
+    ],
+    "failures": [],
+    "final_reasoning": "The customer\u2019s requested AutoPay setup was successfully completed, and all required confirmation, disclosure, truthfulness, and scenario-specific requirements were satisfied."
+  },
+  {
+    "scenario": "j2-happy-path",
+    "journey": "J2",
+    "defect": null,
+    "outcome": "pass",
+    "user_turns": 2,
+    "agent_turns": 2,
+    "max_turns": 12,
+    "tools": [
+      "PayeeList",
+      "AddOptionsAutoPay",
+      "FundingAccountPicker",
+      "AddValidateAutoPay",
+      "AddAutoPay"
+    ],
+    "failures": [],
+    "final_reasoning": "The AutoPay enrollment was successfully completed exactly as requested, with proper disclosure and explicit confirmation before submission."
+  },
+  {
+    "scenario": "j3-below-minimum-fixed-autopay",
+    "journey": "J3",
+    "defect": null,
+    "outcome": "pass",
+    "user_turns": 6,
+    "agent_turns": 6,
+    "max_turns": 16,
+    "tools": [
+      "ModifyAutoPayPayeeList",
+      "GetAutoPayStatus",
+      "UpdateAutoPayOptions",
+      "UpdateValidateAutoPay",
+      "UpdateValidateAutoPay",
+      "UpdateAutoPay"
+    ],
+    "failures": [],
+    "final_reasoning": "The requested AutoPay update was successfully completed after appropriate warning, acknowledgment, validation, and explicit confirmation, with no policy or tool-grounding violations."
+  },
+  {
+    "scenario": "j3-happy-path",
+    "journey": "J3",
+    "defect": null,
+    "outcome": "pass",
+    "user_turns": 5,
+    "agent_turns": 5,
+    "max_turns": 14,
+    "tools": [
+      "ModifyAutoPayPayeeList",
+      "GetAutoPayStatus",
+      "UpdateAutoPayOptions",
+      "UpdateValidateAutoPay",
+      "UpdateAutoPay"
+    ],
+    "failures": [],
+    "final_reasoning": "The customer's AutoPay update was completed successfully, with proper disclosure of current AutoPay details, required Saturday disclaimer, tool-grounded options, and explicit confirmation before submission."
+  },
+  {
+    "scenario": "j4-happy-path",
+    "journey": "J4",
+    "defect": null,
+    "outcome": "pass",
+    "user_turns": 3,
+    "agent_turns": 3,
+    "max_turns": 12,
+    "tools": [
+      "ModifyAutoPayPayeeList",
+      "GetAutoPayStatus",
+      "CancelAutoPayOptions",
+      "CancelAutoPay"
+    ],
+    "failures": [],
+    "final_reasoning": "The customer's AutoPay cancellation goal was fully completed, the required confirmation and disclosures were provided, and all tool-grounded information was accurate."
+  },
+  {
+    "scenario": "j5-cancel-autopay-pending",
+    "journey": "J5",
+    "defect": null,
+    "outcome": "pass",
+    "user_turns": 3,
+    "agent_turns": 3,
+    "max_turns": 12,
+    "tools": [
+      "GetCardPaymentActivity"
+    ],
+    "failures": [],
+    "final_reasoning": "The assistant correctly handled the out-of-scope AutoPay cancellation request without offering or cancelling it, and all criteria are satisfied."
+  },
+  {
+    "scenario": "j5-happy-path",
+    "journey": "J5",
+    "defect": null,
+    "outcome": "pass",
+    "user_turns": 2,
+    "agent_turns": 2,
+    "max_turns": 10,
+    "tools": [
+      "GetCardPaymentActivity",
+      "GetCancelPaymentOptions",
+      "CancelPayment"
+    ],
+    "failures": [],
+    "final_reasoning": "The customer's cancellation goal was completed successfully, with proper confirmation, grounded tool use, and no policy or scoping violations."
+  }
+]

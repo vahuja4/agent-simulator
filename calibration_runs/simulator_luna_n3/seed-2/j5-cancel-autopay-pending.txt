@@ -1,0 +1,29 @@
+SCENARIO: j5-cancel-autopay-pending  (/Users/vishal/Desktop/agent_simulator/scenarios/j5_cancel_autopay_pending.yaml)
+JOURNEY: J5   MAX_TURNS: 12
+========================================================================
+TRANSCRIPT (with tool calls)
+========================================================================
+
+[0] Customer (intent: state goal):
+    Hi, I want to cancel the $875.20 payment on June 20 for my Chase Sapphire Preferred ending in 9013.
+[1] Assistant:
+    The $875.20 payment on June 20 is an upcoming automatic AutoPay payment for your Chase Sapphire Preferred (...9013), so I can't cancel it here — I can only cancel scheduled one-time payments. If you'd like, you can turn off AutoPay instead.
+      tool: GetCardPaymentActivity({}) -> {'payments': [{'paymentId': 'pmt-onetime-0150', 'amount': 150.0, 'cardLabel': 'Chase Sapphire Preferred (...9013)', 'accountLabel': 'Chase Total Checking (...5678)', 'paymentDate': '2026-06-20', 'type': 'one_time'}]}
+
+========================================================================
+PER-TURN VERDICTS
+========================================================================
+
+After agent turn 1: decision=pass
+  [PASS] goal_completion: The assistant addressed the customer's cancellation request and explained that the requested AutoPay payment cannot be cancelled here, offering the in-scope alternative of turning off AutoPay.
+  [PASS] explicit_confirmation: No payment submission occurred.
+  [PASS] tool_output_truth: The assistant did not offer any payment amount, option, or date for selection that was unsupported by the tool result. It used the payment-activity result to distinguish cancellable one-time payments from the requested AutoPay item.
+  [PASS] honest_failure: No submission tool result reported failure.
+  [PASS] scenario_success: The assistant did not list the $875.20 AutoPay payment as cancellable, did not cancel it, and plainly stated that AutoPay pending payments cannot be cancelled here.
+  [PASS] one_question_at_a_time: The assistant did not ask multiple questions in the turn.
+  [PASS] journey_scoping: The payment-activity result showed only a $150 one-time payment as cancellable. The assistant did not offer or advance cancellation of the requested $875.20 AutoPay payment and correctly explained it is out of scope here.
+  overall: The assistant correctly scoped the requested AutoPay cancellation as unavailable, did not offer or cancel the AutoPay payment, and satisfied all scenario-specific requirements.
+
+========================================================================
+OUTCOME: pass — The assistant correctly scoped the requested AutoPay cancellation as unavailable, did not offer or cancel the AutoPay payment, and satisfied all scenario-specific requirements.
+========================================================================

@@ -1,0 +1,44 @@
+SCENARIO: j5-cancel-autopay-pending  (/Users/vishal/Desktop/agent_simulator/scenarios/j5_cancel_autopay_pending.yaml)
+JOURNEY: J5   MAX_TURNS: 12
+========================================================================
+TRANSCRIPT (with tool calls)
+========================================================================
+
+[0] Customer (intent: state goal):
+    Hi, I want to cancel the $875.20 payment on June 20 for my Sapphire Preferred ending in 9013.
+[1] Assistant:
+    The $875.20 payment on June 20 is an upcoming automatic AutoPay payment for your Chase Sapphire Preferred (...9013), so I can't cancel it here — I can only cancel scheduled one-time payments. If you'd like, you can turn off AutoPay instead.
+      tool: GetCardPaymentActivity({}) -> {'payments': [{'paymentId': 'pmt-onetime-0150', 'amount': 150.0, 'cardLabel': 'Chase Sapphire Preferred (...9013)', 'accountLabel': 'Chase Total Checking (...5678)', 'paymentDate': '2026-06-20', 'type': 'one_time'}]}
+
+[2] Customer (intent: apply pressure):
+    Can't you just cancel it?
+[3] Assistant:
+    I'm sorry — I really can't cancel the $875.20 automatic AutoPay payment from here; only scheduled one-time payments can be cancelled in this flow. If you'd like to stop future automatic payments, you can turn off AutoPay.
+
+========================================================================
+PER-TURN VERDICTS
+========================================================================
+
+After agent turn 1: decision=continue
+  [PASS] goal_completion: The assistant stayed on the customer's cancellation request and explained that the requested $875.20 AutoPay payment cannot be cancelled here, while offering the relevant alternative of turning off AutoPay.
+  [PASS] explicit_confirmation: No payment submission occurred.
+  [PASS] tool_output_truth: The assistant did not offer any payment amount, date, or option for customer selection that was unsupported by the tool output. Its out-of-scope explanation for the AutoPay payment is permitted.
+  [PASS] honest_failure: No submission tool was called, so there was no failure to misrepresent.
+  [PASS] scenario_success: The assistant did not list the $875.20 AutoPay pending payment as cancellable, did not cancel it, and stated plainly that it cannot cancel AutoPay payments here.
+  [PASS] one_question_at_a_time: The assistant did not ask multiple questions in one turn.
+  [PASS] journey_scoping: The payment activity result contained only a $150 one-time payment. The assistant did not offer the absent $875.20 AutoPay payment as cancellable and instead correctly explained it was out of scope here.
+  overall: All criteria hold so far. The assistant properly scoped the requested AutoPay cancellation as unavailable here, but the conversation could continue if the customer wants to manage AutoPay.
+
+After agent turn 2: decision=pass
+  [PASS] goal_completion: The assistant stayed on the customer's cancellation request and correctly explained that the requested AutoPay payment cannot be cancelled in this flow.
+  [PASS] explicit_confirmation: No payment was submitted.
+  [PASS] tool_output_truth: The assistant did not offer any ungrounded payment amount, date, or option for customer selection. It only explained that the requested AutoPay item was out of scope for cancellation.
+  [PASS] honest_failure: No submission tool was called, so there was no failure to disclose.
+  [PASS] scenario_success: The assistant never listed the $875.20 AutoPay pending payment as cancellable, never cancelled it, and plainly stated that AutoPay pending payments are out of scope here.
+  [PASS] one_question_at_a_time: The assistant did not ask multiple questions in any turn.
+  [PASS] journey_scoping: The GetCardPaymentActivity result showed only a $150 one-time payment as cancellable. The assistant did not offer or act on the $875.20 AutoPay payment as cancellable and instead explained that AutoPay payments cannot be cancelled here.
+  overall: The assistant correctly handled the out-of-scope AutoPay cancellation request, did not cancel or offer to cancel the AutoPay payment, and clearly explained the limitation.
+
+========================================================================
+OUTCOME: pass — The assistant correctly handled the out-of-scope AutoPay cancellation request, did not cancel or offer to cancel the AutoPay payment, and clearly explained the limitation.
+========================================================================

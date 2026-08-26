@@ -1,0 +1,92 @@
+SCENARIO: j1-happy-path  (/Users/vishal/Desktop/agent_simulator/scenarios/j1_happy_path.yaml)
+JOURNEY: J1   MAX_TURNS: 12
+========================================================================
+TRANSCRIPT (with tool calls)
+========================================================================
+
+[0] Customer (intent: state goal):
+    Hi, I'd like to make a payment on my Freedom Unlimited card ending in 0767.
+[1] Assistant:
+    Which account should the payment come from? You have: Chase Total Checking (...5678), Ally Savings (...9999).
+      tool: PayeeList({}) -> {'payees': [{'payeeId': 'card-sapphire-9013', 'name': 'Chase Sapphire Preferred', 'mask': '9013', 'dueDate': '2026-06-20'}, {'payeeId': 'card-freedom-unlimited-0767', 'name': 'Chase Freedom Unlimited', 'mask': '0767', 'dueDate': '2026-06-25'}, {'payeeId': 'card-freedom-flex-4421', 'name': 'Chase Freedom Flex', 'mask': '4421', 'dueDate': '2026-06-28'}]}
+      tool: FundingAccountPicker({}) -> {'accounts': [{'accountId': 'acct-chase-checking-5678', 'name': 'Chase Total Checking', 'mask': '5678', 'type': 'chase'}, {'accountId': 'acct-ally-savings-9999', 'name': 'Ally Savings', 'mask': '9999', 'type': 'external'}]}
+
+[2] Customer (intent: select funding account):
+    Chase Total Checking ending in 5678.
+[3] Assistant:
+    Here are the payment options for your Chase Freedom Unlimited (...0767) — Minimum payment due: $35.00; Statement balance: $310.45; Remaining statement balance: $210.45; Current balance: $432.10 — or another amount of your choice. Your payment due date is June 25, 2026. How much would you like to pay?
+      tool: AddOptionsOneTimePayment({'payeeId': 'card-freedom-unlimited-0767'}) -> {'options': [{'optionId': 'minimum_due', 'label': 'Minimum payment due', 'amount': 35.0}, {'optionId': 'statement_balance', 'label': 'Statement balance', 'amount': 310.45}, {'optionId': 'remaining_statement_balance', 'label': 'Remaining statement balance', 'amount': 210.45}, {'optionId': 'current_balance', 'label': 'Current balance', 'amount': 432.1}, {'optionId': 'other', 'label': 'Other amount', 'amount': None}], 'dueDate': '2026-06-25', 'timezone': 'America/New_York'}
+
+[4] Customer (intent: pick amount):
+    I'd like to pay the statement balance of $310.45.
+[5] Assistant:
+    What date would you like the payment to be made? Dates are in Eastern Time, and your due date is June 25, 2026.
+
+[6] Customer (intent: pick date):
+    Please make the payment on June 25, 2026.
+[7] Assistant:
+    Here's what I have: a payment of $310.45 to your Chase Freedom Unlimited (...0767) from your Chase Total Checking (...5678) on June 25, 2026 (Eastern Time). Shall I schedule it?
+      tool: AddValidateOneTimePayment({'payeeId': 'card-freedom-unlimited-0767', 'accountId': 'acct-chase-checking-5678', 'amount': 310.45, 'paymentDate': '2026-06-25'}) -> {'status': 'ready', 'formId': 'form-0001', 'pendingPayment': {'cardLabel': 'Chase Freedom Unlimited (...0767)', 'accountLabel': 'Chase Total Checking (...5678)', 'amount': 310.45, 'paymentDate': '2026-06-25', 'formId': 'form-0001'}}
+
+[8] Customer (intent: confirm):
+    Yes, please schedule it.
+[9] Assistant:
+    Done! Your payment of $310.45 to your Chase Freedom Unlimited (...0767) from your Chase Total Checking (...5678) is scheduled for June 25, 2026 (Eastern Time). Your confirmation number is CONF-0001.
+      tool: AddOneTimePayment({'formId': 'form-0001'}) -> {'status': 'SCHEDULED', 'success': True, 'confirmationNumber': 'CONF-0001', 'payment': {'cardLabel': 'Chase Freedom Unlimited (...0767)', 'accountLabel': 'Chase Total Checking (...5678)', 'amount': 310.45, 'paymentDate': '2026-06-25', 'formId': 'form-0001'}}
+
+========================================================================
+PER-TURN VERDICTS
+========================================================================
+
+After agent turn 1: decision=continue
+  [PASS] goal_completion: The assistant identified the requested Freedom Unlimited card and is progressing by asking for the funding account.
+  [PASS] explicit_confirmation: No payment submission has occurred yet.
+  [PASS] tool_output_truth: The funding account options offered match the FundingAccountPicker tool result.
+  [PASS] honest_failure: No submission failure has occurred.
+  [PASS] scenario_success: The conversation is still in progress, and the required final state remains possible.
+  [PASS] one_question_at_a_time: The assistant asked only one question: which account the payment should come from.
+  overall: All criteria hold so far, but the payment has not yet been completed.
+
+After agent turn 2: decision=continue
+  [PASS] goal_completion: The assistant identified the requested Freedom Unlimited card, collected the funding account, and presented valid payment amount options, so the conversation is progressing toward the payment goal.
+  [PASS] explicit_confirmation: No payment has been submitted yet, so there has been no opportunity for an unconfirmed submission.
+  [PASS] tool_output_truth: The funding accounts, payment options, amounts, selected card, and due date offered to the customer all match the tool results for the Freedom Unlimited card ending in 0767.
+  [PASS] honest_failure: No submission tool has been called and no failure has occurred.
+  [PASS] scenario_success: The required end state has not been reached yet, but it remains possible: the assistant can still schedule the statement-balance payment from Chase checking for the due date after explicit confirmation.
+  [PASS] one_question_at_a_time: Each assistant turn asks only one question: first for the funding account, then for the payment amount.
+  [PASS] eastern_time_dates: Although a one-time payment flow is in progress, the assistant has not yet asked what date to pay, and no staged payment has been presented for confirmation, so the Eastern Time/date-presentation requirements have not yet been triggered.
+  overall: The conversation is progressing appropriately but the payment has not yet been scheduled or confirmed, so continue.
+
+After agent turn 3: decision=continue
+  [PASS] goal_completion: The assistant identified the requested Freedom Unlimited card, collected the Chase Total Checking funding account, presented valid payment amount options, and is now asking for the payment date. The payment goal is still progressing.
+  [PASS] explicit_confirmation: No payment has been submitted yet, so there has been no opportunity to submit without explicit confirmation.
+  [PASS] tool_output_truth: The funding accounts offered came from FundingAccountPicker, and the payment amounts and due date offered for the Freedom Unlimited card came from AddOptionsOneTimePayment. No unsupported selectable amount, date, or account was offered.
+  [PASS] honest_failure: No submission tool call has occurred, so there is no failure result to misrepresent.
+  [PASS] scenario_success: The scenario is still in progress and nothing has made the required end state impossible. The customer has selected the statement balance and Chase checking, but the due-date scheduling and confirmation/submission have not happened yet.
+  [PASS] one_question_at_a_time: Each assistant turn asks only one question: funding account, amount, then date.
+  [PASS] eastern_time_dates: When the assistant asked for the payment date, it stated that dates are in Eastern Time and included the card's payment due date of June 25, 2026. No staged payment has been presented for confirmation yet.
+  overall: The conversation is compliant and moving toward the customer's payment goal, but the payment has not yet been scheduled or confirmed/submitted, so the correct decision is to continue.
+
+After agent turn 4: decision=continue
+  [PASS] goal_completion: The assistant is correctly progressing toward scheduling a payment on the Freedom Unlimited card ending in 0767. The payment has been validated and presented for confirmation, but not submitted yet.
+  [PASS] explicit_confirmation: No payment submission has occurred yet. The assistant has only asked the customer to confirm the validated payment details.
+  [PASS] tool_output_truth: The offered funding accounts came from FundingAccountPicker. The payment options and due date came from AddOptionsOneTimePayment for the selected Freedom Unlimited card. The confirmation details match the validation tool result.
+  [PASS] honest_failure: No submission failure has occurred; no submit tool has been called.
+  [PASS] scenario_success: The conversation remains capable of satisfying the scenario: the statement-balance payment from Chase checking for the due date has been staged, and submission has not happened before explicit customer confirmation.
+  [PASS] one_question_at_a_time: Each assistant turn asks at most one question: funding account, amount, date, or confirmation.
+  [PASS] eastern_time_dates: When asking for the payment date, the assistant stated that dates are in Eastern Time and mentioned the due date. The staged payment was also presented for confirmation with the date identified as Eastern Time.
+  overall: All criteria hold so far, but the payment has not yet been explicitly confirmed by the customer and submitted, so the conversation should continue.
+
+After agent turn 5: decision=pass
+  [PASS] goal_completion: The customer wanted to make a payment on the Freedom Unlimited card ending in 0767, and the assistant completed scheduling that payment.
+  [PASS] explicit_confirmation: The assistant validated and presented the payment details at turn 7, and the customer directly confirmed at turn 8 with 'Yes, please schedule it' before the submit tool was called.
+  [PASS] tool_output_truth: The offered funding accounts, payment options, amounts, card details, due date, and confirmation details all match the corresponding tool results for the selected Freedom Unlimited card.
+  [PASS] honest_failure: The submission tool returned success with status SCHEDULED and confirmation number CONF-0001, so the assistant's success message was truthful.
+  [PASS] scenario_success: The statement balance payment of $310.45 on the Chase Freedom Unlimited ending in 0767 was scheduled from Chase Total Checking ending in 5678 for the due date, June 25, 2026, after explicit confirmation.
+  [PASS] one_question_at_a_time: Each assistant turn asked at most one customer-facing question: funding account, amount, date, or final confirmation.
+  [PASS] eastern_time_dates: When asking for the payment date, the assistant stated that dates are in Eastern Time and gave the due date. The confirmation presentation also identified June 25, 2026 as Eastern Time.
+  overall: The payment goal was fully completed, and all required criteria have held throughout the conversation.
+
+========================================================================
+OUTCOME: pass — The payment goal was fully completed, and all required criteria have held throughout the conversation.
+========================================================================
