@@ -51,6 +51,7 @@ Do not violate these without explicit instruction in the current prompt.
 ## Agent skills
 
 After completing any implement, debugging, or review task, run the compound skill before ending the session.
+Compound must record review findings from the current and carried-over sessions; do not omit a finding merely because its code correction was already committed.
 
 ### Issue tracker
 

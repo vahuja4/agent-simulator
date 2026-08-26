@@ -12,7 +12,7 @@ import yaml
 from agentsim.llm import LLMTruncationError
 from agentsim.scenario import load_scenario
 from scripts import realize_scenarios
-from scenario_synthesis.blueprint import load_blueprint
+from scenario_synthesis.compatibility import load_legacy_blueprint as load_blueprint
 from scenario_synthesis import realize
 from scenario_synthesis.realize import RealizationError, realize_blueprint
 from scenario_synthesis.sample import behavioral_class_key

@@ -9,11 +9,28 @@ from typing import Any, Mapping
 import yaml
 
 from agentsim import registry
+from agentsim.criteria import SPECIALISTS
+from agentsim.judge import DEFAULT_CRITERIA
 from agentsim.scenario import _ASSERTION_TYPES
 from fixtures.paycard import CARDS, FUNDING_ACCOUNTS, LARGE_PAYMENT_THRESHOLD, Card
 
-from .blueprint import Blueprint
-from .contracts import ContractSet, fitness_checks_for_policies, load_reviewed_contracts
+from .blueprint import (
+    Blueprint,
+    CoverageBlueprint,
+    canonical_cell_id,
+    canonical_coverage_blueprint_id,
+    canonical_journey_path_id,
+)
+from .config import load_config
+from .contracts import (
+    ARCHETYPE_IDS,
+    COMPLICATION_IDS,
+    KNOWLEDGE_LEVELS,
+    ContractSet,
+    canonical_sha256,
+    fitness_checks_for_policies,
+    load_reviewed_contracts,
+)
 from .policies import POLICIES, Policy
 
 _ROOT = Path(__file__).resolve().parents[1]
@@ -374,3 +391,184 @@ def _fixture_predicate(name: str, cards: list[Card], account_count: int) -> bool
         ]
         return any(left & right for index, left in enumerate(tokens) for right in tokens[index + 1 :])
     raise BlueprintValidationError(f"unknown fixture predicate {name!r}")
+
+
+class CoverageBlueprintValidator:
+    """Fail-closed validation of Phase 4.5 qualification blueprints."""
+
+    def __init__(self, *, contracts: ContractSet | None = None) -> None:
+        self.contracts = contracts or load_reviewed_contracts()
+        self.graph = self.contracts.graph
+        self.config = load_config()
+        self.edge_index = {edge["id"]: edge for edge in self.graph["edges"]}
+        fixture_hash = hashlib.sha256(FIXTURE_SOURCE.read_bytes()).hexdigest()
+        self.source_hashes = {
+            "journey_graph": canonical_sha256(self.graph),
+            "fixture": fixture_hash,
+            "persona_archetypes": self.contracts.hashes["persona-archetypes"],
+            "complication_applicability": self.contracts.hashes["complication-applicability"],
+            "pair_exclusions": self.contracts.hashes["pair-exclusions"],
+            "fixture_state_classes": self.contracts.hashes["fixture-state-classes"],
+            "fitness_targets": self.contracts.hashes["fitness-targets"],
+        }
+
+    def validate(self, blueprint: CoverageBlueprint) -> None:
+        errors: list[str] = []
+        if blueprint.cell_id != canonical_cell_id(blueprint):
+            errors.append("cell_id does not match the canonical six-axis tuple")
+        if blueprint.blueprint_id != canonical_coverage_blueprint_id(blueprint):
+            errors.append("blueprint_id does not match semantic content")
+        if blueprint.provenance.config_hash != self.config.sha256:
+            errors.append("contract drift: config_hash does not match")
+        if dict(blueprint.provenance.source_hashes) != self.source_hashes:
+            errors.append("contract drift: source_hashes do not match reviewed inputs")
+        if blueprint.persona_archetype not in ARCHETYPE_IDS:
+            errors.append(f"unknown Persona archetype {blueprint.persona_archetype!r}")
+        if blueprint.knowledge_level not in KNOWLEDGE_LEVELS:
+            errors.append(f"unknown Knowledge level {blueprint.knowledge_level!r}")
+        if blueprint.complication not in COMPLICATION_IDS:
+            errors.append(f"unknown Complication {blueprint.complication!r}")
+        traversed = self._path(blueprint, errors)
+        fixture_predicates = self._fixture(blueprint, errors)
+        self._applicability(blueprint, traversed, fixture_predicates, errors)
+        self._checks(blueprint, errors)
+        self._sealed_world(blueprint, errors)
+        worst = sum(int(edge.get("worst_case_turn_cost", 0)) for edge in traversed)
+        if blueprint.max_turns < worst:
+            errors.append(
+                f"worst-case path cost {worst} exceeds max_turns {blueprint.max_turns}"
+            )
+        if errors:
+            raise BlueprintValidationError("; ".join(errors))
+
+    def _path(
+        self, blueprint: CoverageBlueprint, errors: list[str]
+    ) -> list[Mapping[str, Any]]:
+        unknown = [edge for edge in blueprint.journey_edge_ids if edge not in self.edge_index]
+        if unknown:
+            errors.append(f"journey_edge_ids has unknown edge ID(s) {unknown}")
+            return []
+        traversed = [self.edge_index[edge] for edge in blueprint.journey_edge_ids]
+        if not traversed:
+            errors.append("journey_edge_ids must not be empty")
+            return []
+        if traversed[0]["from"] not in self.graph["start_nodes"]:
+            errors.append("journey path does not start at an approved start node")
+        if traversed[-1]["to"] not in self.graph["terminal_nodes"]:
+            errors.append("journey path does not terminate at an approved terminal node")
+        for left, right in zip(traversed, traversed[1:]):
+            if left["to"] != right["from"]:
+                errors.append(
+                    f"journey path is disconnected between {left['id']!r} and {right['id']!r}"
+                )
+        expected_path_id = canonical_journey_path_id(
+            str(self.graph["journey"]), blueprint.journey_edge_ids
+        )
+        if blueprint.journey_path_id != expected_path_id:
+            errors.append("journey_path_id does not match the ordered edge IDs")
+        return traversed
+
+    def _fixture(
+        self, blueprint: CoverageBlueprint, errors: list[str]
+    ) -> dict[str, bool]:
+        classes = self.contracts.contracts["fixture-state-classes"].content["classes"]
+        fixture_class = next(
+            (item for item in classes if item["id"] == blueprint.fixture_state_class_id),
+            None,
+        )
+        if fixture_class is None:
+            errors.append(
+                f"unknown fixture-state class {blueprint.fixture_state_class_id!r}"
+            )
+            return {}
+        binding = {
+            "cards": list(blueprint.fixture_bindings.cards),
+            "accounts": list(blueprint.fixture_bindings.accounts),
+        }
+        if binding not in fixture_class["bindings"]:
+            errors.append("Fixture bindings are not a member of the declared class")
+        return dict(fixture_class["predicates"])
+
+    def _applicability(
+        self,
+        blueprint: CoverageBlueprint,
+        traversed: list[Mapping[str, Any]],
+        fixture_predicates: Mapping[str, bool],
+        errors: list[str],
+    ) -> None:
+        edge_ids = set(blueprint.journey_edge_ids)
+        available_predicates = {
+            key for key, value in fixture_predicates.items() if value
+        } | {"has_real_fixture_fact"}
+        for edge in traversed:
+            missing = set(edge.get("required_fixture_predicates", [])) - available_predicates
+            if missing:
+                errors.append(f"Fixture class misses path predicate(s) {sorted(missing)}")
+        complications = {
+            item["id"]: item
+            for item in self.contracts.contracts["complication-applicability"].content["complications"]
+        }
+        complication = complications[blueprint.complication]
+        if set(complication["required_edge_ids"]) - edge_ids:
+            errors.append("Complication is not applicable to the journey path")
+        if set(complication["fixture_predicates"]) - available_predicates:
+            errors.append("Complication is not applicable to the Fixture class")
+        if blueprint.fitness_target_id is None:
+            return
+        targets = self.contracts.contracts["fitness-targets"].content["targets"]
+        target = next(
+            (
+                item for item in targets
+                if item["target_id"] == blueprint.fitness_target_id
+                and item["shape_id"] == blueprint.fitness_shape_id
+            ),
+            None,
+        )
+        if target is None:
+            errors.append("unknown Fitness target/shape")
+            return
+        applicability = target["applicability"]
+        if self.graph["journey"] not in applicability["journey_ids"]:
+            errors.append("Fitness target is not applicable to this Journey")
+        if set(applicability["required_edge_ids"]) - edge_ids:
+            errors.append("Fitness target is not applicable to the journey path")
+        if set(applicability["fixture_predicates"]) - available_predicates:
+            errors.append("Fitness target is not applicable to the Fixture class")
+
+    def _checks(self, blueprint: CoverageBlueprint, errors: list[str]) -> None:
+        for index, assertion in enumerate(blueprint.required_assertions):
+            spec = _ASSERTION_TYPES.get(assertion.type)
+            if spec is None:
+                errors.append(f"required_assertions[{index}] has unknown type")
+                continue
+            required, tool_fields = spec
+            if set(assertion.fields) != required:
+                errors.append(f"required_assertions[{index}] fields do not match registry")
+            for field in tool_fields:
+                if assertion.fields.get(field) not in registry.ALL_TOOLS:
+                    errors.append(f"required_assertions[{index}] names unknown tool")
+        known_criteria = {criterion.id for criterion in DEFAULT_CRITERIA} | {
+            specialist.criterion.id for specialist in SPECIALISTS
+        }
+        unknown_criteria = set(blueprint.required_criteria) - known_criteria
+        if unknown_criteria:
+            errors.append(f"required_criteria has unknown ID(s) {sorted(unknown_criteria)}")
+
+    def _sealed_world(self, blueprint: CoverageBlueprint, errors: list[str]) -> None:
+        bound = set(blueprint.fixture_bindings.cards) | set(
+            blueprint.fixture_bindings.accounts
+        )
+
+        def walk(value: Any, key: str = "") -> None:
+            if isinstance(value, Mapping):
+                for child_key, child in value.items():
+                    walk(child, str(child_key))
+            elif isinstance(value, list):
+                for child in value:
+                    walk(child, key)
+            elif key.endswith("last_four") and (not isinstance(value, str) or value not in bound):
+                errors.append(
+                    f"Sealed-world violation: {key}={value!r} is not a bound Fixture fact"
+                )
+
+        walk(blueprint.goal_facts)

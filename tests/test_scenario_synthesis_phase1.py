@@ -7,7 +7,8 @@ import pytest
 import yaml
 
 from agentsim.scenario import ToolAssertion
-from scenario_synthesis.blueprint import Perturbation, dump_blueprint, load_blueprint
+from scenario_synthesis.blueprint import Perturbation, dump_blueprint
+from scenario_synthesis.compatibility import load_legacy_blueprint as load_blueprint
 from scenario_synthesis.policies import POLICIES, Policy
 from scenario_synthesis.validator import (
     DEFAULT_GRAPH,

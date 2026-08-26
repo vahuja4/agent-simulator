@@ -11,7 +11,7 @@ from agentsim.judge import DEFAULT_CRITERIA
 from agentsim.orchestrator import RunResult
 from agentsim.trace import Trace, TraceToolCall
 from agentsim.types import CriterionVerdict, FailureRecord, TurnVerdict
-from scenario_synthesis.blueprint import load_blueprint
+from scenario_synthesis.compatibility import load_legacy_blueprint as load_blueprint
 from scenario_synthesis import dryrun
 from scenario_synthesis.dryrun import DryRunCandidate
 

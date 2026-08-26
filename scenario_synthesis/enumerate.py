@@ -20,7 +20,7 @@ from .blueprint import (
     Provenance,
     canonical_blueprint_id,
     dump_blueprint,
-    load_blueprint,
+    _load_legacy_blueprint,
 )
 from .contracts import fitness_checks_for_policies
 from .policies import POLICIES, Policy
@@ -130,6 +130,11 @@ def write_generation(
     """Enumerate J1, write all blueprints, and record a reproducible sample."""
     validator = validator or BlueprintValidator()
     root = Path(output_root)
+    if root.resolve() == DEFAULT_OUTPUT_ROOT.resolve():
+        raise RuntimeError(
+            "generated_scenarios is a read-only historical quarantine; "
+            "use the Phase 4.5 planner/generator"
+        )
     existing_manifest = _load_existing_manifest(root / "manifest.json")
     artifact_statuses = _existing_artifact_statuses(
         root, existing_manifest, validator
@@ -223,7 +228,7 @@ def _existing_artifact_statuses(
         path = root / "blueprints" / f"{blueprint_id}.yaml"
         if not path.exists():
             continue
-        errors = validator.executability_errors(load_blueprint(path))
+        errors = validator.executability_errors(_load_legacy_blueprint(path))
         if errors:
             statuses[blueprint_id] = errors
     return statuses

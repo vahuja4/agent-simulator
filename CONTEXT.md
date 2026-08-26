@@ -77,6 +77,16 @@ file in the same commit.
   Persona archetype, Knowledge level, Complication, fixture-state equivalence
   class, and Fitness target. Surface realization such as opener wording is not
   part of the cell.
+- **Blueprint** — the strict, versioned, deterministic semantic specification
+  of one Coverage cell before surface realization. It binds the six axes,
+  ordered journey-edge IDs, concrete Fixture facts, required checks, limits,
+  and source provenance. Its `cell_id` is Same-cell identity; its
+  `blueprint_id` changes for any semantic Blueprint change but not for a
+  provenance timestamp change. Pre-Phase-4.5 prototype blueprints are legacy
+  reconciliation inputs, not Blueprints eligible for candidacy.
+- **Historical quarantine** — the read-only `generated_scenarios/` prototype
+  output. It may supply reconciliation facts but never a candidate, admission,
+  Fitness result, or coverage denominator.
 - **BLOCKED** — an eligible coverage obligation that the current implementation
   or generator cannot realize for a recorded reason. It is engineering debt,
   not an eligibility exclusion, and is expected to trend to zero.

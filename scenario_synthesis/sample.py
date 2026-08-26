@@ -13,7 +13,7 @@ NONE = "none"
 
 
 def behavioral_class_key(blueprint: Blueprint) -> str:
-    """Stable key for behavior, deliberately excluding policy labels."""
+    """Legacy reconciliation key; never Phase 4.5 Same-cell equivalence."""
     material = {
         "journey": blueprint.journey,
         "procedure_path": list(blueprint.procedure_path),

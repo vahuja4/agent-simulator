@@ -135,6 +135,11 @@ async def run_dryrun_batch(
     """Append a batch of measurements and refresh non-feedback summaries."""
     if not isinstance(batch_label, str) or not batch_label.strip():
         raise ValueError("batch_label must be a non-empty string")
+    path = Path(manifest_path)
+    if path.resolve() == DEFAULT_MANIFEST.resolve() and path.resolve() == (
+        ROOT / "generated_scenarios/manifest.json"
+    ).resolve():
+        raise ValueError("generated_scenarios is a read-only historical quarantine")
     records = tuple(
         [
             {
@@ -144,7 +149,6 @@ async def run_dryrun_batch(
             for candidate in candidates
         ]
     )
-    path = Path(manifest_path)
     manifest = json.loads(path.read_text())
     manifest.setdefault("dry_runs", []).extend(records)
 

@@ -214,8 +214,20 @@ def test_validate_contracts_cli_is_offline_and_end_to_end(
     assert set(result["contract_hashes"]) == set(CONTRACT_FILENAMES)
 
 
+def test_plan_cli_writes_the_slice_2_report_bundle(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    assert cli.main(
+        ["plan", "--output-root", str(tmp_path), "--report-id", "test-plan"]
+    ) == 0
+    result = json.loads(capsys.readouterr().out)
+    assert result["status"] == "planned"
+    assert result["eligible_cell_count"] == 4092
+    assert (tmp_path / "test-plan/coverage.json").is_file()
+
+
 @pytest.mark.parametrize(
-    "command", ["plan", "produce", "qualify", "report", "check-completion"]
+    "command", ["produce", "qualify", "report", "check-completion"]
 )
 def test_later_slice_commands_are_explicitly_not_implemented(
     command: str, capsys: pytest.CaptureFixture[str]

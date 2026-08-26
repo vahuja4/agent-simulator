@@ -178,6 +178,8 @@ def build_scenario(
 
 def write_scenario(scenario: Mapping[str, Any], blueprint: Blueprint) -> Path:
     """Create a realization without overwriting any existing artifact."""
+    if DEFAULT_YAML_DIR.resolve().is_relative_to((ROOT / "generated_scenarios").resolve()):
+        raise RealizationError("generated_scenarios is a read-only historical quarantine")
     DEFAULT_YAML_DIR.mkdir(parents=True, exist_ok=True)
     target = DEFAULT_YAML_DIR / f"{blueprint.id}.yaml"
     with target.open("x") as stream:
@@ -195,6 +197,8 @@ async def realize_catalog(
     """Realize representatives and append an immutable labeled batch history."""
     if not isinstance(batch_label, str) or not batch_label.strip():
         raise RealizationError("batch_label must be a non-empty string")
+    if DEFAULT_MANIFEST.resolve() == (ROOT / "generated_scenarios/manifest.json").resolve():
+        raise RealizationError("generated_scenarios is a read-only historical quarantine")
     representatives = behavioral_representatives(blueprints)
     manifest = json.loads(DEFAULT_MANIFEST.read_text())
     entries = list(manifest.get("realized_scenarios", []))

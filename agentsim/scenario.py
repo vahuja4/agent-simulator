@@ -21,6 +21,7 @@ from __future__ import annotations
 import warnings
 from dataclasses import dataclass, field
 from pathlib import Path
+import re
 from typing import Any
 
 import yaml
@@ -66,6 +67,16 @@ class ToolAssertion:
     fields: dict[str, str] = field(default_factory=dict)
 
 
+@dataclass(frozen=True)
+class SynthesisMetadata:
+    schema_version: int
+    origin: str
+    candidate_id: str
+    blueprint_id: str
+    cell_id: str
+    blueprint_content_hash: str
+
+
 @dataclass
 class Scenario:
     name: str
@@ -78,6 +89,7 @@ class Scenario:
     success_criteria: list[str]
     max_turns: int
     tool_assertions: list[ToolAssertion]
+    synthesis: SynthesisMetadata | None
     source: str  # the file it was loaded from, for error/report context
 
     def render_knowledge(self) -> str:
@@ -159,6 +171,52 @@ def _parse_assertions(raw: Any, where: str) -> list[ToolAssertion]:
     return assertions
 
 
+_SYNTHESIS_ID = re.compile(r"^(?:candidate|blueprint|cell)-[0-9a-f]{64}$")
+_SHA256 = re.compile(r"^[0-9a-f]{64}$")
+
+
+def _parse_synthesis(raw: Any, where: str) -> SynthesisMetadata | None:
+    if raw is None:
+        return None
+    if not isinstance(raw, dict):
+        raise ScenarioError(f"{where}: synthesis must be a mapping")
+    fields = {
+        "schema_version", "origin", "candidate_id", "blueprint_id", "cell_id",
+        "blueprint_content_hash",
+    }
+    missing = fields - raw.keys()
+    unknown = raw.keys() - fields
+    if missing:
+        raise ScenarioError(f"{where}: synthesis missing field(s) {sorted(missing)}")
+    if unknown:
+        raise ScenarioError(f"{where}: synthesis unknown field(s) {sorted(unknown)}")
+    if raw["schema_version"] != 1 or isinstance(raw["schema_version"], bool):
+        raise ScenarioError(f"{where}: synthesis schema_version must be 1")
+    if raw["origin"] != "synthesized":
+        raise ScenarioError(f"{where}: synthesis origin must be 'synthesized'")
+    for key in ("candidate_id", "blueprint_id", "cell_id"):
+        value = raw[key]
+        if not isinstance(value, str) or _SYNTHESIS_ID.fullmatch(value) is None:
+            raise ScenarioError(f"{where}: synthesis {key} is malformed")
+    content_hash = raw["blueprint_content_hash"]
+    if not isinstance(content_hash, str) or _SHA256.fullmatch(content_hash) is None:
+        raise ScenarioError(
+            f"{where}: synthesis blueprint_content_hash must be a lowercase SHA-256 digest"
+        )
+    if raw["blueprint_id"] != "blueprint-" + content_hash:
+        raise ScenarioError(
+            f"{where}: synthesis blueprint_content_hash does not match blueprint_id"
+        )
+    return SynthesisMetadata(
+        schema_version=1,
+        origin="synthesized",
+        candidate_id=raw["candidate_id"],
+        blueprint_id=raw["blueprint_id"],
+        cell_id=raw["cell_id"],
+        blueprint_content_hash=content_hash,
+    )
+
+
 def load_scenario(path: str | Path) -> Scenario:
     path = Path(path)
     where = path.name
@@ -201,10 +259,11 @@ def load_scenario(path: str | Path) -> Scenario:
         raise ScenarioError(f"{where}: max_turns must be a positive integer")
 
     assertions = _parse_assertions(raw.get("tool_assertions"), where)
+    synthesis = _parse_synthesis(raw.get("synthesis"), where)
 
     known_keys = {
         "name", "journey", "description", "persona", "goal", "knowledge",
-        "success_criteria", "max_turns", "tool_assertions",
+        "success_criteria", "max_turns", "tool_assertions", "synthesis",
     }
     unknown = raw.keys() - known_keys
     if unknown:
@@ -221,6 +280,7 @@ def load_scenario(path: str | Path) -> Scenario:
         success_criteria=[s.strip() for s in success],
         max_turns=max_turns,
         tool_assertions=assertions,
+        synthesis=synthesis,
         source=str(path),
     )
 

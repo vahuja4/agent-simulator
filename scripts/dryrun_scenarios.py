@@ -9,7 +9,7 @@ import json
 
 from agentsim.llm import OpenAILLM
 from agentsim.scenario import load_scenario
-from scenario_synthesis.blueprint import load_blueprint
+from scenario_synthesis.compatibility import load_legacy_blueprint
 from scenario_synthesis.dryrun import (
     DEFAULT_MANIFEST,
     ROOT,
@@ -34,7 +34,7 @@ async def _main(batch_label: str) -> None:
         scenario_id = entry["scenario_id"]
         candidates.append(
             DryRunCandidate(
-                load_blueprint(ROOT / "generated_scenarios" / "blueprints" / f"{blueprint_id}.yaml"),
+                load_legacy_blueprint(ROOT / "generated_scenarios" / "blueprints" / f"{blueprint_id}.yaml"),
                 load_scenario(ROOT / "generated_scenarios" / "yaml" / f"{scenario_id}.yaml"),
             )
         )

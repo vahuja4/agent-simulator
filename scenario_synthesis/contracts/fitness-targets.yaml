@@ -8,7 +8,7 @@ dependencies:
   assertion-registry:
     path: agentsim/scenario.py
     hash_mode: bytes
-    sha256: 6ec2af6ce7d38409f3f3f91cdb750b4848579fe7fa8f48484da88edcaeacc719
+    sha256: 3f4bfba04ea6cb5629fb9ae7934b5d359278558d8b1fae023ea13c530d7181e5
   default-judge-registry:
     path: agentsim/judge.py
     hash_mode: bytes

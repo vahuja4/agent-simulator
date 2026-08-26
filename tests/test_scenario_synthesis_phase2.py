@@ -7,8 +7,8 @@ from pathlib import Path
 from scenario_synthesis.blueprint import (
     canonical_blueprint_id,
     dump_blueprint,
-    load_blueprint,
 )
+from scenario_synthesis.compatibility import load_legacy_blueprint as load_blueprint
 from scenario_synthesis.enumerate import (
     CARD_SWITCH_EDGE,
     enumerate_blueprints,
