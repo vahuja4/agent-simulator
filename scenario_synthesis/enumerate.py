@@ -35,7 +35,6 @@ from .validator import (
 GENERATOR_VERSION = "phase-4.1-v1"
 DEFAULT_OUTPUT_ROOT = Path(__file__).resolve().parents[1] / "generated_scenarios"
 CARD_SWITCH_EDGE = "j1-fetch-options-select-card"
-VALIDATION_RETRY_EDGE = "j1-validate-retry"
 MAX_PERTURBATIONS = 2
 
 
@@ -255,7 +254,7 @@ def _procedure_paths(
     for edge in graph.get("edges", []):
         adjacency[str(edge["from"])].append(edge)
     terminals = set(graph.get("terminal_nodes", []))
-    cyclic_edges = {CARD_SWITCH_EDGE, VALIDATION_RETRY_EDGE}
+    cyclic_edges = {CARD_SWITCH_EDGE}
 
     def walk(
         node: str,

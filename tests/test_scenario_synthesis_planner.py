@@ -41,7 +41,7 @@ def test_reviewed_exclusions_are_honored_and_not_in_eligible_totals() -> None:
 
 def test_prototype_reconciliation_is_complete_and_single_classified() -> None:
     records = build_plan().prototype_reconciliation
-    assert len(records) == 15
+    assert len(records) == 10
     assert len({record.pair_id for record in records}) == len(records)
     assert {record.classification for record in records} == {"excluded-with-adr-0004-code"}
     assert {record.reason_code for record in records} == {

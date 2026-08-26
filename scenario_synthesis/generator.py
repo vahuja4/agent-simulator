@@ -177,7 +177,7 @@ def _procedure_paths(
     for edge in graph["edges"]:
         adjacency[edge["from"]].append(edge)
     terminals = set(graph["terminal_nodes"])
-    cyclic = {"j1-fetch-options-select-card", "j1-validate-retry"}
+    cyclic = {"j1-fetch-options-select-card"}
 
     def walk(
         node: str,

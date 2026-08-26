@@ -4,7 +4,7 @@ dependencies:
   j1-journey-graph:
     path: scenario_synthesis/procedures/j1.yaml
     hash_mode: canonical-yaml
-    sha256: c5737247813c11b9ad7272e261d9ecf1b307526430ce7afda43b93e61c26bca5
+    sha256: 74530b25975d6fc2e498c1d5c7770687a77edcdfe2d3804dbfc4e0f5e636401c
   fixture-domain:
     path: fixtures/paycard.py
     hash_mode: bytes

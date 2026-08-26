@@ -69,21 +69,6 @@ edges:
             validation_outcome: blocking_error
         non_executable_against: mock
     worst_case_turn_cost: 2
-  - id: j1-validate-retry
-    from: validate
-    to: validate
-    required_tools: [AddValidateOneTimePayment]
-    applicable_policies: [explicit_confirmation]
-    required_fixture_predicates: []
-    non_executable_against: mock
-    valid_perturbations:
-      validation_retry:
-        position: after_validation
-        executable_trigger:
-          goal_facts:
-            validation_outcome: retry
-        non_executable_against: mock
-    worst_case_turn_cost: 1
   - id: j1-validate-confirm
     from: validate
     to: confirm

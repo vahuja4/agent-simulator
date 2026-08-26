@@ -8,15 +8,15 @@ dependencies:
   complication-taxonomy:
     path: scenario_synthesis/contracts/complication-applicability.yaml
     hash_mode: canonical-yaml
-    sha256: 01645fa08aa51f5ea29bf4e97a0bcc772144cf7030cadbe8ca157dd80e0a1362
+    sha256: 3228eb7ffbd07c0026a703a15178767502dd4a2c4fec275d8a340b1e18572876
   fixture-state-classes:
     path: scenario_synthesis/contracts/fixture-state-classes.yaml
     hash_mode: canonical-yaml
-    sha256: 621a97b9925a1f74ad5cc585fda55ef180638c5ef5e7077dc79022ec41701d89
+    sha256: 8fd5e3a2d290822c82aaf0bd2484764c0089fab6ec8529331953cc64ca24b557
   fitness-target-mapping:
     path: scenario_synthesis/contracts/fitness-targets.yaml
     hash_mode: canonical-yaml
-    sha256: 45deb61e6f421ccb43514734fdcad17e47d498ef8c639acb9e829b2604c536b7
+    sha256: 76893938fa6f5a2776de833223761c3ba76fcd04b77d512ce88fa600aefd49e5
 exclusions:
   - axis_a: complication
     value_a: ambiguous-reference

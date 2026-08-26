@@ -72,18 +72,17 @@ def test_mock_non_executable_graph_elements_are_excluded_and_logged(
     audit = manifest["executable_space_audit"]
 
     assert audit["environment"] == "mock"
-    assert audit["deduped_space_before"] == 3748
+    assert audit["deduped_space_before"] == 1564
     assert audit["deduped_space_after"] == 740
-    assert audit["deduped_space_excluded"] == 3008
-    assert audit["behavioral_classes_before"] == 353
+    assert audit["deduped_space_excluded"] == 824
+    assert audit["behavioral_classes_before"] == 147
     assert audit["behavioral_classes_after"] == 69
-    assert audit["behavioral_classes_excluded"] == 284
+    assert audit["behavioral_classes_excluded"] == 78
     assert set(audit["excluded"]["perturbations"]) == {
         "validation_warning",
         "validation_block",
-        "validation_retry",
     }
-    assert set(audit["excluded"]["edges"]) == {"validate->validate"}
+    assert not audit["excluded"]["edges"]
     assert all(
         item["behavioral_classes"] > 0
         for category in audit["excluded"].values()
@@ -95,10 +94,6 @@ def test_mock_non_executable_graph_elements_are_excluded_and_logged(
         item.type.startswith("validation_")
         for blueprint in blueprints
         for item in blueprint.perturbations
-    )
-    assert not any(
-        "j1-validate-retry" in blueprint.procedure_path
-        for blueprint in blueprints
     )
 
 

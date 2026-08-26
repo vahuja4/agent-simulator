@@ -165,14 +165,12 @@ def test_rejects_mock_non_executable_validation_perturbations(
         validator.validate(bad)
 
 
-def test_rejects_mock_non_executable_validation_retry_edge(
+def test_j1_graph_has_no_validation_retry_edge(
     validator: BlueprintValidator,
 ) -> None:
-    blueprint = load_blueprint(BLUEPRINTS / "j1_happy_path.yaml")
-    path = list(blueprint.procedure_path)
-    path.insert(path.index("j1-validate-confirm"), "j1-validate-retry")
-    with pytest.raises(BlueprintValidationError, match="validate -> validate"):
-        validator.validate(replace(blueprint, procedure_path=tuple(path), max_turns=13))
+    assert "j1-validate-retry" not in {
+        edge["id"] for edge in validator.graph["edges"]
+    }
 
 
 def test_handle_failure_edge_requires_large_custom_amount(
