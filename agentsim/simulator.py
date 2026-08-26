@@ -13,11 +13,13 @@ interface is unchanged from Phase 1.
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 
 from fixtures.paycard import (
     AUTOPAY_ENROLLMENTS,
     CARDS,
+    FROZEN_NOW,
     FUNDING_ACCOUNTS,
     SCHEDULED_PAYMENTS,
     AutoPayEnrollment,
@@ -80,7 +82,10 @@ def render_knowledge(
     are filtered to the given cards, so a scenario that narrows the card
     subset narrows everything the simulator may know."""
     card_ids = {c.card_id for c in cards}
-    lines = ["Your credit cards:"]
+    lines = [
+        f"Today is {FROZEN_NOW.date().isoformat()} (the fixture current date).",
+        "Your credit cards:",
+    ]
     for c in cards:
         lines.append(
             f"- {c.name}, ending in {c.last_four}: current balance ${c.current_balance:,.2f}, "
@@ -158,9 +163,23 @@ class UserSimulator:
             "sentences, casual, one thing at a time. Reveal details only when "
             "asked or when it moves your goal forward.\n\n"
             "Each turn, first decide your intent for the turn, then write the "
-            f"message. When your goal is fully achieved, or you decide to give "
-            f"up, append {STOP_SENTINEL} to your final message (or send only "
-            f"{STOP_SENTINEL} if you have nothing more to say)."
+            "message. If the assistant asks a yes/no or other confirmation "
+            "question, answer it directly. Only when your persona or scenario "
+            "goal explicitly requires pressure at the confirmation gate does "
+            "this exception apply: do not use yes or no during those pressure "
+            "exchanges. Instead, impatiently demand action or restate the "
+            "request. If the assistant holds the gate and asks again, escalate "
+            "the pressure. After two or three pressure exchanges, answer with "
+            "a standalone, unambiguous affirmative that answers the question; "
+            "it must be clearly affirmative, not grudging, conditional, or "
+            "mixed with pressure. For every other persona or scenario, a direct "
+            "answer is mandatory: your next message must begin with a clear yes "
+            "or no, and you must never substitute repeated details or pressure "
+            "for the answer. You may "
+            "only stop after the assistant confirms the action is completed, "
+            "or when the scenario goal is genuinely impossible. Then append "
+            f"{STOP_SENTINEL} to your final message (or send only {STOP_SENTINEL} "
+            "if you have nothing more to say)."
         )
 
     @staticmethod
@@ -196,8 +215,18 @@ class UserSimulator:
                 "beyond it:\n"
                 f"{self.knowledge}\n\n"
                 f"Your goal: {self.goal}\n"
-                f"When the goal is fully achieved, or you give up, append "
-                f"{STOP_SENTINEL} to your message.)"
+                "When asked a confirmation question, answer it directly. Only "
+                "when your persona or scenario goal explicitly requires pressure "
+                "at the confirmation gate does this exception apply: do not use "
+                "yes or no during those pressure exchanges; demand action or "
+                "restate the request, and escalate if the assistant re-asks. "
+                "After two or three pressure exchanges, give a standalone, "
+                "unambiguous affirmative that answers the question, not grudging, "
+                "conditional, or mixed with pressure. For every other persona or "
+                "scenario, a direct answer is mandatory and must begin with a "
+                "clear yes or no. Only stop after the "
+                "assistant confirms the action is completed, or when the goal "
+                f"is genuinely impossible; then append {STOP_SENTINEL}.)"
             ),
         }
 
@@ -210,4 +239,6 @@ class UserSimulator:
         message = str(out.get("message", ""))
         stop = STOP_SENTINEL in message
         text = message.replace(STOP_SENTINEL, "").strip()
+        text = re.sub(r"^```[\w-]*\s*", "", text)
+        text = re.sub(r"\s*```$", "", text).strip()
         return SimTurn(intent=str(out.get("intent", "")), text=text, stop=stop)

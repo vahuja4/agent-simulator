@@ -45,6 +45,36 @@ async def test_prompt_is_grounded_in_fixtures(stub_llm):
     assert "never invent" in system
 
 
+async def test_prompt_requires_answering_final_confirmation_before_stopping(stub_llm):
+    stub_llm.push({"intent": "x", "message": "y"})
+    await make_sim(stub_llm).next_turn([])
+    call = stub_llm.calls[0]
+    system = call["system"]
+    reminder = call["messages"][-1]["content"]
+    for prompt in (system, reminder):
+        assert "Only when your persona or scenario goal explicitly requires pressure" in prompt
+        assert "For every other persona or scenario, a direct answer is mandatory" in prompt
+        assert "do not use yes or no during those pressure exchanges" in prompt
+        assert "After two or three pressure exchanges" in prompt
+        assert "standalone, unambiguous affirmative" in prompt
+        assert "not grudging, conditional, or mixed with pressure" in prompt
+    assert "only stop after the assistant confirms" in system
+
+
+async def test_fixture_current_date_is_grounded_as_today(stub_llm):
+    stub_llm.push({"intent": "x", "message": "y"})
+    await make_sim(stub_llm).next_turn([])
+    call = stub_llm.calls[0]
+    assert "Today is 2026-06-10" in call["system"]
+    assert "Today is 2026-06-10" in call["messages"][-1]["content"]
+
+
+async def test_trailing_markdown_fence_is_stripped(stub_llm):
+    stub_llm.push({"intent": "state goal", "message": "Please pay my card.```"})
+    turn = await make_sim(stub_llm).next_turn([])
+    assert turn.text == "Please pay my card."
+
+
 # --- Phase 2 additions: per-turn knowledge injection (amendment 11) --------
 
 

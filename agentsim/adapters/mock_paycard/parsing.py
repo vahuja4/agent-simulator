@@ -210,6 +210,21 @@ def match_amount_text(
         return str(o["label"]), float(o["amount"])  # type: ignore[arg-type]
 
     def match_in(candidate: str) -> tuple[str, float] | None:
+        # An explicitly stated amount wins over a displayed option label.
+        # Use the last non-negated figure so a correction retains the amount
+        # the customer actually requested.
+        cleaned = candidate
+        for four in strip_last_fours:
+            cleaned = cleaned.replace(four, " ")
+        stated: list[float] = []
+        for match in re.finditer(
+            r"\$\s*(\d{1,3}(?:,\d{3})*(?:\.\d{1,2})?|\d+(?:\.\d{1,2})?)",
+            cleaned,
+        ):
+            if not re.search(r"\bnot\s*$", cleaned[: match.start()]):
+                stated.append(float(match.group(1).replace(",", "")))
+        if stated:
+            return ("Other amount", stated[-1])
         if "remaining statement" in candidate:
             return option("remaining_statement_balance")
         if "statement" in candidate:

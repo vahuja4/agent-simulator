@@ -191,6 +191,23 @@ def _match_payment(
                     return None, _out_of_scope_reply(state, p)
                 return p, None
 
+    # A pronoun retry after an out-of-scope refusal still refers to that
+    # payment; never substitute the unrelated lone cancellable payment.
+    if state.out_of_scope_payment_id and (
+        _CANCEL_RE.search(text) or _REFERENCE_RE.search(text)
+    ):
+        blocked = next(
+            (
+                p
+                for p in state.scheduled_payments
+                if p.payment_id == state.out_of_scope_payment_id
+                and p.status == "SCHEDULED"
+            ),
+            None,
+        )
+        if blocked is not None:
+            return None, _out_of_scope_reply(state, blocked)
+
     # A lone cancellable payment can be picked by simple assent/reference.
     if len(state.cancellable) == 1:
         if CONFIRM_RE.search(text) or _CANCEL_RE.search(text) or _REFERENCE_RE.search(text):
@@ -200,6 +217,7 @@ def _match_payment(
 
 def _out_of_scope_reply(state: ConvState, p: ScheduledPaymentState) -> str:
     card = card_by_id(p.card_id)
+    state.out_of_scope_payment_id = p.payment_id
     # M8 calibration fix: _match_payment's amount branch routes ANY
     # non-cancellable SCHEDULED payment here, so the wording is derived from
     # the payment's kind — a non-cancellable one-time payment must not be

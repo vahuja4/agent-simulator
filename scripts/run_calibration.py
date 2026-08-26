@@ -375,8 +375,8 @@ async def main() -> int:
     parser.add_argument("--model", default=DEFAULT_MODEL)
     parser.add_argument(
         "--simulator-model",
-        default=None,
-        help="simulator model (default: --model; use a different family for reported runs)",
+        default="gpt-5.6-luna",
+        help="simulator model (default: gpt-5.6-luna)",
     )
     parser.add_argument(
         "--enforce-model-family-separation",

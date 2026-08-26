@@ -202,6 +202,20 @@ async def test_m5_questioned_amount_does_not_beat_declared_choice():
     assert driver.state.pending is not None and driver.state.pending.amount == 310.45
 
 
+async def test_card_switch_uses_explicitly_corrected_statement_amount():
+    driver = driver_with()
+    for line in CARD_SWITCH_SCRIPT:
+        await driver.say(line)
+    r = await driver.say(
+        "The remaining statement balance looks wrong—it should be $310.45, "
+        "not $210.45. I want to pay the full $310.45 statement balance on "
+        "June 25, 2026, from my Chase Total Checking ending in 5678."
+    )
+    validates = [t for t in r.tool_calls if t.name == registry.ADD_VALIDATE_ONE_TIME_PAYMENT]
+    assert [t.arguments["amount"] for t in validates] == [310.45]
+    assert driver.state.pending is not None and driver.state.pending.amount == 310.45
+
+
 async def test_m5_question_phrased_choice_still_resolves():
     """The fallback: a message that is ONLY a question still picks the option
     it names ("can you do the minimum?")."""
@@ -461,6 +475,15 @@ async def test_j5_repeated_out_of_scope_ask_gets_varied_refusal():
     assert "AutoPay" in r1.content and "AutoPay" in r2.content  # both refuse
     assert r1.content != r2.content  # not verbatim
     assert registry.CANCEL_PAYMENT not in [t.name for r in (r1, r2) for t in r.tool_calls]
+
+
+async def test_j5_pronoun_retry_never_substitutes_unidentified_payment():
+    driver = driver_with()
+    await driver.say(J5_OPENER)
+    r = await driver.say("Can't you just cancel it?")
+    assert "$875.20" in r.content and "can't cancel" in r.content
+    assert "$150.00" not in r.content
+    assert registry.GET_CANCEL_PAYMENT_OPTIONS not in [t.name for t in r.tool_calls]
 
 
 async def test_j5_acknowledgment_gets_polite_close_not_the_list():

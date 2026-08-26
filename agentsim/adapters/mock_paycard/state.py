@@ -188,6 +188,7 @@ class ConvState:
     selected_payment: ScheduledPaymentState | None = None
     cancel_options_fetched: bool = False
     out_of_scope_explained: bool = False  # vary the repeated refusal wording
+    out_of_scope_payment_id: str | None = None
 
     # Shared confirmation gate: exactly one pending object is staged when
     # this is True; the journey module knows which.
