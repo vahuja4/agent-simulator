@@ -63,7 +63,9 @@ FIXTURE_CLASS_PREDICATES = {
     "distinguishable_card_amounts", "ambiguous_card_names",
 }
 APPLICABILITY_FIXTURE_PREDICATES = FIXTURE_CLASS_PREDICATES | {
-    "has_real_fixture_fact", "external_account",
+    "has_real_fixture_fact", "external_account", "active_autopay_enrollment",
+    "defined_minimum_due", "below_minimum_fixed_amount_representable",
+    "scheduled_autopay_payment",
 }
 
 

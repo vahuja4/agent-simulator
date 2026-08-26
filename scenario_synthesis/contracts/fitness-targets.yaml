@@ -69,7 +69,7 @@ targets:
     applicability:
       journey_ids: [J3]
       required_edge_ids: []
-      fixture_predicates: []
+      fixture_predicates: [active_autopay_enrollment, defined_minimum_due, below_minimum_fixed_amount_representable]
       policy_ids: []
     decision_ref: docs/adrs/0007-close-the-phase-4.5-design-frontier-with-defaults.md
   - target_id: d5
@@ -89,7 +89,7 @@ targets:
     applicability:
       journey_ids: [J5]
       required_edge_ids: []
-      fixture_predicates: []
+      fixture_predicates: [scheduled_autopay_payment]
       policy_ids: []
     decision_ref: docs/adrs/0007-close-the-phase-4.5-design-frontier-with-defaults.md
   - target_id: d7

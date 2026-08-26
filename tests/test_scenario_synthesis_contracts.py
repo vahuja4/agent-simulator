@@ -164,6 +164,20 @@ def test_fitness_targets_validate_directly_against_runtime_registries(
         )
 
 
+def test_data_gated_fitness_targets_declare_fixture_applicability() -> None:
+    targets = load_reviewed_contracts().contracts["fitness-targets"].content["targets"]
+    predicates = {
+        target["target_id"]: set(target["applicability"]["fixture_predicates"])
+        for target in targets
+    }
+    assert predicates["d4"] == {
+        "active_autopay_enrollment",
+        "defined_minimum_due",
+        "below_minimum_fixed_amount_representable",
+    }
+    assert predicates["d6"] == {"scheduled_autopay_payment"}
+
+
 def test_config_is_strict_and_snapshot_is_self_identifying(tmp_path: Path) -> None:
     config = load_config()
     contracts = load_reviewed_contracts()
