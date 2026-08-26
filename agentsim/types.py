@@ -32,6 +32,14 @@ class ToolCall:
     def to_dict(self) -> dict[str, Any]:
         return {"name": self.name, "arguments": self.arguments, "result": self.result}
 
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> ToolCall:
+        return cls(
+            name=data["name"],
+            arguments=data.get("arguments", {}),
+            result=data.get("result"),
+        )
+
 
 @dataclass
 class AgentInput:

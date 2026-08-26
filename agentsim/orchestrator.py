@@ -32,7 +32,7 @@ from typing import Sequence
 from .assertions import AssertionEngine
 from .llm import LLMError
 from .script import AgentStep, JudgeStep, ProceedStep, Step, UserStep, validate_script
-from .trace import Trace, TraceToolCall
+from .trace import Trace
 from .types import AgentInput, FailureRecord, Message, TurnVerdict
 
 
@@ -115,7 +115,7 @@ async def run_conversation(
         selected_card = response.selected_card
         trace.add_agent_turn(
             response.content,
-            [TraceToolCall(t.name, t.arguments, t.result) for t in response.tool_calls],
+            response.tool_calls,
             selected_card,
         )
         if assertions is not None:

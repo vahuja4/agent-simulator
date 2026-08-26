@@ -42,28 +42,14 @@ import json
 from dataclasses import dataclass, field
 from typing import Any, Iterator, Literal
 
+from .types import ToolCall
+
 TRACE_SCHEMA_VERSION = "1.0"
 
 # The full outcome vocabulary. ``task_incomplete`` (simulator stopped or
 # max_turns hit without goal completion) is distinct from ``fail``: running
 # out of turns is not a policy failure.
 Outcome = Literal["pass", "fail", "task_incomplete", "error"]
-
-
-@dataclass
-class TraceToolCall:
-    """One tool invocation: name, arguments, AND the result payload."""
-
-    name: str
-    arguments: dict[str, Any] = field(default_factory=dict)
-    result: Any = None
-
-    def to_dict(self) -> dict[str, Any]:
-        return {"name": self.name, "arguments": self.arguments, "result": self.result}
-
-    @classmethod
-    def from_dict(cls, d: dict[str, Any]) -> TraceToolCall:
-        return cls(name=d["name"], arguments=d.get("arguments", {}), result=d.get("result"))
 
 
 @dataclass
@@ -79,7 +65,7 @@ class TraceTurn:
     speaker: Literal["user", "agent"]
     text: str
     intent: str | None = None
-    tool_calls: list[TraceToolCall] = field(default_factory=list)
+    tool_calls: list[ToolCall] = field(default_factory=list)
     selected_card: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
@@ -99,7 +85,7 @@ class TraceTurn:
             speaker=d["speaker"],
             text=d["text"],
             intent=d.get("intent"),
-            tool_calls=[TraceToolCall.from_dict(t) for t in d.get("tool_calls", [])],
+            tool_calls=[ToolCall.from_dict(t) for t in d.get("tool_calls", [])],
             selected_card=d.get("selected_card"),
         )
 
@@ -125,7 +111,7 @@ class Trace:
     def add_agent_turn(
         self,
         text: str,
-        tool_calls: list[TraceToolCall],
+        tool_calls: list[ToolCall],
         selected_card: str | None,
     ) -> TraceTurn:
         turn = TraceTurn(
@@ -138,7 +124,7 @@ class Trace:
         self.turns.append(turn)
         return turn
 
-    def iter_tool_calls(self) -> Iterator[tuple[TraceTurn, TraceToolCall]]:
+    def iter_tool_calls(self) -> Iterator[tuple[TraceTurn, ToolCall]]:
         """All tool calls in conversation order, with their carrying turn."""
         for turn in self.turns:
             for call in turn.tool_calls:

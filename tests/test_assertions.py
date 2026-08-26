@@ -15,7 +15,8 @@ from agentsim.assertions import (
     VALIDATED_SUBMIT,
     AssertionEngine,
 )
-from agentsim.trace import Trace, TraceToolCall, TraceTurn
+from agentsim.trace import Trace, TraceTurn
+from agentsim.types import ToolCall
 
 
 def make_trace(*turns: TraceTurn) -> Trace:
@@ -31,7 +32,7 @@ def user(text: str, card: str | None = None) -> TraceTurn:
 
 
 def agent(
-    text: str = "...", calls: list[TraceToolCall] | None = None, card: str | None = None
+    text: str = "...", calls: list[ToolCall] | None = None, card: str | None = None
 ) -> TraceTurn:
     return TraceTurn(
         index=0, speaker="agent", text=text, tool_calls=calls or [], selected_card=card
@@ -51,8 +52,8 @@ OPTIONS_RESULT = {
 }
 
 
-def options_call(payee: str = "card-sapphire-9013") -> TraceToolCall:
-    return TraceToolCall(
+def options_call(payee: str = "card-sapphire-9013") -> ToolCall:
+    return ToolCall(
         name=registry.ADD_OPTIONS_ONE_TIME_PAYMENT,
         arguments={"payeeId": payee},
         result=OPTIONS_RESULT,
@@ -64,16 +65,16 @@ def validate_call(
     form_id: str = "form-0001",
     payee: str = "card-sapphire-9013",
     status: str = "ready",
-) -> TraceToolCall:
-    return TraceToolCall(
+) -> ToolCall:
+    return ToolCall(
         name=registry.ADD_VALIDATE_ONE_TIME_PAYMENT,
         arguments={"payeeId": payee, "amount": amount, "paymentDate": "2026-06-20"},
         result={"status": status, "formId": form_id},
     )
 
 
-def submit_call(form_id: str = "form-0001") -> TraceToolCall:
-    return TraceToolCall(
+def submit_call(form_id: str = "form-0001") -> ToolCall:
+    return ToolCall(
         name=registry.ADD_ONE_TIME_PAYMENT,
         arguments={"formId": form_id},
         result={"status": "SCHEDULED", "success": True},
@@ -172,18 +173,18 @@ def test_all_five_pairings_are_checked():
     for submit_tool in registry.SUBMIT_TOOLS:
         trace = make_trace(
             user("go"),
-            agent("done", [TraceToolCall(name=submit_tool, arguments={})]),
+            agent("done", [ToolCall(name=submit_tool, arguments={})]),
         )
         assert VALIDATED_SUBMIT in failure_ids(trace), submit_tool
 
 
 def test_cancel_autopay_token_pairing_passes():
-    token_fetch = TraceToolCall(
+    token_fetch = ToolCall(
         name=registry.CANCEL_AUTOPAY_OPTIONS,
         arguments={"payeeId": "card-sapphire-9013", "repeatingModelId": "rpm-1"},
         result={"token": "captoken-1", "repeatingModelId": "rpm-1"},
     )
-    cancel = TraceToolCall(
+    cancel = ToolCall(
         name=registry.CANCEL_AUTOPAY,
         arguments={"repeatingModelId": "rpm-1", "token": "captoken-1"},
         result={"status": "CANCELED", "success": True},
@@ -256,7 +257,7 @@ def test_validate_with_no_options_fetch_for_that_card_fails():
 
 
 def test_autopay_payment_type_must_come_from_options():
-    autopay_options = TraceToolCall(
+    autopay_options = ToolCall(
         name=registry.ADD_OPTIONS_AUTOPAY,
         arguments={"payeeId": "card-freedom-unlimited-0767"},
         result={"options": [
@@ -265,8 +266,8 @@ def test_autopay_payment_type_must_come_from_options():
             {"optionId": "fixed", "amount": None},
         ]},
     )
-    def validate(payment_type: str) -> TraceToolCall:
-        return TraceToolCall(
+    def validate(payment_type: str) -> ToolCall:
+        return ToolCall(
             name=registry.ADD_VALIDATE_AUTOPAY,
             arguments={"payeeId": "card-freedom-unlimited-0767", "paymentType": payment_type},
             result={"status": "ready", "formId": "form-0001"},
@@ -302,7 +303,7 @@ def test_refetch_after_switch_passes():
         user("statement balance on the due date"),
         agent(
             "ok?",
-            [TraceToolCall(
+            [ToolCall(
                 name=registry.ADD_VALIDATE_ONE_TIME_PAYMENT,
                 arguments={"payeeId": "card-freedom-unlimited-0767", "amount": 875.2},
                 result={"status": "ready", "formId": "form-0001"},
@@ -323,7 +324,7 @@ def test_first_card_selection_is_not_a_switch():
 def test_must_not_call_flags_the_forbidden_tool():
     trace = make_trace(
         user("cancel my payment"),
-        agent("done", [TraceToolCall(name=registry.CANCEL_PAYMENT, arguments={})]),
+        agent("done", [ToolCall(name=registry.CANCEL_PAYMENT, arguments={})]),
     )
     fails = [
         f
@@ -384,8 +385,8 @@ def test_engine_never_raises_on_sparse_calls():
     trace = make_trace(
         user("hello"),
         agent("done", [
-            TraceToolCall(name=registry.ADD_ONE_TIME_PAYMENT, arguments={}, result=None),
-            TraceToolCall(name=registry.ADD_VALIDATE_ONE_TIME_PAYMENT, arguments={}, result=None),
+            ToolCall(name=registry.ADD_ONE_TIME_PAYMENT, arguments={}, result=None),
+            ToolCall(name=registry.ADD_VALIDATE_ONE_TIME_PAYMENT, arguments={}, result=None),
         ]),
     )
     AssertionEngine().check(trace)  # must not raise

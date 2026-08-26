@@ -33,8 +33,8 @@ from dataclasses import dataclass, field
 from typing import Any, Iterable, Sequence
 
 from . import registry
-from .trace import Trace, TraceToolCall, TraceTurn
-from .types import FailureRecord
+from .trace import Trace, TraceTurn
+from .types import FailureRecord, ToolCall
 
 # Assertion ids (FailureRecord.id values; Phase 4 clustering keys on these).
 VALIDATED_SUBMIT = "validated_submit"
@@ -62,7 +62,7 @@ class AssertionReport:
 class _Call:
     pos: int  # global call order across the trace
     turn: TraceTurn
-    call: TraceToolCall
+    call: ToolCall
 
 
 class AssertionEngine:

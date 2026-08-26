@@ -6,7 +6,8 @@ import pytest
 
 from agentsim.judge import DEFAULT_CRITERIA, GeneralJudge
 from agentsim.llm import LLMError
-from agentsim.trace import Trace, TraceToolCall
+from agentsim.trace import Trace
+from agentsim.types import ToolCall
 
 
 def make_trace() -> Trace:
@@ -14,7 +15,7 @@ def make_trace() -> Trace:
     trace.add_user_turn("pay my card", intent="goal", selected_card=None)
     trace.add_agent_turn(
         "Which card?",
-        [TraceToolCall("PayeeList", {}, {"payees": []})],
+        [ToolCall("PayeeList", {}, {"payees": []})],
         selected_card=None,
     )
     return trace

@@ -9,8 +9,8 @@ import pytest
 
 from agentsim.judge import DEFAULT_CRITERIA
 from agentsim.orchestrator import RunResult
-from agentsim.trace import Trace, TraceToolCall
-from agentsim.types import CriterionVerdict, FailureRecord, TurnVerdict
+from agentsim.trace import Trace
+from agentsim.types import CriterionVerdict, FailureRecord, ToolCall, TurnVerdict
 from scenario_synthesis.compatibility import load_legacy_blueprint as load_blueprint
 from scenario_synthesis import dryrun
 from scenario_synthesis.dryrun import DryRunCandidate
@@ -47,14 +47,14 @@ def _trace(conversation_id: str) -> Trace:
     trace.add_agent_turn(
         "I found the card and options.",
         [
-            TraceToolCall("PayeeList", {}, {"cards": [{"lastFour": "9013"}]}),
-            TraceToolCall(
+            ToolCall("PayeeList", {}, {"cards": [{"lastFour": "9013"}]}),
+            ToolCall(
                 "FundingAccountPicker", {}, {"accounts": [{"lastFour": "5678"}]}
             ),
-            TraceToolCall(
+            ToolCall(
                 "AddOptionsOneTimePayment", {}, {"options": [{"amount": 875.20}]}
             ),
-            TraceToolCall(
+            ToolCall(
                 "AddValidateOneTimePayment", {}, {"status": "valid", "formId": "f1"}
             ),
         ],
@@ -63,7 +63,7 @@ def _trace(conversation_id: str) -> Trace:
     trace.add_user_turn("Yes, schedule it.", "confirm", "9013")
     trace.add_agent_turn(
         "Scheduled.",
-        [TraceToolCall("AddOneTimePayment", {"formId": "f1"}, {"success": True})],
+        [ToolCall("AddOneTimePayment", {"formId": "f1"}, {"success": True})],
         "9013",
     )
     return trace

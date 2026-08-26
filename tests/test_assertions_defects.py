@@ -17,8 +17,8 @@ from agentsim.assertions import (
     VALIDATED_SUBMIT,
     AssertionEngine,
 )
-from agentsim.trace import Trace, TraceToolCall, TraceTurn
-from agentsim.types import AgentInput, Message
+from agentsim.trace import Trace, TraceTurn
+from agentsim.types import AgentInput, Message, ToolCall
 
 
 class TracingDriver:
@@ -40,7 +40,7 @@ class TracingDriver:
         self._selected = resp.selected_card
         self.trace.add_agent_turn(
             resp.content,
-            [TraceToolCall(t.name, t.arguments, t.result) for t in resp.tool_calls],
+            resp.tool_calls,
             resp.selected_card,
         )
 
@@ -190,7 +190,7 @@ async def test_m5_reference_case_passes_amount_in_options():
     $210.45 instead of the declared $310.45 passes amount_in_options because
     both are legitimate fetched options — a comprehension bug only the judge
     layer can catch."""
-    options = TraceToolCall(
+    options = ToolCall(
         name=registry.ADD_OPTIONS_ONE_TIME_PAYMENT,
         arguments={"payeeId": "card-freedom-unlimited-0767"},
         result={"options": [
@@ -199,7 +199,7 @@ async def test_m5_reference_case_passes_amount_in_options():
             {"optionId": "remaining_statement_balance", "amount": 210.45},
         ]},
     )
-    validate = TraceToolCall(
+    validate = ToolCall(
         name=registry.ADD_VALIDATE_ONE_TIME_PAYMENT,
         arguments={"payeeId": "card-freedom-unlimited-0767", "amount": 210.45},
         result={"status": "ready", "formId": "form-0001"},

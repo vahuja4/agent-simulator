@@ -1,4 +1,5 @@
-from agentsim.trace import TRACE_SCHEMA_VERSION, Trace, TraceToolCall
+from agentsim.trace import TRACE_SCHEMA_VERSION, Trace
+from agentsim.types import ToolCall
 
 
 def build_sample() -> Trace:
@@ -7,7 +8,7 @@ def build_sample() -> Trace:
     trace.add_agent_turn(
         "Which card?",
         tool_calls=[
-            TraceToolCall(
+            ToolCall(
                 name="PayeeList",
                 arguments={},
                 result={"payees": [{"payeeId": "card-1"}]},
