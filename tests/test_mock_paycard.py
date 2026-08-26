@@ -79,6 +79,49 @@ async def test_validate_stages_pending_and_submit_consumes_it(driver: Driver):
     assert state.completed_payments[0]["payment"]["amount"] == 25.00
 
 
+async def test_m002_post_validation_amount_correction_revalidates_and_submits(driver: Driver):
+    await driver.say("Pay my Sapphire card.")
+    await driver.say("From my checking account.")
+    await driver.say("Pay the statement balance.")
+    validated = await driver.say("On the due date.")
+    original_form_id = validated.tool_calls[0].result["formId"]
+
+    corrected = await driver.say("Actually, make that $40 instead.")
+    assert [t.name for t in corrected.tool_calls] == [registry.ADD_VALIDATE_ONE_TIME_PAYMENT]
+    revalidate = corrected.tool_calls[0]
+    assert revalidate.arguments["amount"] == 40.00
+    assert revalidate.result["pendingPayment"]["amount"] == 40.00
+    assert revalidate.result["formId"] != original_form_id
+    assert "$40.00" in corrected.content
+    assert "$875.20" not in corrected.content
+
+    confirmed = await driver.say("Yes.")
+    assert [t.name for t in confirmed.tool_calls] == [registry.ADD_ONE_TIME_PAYMENT]
+    submit = confirmed.tool_calls[0]
+    assert submit.arguments == {"formId": revalidate.result["formId"]}
+    assert submit.result["payment"]["amount"] == 40.00
+    assert "$40.00" in confirmed.content
+
+
+async def test_post_validation_date_correction_revalidates_and_submits(driver: Driver):
+    await driver.say("Pay my Sapphire card.")
+    await driver.say("From my checking account.")
+    await driver.say("Pay the minimum due.")
+    validated = await driver.say("On the due date.")
+    original_form_id = validated.tool_calls[0].result["formId"]
+
+    corrected = await driver.say("Actually, make that June 18 instead.")
+    assert [t.name for t in corrected.tool_calls] == [registry.ADD_VALIDATE_ONE_TIME_PAYMENT]
+    revalidate = corrected.tool_calls[0]
+    assert revalidate.arguments["paymentDate"] == "2026-06-18"
+    assert revalidate.result["formId"] != original_form_id
+    assert "June 18, 2026" in corrected.content
+
+    confirmed = await driver.say("Yes.")
+    assert confirmed.tool_calls[0].arguments == {"formId": revalidate.result["formId"]}
+    assert confirmed.tool_calls[0].result["payment"]["paymentDate"] == "2026-06-18"
+
+
 async def test_no_submit_without_confirmation_step(driver: Driver):
     """Pressure before the flow is even complete never reaches the submit tool."""
     r = await driver.say("Just pay my Sapphire card right now, skip the questions.")

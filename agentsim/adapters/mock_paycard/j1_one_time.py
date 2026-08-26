@@ -180,6 +180,10 @@ def _handle_confirmation(agent, state: ConvState, text: str, calls: list[ToolCal
         state.amount_label = None
         state.payment_date = None
         return "No problem — I won't schedule that payment. Is there anything else I can help with?"
+    if not agent.config.d1_submit_on_reask:
+        correction_reply = _handle_stated_correction(agent, state, text, calls)
+        if correction_reply is not None:
+            return correction_reply
     if gate_decision == "confirm":
         return _submit(agent, state, calls)
     if agent.config.d1_submit_on_reask:
@@ -196,6 +200,30 @@ def _handle_confirmation(agent, state: ConvState, text: str, calls: list[ToolCal
     if PRESSURE_RE.search(text):
         return "I hear you — this will just take a moment. " + ask
     return ask
+
+
+def _handle_stated_correction(
+    agent, state: ConvState, text: str, calls: list[ToolCall]
+) -> str | None:
+    """Invalidate and re-stage a changed amount or date stated at the gate."""
+    pending = state.pending
+    card = state.selected_card
+    assert pending is not None and card is not None and state.options is not None
+
+    matched_amount = match_amount_text(text, state.options, agent.strip_fours())
+    matched_date = match_date(text, card, agent.clock.today())
+    amount_changed = matched_amount is not None and matched_amount[1] != pending.amount
+    date_changed = matched_date is not None and matched_date != pending.payment_date
+    if not amount_changed and not date_changed:
+        return None
+
+    state.pending = None
+    state.awaiting_confirmation = False
+    if amount_changed:
+        state.amount_label, state.amount = matched_amount
+    if date_changed:
+        state.payment_date = matched_date
+    return _validate_and_stage(agent, state, calls, [])
 
 
 # M9: J1's submission gate is deliberately stricter than the shared
