@@ -25,6 +25,7 @@ Do not violate these without explicit instruction in the current prompt.
   makes no LLM calls. Mock behavior changes require explicit approval.
 - Do not change judge criterion wording unless explicitly approved. Any
   approved wording change must be live-verified before its phase closes.
+- The calibration-locked judge model is `gpt-5.5`; see `calibration_runs/step3/REPORT.md` ("Live verification (model gpt-5.5)").
 - `agentsim_generic_refactoring_plan.md` is deferred. Do not implement it.
 - Run live LLM calibration or acceptance only when explicitly requested,
   never as a side effect of tests or other commands.

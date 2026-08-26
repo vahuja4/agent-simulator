@@ -12,7 +12,9 @@ file in the same commit.
   the unit of test authorship.
 - **Persona** — who the simulated user is: background, temperament,
   communication style. Grounded top-down (from the scenario spec) and
-  bottom-up (from what such a user would plausibly know).
+  bottom-up (from what such a user would plausibly know). At a confirmation
+  gate, a pressure persona pressures first without yes/no, then gives a
+  standalone unambiguous affirmative after two or three pressure exchanges.
 - **Goal** — what the simulated user is trying to get done. The
   conversation succeeds or fails relative to the goal, not to any
   particular phrasing.
