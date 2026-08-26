@@ -29,12 +29,12 @@ complications:
       state: approved
       evidence_refs: [docs/adrs/0005-use-a-closed-complication-taxonomy.md, docs/reports/complication-taxonomy-mapping.md]
   - id: mid-conversation-correction
-    required_edge_ids: [j1-fetch-options-select-card]
-    required_event_ids: []
-    fixture_predicates: [multiple_cards]
+    required_edge_ids: []
+    required_event_ids: [correctable-parameter-supplied]
+    fixture_predicates: []
     review:
       state: approved
-      evidence_refs: [docs/adrs/0005-use-a-closed-complication-taxonomy.md, docs/reports/complication-taxonomy-mapping.md]
+      evidence_refs: [docs/adrs/0005-use-a-closed-complication-taxonomy.md, docs/plans/phase-4.5-grilling-handoff.md]
   - id: goal-shift
     required_edge_ids: []
     required_event_ids: []

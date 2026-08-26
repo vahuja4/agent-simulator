@@ -133,6 +133,18 @@ def test_pair_exclusions_require_canonical_order_and_uniqueness(tmp_path: Path) 
     assert AXIS_ORDER.index("persona-archetype") < AXIS_ORDER.index("complication")
 
 
+def test_mid_conversation_correction_uses_the_adr_precondition() -> None:
+    complications = load_reviewed_contracts().contracts[
+        "complication-applicability"
+    ].content["complications"]
+    correction = next(
+        item for item in complications if item["id"] == "mid-conversation-correction"
+    )
+    assert correction["required_edge_ids"] == []
+    assert correction["fixture_predicates"] == []
+    assert correction["required_event_ids"] == ["correctable-parameter-supplied"]
+
+
 def test_fixture_bindings_belong_to_exactly_one_class() -> None:
     classes = load_reviewed_contracts().contracts["fixture-state-classes"].content["classes"]
     memberships = [
@@ -222,7 +234,7 @@ def test_plan_cli_writes_the_slice_2_report_bundle(
     ) == 0
     result = json.loads(capsys.readouterr().out)
     assert result["status"] == "planned"
-    assert result["eligible_cell_count"] == 4092
+    assert result["eligible_cell_count"] == 4368
     assert (tmp_path / "test-plan/coverage.json").is_file()
 
 

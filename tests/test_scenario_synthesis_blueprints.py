@@ -27,6 +27,20 @@ def _blueprint() -> CoverageBlueprint:
     return generate_blueprints()[0]
 
 
+def test_mid_conversation_correction_can_change_amount_on_one_card() -> None:
+    blueprint = next(
+        item
+        for item in generate_blueprints()
+        if item.complication == "mid-conversation-correction"
+        and len(item.fixture_bindings.cards) == 1
+    )
+    assert blueprint.goal_facts["correction"] == {
+        "parameter": "amount_type",
+        "from": "statement_balance",
+        "to": "minimum_due",
+    }
+
+
 def test_cell_identity_has_a_fixed_full_sha256_vector() -> None:
     cell = CoverageCell(
         journey_path_id="j1-path-example",

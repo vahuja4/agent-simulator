@@ -232,8 +232,9 @@ def _goal_facts(spec: EligibleCellSpec) -> dict[str, Any]:
         facts["disclosure_style"] = "one_fact_at_a_time"
     elif complication == "mid-conversation-correction":
         facts["correction"] = {
-            "from_card_last_four": cards[0],
-            "to_card_last_four": cards[1],
+            "parameter": "amount_type",
+            "from": "statement_balance",
+            "to": "minimum_due",
         }
     elif complication == "false-premise":
         card = next(card for card in CARDS if card.last_four == cards[0])

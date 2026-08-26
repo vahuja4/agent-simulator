@@ -12,7 +12,7 @@ def test_default_eligibility_and_all_obligation_kinds_are_reported() -> None:
     plan = build_plan()
     kinds = {record.kind for record in plan.obligations}
     assert kinds == {"axis", "pair", "journey-edge", "known-defect", "eligible-cell"}
-    assert plan.eligible_cell_count == 4092
+    assert plan.eligible_cell_count == 4368
     assert not [record for record in plan.obligations if record.status == "covered"]
     blocked_journeys = {
         record.axes["journey"]
@@ -35,8 +35,8 @@ def test_blocked_and_uncovered_are_never_pooled() -> None:
 
 def test_reviewed_exclusions_are_honored_and_not_in_eligible_totals() -> None:
     plan = build_plan()
-    assert plan.counts["excluded"] == 0  # the committed reviewed artifact is empty
-    assert all(record.exclusion is None for record in plan.obligations)
+    assert plan.counts["excluded"] == 32
+    assert len([record for record in plan.obligations if record.exclusion]) == 32
 
 
 def test_prototype_reconciliation_is_complete_and_single_classified() -> None:
@@ -70,7 +70,7 @@ def test_planner_and_report_bundle_are_deterministic(tmp_path: Path) -> None:
     coverage = json.loads((bundle / "coverage.json").read_text())
     markdown = (bundle / "coverage.md").read_text()
     snapshot = yaml.safe_load((bundle / "config-snapshot.yaml").read_text())
-    assert coverage["eligible_cell_count"] == 4092
+    assert coverage["eligible_cell_count"] == 4368
     assert coverage["snapshot_hash"] == snapshot["snapshot_hash"]
     assert "Prototype eligibility reconciliation" in markdown
-    assert "4092" in markdown
+    assert "4368" in markdown

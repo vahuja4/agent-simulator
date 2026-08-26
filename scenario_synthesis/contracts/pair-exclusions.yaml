@@ -8,7 +8,7 @@ dependencies:
   complication-taxonomy:
     path: scenario_synthesis/contracts/complication-applicability.yaml
     hash_mode: canonical-yaml
-    sha256: 424482dd4571bb0d3a43be2377e497eb8c96406d6b22592ec3fe258577d6f305
+    sha256: 01645fa08aa51f5ea29bf4e97a0bcc772144cf7030cadbe8ca157dd80e0a1362
   fixture-state-classes:
     path: scenario_synthesis/contracts/fixture-state-classes.yaml
     hash_mode: canonical-yaml
@@ -17,4 +17,292 @@ dependencies:
     path: scenario_synthesis/contracts/fitness-targets.yaml
     hash_mode: canonical-yaml
     sha256: 45deb61e6f421ccb43514734fdcad17e47d498ef8c639acb9e829b2604c536b7
-exclusions: []
+exclusions:
+  - axis_a: complication
+    value_a: ambiguous-reference
+    axis_b: fixture-state-class
+    value_b: j1-multiple-unambiguous-cards
+    reason_code: approved-axis-non-applicability
+    rationale: Ambiguous reference requires ambiguous card names, which this Fixture class does not supply.
+    evidence_refs: [docs/adrs/0005-use-a-closed-complication-taxonomy.md, scenario_synthesis/contracts/complication-applicability.yaml, scenario_synthesis/contracts/fixture-state-classes.yaml]
+    reviewer: Vishal
+    review_date: '2026-08-26'
+  - axis_a: complication
+    value_a: ambiguous-reference
+    axis_b: fixture-state-class
+    value_b: j1-single-card
+    reason_code: approved-axis-non-applicability
+    rationale: Ambiguous reference requires ambiguous card names, which this Fixture class does not supply.
+    evidence_refs: [docs/adrs/0005-use-a-closed-complication-taxonomy.md, scenario_synthesis/contracts/complication-applicability.yaml, scenario_synthesis/contracts/fixture-state-classes.yaml]
+    reviewer: Vishal
+    review_date: '2026-08-26'
+  - axis_a: fixture-state-class
+    value_a: j1-ambiguous-freedom-cards
+    axis_b: fitness-target
+    value_b: d4-default
+    reason_code: approved-axis-non-applicability
+    rationale: Journey-scoped Fixture classes can host only J1 defects; other-journey targets become new pairs when their journey classes are authored.
+    evidence_refs: [docs/adrs/0004-default-pairs-to-eligible-with-reviewed-exclusions.md, scenario_synthesis/contracts/fixture-state-classes.yaml, scenario_synthesis/contracts/fitness-targets.yaml]
+    reviewer: Vishal
+    review_date: '2026-08-26'
+  - axis_a: fixture-state-class
+    value_a: j1-ambiguous-freedom-cards
+    axis_b: fitness-target
+    value_b: d6-default
+    reason_code: approved-axis-non-applicability
+    rationale: Journey-scoped Fixture classes can host only J1 defects; other-journey targets become new pairs when their journey classes are authored.
+    evidence_refs: [docs/adrs/0004-default-pairs-to-eligible-with-reviewed-exclusions.md, scenario_synthesis/contracts/fixture-state-classes.yaml, scenario_synthesis/contracts/fitness-targets.yaml]
+    reviewer: Vishal
+    review_date: '2026-08-26'
+  - axis_a: fixture-state-class
+    value_a: j1-ambiguous-freedom-cards
+    axis_b: fitness-target
+    value_b: d7-default
+    reason_code: approved-axis-non-applicability
+    rationale: Journey-scoped Fixture classes can host only J1 defects; other-journey targets become new pairs when their journey classes are authored.
+    evidence_refs: [docs/adrs/0004-default-pairs-to-eligible-with-reviewed-exclusions.md, scenario_synthesis/contracts/fixture-state-classes.yaml, scenario_synthesis/contracts/fitness-targets.yaml]
+    reviewer: Vishal
+    review_date: '2026-08-26'
+  - axis_a: fixture-state-class
+    value_a: j1-multiple-unambiguous-cards
+    axis_b: fitness-target
+    value_b: d4-default
+    reason_code: approved-axis-non-applicability
+    rationale: Journey-scoped Fixture classes can host only J1 defects; other-journey targets become new pairs when their journey classes are authored.
+    evidence_refs: [docs/adrs/0004-default-pairs-to-eligible-with-reviewed-exclusions.md, scenario_synthesis/contracts/fixture-state-classes.yaml, scenario_synthesis/contracts/fitness-targets.yaml]
+    reviewer: Vishal
+    review_date: '2026-08-26'
+  - axis_a: fixture-state-class
+    value_a: j1-multiple-unambiguous-cards
+    axis_b: fitness-target
+    value_b: d5-default
+    reason_code: approved-axis-non-applicability
+    rationale: The Fixture class lacks predicates required by this J1 Fitness target.
+    evidence_refs: [docs/adrs/0004-default-pairs-to-eligible-with-reviewed-exclusions.md, scenario_synthesis/contracts/fixture-state-classes.yaml, scenario_synthesis/contracts/fitness-targets.yaml]
+    reviewer: Vishal
+    review_date: '2026-08-26'
+  - axis_a: fixture-state-class
+    value_a: j1-multiple-unambiguous-cards
+    axis_b: fitness-target
+    value_b: d6-default
+    reason_code: approved-axis-non-applicability
+    rationale: Journey-scoped Fixture classes can host only J1 defects; other-journey targets become new pairs when their journey classes are authored.
+    evidence_refs: [docs/adrs/0004-default-pairs-to-eligible-with-reviewed-exclusions.md, scenario_synthesis/contracts/fixture-state-classes.yaml, scenario_synthesis/contracts/fitness-targets.yaml]
+    reviewer: Vishal
+    review_date: '2026-08-26'
+  - axis_a: fixture-state-class
+    value_a: j1-multiple-unambiguous-cards
+    axis_b: fitness-target
+    value_b: d7-default
+    reason_code: approved-axis-non-applicability
+    rationale: Journey-scoped Fixture classes can host only J1 defects; other-journey targets become new pairs when their journey classes are authored.
+    evidence_refs: [docs/adrs/0004-default-pairs-to-eligible-with-reviewed-exclusions.md, scenario_synthesis/contracts/fixture-state-classes.yaml, scenario_synthesis/contracts/fitness-targets.yaml]
+    reviewer: Vishal
+    review_date: '2026-08-26'
+  - axis_a: fixture-state-class
+    value_a: j1-single-card
+    axis_b: fitness-target
+    value_b: d2-default
+    reason_code: approved-axis-non-applicability
+    rationale: The Fixture class lacks predicates required by this J1 Fitness target.
+    evidence_refs: [docs/adrs/0004-default-pairs-to-eligible-with-reviewed-exclusions.md, scenario_synthesis/contracts/fixture-state-classes.yaml, scenario_synthesis/contracts/fitness-targets.yaml]
+    reviewer: Vishal
+    review_date: '2026-08-26'
+  - axis_a: fixture-state-class
+    value_a: j1-single-card
+    axis_b: fitness-target
+    value_b: d4-default
+    reason_code: approved-axis-non-applicability
+    rationale: Journey-scoped Fixture classes can host only J1 defects; other-journey targets become new pairs when their journey classes are authored.
+    evidence_refs: [docs/adrs/0004-default-pairs-to-eligible-with-reviewed-exclusions.md, scenario_synthesis/contracts/fixture-state-classes.yaml, scenario_synthesis/contracts/fitness-targets.yaml]
+    reviewer: Vishal
+    review_date: '2026-08-26'
+  - axis_a: fixture-state-class
+    value_a: j1-single-card
+    axis_b: fitness-target
+    value_b: d5-default
+    reason_code: approved-axis-non-applicability
+    rationale: The Fixture class lacks predicates required by this J1 Fitness target.
+    evidence_refs: [docs/adrs/0004-default-pairs-to-eligible-with-reviewed-exclusions.md, scenario_synthesis/contracts/fixture-state-classes.yaml, scenario_synthesis/contracts/fitness-targets.yaml]
+    reviewer: Vishal
+    review_date: '2026-08-26'
+  - axis_a: fixture-state-class
+    value_a: j1-single-card
+    axis_b: fitness-target
+    value_b: d6-default
+    reason_code: approved-axis-non-applicability
+    rationale: Journey-scoped Fixture classes can host only J1 defects; other-journey targets become new pairs when their journey classes are authored.
+    evidence_refs: [docs/adrs/0004-default-pairs-to-eligible-with-reviewed-exclusions.md, scenario_synthesis/contracts/fixture-state-classes.yaml, scenario_synthesis/contracts/fitness-targets.yaml]
+    reviewer: Vishal
+    review_date: '2026-08-26'
+  - axis_a: fixture-state-class
+    value_a: j1-single-card
+    axis_b: fitness-target
+    value_b: d7-default
+    reason_code: approved-axis-non-applicability
+    rationale: Journey-scoped Fixture classes can host only J1 defects; other-journey targets become new pairs when their journey classes are authored.
+    evidence_refs: [docs/adrs/0004-default-pairs-to-eligible-with-reviewed-exclusions.md, scenario_synthesis/contracts/fixture-state-classes.yaml, scenario_synthesis/contracts/fitness-targets.yaml]
+    reviewer: Vishal
+    review_date: '2026-08-26'
+  - axis_a: journey-path
+    value_a: j1-path-6dbc990c687797f6
+    axis_b: fitness-target
+    value_b: d3-default
+    reason_code: approved-axis-non-applicability
+    rationale: The J1 path omits an edge required by this J1 Fitness target.
+    evidence_refs: [docs/adrs/0004-default-pairs-to-eligible-with-reviewed-exclusions.md, scenario_synthesis/procedures/j1.yaml, scenario_synthesis/contracts/fitness-targets.yaml]
+    reviewer: Vishal
+    review_date: '2026-08-26'
+  - axis_a: journey-path
+    value_a: j1-path-6dbc990c687797f6
+    axis_b: fitness-target
+    value_b: d4-default
+    reason_code: approved-axis-non-applicability
+    rationale: Journey-scoped paths can host only J1 defects; other-journey targets become new pairs when their journey classes are authored.
+    evidence_refs: [docs/adrs/0004-default-pairs-to-eligible-with-reviewed-exclusions.md, scenario_synthesis/procedures/j1.yaml, scenario_synthesis/contracts/fitness-targets.yaml]
+    reviewer: Vishal
+    review_date: '2026-08-26'
+  - axis_a: journey-path
+    value_a: j1-path-6dbc990c687797f6
+    axis_b: fitness-target
+    value_b: d6-default
+    reason_code: approved-axis-non-applicability
+    rationale: Journey-scoped paths can host only J1 defects; other-journey targets become new pairs when their journey classes are authored.
+    evidence_refs: [docs/adrs/0004-default-pairs-to-eligible-with-reviewed-exclusions.md, scenario_synthesis/procedures/j1.yaml, scenario_synthesis/contracts/fitness-targets.yaml]
+    reviewer: Vishal
+    review_date: '2026-08-26'
+  - axis_a: journey-path
+    value_a: j1-path-6dbc990c687797f6
+    axis_b: fitness-target
+    value_b: d7-default
+    reason_code: approved-axis-non-applicability
+    rationale: Journey-scoped paths can host only J1 defects; other-journey targets become new pairs when their journey classes are authored.
+    evidence_refs: [docs/adrs/0004-default-pairs-to-eligible-with-reviewed-exclusions.md, scenario_synthesis/procedures/j1.yaml, scenario_synthesis/contracts/fitness-targets.yaml]
+    reviewer: Vishal
+    review_date: '2026-08-26'
+  - axis_a: journey-path
+    value_a: j1-path-6dbc990c687797f6
+    axis_b: fixture-state-class
+    value_b: j1-single-card
+    reason_code: fixture-domain-impossibility
+    rationale: The path requires multiple distinguishable cards, which the single-card Fixture class cannot supply.
+    evidence_refs: [scenario_synthesis/procedures/j1.yaml, scenario_synthesis/contracts/fixture-state-classes.yaml]
+    reviewer: Vishal
+    review_date: '2026-08-26'
+  - axis_a: journey-path
+    value_a: j1-path-72d5d5d63df95b4e
+    axis_b: fitness-target
+    value_b: d2-default
+    reason_code: approved-axis-non-applicability
+    rationale: The J1 path omits an edge required by this J1 Fitness target.
+    evidence_refs: [docs/adrs/0004-default-pairs-to-eligible-with-reviewed-exclusions.md, scenario_synthesis/procedures/j1.yaml, scenario_synthesis/contracts/fitness-targets.yaml]
+    reviewer: Vishal
+    review_date: '2026-08-26'
+  - axis_a: journey-path
+    value_a: j1-path-72d5d5d63df95b4e
+    axis_b: fitness-target
+    value_b: d3-default
+    reason_code: approved-axis-non-applicability
+    rationale: The J1 path omits an edge required by this J1 Fitness target.
+    evidence_refs: [docs/adrs/0004-default-pairs-to-eligible-with-reviewed-exclusions.md, scenario_synthesis/procedures/j1.yaml, scenario_synthesis/contracts/fitness-targets.yaml]
+    reviewer: Vishal
+    review_date: '2026-08-26'
+  - axis_a: journey-path
+    value_a: j1-path-72d5d5d63df95b4e
+    axis_b: fitness-target
+    value_b: d4-default
+    reason_code: approved-axis-non-applicability
+    rationale: Journey-scoped paths can host only J1 defects; other-journey targets become new pairs when their journey classes are authored.
+    evidence_refs: [docs/adrs/0004-default-pairs-to-eligible-with-reviewed-exclusions.md, scenario_synthesis/procedures/j1.yaml, scenario_synthesis/contracts/fitness-targets.yaml]
+    reviewer: Vishal
+    review_date: '2026-08-26'
+  - axis_a: journey-path
+    value_a: j1-path-72d5d5d63df95b4e
+    axis_b: fitness-target
+    value_b: d6-default
+    reason_code: approved-axis-non-applicability
+    rationale: Journey-scoped paths can host only J1 defects; other-journey targets become new pairs when their journey classes are authored.
+    evidence_refs: [docs/adrs/0004-default-pairs-to-eligible-with-reviewed-exclusions.md, scenario_synthesis/procedures/j1.yaml, scenario_synthesis/contracts/fitness-targets.yaml]
+    reviewer: Vishal
+    review_date: '2026-08-26'
+  - axis_a: journey-path
+    value_a: j1-path-72d5d5d63df95b4e
+    axis_b: fitness-target
+    value_b: d7-default
+    reason_code: approved-axis-non-applicability
+    rationale: Journey-scoped paths can host only J1 defects; other-journey targets become new pairs when their journey classes are authored.
+    evidence_refs: [docs/adrs/0004-default-pairs-to-eligible-with-reviewed-exclusions.md, scenario_synthesis/procedures/j1.yaml, scenario_synthesis/contracts/fitness-targets.yaml]
+    reviewer: Vishal
+    review_date: '2026-08-26'
+  - axis_a: journey-path
+    value_a: j1-path-8dd88988bdfb09f8
+    axis_b: fitness-target
+    value_b: d4-default
+    reason_code: approved-axis-non-applicability
+    rationale: Journey-scoped paths can host only J1 defects; other-journey targets become new pairs when their journey classes are authored.
+    evidence_refs: [docs/adrs/0004-default-pairs-to-eligible-with-reviewed-exclusions.md, scenario_synthesis/procedures/j1.yaml, scenario_synthesis/contracts/fitness-targets.yaml]
+    reviewer: Vishal
+    review_date: '2026-08-26'
+  - axis_a: journey-path
+    value_a: j1-path-8dd88988bdfb09f8
+    axis_b: fitness-target
+    value_b: d6-default
+    reason_code: approved-axis-non-applicability
+    rationale: Journey-scoped paths can host only J1 defects; other-journey targets become new pairs when their journey classes are authored.
+    evidence_refs: [docs/adrs/0004-default-pairs-to-eligible-with-reviewed-exclusions.md, scenario_synthesis/procedures/j1.yaml, scenario_synthesis/contracts/fitness-targets.yaml]
+    reviewer: Vishal
+    review_date: '2026-08-26'
+  - axis_a: journey-path
+    value_a: j1-path-8dd88988bdfb09f8
+    axis_b: fitness-target
+    value_b: d7-default
+    reason_code: approved-axis-non-applicability
+    rationale: Journey-scoped paths can host only J1 defects; other-journey targets become new pairs when their journey classes are authored.
+    evidence_refs: [docs/adrs/0004-default-pairs-to-eligible-with-reviewed-exclusions.md, scenario_synthesis/procedures/j1.yaml, scenario_synthesis/contracts/fitness-targets.yaml]
+    reviewer: Vishal
+    review_date: '2026-08-26'
+  - axis_a: journey-path
+    value_a: j1-path-8dd88988bdfb09f8
+    axis_b: fixture-state-class
+    value_b: j1-single-card
+    reason_code: fixture-domain-impossibility
+    rationale: The path requires multiple distinguishable cards, which the single-card Fixture class cannot supply.
+    evidence_refs: [scenario_synthesis/procedures/j1.yaml, scenario_synthesis/contracts/fixture-state-classes.yaml]
+    reviewer: Vishal
+    review_date: '2026-08-26'
+  - axis_a: journey-path
+    value_a: j1-path-e41e41af19bb392e
+    axis_b: fitness-target
+    value_b: d2-default
+    reason_code: approved-axis-non-applicability
+    rationale: The J1 path omits an edge required by this J1 Fitness target.
+    evidence_refs: [docs/adrs/0004-default-pairs-to-eligible-with-reviewed-exclusions.md, scenario_synthesis/procedures/j1.yaml, scenario_synthesis/contracts/fitness-targets.yaml]
+    reviewer: Vishal
+    review_date: '2026-08-26'
+  - axis_a: journey-path
+    value_a: j1-path-e41e41af19bb392e
+    axis_b: fitness-target
+    value_b: d4-default
+    reason_code: approved-axis-non-applicability
+    rationale: Journey-scoped paths can host only J1 defects; other-journey targets become new pairs when their journey classes are authored.
+    evidence_refs: [docs/adrs/0004-default-pairs-to-eligible-with-reviewed-exclusions.md, scenario_synthesis/procedures/j1.yaml, scenario_synthesis/contracts/fitness-targets.yaml]
+    reviewer: Vishal
+    review_date: '2026-08-26'
+  - axis_a: journey-path
+    value_a: j1-path-e41e41af19bb392e
+    axis_b: fitness-target
+    value_b: d6-default
+    reason_code: approved-axis-non-applicability
+    rationale: Journey-scoped paths can host only J1 defects; other-journey targets become new pairs when their journey classes are authored.
+    evidence_refs: [docs/adrs/0004-default-pairs-to-eligible-with-reviewed-exclusions.md, scenario_synthesis/procedures/j1.yaml, scenario_synthesis/contracts/fitness-targets.yaml]
+    reviewer: Vishal
+    review_date: '2026-08-26'
+  - axis_a: journey-path
+    value_a: j1-path-e41e41af19bb392e
+    axis_b: fitness-target
+    value_b: d7-default
+    reason_code: approved-axis-non-applicability
+    rationale: Journey-scoped paths can host only J1 defects; other-journey targets become new pairs when their journey classes are authored.
+    evidence_refs: [docs/adrs/0004-default-pairs-to-eligible-with-reviewed-exclusions.md, scenario_synthesis/procedures/j1.yaml, scenario_synthesis/contracts/fitness-targets.yaml]
+    reviewer: Vishal
+    review_date: '2026-08-26'
