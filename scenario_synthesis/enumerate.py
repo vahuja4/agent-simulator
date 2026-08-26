@@ -22,6 +22,7 @@ from .blueprint import (
     dump_blueprint,
     load_blueprint,
 )
+from .contracts import fitness_checks_for_policies
 from .policies import POLICIES, Policy
 from .sample import behavioral_representatives, sample_blueprints, stratum_counts
 from .validator import (
@@ -33,7 +34,8 @@ from .validator import (
 
 GENERATOR_VERSION = "phase-4.1-v1"
 DEFAULT_OUTPUT_ROOT = Path(__file__).resolve().parents[1] / "generated_scenarios"
-CARD_SWITCH_EDGE = ("fetch_options", "select_card")
+CARD_SWITCH_EDGE = "j1-fetch-options-select-card"
+VALIDATION_RETRY_EDGE = "j1-validate-retry"
 MAX_PERTURBATIONS = 2
 
 
@@ -65,7 +67,7 @@ def _enumerate_blueprints(
             for policy_id in edge.get("applicable_policies", [])
         }
         for policies in _compatible_policy_sets(applicable, validator.policy_catalog):
-            assertions = _tool_assertions(policies, validator.policy_catalog)
+            assertions = _tool_assertions(policies, validator)
             for perturbations in _perturbation_variants(
                 edges, include_non_executable=include_non_executable
             ):
@@ -248,13 +250,13 @@ def _procedure_paths(
     for edge in graph.get("edges", []):
         adjacency[str(edge["from"])].append(edge)
     terminals = set(graph.get("terminal_nodes", []))
-    cyclic_edges = {CARD_SWITCH_EDGE, ("validate", "validate")}
+    cyclic_edges = {CARD_SWITCH_EDGE, VALIDATION_RETRY_EDGE}
 
     def walk(
         node: str,
         path: tuple[str, ...],
         traversed: tuple[Mapping[str, Any], ...],
-        cycle_counts: Mapping[tuple[str, str], int],
+        cycle_counts: Mapping[str, int],
     ) -> Iterator[tuple[tuple[str, ...], tuple[Mapping[str, Any], ...]]]:
         if node in terminals:
             yield path, traversed
@@ -265,18 +267,18 @@ def _procedure_paths(
                 and edge.get("non_executable_against") == "mock"
             ):
                 continue
-            pair = (str(edge["from"]), str(edge["to"]))
-            if pair in cyclic_edges and cycle_counts.get(pair, 0) >= 1:
+            edge_id = str(edge["id"])
+            if edge_id in cyclic_edges and cycle_counts.get(edge_id, 0) >= 1:
                 continue
             next_counts = dict(cycle_counts)
-            if pair in cyclic_edges:
-                next_counts[pair] = next_counts.get(pair, 0) + 1
+            if edge_id in cyclic_edges:
+                next_counts[edge_id] = next_counts.get(edge_id, 0) + 1
             yield from walk(
-                pair[1], path + (pair[1],), traversed + (edge,), next_counts
+                str(edge["to"]), path + (edge_id,), traversed + (edge,), next_counts
             )
 
     for start in graph.get("start_nodes", []):
-        yield from walk(str(start), (str(start),), (), {})
+        yield from walk(str(start), (), (), {})
 
 
 def _compatible_policy_sets(
@@ -372,12 +374,10 @@ def _fixture_equivalence_classes(
 
 
 def _tool_assertions(
-    policies: Sequence[str], catalog: Mapping[str, Policy]
+    policies: Sequence[str], validator: BlueprintValidator
 ) -> tuple[ToolAssertion, ...]:
-    assertion_types = dict.fromkeys(
-        assertion
-        for policy_id in policies
-        for assertion in catalog[policy_id].tool_assertions
+    assertion_types, _criteria = fitness_checks_for_policies(
+        policies, contracts=validator.contracts
     )
     assertions: list[ToolAssertion] = []
     for assertion_type in assertion_types:
@@ -401,16 +401,16 @@ def _goal_facts(
         "amount_type": "statement_balance",
         "date": "due_date",
     }
-    if CARD_SWITCH_EDGE in set(zip(path, path[1:])) and len(bindings.cards) > 1:
+    if CARD_SWITCH_EDGE in path and len(bindings.cards) > 1:
         facts["initial_card_last_four"] = bindings.cards[0]
         facts["final_card_last_four"] = bindings.cards[1]
     perturbation_types = {item.type for item in perturbations}
     if "partial_disclosure" in perturbation_types:
         facts["disclosure_style"] = "one_fact_at_a_time"
-    if "submission_failure" in perturbation_types or "handle_failure" in path:
+    if "submission_failure" in perturbation_types or "j1-submit-handle-failure" in path:
         facts["amount_type"] = "custom"
         facts["amount"] = LARGE_PAYMENT_THRESHOLD + 1000.0
-    if "handle_failure" in path:
+    if "j1-submit-handle-failure" in path:
         facts["expected_outcome"] = "submission_failure_reported_truthfully"
     return facts
 
@@ -418,17 +418,11 @@ def _goal_facts(
 def _exclusion_counts(
     pre_filter: Sequence[Blueprint], validator: BlueprintValidator
 ) -> dict[str, Any]:
-    edge_index = {
-        (str(edge["from"]), str(edge["to"])): edge
-        for edge in validator.graph.get("edges", [])
-    }
+    edge_index = {str(edge["id"]): edge for edge in validator.graph.get("edges", [])}
 
     def reasons(blueprint: Blueprint) -> tuple[tuple[str, str], ...]:
         found: set[tuple[str, str]] = set()
-        edges = [
-            edge_index[pair]
-            for pair in zip(blueprint.procedure_path, blueprint.procedure_path[1:])
-        ]
+        edges = [edge_index[edge_id] for edge_id in blueprint.procedure_path]
         for edge in edges:
             if edge.get("non_executable_against") == "mock":
                 found.add(("edges", f"{edge['from']}->{edge['to']}"))

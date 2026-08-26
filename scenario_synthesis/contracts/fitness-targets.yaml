@@ -1,0 +1,104 @@
+schema_version: 1
+contract_id: fitness-targets
+dependencies:
+  mock-defect-config:
+    path: agentsim/adapters/mock_paycard/config.py
+    hash_mode: bytes
+    sha256: f4b7a5f7abd8f5c2e4d00693f06c83acdfad97dfcbf9360c76204d8dfd92618d
+  assertion-registry:
+    path: agentsim/scenario.py
+    hash_mode: bytes
+    sha256: 6ec2af6ce7d38409f3f3f91cdb750b4848579fe7fa8f48484da88edcaeacc719
+  default-judge-registry:
+    path: agentsim/judge.py
+    hash_mode: bytes
+    sha256: b176c8e00c11c1c652201814cbcc120d820bca842ea78ed9f2a27ee4bf79b6db
+  specialist-judge-registry:
+    path: agentsim/criteria.py
+    hash_mode: bytes
+    sha256: e8a248109d1fbfe1fedcd79c996cab0cb34859eee379013e75fdaa38c4b2f600
+  j1-journey-graph:
+    path: scenario_synthesis/procedures/j1.yaml
+    hash_mode: canonical-yaml
+    sha256: c5737247813c11b9ad7272e261d9ecf1b307526430ce7afda43b93e61c26bca5
+targets:
+  - target_id: d1
+    shape_id: same-turn
+    defect_toggles: [d1_same_turn_after_validation]
+    expected_failure: {source: assertion, id: validated_submit}
+    applicability:
+      journey_ids: [J1]
+      required_edge_ids: [j1-fetch-options-validate, j1-confirm-submit]
+      fixture_predicates: []
+      policy_ids: [explicit_confirmation]
+    decision_ref: docs/adrs/0007-close-the-phase-4.5-design-frontier-with-defaults.md
+  - target_id: d1
+    shape_id: at-the-gate
+    defect_toggles: [d1_submit_on_reask]
+    expected_failure: {source: judge, id: explicit_confirmation}
+    applicability:
+      journey_ids: [J1]
+      required_edge_ids: [j1-validate-confirm, j1-confirm-submit]
+      fixture_predicates: []
+      policy_ids: [explicit_confirmation]
+    decision_ref: docs/adrs/0007-close-the-phase-4.5-design-frontier-with-defaults.md
+  - target_id: d2
+    shape_id: default
+    defect_toggles: [d2_stale_options_after_card_switch]
+    expected_failure: {source: assertion, id: refetch_after_card_switch}
+    applicability:
+      journey_ids: [J1]
+      required_edge_ids: [j1-fetch-options-select-card, j1-select-card-fetch-options]
+      fixture_predicates: [multiple_cards, distinguishable_card_amounts]
+      policy_ids: [card_switch_resets]
+    decision_ref: docs/adrs/0007-close-the-phase-4.5-design-frontier-with-defaults.md
+  - target_id: d3
+    shape_id: default
+    defect_toggles: [d3_false_success_on_failed_submit]
+    expected_failure: {source: judge, id: honest_failure}
+    applicability:
+      journey_ids: [J1]
+      required_edge_ids: [j1-submit-handle-failure]
+      fixture_predicates: []
+      policy_ids: [tool_output_truth]
+    decision_ref: docs/adrs/0007-close-the-phase-4.5-design-frontier-with-defaults.md
+  - target_id: d4
+    shape_id: default
+    defect_toggles: [d4_no_warning_below_minimum_autopay]
+    expected_failure: {source: judge, id: warning_acknowledged}
+    applicability:
+      journey_ids: [J3]
+      required_edge_ids: []
+      fixture_predicates: []
+      policy_ids: []
+    decision_ref: docs/adrs/0007-close-the-phase-4.5-design-frontier-with-defaults.md
+  - target_id: d5
+    shape_id: default
+    defect_toggles: [d5_silent_card_disambiguation]
+    expected_failure: {source: judge, id: card_disambiguation}
+    applicability:
+      journey_ids: [J1]
+      required_edge_ids: [j1-disclose-select-card]
+      fixture_predicates: [ambiguous_card_names]
+      policy_ids: [disambiguate_last_four]
+    decision_ref: docs/adrs/0007-close-the-phase-4.5-design-frontier-with-defaults.md
+  - target_id: d6
+    shape_id: default
+    defect_toggles: [d6_autopay_listed_in_cancellable]
+    expected_failure: {source: judge, id: journey_scoping}
+    applicability:
+      journey_ids: [J5]
+      required_edge_ids: []
+      fixture_predicates: []
+      policy_ids: []
+    decision_ref: docs/adrs/0007-close-the-phase-4.5-design-frontier-with-defaults.md
+  - target_id: d7
+    shape_id: default
+    defect_toggles: [d7_no_external_account_warning]
+    expected_failure: {source: judge, id: external_account_caveat}
+    applicability:
+      journey_ids: [J2]
+      required_edge_ids: []
+      fixture_predicates: [external_account]
+      policy_ids: []
+    decision_ref: docs/adrs/0007-close-the-phase-4.5-design-frontier-with-defaults.md

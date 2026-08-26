@@ -1,0 +1,27 @@
+schema_version: 1
+config_id: phase-4-5-reviewed-inputs-v1
+paths:
+  contracts:
+    persona-archetypes: scenario_synthesis/contracts/persona-archetypes.yaml
+    complication-applicability: scenario_synthesis/contracts/complication-applicability.yaml
+    pair-exclusions: scenario_synthesis/contracts/pair-exclusions.yaml
+    fixture-state-classes: scenario_synthesis/contracts/fixture-state-classes.yaml
+    fitness-targets: scenario_synthesis/contracts/fitness-targets.yaml
+  prompts:
+    realization-system: scenario_synthesis/prompts/realization-system.txt
+versions:
+  generator: phase-4.5-v1
+  realization: phase-4.5-v1
+models:
+  simulator: gpt-5.6-luna
+  judge: gpt-5.5
+limits:
+  realization_token_budget: 8192
+  realization_retry_bound: 1
+  admission_repetitions: 3
+  replacement_bound: 2
+  same_cell_library_cap: 2
+  concurrency: 1
+  max_cells_per_command: 5
+output_layout_version: 1
+enforce_model_family_separation: false

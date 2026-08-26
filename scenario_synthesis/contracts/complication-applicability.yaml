@@ -1,0 +1,79 @@
+schema_version: 1
+contract_id: complication-applicability
+dependencies:
+  j1-journey-graph:
+    path: scenario_synthesis/procedures/j1.yaml
+    hash_mode: canonical-yaml
+    sha256: c5737247813c11b9ad7272e261d9ecf1b307526430ce7afda43b93e61c26bca5
+  fixture-domain:
+    path: fixtures/paycard.py
+    hash_mode: bytes
+    sha256: 1670acf7f56e48733e3cd2055e858ab54dc57d81b29089dd73ed22e164364b70
+  curated-complication-mapping:
+    path: docs/reports/complication-taxonomy-mapping.md
+    hash_mode: bytes
+    sha256: 02189f36d0290ce7f2eb3de5c99b44e959dc7b309f98e6ae84f37cb53ed0c879
+complications:
+  - id: none
+    required_edge_ids: []
+    required_event_ids: []
+    fixture_predicates: []
+    review:
+      state: approved
+      evidence_refs: [docs/adrs/0005-use-a-closed-complication-taxonomy.md]
+  - id: underspecification
+    required_edge_ids: [j1-disclose-select-card]
+    required_event_ids: []
+    fixture_predicates: []
+    review:
+      state: approved
+      evidence_refs: [docs/adrs/0005-use-a-closed-complication-taxonomy.md, docs/reports/complication-taxonomy-mapping.md]
+  - id: mid-conversation-correction
+    required_edge_ids: [j1-fetch-options-select-card]
+    required_event_ids: []
+    fixture_predicates: [multiple_cards]
+    review:
+      state: approved
+      evidence_refs: [docs/adrs/0005-use-a-closed-complication-taxonomy.md, docs/reports/complication-taxonomy-mapping.md]
+  - id: goal-shift
+    required_edge_ids: []
+    required_event_ids: []
+    fixture_predicates: []
+    review:
+      state: designed-not-empirically-validated
+      evidence_refs: [docs/adrs/0005-use-a-closed-complication-taxonomy.md, docs/reports/complication-taxonomy-mapping.md]
+  - id: multi-intent-turn
+    required_edge_ids: []
+    required_event_ids: []
+    fixture_predicates: []
+    review:
+      state: designed-not-empirically-validated
+      evidence_refs: [docs/adrs/0005-use-a-closed-complication-taxonomy.md, docs/reports/complication-taxonomy-mapping.md]
+  - id: false-premise
+    required_edge_ids: []
+    required_event_ids: []
+    fixture_predicates: [has_real_fixture_fact]
+    review:
+      state: approved
+      evidence_refs: [docs/adrs/0005-use-a-closed-complication-taxonomy.md, docs/reports/complication-taxonomy-mapping.md]
+  - id: out-of-scope-drift
+    required_edge_ids: []
+    required_event_ids: []
+    fixture_predicates: []
+    review:
+      state: designed-not-empirically-validated
+      evidence_refs: [docs/adrs/0005-use-a-closed-complication-taxonomy.md, docs/reports/complication-taxonomy-mapping.md]
+  - id: channel-noise
+    required_edge_ids: []
+    required_event_ids: []
+    fixture_predicates: []
+    review:
+      state: designed-not-empirically-validated
+      evidence_refs: [docs/adrs/0005-use-a-closed-complication-taxonomy.md, docs/reports/complication-taxonomy-mapping.md]
+  - id: ambiguous-reference
+    required_edge_ids: [j1-disclose-select-card]
+    required_event_ids: []
+    fixture_predicates: [ambiguous_card_names]
+    review:
+      state: approved
+      evidence_refs: [docs/adrs/0005-use-a-closed-complication-taxonomy.md, docs/reports/complication-taxonomy-mapping.md]

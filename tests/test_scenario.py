@@ -182,6 +182,13 @@ def test_minimal_opener_goal_actually_underspecifies():
     assert "hi, I'd like to pay my credit card" in s.goal
 
 
+def test_j1_happy_path_persona_matches_everything_upfront_control():
+    scenario = load_scenario(SCENARIOS_DIR / "j1_happy_path.yaml")
+    assert "states the requested details up front" in scenario.persona.traits
+    assert "one question at a time" not in scenario.persona.traits
+    assert "stating everything up front" in scenario.description
+
+
 def test_d6_scenario_carries_must_not_call_and_avoids_autopay_opener():
     s = load_scenario(SCENARIOS_DIR / "j5_cancel_autopay_pending.yaml")
     assert any(

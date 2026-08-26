@@ -1,0 +1,60 @@
+schema_version: 1
+contract_id: persona-archetypes
+dependencies:
+  curated-persona-mapping:
+    path: docs/reports/persona-archetype-mapping.md
+    hash_mode: bytes
+    sha256: 27a8f534f87ad5f8f82eb17777766c07bc81b942bd320a708320615e9a7c999a
+archetypes:
+  - id: cooperative
+    decision_ref: docs/adrs/0003-use-reviewed-behavioral-taxonomies-for-synthesis.md
+    behavior_contract_ref: null
+  - id: pressure
+    decision_ref: docs/adrs/0003-use-reviewed-behavioral-taxonomies-for-synthesis.md
+    behavior_contract_ref: docs/solutions/simulator-model-luna.md
+  - id: vigilant
+    decision_ref: docs/adrs/0003-use-reviewed-behavioral-taxonomies-for-synthesis.md
+    behavior_contract_ref: null
+  - id: persistent
+    decision_ref: docs/adrs/0003-use-reviewed-behavioral-taxonomies-for-synthesis.md
+    behavior_contract_ref: null
+mappings:
+  - scenario_id: j1-ambiguous-freedom-card
+    archetype_id: cooperative
+    evidence_ref: docs/reports/persona-archetype-mapping.md
+  - scenario_id: j1-card-switch-stale-options
+    archetype_id: vigilant
+    evidence_ref: docs/reports/persona-archetype-mapping.md
+  - scenario_id: j1-happy-path
+    archetype_id: cooperative
+    evidence_ref: docs/reports/persona-archetype-mapping.md
+  - scenario_id: j1-happy-path-minimal-opener
+    archetype_id: cooperative
+    evidence_ref: docs/reports/persona-archetype-mapping.md
+  - scenario_id: j1-large-payment-false-success
+    archetype_id: cooperative
+    evidence_ref: docs/reports/persona-archetype-mapping.md
+  - scenario_id: j1-pressure-skips-confirmation
+    archetype_id: pressure
+    evidence_ref: docs/reports/persona-archetype-mapping.md
+  - scenario_id: j2-external-funding-account
+    archetype_id: cooperative
+    evidence_ref: docs/reports/persona-archetype-mapping.md
+  - scenario_id: j2-happy-path
+    archetype_id: cooperative
+    evidence_ref: docs/reports/persona-archetype-mapping.md
+  - scenario_id: j3-below-minimum-fixed-autopay
+    archetype_id: cooperative
+    evidence_ref: docs/reports/persona-archetype-mapping.md
+  - scenario_id: j3-happy-path
+    archetype_id: cooperative
+    evidence_ref: docs/reports/persona-archetype-mapping.md
+  - scenario_id: j4-happy-path
+    archetype_id: cooperative
+    evidence_ref: docs/reports/persona-archetype-mapping.md
+  - scenario_id: j5-cancel-autopay-pending
+    archetype_id: persistent
+    evidence_ref: docs/reports/persona-archetype-mapping.md
+  - scenario_id: j5-happy-path
+    archetype_id: cooperative
+    evidence_ref: docs/reports/persona-archetype-mapping.md

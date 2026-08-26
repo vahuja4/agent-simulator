@@ -94,13 +94,11 @@ def test_rejects_catalog_policy_without_enforcement_hook() -> None:
         id="orphan",
         journeys=("J1",),
         required_fixture_predicates=(),
-        tool_assertions=(),
-        judge_hooks=(),
         compatible_with=(),
         incompatible_with=(),
     )
     validator = BlueprintValidator(policy_catalog={**POLICIES, "orphan": orphan})
-    with pytest.raises(BlueprintValidationError, match="no assertion or judge hook"):
+    with pytest.raises(BlueprintValidationError, match="no fitness-target enforcement hook"):
         validator.validate(replace(blueprint, policies=("orphan",)))
 
 
@@ -171,7 +169,7 @@ def test_rejects_mock_non_executable_validation_retry_edge(
 ) -> None:
     blueprint = load_blueprint(BLUEPRINTS / "j1_happy_path.yaml")
     path = list(blueprint.procedure_path)
-    path.insert(path.index("confirm"), "validate")
+    path.insert(path.index("j1-validate-confirm"), "j1-validate-retry")
     with pytest.raises(BlueprintValidationError, match="validate -> validate"):
         validator.validate(replace(blueprint, procedure_path=tuple(path), max_turns=13))
 
@@ -190,7 +188,13 @@ def test_rejects_disconnected_path(validator: BlueprintValidator) -> None:
     blueprint = load_blueprint(BLUEPRINTS / "j1_happy_path.yaml")
     bad = replace(
         blueprint,
-        procedure_path=("disclose", "select_card", "validate", "confirm", "submit", "terminate"),
+        procedure_path=(
+            "j1-disclose-select-card",
+            "j1-fetch-options-validate",
+            "j1-validate-confirm",
+            "j1-confirm-submit",
+            "j1-submit-terminate",
+        ),
     )
     with pytest.raises(BlueprintValidationError, match="disconnected"):
         validator.validate(bad)
@@ -209,3 +213,19 @@ def test_rejects_registry_drift(tmp_path: Path) -> None:
     )
     with pytest.raises(BlueprintValidationError, match="registry drift"):
         validator.validate(blueprint)
+
+
+def test_j1_edge_ids_are_unique_and_paths_are_continuous(
+    validator: BlueprintValidator,
+) -> None:
+    edges = validator.graph["edges"]
+    edge_ids = [edge["id"] for edge in edges]
+    assert len(edge_ids) == len(set(edge_ids))
+    edge_index = {edge["id"]: edge for edge in edges}
+    for path in sorted(BLUEPRINTS.glob("*.yaml")):
+        blueprint = load_blueprint(path)
+        traversed = [edge_index[edge_id] for edge_id in blueprint.procedure_path]
+        assert all(
+            left["to"] == right["from"]
+            for left, right in zip(traversed, traversed[1:])
+        )

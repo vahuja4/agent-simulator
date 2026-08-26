@@ -1,0 +1,57 @@
+schema_version: 1
+contract_id: fixture-state-classes
+dependencies:
+  fixture-domain:
+    path: fixtures/paycard.py
+    hash_mode: bytes
+    sha256: 1670acf7f56e48733e3cd2055e858ab54dc57d81b29089dd73ed22e164364b70
+  j1-journey-graph:
+    path: scenario_synthesis/procedures/j1.yaml
+    hash_mode: canonical-yaml
+    sha256: c5737247813c11b9ad7272e261d9ecf1b307526430ce7afda43b93e61c26bca5
+classes:
+  - id: j1-single-card
+    predicates:
+      has_card: true
+      has_account: true
+      multiple_cards: false
+      distinguishable_card_amounts: false
+      ambiguous_card_names: false
+    bindings:
+      - {cards: ['9013'], accounts: ['5678']}
+      - {cards: ['9013'], accounts: ['9999']}
+      - {cards: ['9013'], accounts: ['5678', '9999']}
+      - {cards: ['0767'], accounts: ['5678']}
+      - {cards: ['0767'], accounts: ['9999']}
+      - {cards: ['0767'], accounts: ['5678', '9999']}
+      - {cards: ['4421'], accounts: ['5678']}
+      - {cards: ['4421'], accounts: ['9999']}
+      - {cards: ['4421'], accounts: ['5678', '9999']}
+  - id: j1-multiple-unambiguous-cards
+    predicates:
+      has_card: true
+      has_account: true
+      multiple_cards: true
+      distinguishable_card_amounts: true
+      ambiguous_card_names: false
+    bindings:
+      - {cards: ['9013', '0767'], accounts: ['5678']}
+      - {cards: ['9013', '0767'], accounts: ['9999']}
+      - {cards: ['9013', '0767'], accounts: ['5678', '9999']}
+      - {cards: ['9013', '4421'], accounts: ['5678']}
+      - {cards: ['9013', '4421'], accounts: ['9999']}
+      - {cards: ['9013', '4421'], accounts: ['5678', '9999']}
+  - id: j1-ambiguous-freedom-cards
+    predicates:
+      has_card: true
+      has_account: true
+      multiple_cards: true
+      distinguishable_card_amounts: true
+      ambiguous_card_names: true
+    bindings:
+      - {cards: ['0767', '4421'], accounts: ['5678']}
+      - {cards: ['0767', '4421'], accounts: ['9999']}
+      - {cards: ['0767', '4421'], accounts: ['5678', '9999']}
+      - {cards: ['9013', '0767', '4421'], accounts: ['5678']}
+      - {cards: ['9013', '0767', '4421'], accounts: ['9999']}
+      - {cards: ['9013', '0767', '4421'], accounts: ['5678', '9999']}

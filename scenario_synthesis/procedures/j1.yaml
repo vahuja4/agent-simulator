@@ -16,7 +16,8 @@ nodes:
   handle_failure: {description: Truthfully report a failed submission without claiming success.}
   terminate: {description: End after the final truthful outcome.}
 edges:
-  - from: disclose
+  - id: j1-disclose-select-card
+    from: disclose
     to: select_card
     required_tools: [PayeeList]
     applicable_policies: [disambiguate_last_four]
@@ -28,14 +29,16 @@ edges:
           goal_facts:
             disclosure_style: one_fact_at_a_time
     worst_case_turn_cost: 3
-  - from: select_card
+  - id: j1-select-card-fetch-options
+    from: select_card
     to: fetch_options
     required_tools: [FundingAccountPicker, AddOptionsOneTimePayment]
     applicable_policies: [card_switch_resets, disambiguate_last_four]
     required_fixture_predicates: [has_account]
     valid_perturbations: {}
     worst_case_turn_cost: 2
-  - from: fetch_options
+  - id: j1-fetch-options-select-card
+    from: fetch_options
     to: select_card
     required_tools: []
     applicable_policies: [card_switch_resets]
@@ -46,7 +49,8 @@ edges:
         executable_trigger:
           binding_condition: distinct_goal_fact_cards
     worst_case_turn_cost: 1
-  - from: fetch_options
+  - id: j1-fetch-options-validate
+    from: fetch_options
     to: validate
     required_tools: [AddValidateOneTimePayment]
     applicable_policies: [explicit_confirmation]
@@ -65,7 +69,8 @@ edges:
             validation_outcome: blocking_error
         non_executable_against: mock
     worst_case_turn_cost: 2
-  - from: validate
+  - id: j1-validate-retry
+    from: validate
     to: validate
     required_tools: [AddValidateOneTimePayment]
     applicable_policies: [explicit_confirmation]
@@ -79,14 +84,16 @@ edges:
             validation_outcome: retry
         non_executable_against: mock
     worst_case_turn_cost: 1
-  - from: validate
+  - id: j1-validate-confirm
+    from: validate
     to: confirm
     required_tools: []
     applicable_policies: [explicit_confirmation]
     required_fixture_predicates: []
     valid_perturbations: {}
     worst_case_turn_cost: 1
-  - from: confirm
+  - id: j1-confirm-submit
+    from: confirm
     to: submit
     required_tools: [AddOneTimePayment]
     applicable_policies: [explicit_confirmation, tool_output_truth]
@@ -100,7 +107,8 @@ edges:
             amount:
               greater_than_fixture_constant: LARGE_PAYMENT_THRESHOLD
     worst_case_turn_cost: 1
-  - from: submit
+  - id: j1-submit-handle-failure
+    from: submit
     to: handle_failure
     required_tools: []
     applicable_policies: [tool_output_truth]
@@ -119,14 +127,16 @@ edges:
             amount:
               greater_than_fixture_constant: LARGE_PAYMENT_THRESHOLD
     worst_case_turn_cost: 1
-  - from: submit
+  - id: j1-submit-terminate
+    from: submit
     to: terminate
     required_tools: []
     applicable_policies: [tool_output_truth]
     required_fixture_predicates: []
     valid_perturbations: {}
     worst_case_turn_cost: 1
-  - from: handle_failure
+  - id: j1-handle-failure-terminate
+    from: handle_failure
     to: terminate
     required_tools: []
     applicable_policies: [tool_output_truth]

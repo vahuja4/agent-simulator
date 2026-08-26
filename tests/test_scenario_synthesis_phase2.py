@@ -31,8 +31,7 @@ def test_enumeration_is_valid_deduped_and_loop_bounded() -> None:
     assert len({blueprint.id for blueprint in blueprints}) == len(blueprints)
     for blueprint in blueprints:
         validator.validate(blueprint)
-        edges = tuple(zip(blueprint.procedure_path, blueprint.procedure_path[1:]))
-        assert edges.count(CARD_SWITCH_EDGE) <= 1
+        assert blueprint.procedure_path.count(CARD_SWITCH_EDGE) <= 1
         assert len(blueprint.perturbations) <= 2
 
 
@@ -51,10 +50,10 @@ def test_every_graph_edge_and_policy_is_covered() -> None:
     covered_edges = {
         edge
         for blueprint in blueprints
-        for edge in zip(blueprint.procedure_path, blueprint.procedure_path[1:])
+        for edge in blueprint.procedure_path
     }
     declared_edges = {
-        (edge["from"], edge["to"])
+        edge["id"]
         for edge in validator.graph["edges"]
         if edge.get("non_executable_against") != "mock"
     }
@@ -98,8 +97,7 @@ def test_mock_non_executable_graph_elements_are_excluded_and_logged(
         for item in blueprint.perturbations
     )
     assert not any(
-        ("validate", "validate")
-        in set(zip(blueprint.procedure_path, blueprint.procedure_path[1:]))
+        "j1-validate-retry" in blueprint.procedure_path
         for blueprint in blueprints
     )
 

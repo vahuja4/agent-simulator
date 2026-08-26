@@ -8,6 +8,9 @@ dependencies = [
     "pyyaml>=6.0",
 ]
 
+[project.scripts]
+scenario-synthesis = "scenario_synthesis.cli:main"
+
 [project.optional-dependencies]
 dev = ["pytest>=8.0", "pytest-asyncio>=0.24"]
 
@@ -16,7 +19,16 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
-include = ["agentsim*", "fixtures*"]
+include = ["agentsim*", "fixtures*", "scenario_synthesis*"]
+
+[tool.setuptools.package-data]
+scenario_synthesis = [
+    "*.yaml",
+    "blueprints/*.yaml",
+    "contracts/*.yaml",
+    "procedures/*.yaml",
+    "prompts/*.txt",
+]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

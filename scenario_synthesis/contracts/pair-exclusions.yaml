@@ -1,0 +1,20 @@
+schema_version: 1
+contract_id: pair-exclusions
+dependencies:
+  persona-taxonomy:
+    path: scenario_synthesis/contracts/persona-archetypes.yaml
+    hash_mode: canonical-yaml
+    sha256: ed1daef6913eb36263efbdf0f14565ba2416a4e9778dc535e0456d15f810e5d0
+  complication-taxonomy:
+    path: scenario_synthesis/contracts/complication-applicability.yaml
+    hash_mode: canonical-yaml
+    sha256: 424482dd4571bb0d3a43be2377e497eb8c96406d6b22592ec3fe258577d6f305
+  fixture-state-classes:
+    path: scenario_synthesis/contracts/fixture-state-classes.yaml
+    hash_mode: canonical-yaml
+    sha256: 621a97b9925a1f74ad5cc585fda55ef180638c5ef5e7077dc79022ec41701d89
+  fitness-target-mapping:
+    path: scenario_synthesis/contracts/fitness-targets.yaml
+    hash_mode: canonical-yaml
+    sha256: d97fffa252628b0305974d40dcf3477df2c2fb0bdb230975edcf2c5644b827c6
+exclusions: []

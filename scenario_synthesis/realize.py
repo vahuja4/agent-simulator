@@ -19,6 +19,8 @@ from .blueprint import Blueprint
 from .sample import behavioral_class_key, behavioral_representatives
 
 ROOT = Path(__file__).resolve().parents[1]
+# Legacy compatibility input for the pre-Phase-4.5 realization path only.
+# Reviewed Persona behavior is owned by contracts/persona-archetypes.yaml.
 TRAIT_FILE = Path(__file__).with_name("persona_traits.yaml")
 DEFAULT_YAML_DIR = ROOT / "generated_scenarios" / "yaml"
 DEFAULT_MANIFEST = ROOT / "generated_scenarios" / "manifest.json"

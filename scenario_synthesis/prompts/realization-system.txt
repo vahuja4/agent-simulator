@@ -1,0 +1,1 @@
+Realize only the supplied reviewed scenario structure and grounded facts. Return only the permitted narrative surface fields.

@@ -13,6 +13,7 @@ from agentsim.scenario import _ASSERTION_TYPES
 from fixtures.paycard import CARDS, FUNDING_ACCOUNTS, LARGE_PAYMENT_THRESHOLD, Card
 
 from .blueprint import Blueprint
+from .contracts import ContractSet, fitness_checks_for_policies, load_reviewed_contracts
 from .policies import POLICIES, Policy
 
 _ROOT = Path(__file__).resolve().parents[1]
@@ -33,17 +34,24 @@ class BlueprintValidator:
         policy_catalog: Mapping[str, Policy] = POLICIES,
         registry_path: str | Path = REGISTRY_SOURCE,
         fixture_path: str | Path = FIXTURE_SOURCE,
+        contracts: ContractSet | None = None,
     ) -> None:
         self.graph_path = Path(graph_path)
         self.registry_path = Path(registry_path)
         self.fixture_path = Path(fixture_path)
         self.policy_catalog = policy_catalog
+        self.contracts = contracts or load_reviewed_contracts()
         try:
             self.graph = yaml.safe_load(self.graph_path.read_text())
         except (OSError, yaml.YAMLError) as exc:
             raise BlueprintValidationError(f"cannot load procedure graph: {exc}") from exc
         if not isinstance(self.graph, dict):
             raise BlueprintValidationError("procedure graph must be a mapping")
+        edge_ids = [edge.get("id") for edge in self.graph.get("edges", [])]
+        if not edge_ids or not all(isinstance(edge_id, str) and edge_id for edge_id in edge_ids):
+            raise BlueprintValidationError("procedure graph edges must have stable IDs")
+        if len(edge_ids) != len(set(edge_ids)):
+            raise BlueprintValidationError("procedure graph edge IDs must be unique")
         self.graph_hash = _sha256(self.graph_path)
         self.fixture_hash = _sha256(self.fixture_path)
 
@@ -95,34 +103,33 @@ class BlueprintValidator:
 
     def _check_path(self, blueprint: Blueprint, errors: list[str]) -> list[dict[str, Any]]:
         path = blueprint.procedure_path
-        nodes = self.graph.get("nodes", {})
         starts = self.graph.get("start_nodes", [])
         terminals = self.graph.get("terminal_nodes", [])
         if blueprint.journey != self.graph.get("journey"):
             errors.append(f"journey {blueprint.journey!r} does not match graph")
-        if len(path) < 2:
-            errors.append("procedure_path must contain at least two nodes")
+        if not path:
+            errors.append("procedure_path must contain at least one edge ID")
             return []
-        unknown = [node for node in path if node not in nodes]
-        if unknown:
-            errors.append(f"procedure_path has unknown node(s) {unknown}")
-        if path[0] not in starts:
-            errors.append(f"procedure_path must start at one of {starts}")
-        if path[-1] not in terminals:
-            errors.append(f"procedure_path must terminate at one of {terminals}")
-
         edge_index = {
-            (edge.get("from"), edge.get("to")): edge
+            str(edge.get("id")): edge
             for edge in self.graph.get("edges", [])
-            if isinstance(edge, dict)
+            if isinstance(edge, dict) and edge.get("id")
         }
-        traversed: list[dict[str, Any]] = []
-        for pair in zip(path, path[1:]):
-            edge = edge_index.get(pair)
-            if edge is None:
-                errors.append(f"procedure_path is disconnected at {pair[0]} -> {pair[1]}")
-            else:
-                traversed.append(edge)
+        unknown = [edge_id for edge_id in path if edge_id not in edge_index]
+        if unknown:
+            errors.append(f"procedure_path has unknown edge ID(s) {unknown}")
+            return []
+        traversed = [edge_index[edge_id] for edge_id in path]
+        if traversed[0].get("from") not in starts:
+            errors.append(f"procedure_path must start at one of {starts}")
+        if traversed[-1].get("to") not in terminals:
+            errors.append(f"procedure_path must terminate at one of {terminals}")
+        for left, right in zip(traversed, traversed[1:]):
+            if left.get("to") != right.get("from"):
+                errors.append(
+                    "procedure_path is disconnected between edge IDs "
+                    f"{left.get('id')!r} and {right.get('id')!r}"
+                )
         return traversed
 
     def _check_tools(
@@ -203,8 +210,13 @@ class BlueprintValidator:
                 errors.append(f"policy {policy_id!r} does not apply to {blueprint.journey}")
             if policy_id not in applicable:
                 errors.append(f"policy {policy_id!r} is not applicable on this path")
-            if not policy.tool_assertions and not policy.judge_hooks:
-                errors.append(f"orphan policy {policy_id!r} has no assertion or judge hook")
+            assertions, criteria = fitness_checks_for_policies(
+                (policy_id,), contracts=self.contracts
+            )
+            if not assertions and not criteria:
+                errors.append(
+                    f"orphan policy {policy_id!r} has no fitness-target enforcement hook"
+                )
             conflicts = chosen.intersection(policy.incompatible_with)
             if conflicts:
                 errors.append(f"policy {policy_id!r} conflicts with {sorted(conflicts)}")

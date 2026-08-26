@@ -1,3 +1,5 @@
+# Legacy Phase 4 realization whitelist only. Behavioral authority lives in
+# contracts/persona-archetypes.yaml; this file must not define archetypes.
 schema_version: 1
 dimensions:
   patience:

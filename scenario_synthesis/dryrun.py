@@ -25,24 +25,11 @@ from agentsim.scenario import Scenario, run_scenario
 from agentsim.trace import Trace
 
 from .blueprint import Blueprint
+from .contracts import fitness_entries_for_policies
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_MANIFEST = ROOT / "generated_scenarios" / "manifest.json"
 GRAPH_FILE = Path(__file__).with_name("procedures") / "j1.yaml"
-
-
-# A policy can target more than one independently reproducible defect shape.
-# These names are exactly the public MockConfig toggles; no journey internals
-# are consulted by the synthesis package.
-POLICY_DEFECT_TOGGLES: Mapping[str, tuple[str, ...]] = {
-    "explicit_confirmation": (
-        "d1_same_turn_after_validation",
-        "d1_submit_on_reask",
-    ),
-    "card_switch_resets": ("d2_stale_options_after_card_switch",),
-    "tool_output_truth": ("d3_false_success_on_failed_submit",),
-    "disambiguate_last_four": ("d5_silent_card_disambiguation",),
-}
 
 
 # Simulator compliance is deliberately judged with its own criterion set.
@@ -100,8 +87,8 @@ def targeted_mock_config(blueprint: Blueprint) -> tuple[MockConfig, tuple[str, .
         sorted(
             {
                 toggle
-                for policy in blueprint.policies
-                for toggle in POLICY_DEFECT_TOGGLES.get(policy, ())
+                for entry in fitness_entries_for_policies(blueprint.policies)
+                for toggle in entry["defect_toggles"]
             }
         )
     )
@@ -269,10 +256,7 @@ def _coverage(blueprint: Blueprint, result: Any) -> dict[str, list[str]]:
 
 def _procedure_edges_hit(blueprint: Blueprint, trace: Trace) -> list[str]:
     graph = yaml.safe_load(GRAPH_FILE.read_text())
-    graph_edges = {
-        (str(item["from"]), str(item["to"])): item
-        for item in graph.get("edges", [])
-    }
+    graph_edges = {str(item["id"]): item for item in graph.get("edges", [])}
     calls = [
         (turn.index, call)
         for turn in trace.turns
@@ -280,9 +264,9 @@ def _procedure_edges_hit(blueprint: Blueprint, trace: Trace) -> list[str]:
     ]
     cursor = 0
     hit: list[str] = []
-    path_edges = list(zip(blueprint.procedure_path, blueprint.procedure_path[1:]))
-    for source, target in path_edges:
-        edge = graph_edges.get((source, target), {})
+    for edge_id in blueprint.procedure_path:
+        edge = graph_edges.get(edge_id, {})
+        source, target = str(edge.get("from")), str(edge.get("to"))
         required = [str(name) for name in edge.get("required_tools", [])]
         matched = True
         next_cursor = cursor
@@ -304,7 +288,7 @@ def _procedure_edges_hit(blueprint: Blueprint, trace: Trace) -> list[str]:
         elif not required:
             matched = _empty_edge_hit(source, target, trace, calls)
         if matched:
-            label = f"{source}->{target}"
+            label = edge_id
             if label not in hit:
                 hit.append(label)
     return hit

@@ -152,7 +152,7 @@ async def test_seeded_stubbed_batch_records_two_runs_and_separate_classes(
     coverage = switch_runs["targeted_defect"]["coverage"]
     assert coverage["assertions_fired"] == ["refetch_after_card_switch"]
     assert coverage["judge_criteria_triggered"] == ["goal_completion"]
-    assert "select_card->fetch_options" in coverage["procedure_edges_hit"]
+    assert "j1-select-card-fetch-options" in coverage["procedure_edges_hit"]
     assert "AddOptionsOneTimePayment:options" in coverage["tool_result_classes"]
 
     faithful_configs = [config for cid, config in seen_configs if cid.endswith("faithful")]
