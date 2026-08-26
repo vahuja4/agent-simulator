@@ -46,6 +46,28 @@ the eligible-cell count—one admitted Scenario per eligible cell—and v1 has n
 pruning mechanism. **Revisit trigger:** the synthesized library exceeds roughly
 100 Scenarios or reporting demonstrates material redundancy.
 
+### Amendment — 2026-08-26: use a pairwise-covering admission target
+
+The revisit trigger fired when the first Slice 2 plan enumerated 4,092 eligible
+J1 cells. Replace the one-admitted-Scenario-per-eligible-cell target with a
+pairwise-covering set: every eligible pair of Coverage-cell axis values must
+appear in at least one admitted Scenario. Eligible cells remain the reporting
+denominator, while pair obligations are the acceptance-gate coverage unit,
+consistent with ADR 0002. Excluded pairs do not enter the target; BLOCKED pairs
+remain eligible engineering debt and prevent completion until they become
+coverable. The cap of two Same-cell-equivalent Scenarios and K=2 regeneration
+limit are unchanged.
+
+For the contracts current at `b8cf29c`, a deterministic greedy set-cover
+estimate selects 42 Scenarios from the 3,060 unblocked J1 cells to cover all 283
+currently realizable J1 pair obligations. At each step the estimate selects the
+cell covering the most uncovered pair obligations, with canonical `cell_id` as
+the deterministic tie-breaker, and stops when no realizable pair remains. The
+full pair denominator is 406: the other 123 pair obligations are BLOCKED and
+cannot be covered by an admitted Scenario in the current plan. This is a
+planning estimate rather than a proof of minimum cardinality and must be
+recomputed when reviewed contracts or graph semantics change.
+
 ## Phase 4.5 acceptance gate
 
 Phase 4.5 is complete only when: the ADR 0004 eligibility reconciliation is
