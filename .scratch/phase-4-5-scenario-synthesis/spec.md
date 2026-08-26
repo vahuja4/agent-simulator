@@ -1,4 +1,4 @@
-Status: review
+Status: approved
 Triage: ready-for-agent
 
 # Phase 4.5 scenario synthesis
@@ -45,7 +45,7 @@ If generated code or data disagrees with one of these sources, fail closed and r
    - `library/` contains only admitted synthesized Scenario YAML.
    - `ledger/rejections.jsonl` is the append-only rejection ledger.
    - `reports/<report-id>/` contains one coverage-report bundle.
-9. Human-reviewed contracts, admitted library files, terminal candidate records, qualification evidence used for admission, the rejection ledger, and completion reports are repository evidence and must be committed. Transient API responses may be omitted only when their normalized content and hash are retained in the corresponding bundle.
+9. Human-reviewed contracts, admitted library files, terminal candidate records, qualification evidence used for admission, the rejection ledger, and completion reports are repository evidence and must be committed. Transient API responses may be omitted only when their normalized content and hash are retained in the corresponding bundle. If evidence volume makes full committed bundles impractical, the committed form may instead contain normalized summaries and content hashes while the full bundles live under the gitignored `.artifacts/scenario_synthesis/` root. The config snapshot and report record which retention form was used and the full-bundle location. Ledger hashes remain the authoritative evidence identity in both forms; reducing retention must not alter admission evaluation, denominators, or rejection history.
 10. The authoritative `persona-archetypes.yaml` introduction and the approved `j1-happy-path` Persona correction must be one atomic change. No other curated Scenario content changes as part of that correction.
 
 ### 2. Reviewed-contract schemas
@@ -150,6 +150,9 @@ If generated code or data disagrees with one of these sources, fail closed and r
 5. Signal interruption completes the current atomic write, records cancellation where applicable, and exits nonzero. Resume never treats cancellation or a partial repetition as evidence.
 6. No command changes the deterministic mock’s behavior, Judge criterion wording, or committed Scenario YAML except the separately approved `j1-happy-path` correction. Live calibration is outside these commands.
 7. All Python entrypoints and tests use the repository `.venv` contract in `AGENTS.md` and add no dependency.
+8. The first live batch contains exactly five distinct cells: one for each Complication identified as unpopulated in the specification input, plus one low-Knowledge cell. Every cell receives full qualification; a production-only or partial-qualification batch does not satisfy this rollout stage.
+9. After that batch, all further `produce` operations are blocked pending human review of the definition-test evidence for the four Complications and the judge-robustness evidence for the low-Knowledge cell. Qualification, reporting, and evidence inspection for the initial batch remain available while the block is active.
+10. The review decision is committed at `synthesized_scenarios/reviews/initial-live-batch.yaml`. It identifies the batch and five cells, binds to their qualification and ledger hashes, records each definition ruling and the low-Knowledge judge-robustness ruling, and contains reviewer, review date, and an `approved` or `changes_required` decision. Only `approved` unlocks further production; changed evidence invalidates the approval by hash mismatch.
 
 ## Testing Decisions
 
@@ -159,8 +162,8 @@ If generated code or data disagrees with one of these sources, fail closed and r
 4. Lifecycle tests cover successful admission, detection-unproven admission, every fail-closed evidence class, both replacement transitions, exhaustion remaining UNCOVERED, immutable rejected bundles, idempotent resume, interrupted writes, lock contention, and Same-cell cap enforcement.
 5. Reporting tests build a small fixed obligation universe containing covered, BLOCKED, UNCOVERED, excluded, regeneration-exhausted, and detection-unproven examples; they assert JSON denominators and exact Markdown projection from that JSON.
 6. Historical-quarantine tests prove that existing `generated_scenarios/` candidates and dry runs cannot satisfy admission, fitness, or completion checks.
-7. Each first synthesized realization named by ADR 0005/spec-input follow-up receives a definition test that exercises its boundary against neighboring concepts. Ambiguity blocks admission until a reviewed ruling updates the applicable contract.
-8. First low-Knowledge realizations record judge-robustness evidence. Tests prove instability enters the N-series/calibration workflow without changing criterion wording or silently admitting the candidate.
+7. The first live qualification for each Complication named by the specification-input follow-up is a human review gate over its stored transcript, trace, compliance ruling, and qualification result. The reviewer rules on its boundary against neighboring concepts; ambiguity blocks admission and further production until the applicable contract receives a reviewed ruling. Offline tests verify enforcement and evidence binding for this gate but do not substitute for the live review.
+8. The first live low-Knowledge qualification is a human review gate over its stored judge-robustness evidence. Instability enters the N-series/calibration workflow without changing criterion wording or silently admitting the candidate. Offline tests verify enforcement and evidence binding for this gate but do not supply the judge-robustness ruling.
 9. The final offline suite includes the full curated suite and must remain green. No ordinary test or completion check performs live LLM calibration or acceptance.
 
 ## Acceptance Criteria
@@ -176,6 +179,6 @@ The “Phase 4.5 completion claim” section of `docs/plans/phase-4.5-spec-input
 - The deferred generic refactoring plan.
 - Treating historical prototype output as qualification evidence.
 
-## Review Stop
+## Implementation-planning gate
 
-This specification is ready for review. Do not create implementation tickets or change implementation code until the user approves it.
+This specification is approved. Propose and obtain review of the implementation slice order before creating implementation tickets or changing implementation code.
