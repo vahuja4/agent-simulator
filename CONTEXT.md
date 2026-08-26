@@ -8,24 +8,84 @@ file in the same commit.
 ## Vocabulary
 
 - **Scenario** — a declarative test situation: persona + goal + knowledge
-  level + complication + max turns + judge criteria. Stored as a file;
-  the unit of test authorship.
+  level + zero or one complication + max turns + judge criteria. Stored as a
+  file; the unit of test authorship.
+- **Journey** — an approved domain workflow through which the simulated user
+  pursues a goal. A journey may contain multiple valid paths.
 - **Persona** — who the simulated user is: background, temperament,
   communication style. Grounded top-down (from the scenario spec) and
-  bottom-up (from what such a user would plausibly know). At a confirmation
-  gate, a pressure persona pressures first without yes/no, then gives a
-  standalone unambiguous affirmative after two or three pressure exchanges.
+  bottom-up (from what such a user would plausibly know). A pressure Persona
+  follows the confirmation-gate behavior recorded in
+  `docs/solutions/simulator-model-luna.md`.
+- **Persona archetype** — a reviewed behavioral category of Persona admitted
+  only when it can plausibly make the agent fail differently from existing
+  archetypes. Temperament synonyms are not distinct archetypes.
+- **Cooperative Persona** — supplies requested information and accepts clear,
+  satisfactory guidance. It is the control archetype for detecting agent and
+  harness false alarms without adversarial interpersonal pressure.
+- **Pressure Persona** — rushes past a gate for an in-scope action the agent is
+  willing to perform, probing confirmation-skip failures. Its confirmation-gate
+  behavior is defined in `docs/solutions/simulator-model-luna.md`.
+- **Vigilant Persona** — challenges inconsistent, surprising, or insufficiently
+  explained information, probing truthfulness and clarification failures.
+- **Persistent Persona** — re-attempts after a refusal or unsatisfactory answer,
+  probing wear-down compliance and degradation into repetition. Pressure is
+  speed against procedure; persistence is attrition against refusal.
 - **Goal** — what the simulated user is trying to get done. The
   conversation succeeds or fails relative to the goal, not to any
   particular phrasing.
-- **Knowledge level** — how much correct domain vocabulary and factual
-  context the simulated user holds. Low knowledge means describing things
-  in lay terms, possibly using terminology wrongly.
-- **Complication** — the deliberate difficulty injected into a scenario:
-  underspecification, mid-conversation correction, goal shift, multi-intent
-  turn, false premise, out-of-scope drift, channel noise. One complication
-  per scenario is the default; compound complications are their own
-  scenarios.
+- **Knowledge level** — the simulated user's relevant factual and procedural
+  fluency, classified as low, medium, or high. Low exhibits a material fluency
+  gap; medium knows Goal-relevant facts but visibly relies on the agent for a
+  rule or consequence; high correctly states a relevant rule or consequence
+  without prompting. Knowledge level does not control disclosure timing, and
+  identical behavior cannot evidence more than one level.
+- **Sealed-world rule** — every factual claim available to a simulated user
+  must resolve to its Scenario Goal, Fixture state, or represented domain
+  rules and consequences. At low Knowledge level, an incorrect label for a
+  real fact is allowed, but an invented fact is not. An incorrect belief about
+  real Fixture state belongs to the false-premise Complication at every
+  Knowledge level, including high.
+- **Complication** — a closed Scenario axis with exactly nine values: **none**,
+  **underspecification**, **mid-conversation correction**, **goal shift**,
+  **multi-intent turn**, **false premise**, **out-of-scope drift**, **channel
+  noise**, and **ambiguous reference**. Underspecification withholds required
+  facts initially or supplies them only when asked. Mid-conversation correction
+  changes one supplied choice or parameter while preserving the underlying
+  Goal. Goal shift replaces the Goal; a multi-intent turn contains two
+  independently actionable intents. False premise is an actual incorrect
+  belief about real Fixture state, never an invented fact. Out-of-scope drift
+  is a transient request beyond the Journey while the original Goal remains.
+  Channel noise materially obscures meaning and requires recovery; cosmetic
+  phrasing is surface variation. An ambiguous reference supplies a fact that
+  matches multiple real fixture entities and requires disambiguation rather
+  than elicitation. Every Scenario has exactly one value, and synthesized
+  Scenarios never combine non-none values. Use **Complication**, not
+  *perturbation*, for this axis.
+- **Fixture state** — the grounded domain data available at the start of an
+  episode. Synthesized scenarios may select only fixture states that actually
+  exist; fixture states with equivalent scenario-relevant properties belong to
+  the same fixture-state equivalence class.
+- **Fitness target** — a known planted-defect class that a synthesized scenario
+  is expected to expose as a particular structured failure. Fitness-target
+  coverage does not claim coverage of unknown defect classes.
+- **Detection-unproven** — provenance status for an admitted synthesized
+  Scenario whose Coverage cell has no applicable known Fitness target. It has
+  passed defects-off precision but has not demonstrated sensitivity to a
+  planted defect.
+- **Coverage cell** — one eligible semantic combination of journey path,
+  Persona archetype, Knowledge level, Complication, fixture-state equivalence
+  class, and Fitness target. Surface realization such as opener wording is not
+  part of the cell.
+- **BLOCKED** — an eligible coverage obligation that the current implementation
+  or generator cannot realize for a recorded reason. It is engineering debt,
+  not an eligibility exclusion, and is expected to trend to zero.
+- **UNCOVERED** — an eligible, realizable coverage obligation for which no
+  Scenario has yet been admitted, whether it has not been attempted or its
+  attempted candidates were rejected. It is pipeline backlog and is never
+  pooled with BLOCKED obligations.
+- **Same-cell equivalence** — two scenarios are same-cell equivalent when every
+  Coverage cell axis is equal, regardless of differences in surface realization.
 - **Seed** — one stochastic realization of a scenario. Scenarios are
   distributions, not test cases; a scenario runs N seeds and reports a
   pass rate.
