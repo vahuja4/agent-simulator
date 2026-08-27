@@ -152,9 +152,17 @@ def evaluate_admission(
             return _reject("simulator-noncompliance", (item,), "simulator-compliance")
         if item["kind"] in {"error", "task_incomplete"} or item["degraded_checks"]:
             return _reject("degraded-error-incomplete-evidence", (item,), "episode-evidence")
-        assertion_ids = {result["id"] for result in item.get("assertion_results", [])}
-        criterion_ids = {result["id"] for result in item.get("judge_rulings", [])}
-        if assertion_ids != set(required_assertions) or criterion_ids != set(required_criteria):
+        if not _check_results_are_complete(
+            item.get("assertion_results"),
+            required_assertions,
+            item.get("failures"),
+            source="assertion",
+        ) or not _check_results_are_complete(
+            item.get("judge_rulings"),
+            required_criteria,
+            item.get("failures"),
+            source="judge",
+        ):
             return _reject("degraded-error-incomplete-evidence", (item,), "required-checks")
     for item in by_side["defects-off"]:
         if item["kind"] != "pass" or item["failures"]:
@@ -172,6 +180,40 @@ def evaluate_admission(
             return _reject("expected-failure-mismatch", (item,), _check_name(expected_failure))
         attribution.append(_attribution(item, _check_name(expected_failure)))
     return AdmissionDecision(True, "admitted", None, False, tuple(attribution))
+
+
+def _check_results_are_complete(
+    results: Any,
+    required_ids: tuple[str, ...],
+    failures: Any,
+    *,
+    source: str,
+) -> bool:
+    if not isinstance(results, list) or not isinstance(failures, list):
+        return False
+    if any(
+        not isinstance(result, Mapping)
+        or set(result) != {"id", "passed"}
+        or not isinstance(result["id"], str)
+        or not isinstance(result["passed"], bool)
+        for result in results
+    ):
+        return False
+    if any(
+        not isinstance(failure, Mapping)
+        or set(failure) != {"source", "id"}
+        or not isinstance(failure["source"], str)
+        or not isinstance(failure["id"], str)
+        for failure in failures
+    ):
+        return False
+    result_ids = [result["id"] for result in results]
+    if len(result_ids) != len(set(result_ids)) or set(result_ids) != set(required_ids):
+        return False
+    failed_ids = {
+        failure["id"] for failure in failures if failure["source"] == source
+    }
+    return all(result["passed"] == (result["id"] not in failed_ids) for result in results)
 
 
 def qualify_candidate(

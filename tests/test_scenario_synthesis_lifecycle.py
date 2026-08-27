@@ -577,6 +577,54 @@ def test_admission_rejects_internally_rehashed_episode_defect_configuration(
     assert RejectionLedger(tmp_path).records()[-1]["subject_type"] == "qualification"
 
 
+@pytest.mark.parametrize(
+    ("nested_key", "collection", "mutation"),
+    [
+        ("assertion_results", "results", "false"),
+        ("judge_rulings", "rulings", "missing"),
+    ],
+)
+def test_admission_rejects_internally_rehashed_incomplete_check_results(
+    tmp_path: Path,
+    targeted_blueprint,
+    nested_key: str,
+    collection: str,
+    mutation: str,
+) -> None:
+    candidate = produce_candidate(
+        targeted_blueprint,
+        output_root=tmp_path,
+        provider=StubRealizationProvider(),
+    )
+    assert candidate is not None
+    result = qualify_candidate(
+        candidate.candidate_id, output_root=tmp_path, runner=StubQualificationRunner()
+    )
+    qualification_path = result.bundle / "qualification.json"
+    qualification = json.loads(qualification_path.read_text())
+    episode_reference = qualification["episodes"][0]
+    episode_path = tmp_path / episode_reference["path"]
+    episode = json.loads(episode_path.read_text())
+    artifact_path = tmp_path / episode[nested_key]["path"]
+    artifact = json.loads(artifact_path.read_text())
+    assert artifact[collection]
+    if mutation == "false":
+        artifact[collection][0]["passed"] = False
+    else:
+        artifact[collection][0].pop("passed")
+    atomic_json(artifact_path, artifact)
+    episode[nested_key]["sha256"] = sha256_file(artifact_path)
+    atomic_json(episode_path, episode)
+    episode_reference["sha256"] = sha256_file(episode_path)
+    _rehash_admission_chain(result, tmp_path, qualification)
+
+    with pytest.raises(CandidateError, match="admission decision"):
+        qualify_candidate(
+            candidate.candidate_id, output_root=tmp_path, runner=StubQualificationRunner()
+        )
+    assert RejectionLedger(tmp_path).records()[-1]["subject_type"] == "qualification"
+
+
 def test_admission_recovers_if_library_commit_is_interrupted(
     tmp_path: Path,
     detection_unproven_blueprint,

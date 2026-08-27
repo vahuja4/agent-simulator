@@ -22,6 +22,9 @@ The final merge-readiness pass additionally rederives repetition counts,
 Fitness configuration, and per-Episode defect toggles from current contracts
 and configuration; internally rehashed shortened or retagged evidence is
 rejected and ledgered.
+Nested Assertion results and Judge rulings also require exact `id`/`passed`
+schemas and must agree with the Episode's structured failures; missing or false
+check evidence cannot support admission even when every outer hash is updated.
 
 ## Comments
 
