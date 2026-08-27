@@ -11,7 +11,7 @@ MODULES = (
     "replay.py",
     "report.py",
 )
-ALLOWED_INTERNAL = {"trace", "types", "scenario", "script", "orchestrator"}
+ALLOWED_INTERNAL = {"_io", "trace", "types", "scenario", "script", "orchestrator"}
 FORBIDDEN_LITERALS = (
     "selected_card",
     "PayeeList",

@@ -4,12 +4,11 @@ from __future__ import annotations
 
 import hashlib
 import json
-import os
-import tempfile
 from collections import defaultdict
 from pathlib import Path
 from typing import Any, Awaitable, Callable
 
+from ._io import _atomic_json
 from .types import BatchManifest, FailureCluster
 
 CLUSTER_SCHEMA_VERSION = "1.0"
@@ -42,21 +41,6 @@ def data_similarity(left: dict[str, Any], right: dict[str, Any]) -> float:
     if not a and not b:
         return 1.0
     return len(a & b) / len(a | b)
-
-
-def _atomic_json(path: Path, data: dict[str, Any]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    handle = tempfile.NamedTemporaryFile(
-        mode="w", encoding="utf-8", dir=path.parent, delete=False
-    )
-    try:
-        with handle:
-            json.dump(data, handle, indent=2, sort_keys=True)
-            handle.write("\n")
-        os.replace(handle.name, path)
-    finally:
-        if os.path.exists(handle.name):
-            os.unlink(handle.name)
 
 
 def _existing_labels(path: Path) -> dict[str, str]:

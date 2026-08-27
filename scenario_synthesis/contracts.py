@@ -17,6 +17,11 @@ from agentsim.criteria import SPECIALISTS
 from agentsim.judge import DEFAULT_CRITERIA
 from agentsim.scenario import _ASSERTION_TYPES
 from fixtures.paycard import CARDS, FUNDING_ACCOUNTS
+from ._strict import (
+    _mapping as _shared_mapping,
+    _positive_int as _shared_positive_int,
+    _strict as _shared_strict,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 CONTRACT_FILENAMES = {
@@ -544,9 +549,7 @@ def _load_yaml(path: Path) -> Any:
 
 
 def _mapping(value: Any, where: str) -> Mapping[str, Any]:
-    if not isinstance(value, Mapping):
-        raise ContractValidationError(f"{where} must be a mapping")
-    return value
+    return _shared_mapping(value, where, error=ContractValidationError)
 
 
 def _mapping_list(value: Any, where: str) -> list[Mapping[str, Any]]:
@@ -556,18 +559,11 @@ def _mapping_list(value: Any, where: str) -> list[Mapping[str, Any]]:
 
 
 def _strict(value: Mapping[str, Any], fields: set[str], where: str) -> None:
-    missing = fields - set(value)
-    unknown = set(value) - fields
-    if missing:
-        raise ContractValidationError(f"{where}: missing field(s) {sorted(missing)}")
-    if unknown:
-        raise ContractValidationError(f"{where}: unknown field(s) {sorted(unknown)}")
+    return _shared_strict(value, fields, where, error=ContractValidationError)
 
 
 def _positive_int(value: Any, where: str) -> int:
-    if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
-        raise ContractValidationError(f"{where} must be a positive integer")
-    return value
+    return _shared_positive_int(value, where, error=ContractValidationError)
 
 
 def _nonempty_string(value: Any, where: str) -> str:

@@ -10,6 +10,11 @@ from typing import Any, Mapping
 
 import yaml
 
+from ._strict import (
+    _mapping as _shared_mapping,
+    _positive_int as _shared_positive_int,
+    _strict as _shared_strict,
+)
 from .contracts import (
     CONTRACT_FILENAMES,
     ROOT,
@@ -209,18 +214,11 @@ def _require_file(root: Path, relative: str, label: str) -> Path:
 
 
 def _mapping(value: Any, where: str) -> Mapping[str, Any]:
-    if not isinstance(value, Mapping):
-        raise ConfigurationError(f"{where} must be a mapping")
-    return value
+    return _shared_mapping(value, where, error=ConfigurationError)
 
 
 def _strict(value: Mapping[str, Any], fields: set[str], where: str) -> None:
-    missing = fields - set(value)
-    unknown = set(value) - fields
-    if missing:
-        raise ConfigurationError(f"{where}: missing field(s) {sorted(missing)}")
-    if unknown:
-        raise ConfigurationError(f"{where}: unknown field(s) {sorted(unknown)}")
+    return _shared_strict(value, fields, where, error=ConfigurationError)
 
 
 def _string(value: Any, where: str) -> str:
@@ -230,6 +228,4 @@ def _string(value: Any, where: str) -> str:
 
 
 def _positive_int(value: Any, where: str) -> int:
-    if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
-        raise ConfigurationError(f"{where} must be a positive integer")
-    return value
+    return _shared_positive_int(value, where, error=ConfigurationError)

@@ -11,6 +11,7 @@ from typing import Any, Mapping
 import yaml
 
 from agentsim.scenario import ToolAssertion
+from ._strict import _mapping as _shared_mapping
 
 
 class BlueprintError(ValueError):
@@ -173,9 +174,7 @@ def canonical_blueprint_id(blueprint: Blueprint) -> str:
 
 
 def _mapping(value: Any, where: str) -> Mapping[str, Any]:
-    if not isinstance(value, Mapping):
-        raise BlueprintError(f"{where} must be a mapping")
-    return value
+    return _shared_mapping(value, where, error=BlueprintError)
 
 
 def _list(value: Any, where: str) -> list[Any]:

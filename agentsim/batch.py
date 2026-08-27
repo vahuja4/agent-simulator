@@ -13,6 +13,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Awaitable, Callable, Sequence
 
+from ._io import _atomic_json
 from .orchestrator import RunResult
 from .scenario import Scenario
 from .script import Step
@@ -34,21 +35,6 @@ def _canonical(value: Any) -> str:
 def _slug(value: str) -> str:
     clean = "".join(ch.lower() if ch.isalnum() else "-" for ch in value)
     return "-".join(part for part in clean.split("-") if part)[:48] or "run"
-
-
-def _atomic_json(path: Path, data: dict[str, Any]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    handle = tempfile.NamedTemporaryFile(
-        mode="w", encoding="utf-8", dir=path.parent, delete=False
-    )
-    try:
-        with handle:
-            json.dump(data, handle, indent=2, sort_keys=True)
-            handle.write("\n")
-        os.replace(handle.name, path)
-    finally:
-        if os.path.exists(handle.name):
-            os.unlink(handle.name)
 
 
 def _atomic_text(path: Path, text: str) -> None:

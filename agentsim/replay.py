@@ -3,11 +3,10 @@
 from __future__ import annotations
 
 import json
-import os
-import tempfile
 from pathlib import Path
 from typing import Any
 
+from ._io import _atomic_json
 from .script import Step, agent, script_from_dicts, script_to_dicts, user, validate_script
 from .trace import Trace
 from .types import BatchManifest
@@ -39,21 +38,6 @@ def replay_from_dict(data: dict[str, Any]) -> list[Step]:
 
 def load_replay(path: str | Path) -> list[Step]:
     return replay_from_dict(json.loads(Path(path).read_text()))
-
-
-def _atomic_json(path: Path, data: dict[str, Any]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    handle = tempfile.NamedTemporaryFile(
-        mode="w", encoding="utf-8", dir=path.parent, delete=False
-    )
-    try:
-        with handle:
-            json.dump(data, handle, indent=2, sort_keys=True)
-            handle.write("\n")
-        os.replace(handle.name, path)
-    finally:
-        if os.path.exists(handle.name):
-            os.unlink(handle.name)
 
 
 def emit_replay(trace: Trace, path: str | Path) -> Path:
