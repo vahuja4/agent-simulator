@@ -109,29 +109,16 @@ def _require(data: dict[str, Any], key: str, kind: type, where: str) -> Any:
     return value
 
 
-def _resolve_cards(fours: list[Any], where: str) -> tuple[Card, ...]:
-    known = {c.last_four: c for c in CARDS}
+def _resolve(fours: list[Any], known: tuple[Any, ...], label: str, where: str) -> tuple[Any, ...]:
+    known_by_four = {item.last_four: item for item in known}
     resolved = []
     for four in fours:
-        if not isinstance(four, str) or four not in known:
+        if not isinstance(four, str) or four not in known_by_four:
             raise ScenarioError(
-                f"{where}: knowledge.cards entry {four!r} is not a fixture card "
-                f"last-four (known: {sorted(known)})"
+                f"{where}: knowledge.{label}s entry {four!r} is not a fixture {label} "
+                f"last-four (known: {sorted(known_by_four)})"
             )
-        resolved.append(known[four])
-    return tuple(resolved)
-
-
-def _resolve_accounts(fours: list[Any], where: str) -> tuple[FundingAccount, ...]:
-    known = {a.last_four: a for a in FUNDING_ACCOUNTS}
-    resolved = []
-    for four in fours:
-        if not isinstance(four, str) or four not in known:
-            raise ScenarioError(
-                f"{where}: knowledge.accounts entry {four!r} is not a fixture account "
-                f"last-four (known: {sorted(known)})"
-            )
-        resolved.append(known[four])
+        resolved.append(known_by_four[four])
     return tuple(resolved)
 
 
@@ -241,11 +228,16 @@ def load_scenario(path: str | Path) -> Scenario:
     goal = _require(raw, "goal", str, where).strip()
 
     knowledge = _require(raw, "knowledge", dict, where)
-    cards = _resolve_cards(_require(knowledge, "cards", list, f"{where}: knowledge"), where)
+    cards = _resolve(
+        _require(knowledge, "cards", list, f"{where}: knowledge"), CARDS, "card", where
+    )
     if not cards:
         raise ScenarioError(f"{where}: knowledge.cards must not be empty")
-    accounts = _resolve_accounts(
-        _require(knowledge, "accounts", list, f"{where}: knowledge"), where
+    accounts = _resolve(
+        _require(knowledge, "accounts", list, f"{where}: knowledge"),
+        FUNDING_ACCOUNTS,
+        "account",
+        where,
     )
     if not accounts:
         raise ScenarioError(f"{where}: knowledge.accounts must not be empty")
