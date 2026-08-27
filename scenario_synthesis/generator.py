@@ -25,15 +25,6 @@ from .config import load_config
 from .contracts import ARCHETYPE_IDS, KNOWLEDGE_LEVELS, ContractSet, load_reviewed_contracts
 from .validator import CoverageBlueprintValidator
 
-BLOCKED_COMPLICATIONS = {
-    "goal-shift": (
-        "The J1 graph does not represent the replacement Goal required by ADR 0005."
-    ),
-    "multi-intent-turn": (
-        "The J1 graph does not represent two independently actionable intents required by ADR 0005."
-    ),
-}
-
 
 @dataclass(frozen=True)
 class EligibleCellSpec:
@@ -43,6 +34,7 @@ class EligibleCellSpec:
     fixture_predicates: Mapping[str, bool]
     fitness_entry: Mapping[str, Any] | None
     blocked_reason: str | None
+    path_application_count: int
 
 
 def enumerate_eligible_cell_specs(
@@ -54,6 +46,8 @@ def enumerate_eligible_cell_specs(
     fixture_classes = contracts.contracts["fixture-state-classes"].content["classes"]
     complications = contracts.contracts["complication-applicability"].content["complications"]
     targets = contracts.contracts["fitness-targets"].content["targets"]
+    event_index = {item["id"]: item for item in graph["events"]}
+    represented_events = set(event_index)
     result: list[EligibleCellSpec] = []
     for edge_ids, edges in _procedure_paths(graph):
         path_id = canonical_journey_path_id(str(graph["journey"]), edge_ids)
@@ -77,6 +71,7 @@ def enumerate_eligible_cell_specs(
                 item
                 for item in complications
                 if set(item["required_edge_ids"]) <= set(edge_ids)
+                and set(item["required_event_ids"]) <= represented_events
                 and set(item["fixture_predicates"]) <= available
             ]
             applicable_targets: list[Mapping[str, Any] | None] = [None]
@@ -115,7 +110,14 @@ def enumerate_eligible_cell_specs(
                                     fixture_bindings=fixture_bindings,
                                     fixture_predicates=predicates,
                                     fitness_entry=target,
-                                    blocked_reason=BLOCKED_COMPLICATIONS.get(complication["id"]),
+                                    blocked_reason=None,
+                                    path_application_count=max(
+                                        (
+                                            int(event_index[event_id]["path_application_count"])
+                                            for event_id in complication["required_event_ids"]
+                                        ),
+                                        default=1,
+                                    ),
                                 )
                             )
     return tuple(sorted(result, key=lambda item: canonical_cell_id(item.cell)))
@@ -154,7 +156,10 @@ def generate_blueprints(
             goal_facts=goal_facts,
             required_assertions=assertions,
             required_criteria=criteria,
-            max_turns=sum(int(edge.get("worst_case_turn_cost", 0)) for edge in edges),
+            max_turns=(
+                sum(int(edge.get("worst_case_turn_cost", 0)) for edge in edges)
+                * spec.path_application_count
+            ),
             provenance=GenerationProvenance(
                 generator_version=str(config.content["versions"]["generator"]),
                 config_hash=config.sha256,
@@ -249,7 +254,44 @@ def _goal_facts(spec: EligibleCellSpec) -> dict[str, Any]:
         facts["recovery_requirement"] = "material_channel_noise"
     elif complication == "ambiguous-reference":
         facts["ambiguous_card_reference"] = "Freedom"
+    elif complication == "goal-shift":
+        replacement = _payment_instruction(facts)
+        original = dict(replacement)
+        original["amount_type"] = (
+            "minimum_due"
+            if replacement["amount_type"] != "minimum_due"
+            else "statement_balance"
+        )
+        original.pop("amount", None)
+        facts["goal_shift"] = {
+            "abandonment": "explicit",
+            "original_payment_instruction": original,
+            "replacement_payment_instruction": replacement,
+            "state_transition": "discard-abandoned-instruction",
+        }
+    elif complication == "multi-intent-turn":
+        first = _payment_instruction(facts)
+        second = dict(first)
+        second["amount_type"] = (
+            "minimum_due"
+            if first["amount_type"] != "minimum_due"
+            else "statement_balance"
+        )
+        second.pop("amount", None)
+        facts["payment_instructions_in_one_turn"] = [first, second]
     return facts
+
+
+def _payment_instruction(facts: Mapping[str, Any]) -> dict[str, Any]:
+    instruction = {
+        "card_last_four": facts["card_last_four"],
+        "account_last_four": facts["account_last_four"],
+        "amount_type": facts["amount_type"],
+        "date": facts["date"],
+    }
+    if "amount" in facts:
+        instruction["amount"] = facts["amount"]
+    return instruction
 
 
 def _knowledge_evidence(level: str) -> dict[str, str]:

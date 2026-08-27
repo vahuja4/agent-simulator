@@ -21,6 +21,15 @@ requires a real fixture fact about which the premise can be wrong. Missing
 semantic support is a pair-eligibility exclusion under the approved
 non-applicability code; missing implementation support is BLOCKED.
 
+For J1, a complete payment instruction (card, amount, funding account, and date
+as specified so far) is a distinct Goal. Goal shift requires explicit
+abandonment of the in-progress payment instruction and a complete replacement.
+Mid-conversation correction preserves the in-progress instruction while
+amending one or more parameters; parameter count is never the discriminator. A
+J1 multi-intent turn contains two independently actionable payment
+instructions. Cross-Journey goal shift remains deferred until the J2-J5 graphs
+exist.
+
 The matrix follows the pair-exclusion review contract. Coverage reports bind to
 both artifacts' versions or hashes. A change that reduces obligations requires
 explicit review, and affected entries are re-reviewed when journey graphs,

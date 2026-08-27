@@ -18,7 +18,7 @@ from .blueprint import CoverageCell, canonical_cell_id, canonical_journey_path_i
 from .compatibility import prototype_unemittable_pairs, read_historical_quarantine
 from .config import create_config_snapshot, load_config
 from .contracts import AXIS_ORDER, ContractSet, canonical_sha256, load_reviewed_contracts
-from .generator import BLOCKED_COMPLICATIONS, EligibleCellSpec, enumerate_eligible_cell_specs
+from .generator import EligibleCellSpec, enumerate_eligible_cell_specs
 
 @dataclass(frozen=True)
 class Obligation:

@@ -15,6 +15,28 @@ nodes:
   submit: {description: Submit the staged one-time payment.}
   handle_failure: {description: Truthfully report a failed submission without claiming success.}
   terminate: {description: End after the final truthful outcome.}
+events:
+  - id: correctable-parameter-supplied
+    description: Preserve the in-progress payment instruction and amend one or more parameters.
+    goal_relationship: preserved
+    payment_instruction_count: 1
+    completed_payment_count: 1
+    path_application_count: 1
+    state_transition: revalidate-amended-instruction
+  - id: j1-abandon-replace-payment-goal
+    description: Explicitly abandon one complete payment instruction and replace it with another complete payment instruction.
+    goal_relationship: abandoned-and-replaced
+    payment_instruction_count: 2
+    completed_payment_count: 1
+    path_application_count: 2
+    state_transition: discard-abandoned-instruction
+  - id: j1-two-payment-intents-one-turn
+    description: Supply two independently actionable complete payment instructions in one Turn.
+    goal_relationship: independent-same-turn
+    payment_instruction_count: 2
+    completed_payment_count: 2
+    path_application_count: 2
+    state_transition: preserve-independent-instructions
 edges:
   - id: j1-disclose-select-card
     from: disclose

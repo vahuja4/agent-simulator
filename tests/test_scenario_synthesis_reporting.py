@@ -290,7 +290,7 @@ def test_exhaustion_remains_uncovered_and_health_attributes_each_side(
     assert health["regeneration_budget"]["exhausted_cell_count"] == 1
 
 
-def test_check_completion_fails_honestly_with_clause_evidence_and_graph_gaps(
+def test_check_completion_fails_honestly_without_resolved_graph_gaps(
     tmp_path: Path, capsys
 ) -> None:
     assert cli.main(
@@ -313,7 +313,10 @@ def test_check_completion_fails_honestly_with_clause_evidence_and_graph_gaps(
     assert result["clauses"][2]["passed"] is True
     assert result["clauses"][3]["passed"] is False
     assert result["clauses"][4]["passed"] is False
-    assert any("pre-pilot J1 graph semantics remain pending" in gap for gap in result["gaps"])
+    assert not any(
+        "pre-pilot J1 graph semantics remain pending" in gap
+        for gap in result["gaps"]
+    )
     assert any("no admitted synthesized Scenario" in gap for gap in result["gaps"])
     assert (
         tmp_path / "reports/completion-check/completion.md"

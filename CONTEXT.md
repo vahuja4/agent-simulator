@@ -32,8 +32,9 @@ file in the same commit.
   probing wear-down compliance and degradation into repetition. Pressure is
   speed against procedure; persistence is attrition against refusal.
 - **Goal** — what the simulated user is trying to get done. The
-  conversation succeeds or fails relative to the goal, not to any
-  particular phrasing.
+  conversation succeeds or fails relative to the Goal, not to any
+  particular phrasing. Within J1, each complete payment instruction (card,
+  amount, funding account, and date as specified so far) is a distinct Goal.
 - **Knowledge level** — the simulated user's relevant factual and procedural
   fluency, classified as low, medium, or high. Low exhibits a material fluency
   gap; medium knows Goal-relevant facts but visibly relies on the agent for a
@@ -51,9 +52,11 @@ file in the same commit.
   **multi-intent turn**, **false premise**, **out-of-scope drift**, **channel
   noise**, and **ambiguous reference**. Underspecification withholds required
   facts initially or supplies them only when asked. Mid-conversation correction
-  changes one supplied choice or parameter while preserving the underlying
-  Goal. Goal shift replaces the Goal; a multi-intent turn contains two
-  independently actionable intents. False premise is an actual incorrect
+  changes one or more supplied parameters while preserving the underlying
+  Goal. Goal shift explicitly abandons the in-progress Goal and replaces it;
+  the number of changed parameters never distinguishes these two values. A
+  multi-intent turn contains two independently actionable intents; within J1,
+  these are two independently actionable payment instructions. False premise is an actual incorrect
   belief about real Fixture state, never an invented fact. Out-of-scope drift
   is a transient request beyond the Journey while the original Goal remains.
   Channel noise materially obscures meaning and requires recovery; cosmetic

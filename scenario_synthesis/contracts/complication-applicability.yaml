@@ -4,7 +4,7 @@ dependencies:
   j1-journey-graph:
     path: scenario_synthesis/procedures/j1.yaml
     hash_mode: canonical-yaml
-    sha256: 74530b25975d6fc2e498c1d5c7770687a77edcdfe2d3804dbfc4e0f5e636401c
+    sha256: ac25e7530db243bb707d66738667a9f4f00bc8d2d27131b55d1d65f15958aa32
   fixture-domain:
     path: fixtures/paycard.py
     hash_mode: bytes
@@ -12,7 +12,7 @@ dependencies:
   curated-complication-mapping:
     path: docs/reports/complication-taxonomy-mapping.md
     hash_mode: bytes
-    sha256: 02189f36d0290ce7f2eb3de5c99b44e959dc7b309f98e6ae84f37cb53ed0c879
+    sha256: e2726166b78fff4f3ef236461ab860bba1d4930e88904e5bb3705450dca61f87
 complications:
   - id: none
     required_edge_ids: []
@@ -37,18 +37,18 @@ complications:
       evidence_refs: [docs/adrs/0005-use-a-closed-complication-taxonomy.md, docs/plans/phase-4.5-grilling-handoff.md]
   - id: goal-shift
     required_edge_ids: []
-    required_event_ids: []
+    required_event_ids: [j1-abandon-replace-payment-goal]
     fixture_predicates: []
     review:
       state: designed-not-empirically-validated
-      evidence_refs: [docs/adrs/0005-use-a-closed-complication-taxonomy.md, docs/reports/complication-taxonomy-mapping.md]
+      evidence_refs: [docs/adrs/0005-use-a-closed-complication-taxonomy.md, docs/reports/complication-taxonomy-mapping.md, docs/solutions/j1-goal-replacement-boundary.md]
   - id: multi-intent-turn
     required_edge_ids: []
-    required_event_ids: []
+    required_event_ids: [j1-two-payment-intents-one-turn]
     fixture_predicates: []
     review:
       state: designed-not-empirically-validated
-      evidence_refs: [docs/adrs/0005-use-a-closed-complication-taxonomy.md, docs/reports/complication-taxonomy-mapping.md]
+      evidence_refs: [docs/adrs/0005-use-a-closed-complication-taxonomy.md, docs/reports/complication-taxonomy-mapping.md, docs/solutions/j1-goal-replacement-boundary.md]
   - id: false-premise
     required_edge_ids: []
     required_event_ids: []

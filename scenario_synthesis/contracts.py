@@ -486,6 +486,54 @@ def _validate_contract_set(
     if len(edge_ids) != len(set(edge_ids)):
         raise ContractValidationError("J1 graph edge IDs must be unique")
     known_edges = set(edge_ids)
+    events = _mapping_list(graph.get("events"), "J1 graph.events")
+    event_ids: list[str] = []
+    for index, event in enumerate(events):
+        where = f"J1 graph.events[{index}]"
+        _strict(
+            event,
+            {
+                "id", "description", "goal_relationship",
+                "payment_instruction_count", "completed_payment_count",
+                "path_application_count", "state_transition",
+            },
+            where,
+        )
+        event_ids.append(_stable_id(event.get("id"), f"{where}.id"))
+        _nonempty_string(event.get("description"), f"{where}.description")
+        _enum(
+            event.get("goal_relationship"),
+            {"preserved", "abandoned-and-replaced", "independent-same-turn"},
+            f"{where}.goal_relationship",
+        )
+        instruction_count = _positive_int(
+            event.get("payment_instruction_count"),
+            f"{where}.payment_instruction_count",
+        )
+        completed_count = _positive_int(
+            event.get("completed_payment_count"),
+            f"{where}.completed_payment_count",
+        )
+        path_count = _positive_int(
+            event.get("path_application_count"),
+            f"{where}.path_application_count",
+        )
+        if completed_count > instruction_count or path_count > instruction_count:
+            raise ContractValidationError(
+                f"{where}: completed/path counts cannot exceed payment_instruction_count"
+            )
+        _enum(
+            event.get("state_transition"),
+            {
+                "revalidate-amended-instruction",
+                "discard-abandoned-instruction",
+                "preserve-independent-instructions",
+            },
+            f"{where}.state_transition",
+        )
+    if len(event_ids) != len(set(event_ids)):
+        raise ContractValidationError("J1 graph event IDs must be unique")
+    known_events = set(event_ids)
     for contract_id in ("complication-applicability", "fitness-targets"):
         payload = "complications" if contract_id.startswith("complication") else "targets"
         for item in contracts[contract_id].content[payload]:
@@ -497,6 +545,12 @@ def _validate_contract_set(
                 raise ContractValidationError(
                     f"{contract_id}: unknown required edge ID(s) {sorted(unknown)}"
                 )
+            if contract_id == "complication-applicability":
+                unknown_events = set(item["required_event_ids"]) - known_events
+                if unknown_events:
+                    raise ContractValidationError(
+                        f"{contract_id}: unknown required event ID(s) {sorted(unknown_events)}"
+                    )
 
 
 def _validate_canonical_value(value: Any, where: str) -> None:

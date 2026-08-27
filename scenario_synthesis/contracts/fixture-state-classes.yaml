@@ -8,7 +8,7 @@ dependencies:
   j1-journey-graph:
     path: scenario_synthesis/procedures/j1.yaml
     hash_mode: canonical-yaml
-    sha256: 74530b25975d6fc2e498c1d5c7770687a77edcdfe2d3804dbfc4e0f5e636401c
+    sha256: ac25e7530db243bb707d66738667a9f4f00bc8d2d27131b55d1d65f15958aa32
 classes:
   - id: j1-single-card
     predicates:

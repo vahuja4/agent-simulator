@@ -20,5 +20,5 @@ max_turns: 12
 provenance:
   generator_version: phase-1-handwritten
   seed: 0
-  graph_hash: 4fbc96673f7de91e797e9d3174f761659120be448a3b8d2a47b7074fccc94978
+  graph_hash: 2030f4226b8a59669a780a12347e80123c8111d9edba86f705efa587ad19f9f7
   fixture_hash: 1670acf7f56e48733e3cd2055e858ab54dc57d81b29089dd73ed22e164364b70

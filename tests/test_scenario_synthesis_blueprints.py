@@ -41,6 +41,34 @@ def test_mid_conversation_correction_can_change_amount_on_one_card() -> None:
     }
 
 
+def test_goal_shift_and_multi_intent_encode_complete_payment_instructions() -> None:
+    blueprints = generate_blueprints()
+    goal_shift = next(item for item in blueprints if item.complication == "goal-shift")
+    shift = goal_shift.goal_facts["goal_shift"]
+    assert shift["abandonment"] == "explicit"
+    assert shift["state_transition"] == "discard-abandoned-instruction"
+    assert set(shift["original_payment_instruction"]) == {
+        "card_last_four", "account_last_four", "amount_type", "date"
+    }
+    assert set(shift["replacement_payment_instruction"]) == {
+        "card_last_four", "account_last_four", "amount_type", "date"
+    }
+    assert shift["original_payment_instruction"] != shift["replacement_payment_instruction"]
+
+    multi = next(
+        item for item in blueprints if item.complication == "multi-intent-turn"
+    )
+    instructions = multi.goal_facts["payment_instructions_in_one_turn"]
+    assert len(instructions) == 2
+    assert instructions[0] != instructions[1]
+    assert all(
+        {"card_last_four", "account_last_four", "amount_type", "date"} <= set(item)
+        for item in instructions
+    )
+    assert goal_shift.max_turns % 2 == 0
+    assert multi.max_turns % 2 == 0
+
+
 def test_cell_identity_has_a_fixed_full_sha256_vector() -> None:
     cell = CoverageCell(
         journey_path_id="j1-path-example",

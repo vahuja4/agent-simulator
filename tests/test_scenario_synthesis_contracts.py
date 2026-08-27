@@ -145,6 +145,35 @@ def test_mid_conversation_correction_uses_the_adr_precondition() -> None:
     assert correction["required_event_ids"] == ["correctable-parameter-supplied"]
 
 
+def test_j1_goal_shift_and_multi_intent_use_reviewed_graph_events() -> None:
+    contracts = load_reviewed_contracts()
+    events = {item["id"]: item for item in contracts.graph["events"]}
+    complications = {
+        item["id"]: item
+        for item in contracts.contracts["complication-applicability"].content[
+            "complications"
+        ]
+    }
+
+    goal_shift = events["j1-abandon-replace-payment-goal"]
+    assert goal_shift["goal_relationship"] == "abandoned-and-replaced"
+    assert goal_shift["payment_instruction_count"] == 2
+    assert goal_shift["completed_payment_count"] == 1
+    assert goal_shift["state_transition"] == "discard-abandoned-instruction"
+    assert complications["goal-shift"]["required_event_ids"] == [
+        "j1-abandon-replace-payment-goal"
+    ]
+
+    multi_intent = events["j1-two-payment-intents-one-turn"]
+    assert multi_intent["goal_relationship"] == "independent-same-turn"
+    assert multi_intent["payment_instruction_count"] == 2
+    assert multi_intent["completed_payment_count"] == 2
+    assert multi_intent["state_transition"] == "preserve-independent-instructions"
+    assert complications["multi-intent-turn"]["required_event_ids"] == [
+        "j1-two-payment-intents-one-turn"
+    ]
+
+
 def test_fixture_bindings_belong_to_exactly_one_class() -> None:
     classes = load_reviewed_contracts().contracts["fixture-state-classes"].content["classes"]
     memberships = [

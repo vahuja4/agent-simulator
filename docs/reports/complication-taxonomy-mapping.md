@@ -29,9 +29,29 @@ initial synthesis target.
 
 Those four values are **designed, not yet empirically validated**. The first
 synthesized Scenario that realizes each value is also a definition test. Any
-boundary ambiguity it exposes—for example, whether a card-payment-to-card-payment
-change is goal shift or mid-conversation correction—must receive an explicit
-boundary ruling before candidates using that value can be admitted.
+new boundary ambiguity it exposes must receive an explicit boundary ruling
+before candidates using that value can be admitted.
+
+## Reviewed boundary ruling: J1 Goal replacement
+
+A complete J1 payment instruction (card, amount, funding account, and date as
+specified so far) is a distinct Goal. `goal-shift` requires the user to
+explicitly abandon the in-progress instruction and issue a complete
+replacement, such as “forget that — instead pay B.”
+`mid-conversation-correction` preserves the in-progress instruction and amends
+one or more parameters. The discriminator is abandonment-and-replacement,
+never the number of changed parameters.
+
+This boundary admits distinct failure modes: correction tests re-validation of
+amended parameters on preserved staged state, while goal shift tests discarding
+staged state and collecting the replacement cleanly. Goal-shift failures
+include submitting the abandoned instruction and bleeding parameters from the
+abandoned Goal into its replacement. On J1, `multi-intent-turn` means one turn
+contains two independently actionable payment instructions.
+
+Cross-Journey replacement, such as one-time payment to AutoPay setup, remains a
+deferred obligation until the J2-J5 graphs exist; this ruling does not claim to
+represent it.
 
 The 9 none / 4 complicated distribution is required input to the later
 near-duplicate and library-budget decision.

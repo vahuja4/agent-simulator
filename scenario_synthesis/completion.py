@@ -164,12 +164,7 @@ def _definition_tests(
         gaps.append(f"definition-test evidence is invalid: {artifact_error}")
     for complication in REQUIRED_DEFINITION_TESTS:
         if not admitted_by_complication.get(complication):
-            if complication in {"goal-shift", "multi-intent-turn"}:
-                gaps.append(
-                    f"{complication}: no admitted synthesized Scenario; pre-pilot J1 graph semantics remain pending"
-                )
-            else:
-                gaps.append(f"{complication}: no admitted synthesized Scenario")
+            gaps.append(f"{complication}: no admitted synthesized Scenario")
         elif complication not in accepted:
             gaps.append(
                 f"{complication}: ordinal-zero first-realization definition test "

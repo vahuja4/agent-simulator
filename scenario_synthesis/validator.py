@@ -515,6 +515,9 @@ class CoverageBlueprintValidator:
             errors.append("Complication is not applicable to the journey path")
         if set(complication["fixture_predicates"]) - available_predicates:
             errors.append("Complication is not applicable to the Fixture class")
+        represented_events = {item["id"] for item in self.graph["events"]}
+        if set(complication["required_event_ids"]) - represented_events:
+            errors.append("Complication event is not represented by the Journey graph")
         if blueprint.fitness_target_id is None:
             return
         targets = self.contracts.contracts["fitness-targets"].content["targets"]

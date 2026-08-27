@@ -53,6 +53,33 @@ def test_blocked_and_uncovered_are_never_pooled() -> None:
     assert plan.counts["UNCOVERED"] == len(uncovered)
 
 
+def test_j1_goal_shift_and_multi_intent_cells_are_realizable_backlog() -> None:
+    plan = build_plan()
+    for complication in ("goal-shift", "multi-intent-turn"):
+        cells = [
+            record
+            for record in plan.obligations
+            if record.kind == "eligible-cell"
+            and record.axes["complication"] == complication
+        ]
+        assert len(cells) == 516
+        assert {record.status for record in cells} == {"UNCOVERED"}
+        assert all(record.blocked_reason is None for record in cells)
+
+        semantic_pair_blockers = [
+            record
+            for record in plan.obligations
+            if record.kind == "pair"
+            and complication in record.axes.values()
+            and record.status == "BLOCKED"
+            and "replacement Goal" in (record.blocked_reason or "")
+        ]
+        assert semantic_pair_blockers == []
+
+    assert plan.counts["BLOCKED"] == 58
+    assert plan.counts["UNCOVERED"] == 4737
+
+
 def test_reviewed_exclusions_are_honored_and_not_in_eligible_totals() -> None:
     plan = build_plan()
     assert plan.counts["excluded"] == 32
