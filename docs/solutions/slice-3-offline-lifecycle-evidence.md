@@ -24,6 +24,10 @@ separate Trace, Assertion-result, and Judge-ruling artifacts by path and hash.
 Candidate production validates a hidden staging bundle before its atomic
 rename; stale partial bundles are quarantined and verified complete bundles
 are reused idempotently.
+Admission derives repetition counts, Fitness configuration, and defect toggles
+from the current configuration, Candidate, and reviewed contracts rather than
+trusting evidence-declared values. Assertion results and Judge rulings require
+exact IDs, boolean outcomes, and agreement with structured failures.
 
 # Why
 
