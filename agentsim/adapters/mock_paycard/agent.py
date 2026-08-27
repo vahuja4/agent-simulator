@@ -26,7 +26,7 @@ from ...types import AgentInput, AgentResponse, ToolCall
 from ..base import AgentAdapter
 from . import j1_one_time, j2_autopay_setup, j3_autopay_update, j4_autopay_cancel, j5_cancel_payment
 from .config import MockConfig
-from .parsing import find_cards, route_journey
+from .parsing import find_cards, match_autopay_type, route_journey
 from .state import AutoPayState, ConvState, ScheduledPaymentState
 
 # Always worded exactly like this (design J3/J4): shown with current AutoPay
@@ -219,6 +219,53 @@ class MockPayCardAgent(AgentAdapter):
             if ap.active
         ]
 
+    def select_active_card(
+        self,
+        state: ConvState,
+        text: str,
+        calls: list[ToolCall],
+        parts: list[str],
+        *,
+        verb: str,
+    ) -> str | None:
+        """Shared J3/J4 scoping: only AutoPay-active cards are ever offered
+        (invariant 11); a non-active card mention gets a plain statement; a
+        single active card is selected automatically. Returns a reply to send, or
+        None when a card is selected and the flow may continue."""
+        active = self.active_autopay_cards(state)
+        if not state.modify_payee_list_fetched:
+            calls.append(self.call_modify_payee_list(state))
+            state.modify_payee_list_fetched = True
+        if not active:
+            return "You don't have automatic payments set up on any of your cards."
+
+        mentioned = find_cards(text, self.cards)
+        if len(mentioned) > 1 and not self.config.d5_silent_card_disambiguation:
+            fours = " or ".join(f"...{c.last_four}" for c in mentioned)
+            return (
+                "You have more than one card matching that. "
+                f"Which one did you mean — the one ending in {fours}?"
+            )
+        if mentioned:
+            card = mentioned[0]  # D5: silent first-match resolution when flagged
+            if card.card_id not in {c.card_id for c in active}:
+                labels = ", ".join(c.label for c in active)
+                return (
+                    f"AutoPay isn't set up on your {card.label}. "
+                    f"Cards with automatic payments: {labels}."
+                )
+            state.selected_card = card
+        if state.selected_card is None:
+            if len(active) == 1:
+                state.selected_card = active[0]
+            else:
+                labels = ", ".join(c.label for c in active)
+                return (
+                    f"Which card's automatic payments would you like to {verb}? "
+                    f"You have: {labels}."
+                )
+        return None
+
     def call_modify_payee_list(self, state: ConvState) -> ToolCall:
         return ToolCall(
             name=registry.MODIFY_AUTOPAY_PAYEE_LIST,
@@ -235,6 +282,32 @@ class MockPayCardAgent(AgentAdapter):
                 ]
             },
         )
+
+    def call_autopay_status(self, state: ConvState, card: Card) -> ToolCall:
+        ap = state.autopay[card.card_id]
+        return ToolCall(
+            name=registry.GET_AUTOPAY_STATUS,
+            arguments={"payeeId": card.card_id},
+            result={
+                "paymentType": ap.payment_type,
+                "paymentTypeLabel": ap.payment_type_label,
+                "fixedAmount": ap.fixed_amount,
+                "accountLabel": self.account_label(ap.account_id),
+                "nextPaymentDate": card.due_date.isoformat(),
+                "repeatingModelId": ap.repeating_model_id,
+            },
+        )
+
+    def capture_autopay_type(self, state: ConvState, text: str) -> str | None:
+        matched = match_autopay_type(text, self.strip_fours())
+        if matched is None:
+            return None
+        option_id, label, fixed = matched
+        state.autopay_payment_type = option_id
+        state.autopay_payment_type_label = label
+        if fixed is not None:
+            state.autopay_fixed_amount = fixed
+        return option_id
 
     def account_label(self, account_id: str) -> str:
         for a in self.accounts:

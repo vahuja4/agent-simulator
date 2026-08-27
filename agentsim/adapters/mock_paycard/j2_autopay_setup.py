@@ -23,7 +23,6 @@ from .parsing import (
     find_account,
     fmt_date,
     fmt_money,
-    match_autopay_type,
 )
 from .state import AutoPayState, ConvState, PendingAutoPay
 
@@ -72,7 +71,7 @@ def step(agent, state: ConvState, text: str, calls: list[ToolCall]) -> str:
                 result={"options": options, "dueDate": card.due_date.isoformat()},
             )
         )
-        if _capture_autopay_type(agent, state, text) is None:
+        if agent.capture_autopay_type(state, text) is None:
             parts.append(
                 "Quick note first: AutoPay payments are made on your statement due "
                 f"date each month (your next one is {fmt_date(card.due_date)}). "
@@ -83,7 +82,7 @@ def step(agent, state: ConvState, text: str, calls: list[ToolCall]) -> str:
             return " ".join(parts)
 
     # Amount type (fixed → need the exact figure).
-    if state.autopay_payment_type is None and _capture_autopay_type(agent, state, text) is None:
+    if state.autopay_payment_type is None and agent.capture_autopay_type(state, text) is None:
         parts.append(
             "How much should AutoPay pay — the minimum payment due, the "
             "statement balance, or a fixed amount?"
@@ -125,18 +124,6 @@ def _reset_for_switch(state: ConvState) -> None:
     state.autopay_fixed_amount = None
     state.pending_autopay = None
     state.awaiting_confirmation = False
-
-
-def _capture_autopay_type(agent, state: ConvState, text: str) -> str | None:
-    matched = match_autopay_type(text, agent.strip_fours())
-    if matched is None:
-        return None
-    option_id, label, fixed = matched
-    state.autopay_payment_type = option_id
-    state.autopay_payment_type_label = label
-    if fixed is not None:
-        state.autopay_fixed_amount = fixed
-    return option_id
 
 
 def _autopay_desc(state: ConvState) -> str:

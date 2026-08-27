@@ -30,9 +30,7 @@ _PROCEED_RE = re.compile(r"\bturn (it |them )?off\b|\bcancel\b|\bswitch (it |the
 def step(agent, state: ConvState, text: str, calls: list[ToolCall]) -> str:
     parts: list[str] = []
 
-    from .j3_autopay_update import _call_status, _select_active_card
-
-    reply = _select_active_card(agent, state, text, calls, parts, verb="turn off")
+    reply = agent.select_active_card(state, text, calls, parts, verb="turn off")
     if reply is not None:
         return reply
     card = state.selected_card
@@ -40,7 +38,7 @@ def step(agent, state: ConvState, text: str, calls: list[ToolCall]) -> str:
 
     # Current details + Saturday disclaimer before the turn-off offer.
     if not state.autopay_status_shown:
-        calls.append(_call_status(agent, state, card))
+        calls.append(agent.call_autopay_status(state, card))
         state.autopay_status_shown = True
         from .agent import SATURDAY_DISCLAIMER
 

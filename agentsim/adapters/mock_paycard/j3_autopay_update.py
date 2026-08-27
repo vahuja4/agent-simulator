@@ -25,7 +25,7 @@ from .state import ConvState, PendingAutoPayUpdate
 def step(agent, state: ConvState, text: str, calls: list[ToolCall]) -> str:
     parts: list[str] = []
 
-    reply = _select_active_card(agent, state, text, calls, parts, verb="change")
+    reply = agent.select_active_card(state, text, calls, parts, verb="change")
     if reply is not None:
         return reply
     card = state.selected_card
@@ -33,7 +33,7 @@ def step(agent, state: ConvState, text: str, calls: list[ToolCall]) -> str:
 
     # Current details + Saturday disclaimer, always before edit options.
     if not state.autopay_status_shown:
-        calls.append(_call_status(agent, state, card))
+        calls.append(agent.call_autopay_status(state, card))
         state.autopay_status_shown = True
         from .agent import SATURDAY_DISCLAIMER
 
@@ -74,7 +74,7 @@ def step(agent, state: ConvState, text: str, calls: list[ToolCall]) -> str:
                 },
             )
         )
-        if _capture_type(agent, state, text) is None:
+        if agent.capture_autopay_type(state, text) is None:
             parts.append(
                 "Sure. One thing to know: the AutoPay date is always your statement "
                 "due date and can't be changed, but you can change the amount and "
@@ -85,7 +85,7 @@ def step(agent, state: ConvState, text: str, calls: list[ToolCall]) -> str:
             return " ".join(parts)
 
     # New amount type (fixed → exact figure).
-    if state.autopay_payment_type is None and _capture_type(agent, state, text) is None:
+    if state.autopay_payment_type is None and agent.capture_autopay_type(state, text) is None:
         parts.append(
             "How much should AutoPay pay — the minimum payment due, the "
             "statement balance, or a fixed amount?"
@@ -121,73 +121,6 @@ def step(agent, state: ConvState, text: str, calls: list[ToolCall]) -> str:
                 return " ".join(parts)
 
     return _validate(agent, state, calls, parts)
-
-
-def _select_active_card(agent, state, text, calls, parts, *, verb: str) -> str | None:
-    """Shared J3/J4 scoping: only AutoPay-active cards are ever offered
-    (invariant 11); a non-active card mention gets a plain statement; a
-    single active card is selected automatically. Returns a reply to send, or
-    None when a card is selected and the flow may continue."""
-    active = agent.active_autopay_cards(state)
-    if not state.modify_payee_list_fetched:
-        calls.append(agent.call_modify_payee_list(state))
-        state.modify_payee_list_fetched = True
-    if not active:
-        return "You don't have automatic payments set up on any of your cards."
-
-    from .parsing import find_cards
-
-    mentioned = find_cards(text, agent.cards)
-    if len(mentioned) > 1 and not agent.config.d5_silent_card_disambiguation:
-        fours = " or ".join(f"...{c.last_four}" for c in mentioned)
-        return (
-            "You have more than one card matching that. "
-            f"Which one did you mean — the one ending in {fours}?"
-        )
-    if mentioned:
-        card = mentioned[0]  # D5: silent first-match resolution when flagged
-        if card.card_id not in {c.card_id for c in active}:
-            labels = ", ".join(c.label for c in active)
-            return (
-                f"AutoPay isn't set up on your {card.label}. "
-                f"Cards with automatic payments: {labels}."
-            )
-        state.selected_card = card
-    if state.selected_card is None:
-        if len(active) == 1:
-            state.selected_card = active[0]
-        else:
-            labels = ", ".join(c.label for c in active)
-            return f"Which card's automatic payments would you like to {verb}? You have: {labels}."
-    return None
-
-
-def _call_status(agent, state: ConvState, card) -> ToolCall:
-    ap = state.autopay[card.card_id]
-    return ToolCall(
-        name=registry.GET_AUTOPAY_STATUS,
-        arguments={"payeeId": card.card_id},
-        result={
-            "paymentType": ap.payment_type,
-            "paymentTypeLabel": ap.payment_type_label,
-            "fixedAmount": ap.fixed_amount,
-            "accountLabel": agent.account_label(ap.account_id),
-            "nextPaymentDate": card.due_date.isoformat(),
-            "repeatingModelId": ap.repeating_model_id,
-        },
-    )
-
-
-def _capture_type(agent, state: ConvState, text: str) -> str | None:
-    matched = match_autopay_type(text, agent.strip_fours())
-    if matched is None:
-        return None
-    option_id, label, fixed = matched
-    state.autopay_payment_type = option_id
-    state.autopay_payment_type_label = label
-    if fixed is not None:
-        state.autopay_fixed_amount = fixed
-    return option_id
 
 
 def _validate(agent, state: ConvState, calls: list[ToolCall], parts: list[str]) -> str:
