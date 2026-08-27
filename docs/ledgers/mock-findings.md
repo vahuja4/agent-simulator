@@ -7,6 +7,9 @@
 
 ## M-002 probe transcript
 
+M-002 is the worked example of the mock-findings process: bounded probe
+finding → ledger entry → approval-gated fix → regression guards.
+
 Defects-off `MockPayCardAgent`, conversation ID `post-validation-correction-probe`:
 
 1. **User:** “Pay my Sapphire card.”

@@ -14,8 +14,9 @@
   to another interpreter.
 - Run tests with `.venv/bin/python -m pytest`. Tests are offline by
   default; live tests are marked and deselected.
-- The expected baseline is recorded in `ENVIRONMENT.md`. Verify it before
-  code changes unless the current prompt imposes a narrower read boundary.
+- The expected baseline is recorded in `ENVIRONMENT.md`. Run the full baseline
+  test suite and verify its result before code changes unless the current prompt
+  imposes a narrower read boundary.
 
 ## Project invariants
 
@@ -31,6 +32,8 @@ Do not violate these without explicit instruction in the current prompt.
   never as a side effect of tests or other commands.
 - Do not silently mutate committed scenario YAML files. Persona variation
   uses overlay files.
+- Validate contract preconditions against their governing ADR definitions,
+  never against a single curated exemplar.
 - Simulator and judge must be from different model families for any reported
   run (acceptance-gate runs and Phase 5 live runs). Development runs against
   the mock may share a model. Separation will be achieved by changing the
@@ -60,3 +63,25 @@ Issues are tracked as local Markdown files under `.scratch/`. See `docs/agents/i
 ### Domain docs
 
 Domain documentation uses a single-context layout. See `docs/agents/domain.md`.
+
+## Delegation and sub-agents
+
+The primary agent may delegate bounded tasks to sub-agents when doing so
+improves context isolation or enables independent work.
+
+- Each delegated task must have a narrow goal and explicit acceptance criteria.
+- Sub-agents inherit all rules and invariants in this file.
+- Sub-agents must respect any file-reading or evidence boundaries imposed by
+  the parent prompt.
+- Prefer investigation-only sub-agents for exploratory work; they should not
+  modify files unless explicitly authorized.
+- Do not delegate architectural decisions that materially affect multiple
+  components without returning the decision to the primary agent.
+- Avoid multiple agents editing the same files concurrently unless the work is
+  intentionally isolated in separate worktrees.
+- The primary agent is responsible for reviewing delegated results before
+  integration.
+- After integrating delegated work, run the relevant combined validation rather
+  than relying only on each sub-agent's local test result.
+- Return concise findings to the primary agent; do not copy large transcripts,
+  logs, or exploratory reasoning into the parent context.

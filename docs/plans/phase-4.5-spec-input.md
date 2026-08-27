@@ -113,6 +113,17 @@ history, and detection-unproven status.
 
 ## Recorded follow-ups
 
+- **Contract-precondition evidence.** Validate contract preconditions against
+  the governing ADR definition; a single curated exemplar is not authoritative
+  evidence of the full precondition.
+- **Slice 5C pilot-review format.** Use the pair-exclusion review page's
+  per-entry evidence plus explicit review-question format as the template for
+  the Slice 5C pilot review.
+- **Mock-findings worked example.** Use the M-002 arc—bounded probe finding,
+  mock-findings ledger entry, approval-gated fix, and regression guard—as the
+  worked example of the mock-findings process.
+- **Pre-Slice-5 J1 graph semantics.** Resolve and review J1 graph semantics for
+  `goal-shift` and `multi-intent-turn` before Slice 5 begins.
 - **`j1-happy-path` Persona correction.** The curated YAML contradicts its
   everything-upfront Goal by saying the Persona answers one question at a time.
   Its explicitly approved correction must be atomic with the authoritative
