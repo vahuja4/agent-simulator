@@ -84,6 +84,17 @@ file in the same commit.
   `blueprint_id` changes for any semantic Blueprint change but not for a
   provenance timestamp change. Pre-Phase-4.5 prototype blueprints are legacy
   reconciliation inputs, not Blueprints eligible for candidacy.
+- **Candidate** — one immutable, schema-valid synthesized Scenario realization
+  of a Blueprint awaiting Qualification. Candidate ordinal 0 is the initial
+  realization; ordinals 1 and 2 are whole-candidate replacements after Fitness
+  rejection. Corrective realization attempts happen before candidacy and do
+  not consume these ordinals.
+- **Qualification** — the immutable evidence bundle and pure admission
+  evaluation for one Candidate. It contains the required N repetitions on the
+  defects-off side and, when a Fitness target applies, the defect-on side.
+- **Rejection ledger** — the append-only, hash-linked JSON Lines history of
+  failed production attempts and rejected Candidates, with side, repetition,
+  check, configuration, contract, and evidence attribution.
 - **Historical quarantine** — the read-only `generated_scenarios/` prototype
   output. It may supply reconciliation facts but never a candidate, admission,
   Fitness result, or coverage denominator.

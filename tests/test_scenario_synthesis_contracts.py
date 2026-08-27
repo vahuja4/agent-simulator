@@ -239,7 +239,7 @@ def test_plan_cli_writes_the_slice_2_report_bundle(
 
 
 @pytest.mark.parametrize(
-    "command", ["produce", "qualify", "report", "check-completion"]
+    "command", ["report", "check-completion"]
 )
 def test_later_slice_commands_are_explicitly_not_implemented(
     command: str, capsys: pytest.CaptureFixture[str]

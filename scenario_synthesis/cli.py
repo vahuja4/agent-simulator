@@ -7,21 +7,33 @@ import json
 from collections.abc import Sequence
 from pathlib import Path
 
+from .candidate import produce_candidate
 from .config import validate_all
+from .generator import generate_blueprints
 from .planner import write_plan_report
+from .qualification import StubQualificationRunner, qualify_candidate
+from .realization_provider import StubRealizationProvider
 
 COMMANDS = ("validate-contracts", "plan", "produce", "qualify", "report", "check-completion")
 
 
 def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="python -m scenario_synthesis")
-    parser.add_argument("command", choices=COMMANDS)
-    parser.add_argument(
-        "--output-root",
-        default="synthesized_scenarios/reports",
-        help="report parent directory (plan only)",
-    )
-    parser.add_argument("--report-id", default="slice-2-first-plan")
+    subparsers = parser.add_subparsers(dest="command", required=True)
+    subparsers.add_parser("validate-contracts")
+    plan = subparsers.add_parser("plan")
+    plan.add_argument("--output-root", default="synthesized_scenarios/reports")
+    plan.add_argument("--report-id", default="slice-2-first-plan")
+    produce = subparsers.add_parser("produce")
+    _offline_arguments(produce)
+    produce.add_argument("--cell-id")
+    produce.add_argument("--stub-failure", action="append", default=[], metavar="ATTEMPT:MODE")
+    qualify = subparsers.add_parser("qualify")
+    _offline_arguments(qualify)
+    qualify.add_argument("--candidate-id", required=True)
+    qualify.add_argument("--stub-outcome", action="append", default=[], metavar="SIDE:REPETITION:KIND")
+    subparsers.add_parser("report")
+    subparsers.add_parser("check-completion")
     args = parser.parse_args(argv)
     if args.command == "plan":
         bundle = write_plan_report(
@@ -40,18 +52,83 @@ def main(argv: Sequence[str] | None = None) -> int:
             )
         )
         return 0
-    if args.command != "validate-contracts":
-        parser.exit(2, f"{args.command}: not implemented\n")
-    config, contracts, snapshot = validate_all()
-    print(
-        json.dumps(
-            {
-                "status": "valid",
-                "config_hash": config.sha256,
-                "contract_hashes": contracts.hashes,
-                "snapshot_hash": snapshot.sha256,
-            },
-            sort_keys=True,
+    if args.command == "validate-contracts":
+        config, contracts, snapshot = validate_all()
+        _print(
+            status="valid",
+            config_hash=config.sha256,
+            contract_hashes=contracts.hashes,
+            snapshot_hash=snapshot.sha256,
         )
-    )
-    return 0
+        return 0
+    if args.command == "produce":
+        _reject_live(parser, args)
+        blueprints = generate_blueprints()
+        if args.cell_id:
+            blueprints = tuple(item for item in blueprints if item.cell_id == args.cell_id)
+        if not blueprints:
+            parser.error("no realizable blueprint matches --cell-id")
+        failures = {}
+        for value in args.stub_failure:
+            try:
+                attempt, mode = value.split(":", 1)
+                failures[(0, int(attempt))] = mode
+            except ValueError:
+                parser.error("--stub-failure must be ATTEMPT:MODE")
+        candidate = produce_candidate(
+            blueprints[0],
+            output_root=args.output_root,
+            provider=StubRealizationProvider(failure_modes=failures),
+        )
+        if candidate is None:
+            _print(status="production-failed", cell_id=blueprints[0].cell_id)
+            return 1
+        _print(
+            status="candidate-produced",
+            candidate_id=candidate.candidate_id,
+            cell_id=candidate.cell_id,
+            candidate_ordinal=candidate.ordinal,
+            candidate_bundle=str(candidate.bundle),
+        )
+        return 0
+    if args.command == "qualify":
+        _reject_live(parser, args)
+        outcomes = {}
+        for value in args.stub_outcome:
+            try:
+                side, repetition, kind = value.split(":", 2)
+                outcomes[(side, int(repetition))] = kind
+            except ValueError:
+                parser.error("--stub-outcome must be SIDE:REPETITION:KIND")
+        result = qualify_candidate(
+            args.candidate_id,
+            output_root=args.output_root,
+            runner=StubQualificationRunner(outcomes=outcomes),
+            replacement_provider=StubRealizationProvider(),
+        )
+        _print(
+            status=result.decision.status,
+            qualification_id=result.qualification_id,
+            candidate_id=result.candidate.candidate_id,
+            detection_unproven=result.decision.detection_unproven,
+            library_path=None if result.library_path is None else str(result.library_path),
+            replacement_candidate_id=(
+                None if result.replacement is None else result.replacement.candidate_id
+            ),
+        )
+        return 0 if result.decision.admitted else 1
+    parser.exit(2, f"{args.command}: not implemented\n")
+
+
+def _offline_arguments(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument("--output-root", default="synthesized_scenarios")
+    parser.add_argument("--live", action="store_true")
+
+
+def _reject_live(parser: argparse.ArgumentParser, args: argparse.Namespace) -> None:
+    if args.live:
+        parser.exit(2, f"{args.command} --live: not implemented in Slice 3\n")
+
+
+def _print(**value: object) -> None:
+    print(json.dumps(value, sort_keys=True))

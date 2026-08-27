@@ -16,7 +16,7 @@ dependencies:
   fitness-target-mapping:
     path: scenario_synthesis/contracts/fitness-targets.yaml
     hash_mode: canonical-yaml
-    sha256: b6cf2baba7dbc16c490af0a323fb684ae0dc72e127d4f26170dd36d64d29a643
+    sha256: b6383818f5ec99cb6bbc6885d2bfc906dcab5a59f42e7abe1467218f2fa978e9
 exclusions:
   - axis_a: complication
     value_a: ambiguous-reference

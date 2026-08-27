@@ -278,10 +278,33 @@ def load_scenario(path: str | Path) -> Scenario:
 
 
 def load_library(directory: str | Path) -> list[Scenario]:
-    """Every *.yaml in the directory, sorted by filename. Any invalid file
-    raises ScenarioError naming that file."""
+    """Load the curated library; synthesized content fails closed."""
     directory = Path(directory)
-    return [load_scenario(p) for p in sorted(directory.glob("*.yaml"))]
+    return [load_curated_scenario(p) for p in sorted(directory.glob("*.yaml"))]
+
+
+def load_curated_scenario(path: str | Path) -> Scenario:
+    """Load a Scenario only when its content identifies it as curated."""
+    scenario = load_scenario(path)
+    if scenario.synthesis is not None:
+        raise ScenarioError(f"{Path(path).name}: synthesized Scenario cannot load as curated")
+    return scenario
+
+
+def load_synthesized_scenario(path: str | Path) -> Scenario:
+    """Load a Scenario only when strict synthesis provenance is present."""
+    scenario = load_scenario(path)
+    if scenario.synthesis is None:
+        raise ScenarioError(f"{Path(path).name}: curated Scenario cannot load as synthesized")
+    return scenario
+
+
+def load_curated_library(directory: str | Path) -> list[Scenario]:
+    return [load_curated_scenario(path) for path in sorted(Path(directory).glob("*.yaml"))]
+
+
+def load_synthesized_library(directory: str | Path) -> list[Scenario]:
+    return [load_synthesized_scenario(path) for path in sorted(Path(directory).glob("*.yaml"))]
 
 
 # ------------------------------------------------------------------ wiring
