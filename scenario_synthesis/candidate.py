@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import uuid
 from contextlib import nullcontext
 from dataclasses import dataclass
@@ -69,6 +70,11 @@ def produce_candidate(
     failures: list[dict[str, Any]] = []
     lock_context = nullcontext() if _cell_lock_held else exclusive_lock(cell_lock, command="produce")
     with lock_context:
+        existing = _unterminated_candidate(root, blueprint.cell_id)
+        if existing is not None:
+            if existing.blueprint.blueprint_id != blueprint.blueprint_id:
+                raise CandidateError("cell has a different unterminated candidate")
+            return existing
         ordinal, predecessor = _next_ordinal(root, blueprint.cell_id)
         if ordinal > replacement_bound:
             raise CandidateError("candidate regeneration budget is exhausted")
@@ -128,19 +134,26 @@ def produce_candidate(
             }
             bundle = root / "candidates" / candidate_id
             if bundle.exists():
-                existing = load_candidate(root, candidate_id)
-                if existing.cell_id != blueprint.cell_id or existing.ordinal != ordinal:
-                    raise CandidateError("candidate ID collision")
-                return existing
-            bundle.mkdir(parents=True)
-            dump_coverage_blueprint(blueprint, bundle / "blueprint.yaml")
-            (bundle / "scenario.yaml").write_text(
+                try:
+                    existing = load_candidate(root, candidate_id)
+                except (CandidateError, FileNotFoundError, KeyError, ValueError, json.JSONDecodeError):
+                    _quarantine_production_path(root, bundle)
+                else:
+                    if existing.cell_id != blueprint.cell_id or existing.ordinal != ordinal:
+                        raise CandidateError("candidate ID collision")
+                    return existing
+            for partial in sorted((root / "candidates").glob(f".{candidate_id}.partial-*")):
+                _quarantine_production_path(root, partial)
+            staging = root / "candidates" / f".{candidate_id}.partial-{command_id}"
+            staging.mkdir(parents=True)
+            dump_coverage_blueprint(blueprint, staging / "blueprint.yaml")
+            (staging / "scenario.yaml").write_text(
                 yaml.safe_dump(scenario, sort_keys=False), encoding="utf-8"
             )
-            load_synthesized_scenario(bundle / "scenario.yaml")
+            load_synthesized_scenario(staging / "scenario.yaml")
             bundle_hashes = {
-                "blueprint.yaml": sha256_file(bundle / "blueprint.yaml"),
-                "scenario.yaml": sha256_file(bundle / "scenario.yaml"),
+                "blueprint.yaml": sha256_file(staging / "blueprint.yaml"),
+                "scenario.yaml": sha256_file(staging / "scenario.yaml"),
             }
             production_record = {
                     "schema_version": 1,
@@ -160,13 +173,19 @@ def produce_candidate(
             production_record["record_hash"] = sha256_bytes(
                 canonical_json(production_record).encode("utf-8")
             )
-            atomic_json(bundle / "production.json", production_record)
+            atomic_json(staging / "production.json", production_record)
+            _load_candidate_from_bundle(staging, candidate_id)
+            os.replace(staging, bundle)
             return Candidate(candidate_id, blueprint.cell_id, ordinal, bundle, blueprint)
     return None
 
 
 def load_candidate(output_root: str | Path, candidate_id: str) -> Candidate:
     bundle = Path(output_root) / "candidates" / candidate_id
+    return _load_candidate_from_bundle(bundle, candidate_id)
+
+
+def _load_candidate_from_bundle(bundle: Path, candidate_id: str) -> Candidate:
     production = json.loads((bundle / "production.json").read_text(encoding="utf-8"))
     production_material = dict(production)
     record_hash = production_material.pop("record_hash", None)
@@ -193,6 +212,38 @@ def load_candidate(output_root: str | Path, candidate_id: str) -> Candidate:
     return Candidate(
         candidate_id, blueprint.cell_id, ordinal, bundle, blueprint
     )
+
+
+def _unterminated_candidate(root: Path, cell_id: str) -> Candidate | None:
+    found = []
+    for production_path in (root / "candidates").glob("candidate-*/production.json"):
+        try:
+            production = json.loads(production_path.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            continue
+        if production.get("cell_id") == cell_id and not (
+            production_path.parent / "terminal.json"
+        ).exists():
+            found.append(str(production["candidate_id"]))
+    if len(found) > 1:
+        raise CandidateError("cell has multiple unterminated candidates")
+    if not found:
+        return None
+    try:
+        return load_candidate(root, found[0])
+    except (CandidateError, FileNotFoundError, KeyError, ValueError, json.JSONDecodeError):
+        _quarantine_production_path(root, root / "candidates" / found[0])
+        return None
+
+
+def _quarantine_production_path(root: Path, path: Path) -> Path:
+    quarantine = root / "quarantine" / "production"
+    quarantine.mkdir(parents=True, exist_ok=True)
+    suffix = datetime.now(UTC).strftime("%Y%m%d%H%M%S%f")
+    name = path.name.lstrip(".").split(".partial-", 1)[0]
+    target = quarantine / f"{name}-{suffix}"
+    os.replace(path, target)
+    return target
 
 
 def write_terminal(candidate: Candidate, record: Mapping[str, Any]) -> None:

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import shutil
 from pathlib import Path
 
 import pytest
@@ -161,6 +162,14 @@ def test_targeted_admission_requires_exact_three_by_three_and_hashes_evidence(
         "simulator_id", "judge_id", "prompt_hashes", "fixture", "termination",
         "assertion_results", "judge_rulings", "trace", "transcript",
     } <= set(first_episode)
+    transcript = tmp_path / first_episode["transcript"]["path"]
+    assert transcript.suffix == ".jsonl"
+    records = [json.loads(line) for line in transcript.read_text().splitlines()]
+    assert [record["record_type"] for record in records] == ["episode"]
+    assert records[0]["schema_version"] == 1
+    assert records[0]["turns"] == []
+    assert records[0]["termination"]["reason"] == "stub-completed"
+    assert set(records[0]["models"]) == {"simulator", "judge"}
     assert result.library_path is not None
     assert result.library_path.read_bytes() == candidate.scenario_path.read_bytes()
 
@@ -307,6 +316,156 @@ def test_completed_qualification_is_idempotently_reused(
     )
     assert second.qualification_id == first.qualification_id
     assert second.library_path == first.library_path
+
+
+@pytest.mark.parametrize(
+    "nested_key",
+    ["transcript", "trace", "assertion_results", "judge_rulings"],
+)
+def test_completed_qualification_rejects_nested_evidence_hash_mismatch(
+    tmp_path: Path, detection_unproven_blueprint, nested_key: str
+) -> None:
+    candidate = produce_candidate(
+        detection_unproven_blueprint,
+        output_root=tmp_path,
+        provider=StubRealizationProvider(),
+    )
+    assert candidate is not None
+    result = qualify_candidate(
+        candidate.candidate_id, output_root=tmp_path, runner=StubQualificationRunner()
+    )
+    qualification = json.loads((result.bundle / "qualification.json").read_text())
+    episode_path = tmp_path / qualification["episodes"][0]["path"]
+    episode = json.loads(episode_path.read_text())
+    (tmp_path / episode[nested_key]["path"]).write_text("{}\n")
+
+    with pytest.raises(CandidateError, match="evidence"):
+        qualify_candidate(
+            candidate.candidate_id, output_root=tmp_path, runner=StubQualificationRunner()
+        )
+    rejection = RejectionLedger(tmp_path).records(verify_evidence=False)[-1]
+    assert rejection["subject_type"] == "qualification"
+    assert rejection["reason_code"] == "degraded-error-incomplete-evidence"
+
+
+def test_completed_qualification_rejects_extra_episode_artifact(
+    tmp_path: Path, detection_unproven_blueprint
+) -> None:
+    candidate = produce_candidate(
+        detection_unproven_blueprint,
+        output_root=tmp_path,
+        provider=StubRealizationProvider(),
+    )
+    assert candidate is not None
+    result = qualify_candidate(
+        candidate.candidate_id, output_root=tmp_path, runner=StubQualificationRunner()
+    )
+    (result.bundle / "episodes" / "unreferenced.json").write_text("{}\n")
+    with pytest.raises(CandidateError, match="extra evidence"):
+        qualify_candidate(
+            candidate.candidate_id, output_root=tmp_path, runner=StubQualificationRunner()
+        )
+    assert RejectionLedger(tmp_path).records()[-1]["subject_type"] == "qualification"
+
+
+def test_qualification_rejects_non_contract_transcript_with_ledger_entry(
+    tmp_path: Path,
+    detection_unproven_blueprint,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import scenario_synthesis.qualification as qualification
+
+    candidate = produce_candidate(
+        detection_unproven_blueprint,
+        output_root=tmp_path,
+        provider=StubRealizationProvider(),
+    )
+    assert candidate is not None
+    monkeypatch.setattr(
+        qualification,
+        "_write_transcript",
+        lambda path, record: path.write_text("# not repository JSONL\n"),
+    )
+    with pytest.raises(CandidateError, match="Transcript evidence"):
+        qualify_candidate(
+            candidate.candidate_id, output_root=tmp_path, runner=StubQualificationRunner()
+        )
+    rejection = RejectionLedger(tmp_path).records()[-1]
+    assert rejection["subject_type"] == "qualification"
+    assert rejection["reason_code"] == "degraded-error-incomplete-evidence"
+
+
+@pytest.mark.parametrize("durable_files", [(), ("blueprint.yaml",), ("blueprint.yaml", "scenario.yaml")])
+def test_interrupted_candidate_bundle_is_quarantined_before_reproduction(
+    tmp_path: Path, targeted_blueprint, durable_files: tuple[str, ...]
+) -> None:
+    source_root = tmp_path / "source"
+    complete = produce_candidate(
+        targeted_blueprint, output_root=source_root, provider=StubRealizationProvider()
+    )
+    assert complete is not None
+    target_root = tmp_path / "target"
+    partial = target_root / "candidates" / complete.candidate_id
+    partial.mkdir(parents=True)
+    for name in durable_files:
+        shutil.copy2(complete.bundle / name, partial / name)
+
+    reproduced = produce_candidate(
+        targeted_blueprint, output_root=target_root, provider=StubRealizationProvider()
+    )
+    assert reproduced is not None
+    assert reproduced.candidate_id == complete.candidate_id
+    assert load_candidate(target_root, reproduced.candidate_id) == reproduced
+    quarantined = list((target_root / "quarantine" / "production").glob(f"{complete.candidate_id}-*"))
+    assert len(quarantined) == 1
+
+
+def test_verified_complete_candidate_bundle_is_reused_idempotently(
+    tmp_path: Path, targeted_blueprint
+) -> None:
+    candidate = produce_candidate(
+        targeted_blueprint, output_root=tmp_path, provider=StubRealizationProvider()
+    )
+    assert candidate is not None
+    production_before = (candidate.bundle / "production.json").read_bytes()
+    repeated = produce_candidate(
+        targeted_blueprint, output_root=tmp_path, provider=StubRealizationProvider()
+    )
+    assert repeated == candidate
+    assert (candidate.bundle / "production.json").read_bytes() == production_before
+
+
+def test_interrupted_staging_bundle_is_quarantined_before_atomic_commit(
+    tmp_path: Path, targeted_blueprint
+) -> None:
+    source_root = tmp_path / "source"
+    complete = produce_candidate(
+        targeted_blueprint, output_root=source_root, provider=StubRealizationProvider()
+    )
+    assert complete is not None
+    target_root = tmp_path / "target"
+    partial = (
+        target_root
+        / "candidates"
+        / f".{complete.candidate_id}.partial-interrupted-command"
+    )
+    partial.mkdir(parents=True)
+    for name in ("blueprint.yaml", "scenario.yaml", "production.json"):
+        shutil.copy2(complete.bundle / name, partial / name)
+
+    reproduced = produce_candidate(
+        targeted_blueprint, output_root=target_root, provider=StubRealizationProvider()
+    )
+
+    assert reproduced is not None
+    assert reproduced.candidate_id == complete.candidate_id
+    assert not partial.exists()
+    quarantined = list(
+        (target_root / "quarantine" / "production").glob(
+            f"{complete.candidate_id}-*"
+        )
+    )
+    assert len(quarantined) == 1
 
 
 def test_admission_recovers_if_library_commit_is_interrupted(
@@ -467,11 +626,12 @@ def test_cli_offline_stub_produce_and_qualify_never_construct_clients(
     monkeypatch.setattr(
         agentsim.llm, "_get_client", lambda: pytest.fail("Slice 3 constructed an LLM client")
     )
-    assert cli.main(["produce", "--output-root", str(tmp_path)]) == 0
+    assert cli.main(["produce", "--stub", "--output-root", str(tmp_path)]) == 0
     produced = json.loads(capsys.readouterr().out)
     assert cli.main(
         [
             "qualify",
+            "--stub",
             "--output-root",
             str(tmp_path),
             "--candidate-id",
@@ -481,6 +641,26 @@ def test_cli_offline_stub_produce_and_qualify_never_construct_clients(
     admitted = json.loads(capsys.readouterr().out)
     assert admitted["status"] == "admitted"
     assert Path(admitted["library_path"]).is_file()
+
+
+@pytest.mark.parametrize("command", ["produce", "qualify"])
+def test_cli_requires_explicit_execution_mode_before_client_construction(
+    command: str, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    import agentsim.llm
+
+    monkeypatch.setattr(
+        agentsim.llm, "_get_client", lambda: pytest.fail("constructed an LLM client")
+    )
+    argv = [command]
+    if command == "qualify":
+        argv.extend(["--candidate-id", "candidate-" + "0" * 64])
+    with pytest.raises(SystemExit) as exc:
+        cli.main(argv)
+    assert exc.value.code == 2
+    error = capsys.readouterr().err
+    assert "choose --stub for offline development" in error
+    assert "--live is not implemented" in error
 
 
 def test_live_modes_remain_unimplemented(capsys: pytest.CaptureFixture[str]) -> None:

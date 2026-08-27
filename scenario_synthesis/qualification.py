@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import os
 import tempfile
+from contextlib import nullcontext
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
@@ -19,7 +20,6 @@ from .config import create_config_snapshot, load_config
 from .contracts import ContractSet, load_reviewed_contracts
 from .evidence import (
     atomic_json,
-    atomic_text,
     canonical_json,
     evidence_reference,
     sha256_bytes,
@@ -217,7 +217,6 @@ def qualify_candidate(
         bundle.mkdir(parents=True)
         snapshot_path = bundle / "config-snapshot.yaml"
         snapshot_path.write_text(yaml.safe_dump(snapshot.content, sort_keys=False), encoding="utf-8")
-        episode_records: list[Mapping[str, Any]] = []
         episode_refs: list[Mapping[str, str]] = []
         sides = ("defects-off",) if expected_failure is None else ("defects-off", "defect-on")
         scenario = load_synthesized_scenario(candidate.scenario_path)
@@ -265,13 +264,13 @@ def qualify_candidate(
                         "prompt_hashes": dict(snapshot.content["prompt_hashes"]),
                         "fixture": dict(snapshot.content["fixture"]),
                         "termination": "stub-completed",
-                        "assertion_results": assertion_results,
-                        "judge_rulings": judge_rulings,
                     }
                 )
                 stem = f"{side}-{repetition}"
                 trace_path = bundle / "episodes" / f"{stem}-trace.json"
-                transcript_path = bundle / "episodes" / f"{stem}-transcript.md"
+                transcript_path = bundle / "episodes" / f"{stem}-transcript.jsonl"
+                assertion_results_path = bundle / "episodes" / f"{stem}-assertion-results.json"
+                judge_rulings_path = bundle / "episodes" / f"{stem}-judge-rulings.json"
                 atomic_json(
                     trace_path,
                     {
@@ -283,25 +282,32 @@ def qualify_candidate(
                         "turns": [],
                     },
                 )
-                atomic_text(
+                _write_transcript(
                     transcript_path,
-                    f"# Offline stub episode\n\nSide: `{side}`\n\nOutcome: `{record['outcome']}`\n",
+                    {
+                        "schema_version": 1,
+                        "record_type": "episode",
+                        "episode_id": f"{qualification_id}:{side}:{repetition}",
+                        "side": side,
+                        "repetition": repetition,
+                        "turns": [],
+                        "termination": {"reason": "stub-completed", "outcome": record["outcome"]},
+                        "timing": {"started_at": qualified_at, "completed_at": qualified_at},
+                        "models": {
+                            "simulator": config.content["models"]["simulator"],
+                            "judge": config.content["models"]["judge"],
+                        },
+                    },
                 )
+                atomic_json(assertion_results_path, {"schema_version": 1, "results": assertion_results})
+                atomic_json(judge_rulings_path, {"schema_version": 1, "rulings": judge_rulings})
                 record["trace"] = evidence_reference(trace_path, root=root)
                 record["transcript"] = evidence_reference(transcript_path, root=root)
+                record["assertion_results"] = evidence_reference(assertion_results_path, root=root)
+                record["judge_rulings"] = evidence_reference(judge_rulings_path, root=root)
                 episode_path = bundle / "episodes" / f"{side}-{repetition}.json"
                 atomic_json(episode_path, record)
-                episode_records.append(record)
                 episode_refs.append(evidence_reference(episode_path, root=root))
-        decision = evaluate_admission(
-            tuple(episode_records),
-            expected_failure=expected_failure,
-            repetitions=repetitions,
-            required_assertions=tuple(
-                assertion.type for assertion in candidate.blueprint.required_assertions
-            ),
-            required_criteria=candidate.blueprint.required_criteria,
-        )
         qualification_record = {
             "schema_version": 1,
             "qualification_id": qualification_id,
@@ -324,8 +330,22 @@ def qualify_candidate(
         }
         qualification_path = bundle / "qualification.json"
         atomic_json(qualification_path, qualification_record)
-        library_path: Path | None = None
-        replacement: Candidate | None = None
+        try:
+            episode_records = list(_validate_qualification_evidence(
+                candidate, bundle, root, snapshot.sha256, contracts.hashes
+            ))
+        except CandidateError as exc:
+            _record_evidence_rejection(candidate, bundle, root, str(exc))
+            raise
+        decision = evaluate_admission(
+            tuple(episode_records),
+            expected_failure=expected_failure,
+            repetitions=repetitions,
+            required_assertions=tuple(
+                assertion.type for assertion in candidate.blueprint.required_assertions
+            ),
+            required_criteria=candidate.blueprint.required_criteria,
+        )
         exhausted = not decision.admitted and candidate.ordinal >= int(
             config.content["limits"]["replacement_bound"]
         )
@@ -348,67 +368,9 @@ def qualify_candidate(
         }
         admission_path = bundle / "admission.json"
         atomic_json(admission_path, admission_record)
-        if decision.admitted:
-            RejectionLedger(root).records()
-            library_path = _admit(candidate, root, config, contracts, commit=False)
-            terminal = {
-                "schema_version": 1,
-                "candidate_id": candidate_id,
-                "status": "admitted",
-                "qualification_id": qualification_id,
-                "admission_sha256": sha256_file(admission_path),
-                "library_path": str(library_path.relative_to(root)),
-                "detection_unproven": decision.detection_unproven,
-                "terminal_at": qualified_at,
-            }
-            write_terminal(candidate, terminal)
-            library_path = _admit(candidate, root, config, contracts, commit=True)
-        else:
-            terminal = {
-                "schema_version": 1,
-                "candidate_id": candidate_id,
-                "status": "rejected",
-                "qualification_id": qualification_id,
-                "admission_sha256": sha256_file(admission_path),
-                "regeneration_exhausted": exhausted,
-                "terminal_at": qualified_at,
-            }
-            attribution = decision.attribution or (
-                {"side": "qualification", "repetition": None, "check": decision.reason_code},
-            )
-            RejectionLedger(root).append(
-                subject_type="candidate",
-                subject_id=candidate_id,
-                cell_id=candidate.cell_id,
-                candidate_ordinal=candidate.ordinal,
-                lifecycle_stage="qualification",
-                reason_code=str(decision.reason_code),
-                detail=f"candidate rejected: {decision.reason_code}",
-                attribution=attribution,
-                n_split=qualification_record["n_split"],
-                evidence=[
-                    evidence_reference(qualification_path, root=root),
-                    evidence_reference(admission_path, root=root),
-                ],
-                config_snapshot_hash=snapshot.sha256,
-                contract_hashes=contracts.hashes,
-                predecessor_candidate_id=json.loads(
-                    (candidate.bundle / "production.json").read_text(encoding="utf-8")
-                ).get("predecessor_candidate_id"),
-                successor_candidate_id=None,
-                timestamp=qualified_at,
-            )
-            write_terminal(candidate, terminal)
-            if not exhausted and replacement_provider is not None:
-                replacement = produce_candidate(
-                    candidate.blueprint,
-                    output_root=root,
-                    provider=replacement_provider,
-                    timestamp=qualified_at,
-                    _cell_lock_held=True,
-                )
-        return QualificationResult(
-            qualification_id, bundle, candidate, decision, library_path, replacement
+        return _resume_incomplete(
+            candidate, bundle, root, replacement_provider, config, contracts,
+            _cell_lock_held=True,
         )
 
 
@@ -427,17 +389,23 @@ def _load_existing_result(
     root: Path,
     replacement_provider: RealizationProvider | None,
 ) -> QualificationResult:
-    terminal = json.loads((candidate.bundle / "terminal.json").read_text(encoding="utf-8"))
-    admission_path = bundle / "admission.json"
-    if not admission_path.is_file() or terminal.get("qualification_id") != bundle.name:
-        raise CandidateError("terminal candidate has incomplete qualification evidence")
-    if terminal.get("admission_sha256") != sha256_file(admission_path):
-        raise CandidateError("terminal admission evidence hash mismatch")
-    admission = json.loads(admission_path.read_text(encoding="utf-8"))
-    for reference in admission.get("evidence", []):
-        target = root / reference["path"]
-        if not target.is_file() or sha256_file(target) != reference["sha256"]:
-            raise CandidateError(f"qualification evidence hash mismatch: {reference['path']}")
+    try:
+        terminal = json.loads((candidate.bundle / "terminal.json").read_text(encoding="utf-8"))
+        admission_path = bundle / "admission.json"
+        if not admission_path.is_file() or terminal.get("qualification_id") != bundle.name:
+            raise CandidateError("terminal candidate has incomplete qualification evidence")
+        if terminal.get("admission_sha256") != sha256_file(admission_path):
+            raise CandidateError("terminal admission evidence hash mismatch")
+        config = load_config()
+        contracts = load_reviewed_contracts()
+        admission = _validate_admission_evidence(
+            candidate, bundle, root, config, contracts
+        )
+    except (CandidateError, KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
+        _record_evidence_rejection(candidate, bundle, root, str(exc))
+        if isinstance(exc, CandidateError):
+            raise
+        raise CandidateError(f"qualification evidence is invalid: {exc}") from exc
     decision = AdmissionDecision(
         admitted=admission["status"] == "admitted",
         status=str(admission["status"]),
@@ -450,8 +418,6 @@ def _load_existing_result(
     if decision.admitted:
         library_path = root / terminal["library_path"]
         if not library_path.is_file():
-            config = load_config()
-            contracts = load_reviewed_contracts()
             library_path = _admit(candidate, root, config, contracts, commit=True)
         if library_path.read_bytes() != candidate.scenario_path.read_bytes():
             raise CandidateError("admitted library evidence has changed")
@@ -489,24 +455,23 @@ def _resume_incomplete(
     replacement_provider: RealizationProvider | None,
     config: Any,
     contracts: ContractSet,
+    *,
+    _cell_lock_held: bool = False,
 ) -> QualificationResult:
     """Finish the commit steps without moving evidence already referenced by the ledger."""
     admission_path = bundle / "admission.json"
-    admission = json.loads(admission_path.read_text(encoding="utf-8"))
-    if (
-        admission.get("candidate_id") != candidate.candidate_id
-        or admission.get("qualification_id") != bundle.name
-        or admission.get("config_snapshot_hash")
-        != create_config_snapshot(config=config, contracts=contracts).sha256
-        or admission.get("contract_hashes") != contracts.hashes
-    ):
-        raise CandidateError("partial qualification evidence does not match current contracts")
-    for reference in admission.get("evidence", []):
-        target = root / reference["path"]
-        if not target.is_file() or sha256_file(target) != reference["sha256"]:
-            raise CandidateError(f"qualification evidence hash mismatch: {reference['path']}")
+    try:
+        admission = _validate_admission_evidence(candidate, bundle, root, config, contracts)
+    except (CandidateError, KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
+        _record_evidence_rejection(candidate, bundle, root, str(exc))
+        if isinstance(exc, CandidateError):
+            raise
+        raise CandidateError(f"qualification evidence is invalid: {exc}") from exc
     qualified_at = str(admission["decided_at"])
-    with exclusive_lock(root / "locks" / f"{candidate.cell_id}.lock", command="resume-qualify"):
+    lock = nullcontext() if _cell_lock_held else exclusive_lock(
+        root / "locks" / f"{candidate.cell_id}.lock", command="resume-qualify"
+    )
+    with lock:
         ledger = RejectionLedger(root)
         ledger.records()
         if admission["status"] == "admitted":
@@ -577,6 +542,282 @@ def _resume_incomplete(
                         _cell_lock_held=True,
                     )
     return _load_existing_result(candidate, bundle, root, replacement_provider)
+
+
+def _write_transcript(path: Path, record: Mapping[str, Any]) -> None:
+    """Append one schema-stable JSON record without rewriting prior records."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("a", encoding="utf-8") as handle:
+        handle.write(canonical_json(record) + "\n")
+        handle.flush()
+        os.fsync(handle.fileno())
+
+
+def _validate_qualification_evidence(
+    candidate: Candidate,
+    bundle: Path,
+    root: Path,
+    snapshot_hash: str,
+    contract_hashes: Mapping[str, str],
+) -> tuple[Mapping[str, Any], ...]:
+    qualification_path = bundle / "qualification.json"
+    try:
+        qualification = json.loads(qualification_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise CandidateError("qualification evidence is missing or invalid") from exc
+    required = {
+        "schema_version", "qualification_id", "candidate_id", "cell_id",
+        "candidate_ordinal", "runner_id", "provider_mode", "config_snapshot_hash",
+        "contract_hashes", "models", "expected_failure", "defect_toggles", "n_split",
+        "episodes", "qualified_at",
+    }
+    if set(qualification) != required or qualification.get("schema_version") != 1:
+        raise CandidateError("qualification evidence has an incomplete schema")
+    if (
+        qualification["qualification_id"] != bundle.name
+        or qualification["candidate_id"] != candidate.candidate_id
+        or qualification["cell_id"] != candidate.cell_id
+        or qualification["candidate_ordinal"] != candidate.ordinal
+        or qualification["config_snapshot_hash"] != snapshot_hash
+        or qualification["contract_hashes"] != contract_hashes
+    ):
+        raise CandidateError("qualification evidence identity or configuration mismatch")
+    snapshot_path = bundle / "config-snapshot.yaml"
+    try:
+        snapshot = yaml.safe_load(snapshot_path.read_text(encoding="utf-8"))
+    except (OSError, yaml.YAMLError) as exc:
+        raise CandidateError("qualification config snapshot is missing or invalid") from exc
+    if (
+        not isinstance(snapshot, dict)
+        or snapshot.get("snapshot_hash") != snapshot_hash
+        or snapshot.get("contract_hashes") != contract_hashes
+        or snapshot.get("models") != qualification["models"]
+    ):
+        raise CandidateError("qualification config snapshot does not match current configuration")
+    n_split = qualification["n_split"]
+    if set(n_split) != {"defects_off", "defect_on"}:
+        raise CandidateError("qualification evidence has an incomplete repetition split")
+    expected_count = int(n_split["defects_off"]) + int(n_split["defect_on"])
+    references = qualification["episodes"]
+    if not isinstance(references, list) or len(references) != expected_count:
+        raise CandidateError("qualification evidence has incomplete Episodes")
+    hydrated: list[Mapping[str, Any]] = []
+    inventory = {qualification_path, snapshot_path}
+    seen_paths: set[Path] = set()
+    for reference in references:
+        episode_path = _validate_reference(reference, root, suffix=".json")
+        if episode_path in seen_paths or episode_path.parent != bundle / "episodes":
+            raise CandidateError("qualification evidence has duplicate or foreign Episodes")
+        seen_paths.add(episode_path)
+        inventory.add(episode_path)
+        episode = json.loads(episode_path.read_text(encoding="utf-8"))
+        episode_required = {
+            "side", "repetition", "defect_toggles", "kind", "outcome", "failures",
+            "degraded_checks", "simulator_compliance", "error", "llm_calls",
+            "simulator_id", "judge_id", "prompt_hashes", "fixture", "termination",
+            "trace", "transcript", "assertion_results", "judge_rulings",
+        }
+        if set(episode) != episode_required:
+            raise CandidateError("Episode evidence has an incomplete schema")
+        if (
+            episode["simulator_id"] != snapshot["models"]["simulator"]
+            or episode["judge_id"] != snapshot["models"]["judge"]
+            or episode["prompt_hashes"] != snapshot["prompt_hashes"]
+            or episode["fixture"] != snapshot["fixture"]
+        ):
+            raise CandidateError("Episode evidence configuration mismatch")
+        side = episode["side"]
+        repetition = episode["repetition"]
+        stem = f"{side}-{repetition}"
+        if episode_path.name != f"{stem}.json":
+            raise CandidateError("Episode evidence path does not match its identity")
+        nested = {
+            "trace": (".json", f"{stem}-trace.json"),
+            "transcript": (".jsonl", f"{stem}-transcript.jsonl"),
+            "assertion_results": (".json", f"{stem}-assertion-results.json"),
+            "judge_rulings": (".json", f"{stem}-judge-rulings.json"),
+        }
+        nested_paths = {}
+        for key, (suffix, name) in nested.items():
+            target = _validate_reference(episode[key], root, suffix=suffix)
+            if target.parent != bundle / "episodes" or target.name != name:
+                raise CandidateError(f"{key} evidence path does not match its Episode")
+            nested_paths[key] = target
+            inventory.add(target)
+        _validate_transcript(
+            nested_paths["transcript"], bundle.name, side, repetition,
+            qualification["models"], episode["outcome"],
+        )
+        trace = json.loads(nested_paths["trace"].read_text(encoding="utf-8"))
+        if (
+            set(trace) != {"schema_version", "provider", "side", "repetition", "outcome", "turns"}
+            or trace["schema_version"] != 1
+            or trace["side"] != side
+            or trace["repetition"] != repetition
+            or trace["outcome"] != episode["outcome"]
+            or not isinstance(trace["turns"], list)
+        ):
+            raise CandidateError("Trace evidence violates its schema or Episode identity")
+        assertion_artifact = json.loads(
+            nested_paths["assertion_results"].read_text(encoding="utf-8")
+        )
+        ruling_artifact = json.loads(
+            nested_paths["judge_rulings"].read_text(encoding="utf-8")
+        )
+        if set(assertion_artifact) != {"schema_version", "results"} or assertion_artifact["schema_version"] != 1:
+            raise CandidateError("Assertion result evidence has an incomplete schema")
+        if set(ruling_artifact) != {"schema_version", "rulings"} or ruling_artifact["schema_version"] != 1:
+            raise CandidateError("Judge ruling evidence has an incomplete schema")
+        hydrated.append(
+            {
+                **episode,
+                "assertion_results": assertion_artifact["results"],
+                "judge_rulings": ruling_artifact["rulings"],
+            }
+        )
+    actual = {path for path in bundle.rglob("*") if path.is_file()}
+    allowed = inventory | ({bundle / "admission.json"} if (bundle / "admission.json").is_file() else set())
+    if actual != allowed:
+        raise CandidateError("qualification bundle contains missing or extra evidence artifacts")
+    return tuple(hydrated)
+
+
+def _validate_admission_evidence(
+    candidate: Candidate, bundle: Path, root: Path, config: Any, contracts: ContractSet
+) -> Mapping[str, Any]:
+    snapshot_hash = create_config_snapshot(config=config, contracts=contracts).sha256
+    episodes = _validate_qualification_evidence(
+        candidate, bundle, root, snapshot_hash, contracts.hashes
+    )
+    qualification_path = bundle / "qualification.json"
+    qualification = json.loads(qualification_path.read_text(encoding="utf-8"))
+    admission_path = bundle / "admission.json"
+    try:
+        admission = json.loads(admission_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise CandidateError("admission evidence is missing or invalid") from exc
+    required = {
+        "schema_version", "qualification_id", "candidate_id", "cell_id",
+        "candidate_ordinal", "status", "reason_code", "detection_unproven",
+        "attribution", "n_split", "evidence", "config_snapshot_hash",
+        "contract_hashes", "regeneration_exhausted", "decided_at",
+    }
+    if set(admission) != required or admission["schema_version"] != 1:
+        raise CandidateError("admission evidence has an incomplete schema")
+    if (
+        admission["qualification_id"] != bundle.name
+        or admission["candidate_id"] != candidate.candidate_id
+        or admission["cell_id"] != candidate.cell_id
+        or admission["candidate_ordinal"] != candidate.ordinal
+        or admission["config_snapshot_hash"] != snapshot_hash
+        or admission["contract_hashes"] != contracts.hashes
+        or admission["n_split"] != qualification["n_split"]
+    ):
+        raise CandidateError("admission evidence identity or configuration mismatch")
+    expected_references = [
+        *qualification["episodes"], evidence_reference(qualification_path, root=root)
+    ]
+    if admission["evidence"] != expected_references:
+        raise CandidateError("admission evidence is incomplete or contains extras")
+    for reference in admission["evidence"]:
+        _validate_reference(reference, root)
+    decision = evaluate_admission(
+        episodes,
+        expected_failure=qualification["expected_failure"],
+        repetitions=int(qualification["n_split"]["defects_off"]),
+        required_assertions=tuple(
+            assertion.type for assertion in candidate.blueprint.required_assertions
+        ),
+        required_criteria=candidate.blueprint.required_criteria,
+    )
+    if (
+        admission["status"] != decision.status
+        or admission["reason_code"] != decision.reason_code
+        or admission["detection_unproven"] != decision.detection_unproven
+        or admission["attribution"] != [dict(item) for item in decision.attribution]
+    ):
+        raise CandidateError("admission decision does not match complete evidence")
+    return admission
+
+
+def _validate_reference(
+    reference: Any, root: Path, *, suffix: str | None = None
+) -> Path:
+    if not isinstance(reference, dict) or set(reference) != {"path", "sha256"}:
+        raise CandidateError("evidence reference has an incomplete schema")
+    relative = Path(reference["path"])
+    if relative.is_absolute() or ".." in relative.parts:
+        raise CandidateError("evidence path escapes the artifact root")
+    target = root / relative
+    if suffix is not None and target.suffix != suffix:
+        raise CandidateError("evidence artifact has a non-contract file type")
+    if not target.is_file() or sha256_file(target) != reference["sha256"]:
+        raise CandidateError(f"qualification evidence hash mismatch: {reference['path']}")
+    return target
+
+
+def _validate_transcript(
+    path: Path,
+    qualification_id: str,
+    side: str,
+    repetition: int,
+    models: Mapping[str, str],
+    outcome: str,
+) -> None:
+    lines = path.read_text(encoding="utf-8").splitlines()
+    if not lines:
+        raise CandidateError("Transcript evidence is incomplete")
+    try:
+        records = [json.loads(line) for line in lines]
+    except json.JSONDecodeError as exc:
+        raise CandidateError("Transcript evidence is not JSON Lines") from exc
+    if any(line != canonical_json(record) for line, record in zip(lines, records)):
+        raise CandidateError("Transcript evidence is not canonical JSON Lines")
+    if len(records) != 1:
+        raise CandidateError("Transcript evidence has an unsupported record sequence")
+    record = records[0]
+    required = {
+        "schema_version", "record_type", "episode_id", "side", "repetition",
+        "turns", "termination", "timing", "models",
+    }
+    if (
+        set(record) != required
+        or record["schema_version"] != 1
+        or record["record_type"] != "episode"
+        or record["episode_id"] != f"{qualification_id}:{side}:{repetition}"
+        or record["side"] != side
+        or record["repetition"] != repetition
+        or not isinstance(record["turns"], list)
+        or record["models"] != models
+        or record["termination"] != {"reason": "stub-completed", "outcome": outcome}
+        or set(record["timing"]) != {"started_at", "completed_at"}
+    ):
+        raise CandidateError("Transcript evidence violates the repository contract")
+
+
+def _record_evidence_rejection(
+    candidate: Candidate, bundle: Path, root: Path, detail: str
+) -> None:
+    config = load_config()
+    contracts = load_reviewed_contracts()
+    snapshot = create_config_snapshot(config=config, contracts=contracts)
+    RejectionLedger(root).append(
+        subject_type="qualification",
+        subject_id=bundle.name,
+        cell_id=candidate.cell_id,
+        candidate_ordinal=candidate.ordinal,
+        lifecycle_stage="admission",
+        reason_code="degraded-error-incomplete-evidence",
+        detail=detail,
+        attribution=[{
+            "side": "qualification", "repetition": None,
+            "check": "complete-evidence",
+        }],
+        n_split={"defects_off": 0, "defect_on": 0},
+        evidence=[],
+        config_snapshot_hash=snapshot.sha256,
+        contract_hashes=contracts.hashes,
+    )
 
 
 def _fitness_contract(

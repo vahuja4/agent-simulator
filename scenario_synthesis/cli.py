@@ -62,7 +62,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         )
         return 0
     if args.command == "produce":
-        _reject_live(parser, args)
+        _require_execution_mode(parser, args)
         blueprints = generate_blueprints()
         if args.cell_id:
             blueprints = tuple(item for item in blueprints if item.cell_id == args.cell_id)
@@ -92,7 +92,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         )
         return 0
     if args.command == "qualify":
-        _reject_live(parser, args)
+        _require_execution_mode(parser, args)
         outcomes = {}
         for value in args.stub_outcome:
             try:
@@ -122,12 +122,23 @@ def main(argv: Sequence[str] | None = None) -> int:
 
 def _offline_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--output-root", default="synthesized_scenarios")
+    parser.add_argument("--stub", action="store_true")
     parser.add_argument("--live", action="store_true")
 
 
-def _reject_live(parser: argparse.ArgumentParser, args: argparse.Namespace) -> None:
+def _require_execution_mode(
+    parser: argparse.ArgumentParser, args: argparse.Namespace
+) -> None:
+    if args.stub and args.live:
+        parser.error("choose exactly one execution mode: --stub or --live")
     if args.live:
         parser.exit(2, f"{args.command} --live: not implemented in Slice 3\n")
+    if not args.stub:
+        parser.exit(
+            2,
+            f"{args.command}: choose --stub for offline development; "
+            "--live is not implemented in Slice 3\n",
+        )
 
 
 def _print(**value: object) -> None:

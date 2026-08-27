@@ -19,13 +19,19 @@ construct clients. Keep realization attempts separate from candidate ordinals,
 record every episode and required check explicitly, hash-link rejection
 evidence, derive candidate identity from Blueprint + ordinal + normalized
 Scenario, and make terminal transitions resumable around atomic file writes.
+Qualification stores the repository Transcript as canonical JSONL and binds
+separate Trace, Assertion-result, and Judge-ruling artifacts by path and hash.
+Candidate production validates a hidden staging bundle before its atomic
+rename; stale partial bundles are quarantined and verified complete bundles
+are reused idempotently.
 
 # Why
 
 This makes all N=3 and K=2 branches testable offline, prevents missing or
 degraded checks from becoming evidence, preserves rejected artifacts, and lets
 an interrupted command finish without moving files already referenced by the
-ledger.
+ledger. Recursive admission validation prevents a valid outer record from
+hiding missing, extra, mismatched, or non-contract nested evidence.
 
 # What would make us revisit it
 
