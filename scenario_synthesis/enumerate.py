@@ -1,4 +1,7 @@
-"""Exhaustive, deterministic enumeration of valid J1 blueprints."""
+"""LEGACY — replaced by Phase 4.5 scenario synthesis; delete at cutover. Do not add features here.
+
+Exhaustive, deterministic enumeration of valid J1 blueprints.
+"""
 
 from __future__ import annotations
 

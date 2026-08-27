@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""Explicit live entry point for Phase 3 scenario realization."""
+"""LEGACY — replaced by Phase 4.5 scenario synthesis; delete at cutover. Do not add features here.
+
+Explicit live entry point for Phase 3 scenario realization.
+"""
 
 from __future__ import annotations
 

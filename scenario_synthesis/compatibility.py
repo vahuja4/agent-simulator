@@ -1,4 +1,7 @@
-"""Read-only access to pre-Phase-4.5 prototype evidence for reconciliation."""
+"""LEGACY — replaced by Phase 4.5 scenario synthesis; delete at cutover. Do not add features here.
+
+Read-only access to pre-Phase-4.5 prototype evidence for reconciliation.
+"""
 
 from __future__ import annotations
 

@@ -1,4 +1,6 @@
-"""Phase 4 dry-run measurement for realized scenario candidates.
+"""LEGACY — replaced by Phase 4.5 scenario synthesis; delete at cutover. Do not add features here.
+
+Phase 4 dry-run measurement for realized scenario candidates.
 
 Every candidate is measured twice through the existing ``run_scenario``
 orchestrator: once against the faithful mock and once with only the defects

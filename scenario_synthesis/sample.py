@@ -1,4 +1,7 @@
-"""Deterministic stratified sampling of scenario blueprints."""
+"""LEGACY — replaced by Phase 4.5 scenario synthesis; delete at cutover. Do not add features here.
+
+Deterministic stratified sampling of scenario blueprints.
+"""
 
 from __future__ import annotations
 

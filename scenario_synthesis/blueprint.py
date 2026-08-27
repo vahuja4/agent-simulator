@@ -40,6 +40,8 @@ class Provenance:
 
 @dataclass(frozen=True)
 class Blueprint:
+    """LEGACY — replaced by Phase 4.5 scenario synthesis; delete at cutover. Do not add features here."""
+
     id: str
     journey: str
     procedure_path: tuple[str, ...]

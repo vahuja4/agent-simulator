@@ -44,6 +44,8 @@ class BlueprintValidationError(ValueError):
 
 
 class BlueprintValidator:
+    """LEGACY — replaced by Phase 4.5 scenario synthesis; delete at cutover. Do not add features here."""
+
     def __init__(
         self,
         graph_path: str | Path = DEFAULT_GRAPH,
