@@ -348,6 +348,47 @@ def test_completed_qualification_rejects_nested_evidence_hash_mismatch(
     assert rejection["reason_code"] == "degraded-error-incomplete-evidence"
 
 
+def test_completed_qualification_rejects_absolute_nested_evidence_path(
+    tmp_path: Path, detection_unproven_blueprint
+) -> None:
+    candidate = produce_candidate(
+        detection_unproven_blueprint,
+        output_root=tmp_path,
+        provider=StubRealizationProvider(),
+    )
+    assert candidate is not None
+    result = qualify_candidate(
+        candidate.candidate_id,
+        output_root=tmp_path,
+        runner=StubQualificationRunner(),
+    )
+    qualification_path = result.bundle / "qualification.json"
+    qualification = json.loads(qualification_path.read_text())
+    episode_path = tmp_path / qualification["episodes"][0]["path"]
+    episode = json.loads(episode_path.read_text())
+    transcript_path = tmp_path / episode["transcript"]["path"]
+    episode["transcript"]["path"] = str(transcript_path)
+    atomic_json(episode_path, episode)
+    qualification["episodes"][0]["sha256"] = sha256_file(episode_path)
+    atomic_json(qualification_path, qualification)
+    admission_path = result.bundle / "admission.json"
+    admission = json.loads(admission_path.read_text())
+    admission["evidence"][0]["sha256"] = sha256_file(episode_path)
+    admission["evidence"][-1]["sha256"] = sha256_file(qualification_path)
+    atomic_json(admission_path, admission)
+    terminal_path = candidate.bundle / "terminal.json"
+    terminal = json.loads(terminal_path.read_text())
+    terminal["admission_sha256"] = sha256_file(admission_path)
+    atomic_json(terminal_path, terminal)
+
+    with pytest.raises(CandidateError, match="evidence path escapes the artifact root"):
+        qualify_candidate(
+            candidate.candidate_id,
+            output_root=tmp_path,
+            runner=StubQualificationRunner(),
+        )
+
+
 def test_completed_qualification_rejects_extra_episode_artifact(
     tmp_path: Path, detection_unproven_blueprint
 ) -> None:

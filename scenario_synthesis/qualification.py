@@ -19,11 +19,13 @@ from .candidate import Candidate, CandidateError, load_candidate, produce_candid
 from .config import create_config_snapshot, load_config
 from .contracts import ContractSet, load_reviewed_contracts
 from .evidence import (
+    EvidenceReferenceError,
     atomic_json,
     canonical_json,
     evidence_reference,
     sha256_bytes,
     sha256_file,
+    validate_evidence_reference,
 )
 from .ledger import RejectionLedger, exclusive_lock
 from .realization_provider import RealizationProvider
@@ -849,16 +851,22 @@ def _validate_evidence_or_reject(
 def _validate_reference(
     reference: Any, root: Path, *, suffix: str | None = None
 ) -> Path:
-    if not isinstance(reference, dict) or set(reference) != {"path", "sha256"}:
-        raise CandidateError("evidence reference has an incomplete schema")
-    relative = Path(reference["path"])
-    if relative.is_absolute() or ".." in relative.parts:
-        raise CandidateError("evidence path escapes the artifact root")
-    target = root / relative
+    try:
+        target = validate_evidence_reference(reference, root=root)
+    except EvidenceReferenceError as exc:
+        detail = str(exc)
+        if detail == "evidence reference schema is invalid":
+            raise CandidateError("evidence reference has an incomplete schema") from exc
+        if "relative and contained" in detail:
+            raise CandidateError("evidence path escapes the artifact root") from exc
+        if detail == "evidence hash mismatch":
+            path = reference.get("path", "<unknown>") if isinstance(reference, dict) else "<unknown>"
+            raise CandidateError(
+                f"qualification evidence hash mismatch: {path}"
+            ) from exc
+        raise CandidateError(f"qualification evidence is invalid: {detail}") from exc
     if suffix is not None and target.suffix != suffix:
         raise CandidateError("evidence artifact has a non-contract file type")
-    if not target.is_file() or sha256_file(target) != reference["sha256"]:
-        raise CandidateError(f"qualification evidence hash mismatch: {reference['path']}")
     return target
 
 

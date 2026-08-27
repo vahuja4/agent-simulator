@@ -236,15 +236,3 @@ def test_plan_cli_writes_the_slice_2_report_bundle(
     assert result["status"] == "planned"
     assert result["eligible_cell_count"] == 4368
     assert (tmp_path / "test-plan/coverage.json").is_file()
-
-
-@pytest.mark.parametrize(
-    "command", ["report", "check-completion"]
-)
-def test_later_slice_commands_are_explicitly_not_implemented(
-    command: str, capsys: pytest.CaptureFixture[str]
-) -> None:
-    with pytest.raises(SystemExit) as exc:
-        cli.main([command])
-    assert exc.value.code == 2
-    assert "not implemented" in capsys.readouterr().err

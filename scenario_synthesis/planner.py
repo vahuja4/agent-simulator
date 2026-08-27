@@ -67,6 +67,15 @@ class ReconciliationRecord:
 
 
 @dataclass(frozen=True)
+class ObligationInventory:
+    """Current reviewed coverage universe, independent of Historical quarantine."""
+
+    eligible_cell_specs: tuple[EligibleCellSpec, ...]
+    obligations: tuple[Obligation, ...]
+    proposed_exclusions: tuple[Mapping[str, Any], ...]
+
+
+@dataclass(frozen=True)
 class CoveragePlan:
     report_id: str
     generated_at: str
@@ -161,18 +170,8 @@ def build_plan(
     config = load_config()
     snapshot = create_config_snapshot(config=config, contracts=contracts)
     timestamp = generated_at or datetime.now(UTC).isoformat().replace("+00:00", "Z")
-    specs = enumerate_eligible_cell_specs(contracts=contracts)
-    axis_values = _axis_values(contracts, specs)
-    reviewed_exclusions = _reviewed_exclusions(contracts)
-    obligations: list[Obligation] = []
-    obligations.extend(_axis_obligations(axis_values, specs))
-    pair_obligations, proposed = _pair_obligations(
-        axis_values, specs, reviewed_exclusions
-    )
-    obligations.extend(pair_obligations)
-    obligations.extend(_edge_obligations(contracts, specs))
-    obligations.extend(_defect_obligations(contracts, specs))
-    obligations.extend(_cell_obligations(specs))
+    inventory = build_obligation_inventory(contracts=contracts)
+    specs = inventory.eligible_cell_specs
     reconciled = tuple(
         ReconciliationRecord(
             pair_id=f"legacy-policy={policy}|legacy-perturbation={perturbation}",
@@ -204,12 +203,37 @@ def build_plan(
             canonical_journey_path_id(str(contracts.graph["journey"]), spec.edge_ids): spec.edge_ids
             for spec in specs
         },
+        obligations=inventory.obligations,
+        prototype_reconciliation=reconciled,
+        proposed_exclusions=inventory.proposed_exclusions,
+        historical_quarantine=historical,
+    )
+
+
+def build_obligation_inventory(
+    *, contracts: ContractSet | None = None
+) -> ObligationInventory:
+    """Build obligations solely from current reviewed contracts and graph state."""
+    contracts = contracts or load_reviewed_contracts()
+    specs = enumerate_eligible_cell_specs(contracts=contracts)
+    axis_values = _axis_values(contracts, specs)
+    obligations: list[Obligation] = []
+    obligations.extend(_axis_obligations(axis_values, specs))
+    pair_obligations, proposed = _pair_obligations(
+        axis_values, specs, _reviewed_exclusions(contracts)
+    )
+    obligations.extend(pair_obligations)
+    obligations.extend(_edge_obligations(contracts, specs))
+    obligations.extend(_defect_obligations(contracts, specs))
+    obligations.extend(_cell_obligations(specs))
+    return ObligationInventory(
+        eligible_cell_specs=specs,
         obligations=tuple(
             sorted(obligations, key=lambda item: (item.kind, item.obligation_id))
         ),
-        prototype_reconciliation=reconciled,
-        proposed_exclusions=tuple(sorted(proposed, key=lambda item: item["pair_id"])),
-        historical_quarantine=historical,
+        proposed_exclusions=tuple(
+            sorted(proposed, key=lambda item: item["pair_id"])
+        ),
     )
 
 
@@ -264,7 +288,7 @@ def _axis_values(
     }
 
 
-def _cell_axes(cell: CoverageCell) -> dict[str, str]:
+def coverage_cell_axes(cell: CoverageCell) -> dict[str, str]:
     return {
         "journey-path": cell.journey_path_id,
         "persona-archetype": cell.persona_archetype,
@@ -289,7 +313,7 @@ def _axis_obligations(
     result: list[Obligation] = []
     for axis in AXIS_ORDER:
         for value in axis_values[axis]:
-            support = [spec for spec in specs if _cell_axes(spec.cell)[axis] == value]
+            support = [spec for spec in specs if coverage_cell_axes(spec.cell)[axis] == value]
             unblocked = [spec for spec in support if spec.blocked_reason is None]
             reason = None
             status = "UNCOVERED"
@@ -352,7 +376,10 @@ def _pair_obligations(
                 support = [
                     spec
                     for spec in specs
-                    if all(_cell_axes(spec.cell)[axis] == value for axis, value in axes.items())
+                    if all(
+                        coverage_cell_axes(spec.cell)[axis] == value
+                        for axis, value in axes.items()
+                    )
                 ]
                 unblocked = [spec for spec in support if spec.blocked_reason is None]
                 if unblocked:
@@ -395,7 +422,11 @@ def _defect_obligations(
     result: list[Obligation] = []
     for target in contracts.contracts["fitness-targets"].content["targets"]:
         value = _fitness_value(target)
-        support = [spec for spec in specs if _cell_axes(spec.cell)["fitness-target"] == value]
+        support = [
+            spec
+            for spec in specs
+            if coverage_cell_axes(spec.cell)["fitness-target"] == value
+        ]
         blocked = not any(spec.blocked_reason is None for spec in support)
         result.append(
             Obligation(
@@ -416,7 +447,7 @@ def _cell_obligations(specs: tuple[EligibleCellSpec, ...]) -> list[Obligation]:
         Obligation(
             obligation_id=canonical_cell_id(spec.cell),
             kind="eligible-cell",
-            axes=_cell_axes(spec.cell),
+            axes=coverage_cell_axes(spec.cell),
             status="BLOCKED" if spec.blocked_reason else "UNCOVERED",
             blocked_reason=spec.blocked_reason,
         )

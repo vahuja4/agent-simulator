@@ -5,7 +5,27 @@ from pathlib import Path
 
 import yaml
 
-from scenario_synthesis.planner import build_plan, write_plan_report
+from scenario_synthesis import planner
+from scenario_synthesis.planner import (
+    build_obligation_inventory,
+    build_plan,
+    write_plan_report,
+)
+
+
+def test_current_obligation_inventory_never_reads_historical_quarantine(
+    monkeypatch,
+) -> None:
+    monkeypatch.setattr(
+        planner,
+        "read_historical_quarantine",
+        lambda: (_ for _ in ()).throw(AssertionError("Historical quarantine read")),
+    )
+
+    inventory = build_obligation_inventory()
+
+    assert len(inventory.eligible_cell_specs) == 4368
+    assert inventory.obligations
 
 
 def test_default_eligibility_and_all_obligation_kinds_are_reported() -> None:

@@ -9,7 +9,11 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Iterator, Mapping, Sequence
 
-from .evidence import canonical_json, sha256_file
+from .evidence import (
+    EvidenceReferenceError,
+    canonical_json,
+    validate_evidence_reference,
+)
 
 
 class LedgerError(RuntimeError):
@@ -85,9 +89,14 @@ class RejectionLedger:
                 raise LedgerError(f"ledger line {line_number} has incomplete attribution")
             if verify_evidence:
                 for reference in record["evidence"]:
-                    target = self.output_root / reference["path"]
-                    if not target.is_file() or sha256_file(target) != reference["sha256"]:
-                        raise LedgerError(f"ledger evidence hash mismatch: {reference['path']}")
+                    try:
+                        validate_evidence_reference(
+                            reference, root=self.output_root
+                        )
+                    except EvidenceReferenceError as exc:
+                        raise LedgerError(
+                            f"ledger evidence is invalid: {exc}"
+                        ) from exc
             records.append(record)
             event_ids.add(record["event_id"])
             previous_hash = event_hash

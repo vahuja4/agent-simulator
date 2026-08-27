@@ -8,11 +8,13 @@ from collections.abc import Sequence
 from pathlib import Path
 
 from .candidate import produce_candidate
+from .completion import check_completion
 from .config import validate_all
 from .generator import generate_blueprints
 from .planner import write_plan_report
 from .qualification import StubQualificationRunner, qualify_candidate
 from .realization_provider import StubRealizationProvider
+from .reporting import generate_coverage_report
 
 COMMANDS = ("validate-contracts", "plan", "produce", "qualify", "report", "check-completion")
 
@@ -32,8 +34,12 @@ def main(argv: Sequence[str] | None = None) -> int:
     _offline_arguments(qualify)
     qualify.add_argument("--candidate-id", required=True)
     qualify.add_argument("--stub-outcome", action="append", default=[], metavar="SIDE:REPETITION:KIND")
-    subparsers.add_parser("report")
-    subparsers.add_parser("check-completion")
+    report = subparsers.add_parser("report")
+    report.add_argument("--output-root", default="synthesized_scenarios")
+    report.add_argument("--report-id", default="slice-4-current")
+    completion = subparsers.add_parser("check-completion")
+    completion.add_argument("--output-root", default="synthesized_scenarios")
+    completion.add_argument("--report-id", default="slice-4-current")
     args = parser.parse_args(argv)
     if args.command == "plan":
         bundle = write_plan_report(
@@ -117,6 +123,30 @@ def main(argv: Sequence[str] | None = None) -> int:
             ),
         )
         return 0 if result.decision.admitted else 1
+    if args.command == "report":
+        bundle = generate_coverage_report(
+            args.output_root, report_id=args.report_id
+        )
+        coverage = json.loads((bundle / "coverage.json").read_text())
+        _print(
+            status="reported",
+            report_bundle=str(bundle),
+            report_status=coverage["report_status"],
+            eligible_pair_count=coverage["denominators"]["eligible_pair"],
+            eligible_cell_count=coverage["denominators"]["eligible_cell"],
+        )
+        return 0
+    if args.command == "check-completion":
+        bundle, result = check_completion(
+            args.output_root, report_id=args.report_id
+        )
+        _print(
+            status="pass" if result["passed"] else "fail",
+            report_bundle=str(bundle),
+            clauses=result["clauses"],
+            gaps=result["gaps"],
+        )
+        return 0 if result["passed"] else 1
     parser.exit(2, f"{args.command}: not implemented\n")
 
 
