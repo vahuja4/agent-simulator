@@ -1,0 +1,207 @@
+<div id="pair-exclusion-review">
+  <style>
+    #pair-exclusion-review { color: var(--foreground); font: 14px/1.45 ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    #pair-exclusion-review * { box-sizing: border-box; }
+    #pair-exclusion-review .per-head { display: flex; gap: 18px; align-items: flex-start; justify-content: space-between; margin-bottom: 14px; }
+    #pair-exclusion-review h2 { font-size: 20px; line-height: 1.2; margin: 0 0 4px; }
+    #pair-exclusion-review .per-sub { color: var(--muted-foreground); margin: 0; }
+    #pair-exclusion-review .per-counts { display: flex; gap: 12px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+    #pair-exclusion-review .per-counts span { border-left: 2px solid var(--border); padding-left: 8px; }
+    #pair-exclusion-review .per-counts strong { display: block; font-size: 17px; }
+    #pair-exclusion-review .per-counts small { color: var(--muted-foreground); }
+    #pair-exclusion-review .per-tools { display: grid; grid-template-columns: minmax(210px, 1fr) 190px 150px auto; gap: 8px; margin-bottom: 10px; }
+    #pair-exclusion-review input, #pair-exclusion-review select, #pair-exclusion-review button, #pair-exclusion-review textarea { color: var(--foreground); background: var(--background); border: 1px solid var(--border); border-radius: 6px; font: inherit; }
+    #pair-exclusion-review input, #pair-exclusion-review select, #pair-exclusion-review button { min-height: 36px; padding: 7px 9px; }
+    #pair-exclusion-review button { cursor: pointer; }
+    #pair-exclusion-review button:hover { background: var(--accent); }
+    #pair-exclusion-review .per-table-wrap { overflow: auto; border: 1px solid var(--border); border-radius: 8px; max-height: 560px; }
+    #pair-exclusion-review table { width: 100%; border-collapse: collapse; min-width: 880px; }
+    #pair-exclusion-review th { position: sticky; top: 0; z-index: 1; background: var(--background); color: var(--muted-foreground); text-align: left; font-size: 12px; letter-spacing: .02em; padding: 9px 10px; border-bottom: 1px solid var(--border); }
+    #pair-exclusion-review td { padding: 9px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    #pair-exclusion-review tbody tr { cursor: pointer; }
+    #pair-exclusion-review tbody tr:hover, #pair-exclusion-review tbody tr[aria-selected="true"] { background: var(--accent); }
+    #pair-exclusion-review .per-num { color: var(--muted-foreground); width: 42px; }
+    #pair-exclusion-review .per-pair { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; overflow-wrap: anywhere; }
+    #pair-exclusion-review .per-scope { color: var(--muted-foreground); font-size: 12px; }
+    #pair-exclusion-review .per-review { width: 145px; }
+    #pair-exclusion-review .per-review select { min-height: 30px; width: 132px; padding: 4px 6px; }
+    #pair-exclusion-review .per-detail { margin-top: 10px; border: 1px solid var(--border); border-radius: 8px; padding: 12px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(240px, .55fr); gap: 14px; }
+    #pair-exclusion-review .per-detail h3 { margin: 0 0 7px; font-size: 15px; }
+    #pair-exclusion-review .per-detail p { margin: 4px 0; }
+    #pair-exclusion-review .per-detail code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; overflow-wrap: anywhere; }
+    #pair-exclusion-review .per-label { color: var(--muted-foreground); }
+    #pair-exclusion-review textarea { display: block; width: 100%; min-height: 74px; resize: vertical; padding: 8px; margin-top: 6px; }
+    #pair-exclusion-review .per-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; }
+    #pair-exclusion-review .per-empty { padding: 28px; text-align: center; color: var(--muted-foreground); }
+    @media (max-width: 720px) {
+      #pair-exclusion-review .per-head { display: block; }
+      #pair-exclusion-review .per-counts { margin-top: 10px; }
+      #pair-exclusion-review .per-tools { grid-template-columns: 1fr 1fr; }
+      #pair-exclusion-review .per-detail { grid-template-columns: 1fr; }
+    }
+  </style>
+
+  <div class="per-head">
+    <div>
+      <h2>Pair-exclusion spot check</h2>
+      <p class="per-sub">35 planner proposals · ADR 0004 reason: approved-axis-non-applicability, except two fixture-domain-impossibility entries</p>
+    </div>
+    <div class="per-counts" aria-live="polite">
+      <span><strong id="per-approved">0</strong><small>approve</small></span>
+      <span><strong id="per-rework">0</strong><small>rework</small></span>
+      <span><strong id="per-pending">35</strong><small>pending</small></span>
+    </div>
+  </div>
+
+  <div class="per-tools">
+    <input id="per-search" type="search" placeholder="Filter pair or evidence…" aria-label="Filter pairs">
+    <select id="per-group" aria-label="Filter by pair group"><option value="all">All pair groups</option></select>
+    <select id="per-decision" aria-label="Filter by decision">
+      <option value="all">All decisions</option><option value="pending">Pending</option><option value="approve">Approve</option><option value="rework">Needs rework</option>
+    </select>
+    <button id="per-scope-only" type="button" aria-pressed="false">Scope checks only</button>
+  </div>
+
+  <div class="per-table-wrap">
+    <table>
+      <thead><tr><th>#</th><th>Proposed pair</th><th>Evidence to check</th><th>Review lens</th><th>Decision</th></tr></thead>
+      <tbody id="per-body"></tbody>
+    </table>
+  </div>
+
+  <section class="per-detail" id="per-detail" aria-live="polite">
+    <div>
+      <h3 id="per-detail-title">Select a proposal</h3>
+      <p><span class="per-label">Proposed code:</span> <code id="per-detail-code">—</code></p>
+      <p><span class="per-label">Contract evidence:</span> <span id="per-detail-evidence">—</span></p>
+      <p><span class="per-label">Review question:</span> <span id="per-detail-question">—</span></p>
+    </div>
+    <label><span class="per-label">Reviewer note</span><textarea id="per-note" placeholder="Optional rationale or required rework…" disabled></textarea></label>
+  </section>
+
+  <div class="per-actions">
+    <button id="per-export" type="button">Download decisions</button>
+    <button id="per-send" type="button">Send completed review</button>
+  </div>
+
+  <script>
+    (() => {
+      const root = document.getElementById('pair-exclusion-review');
+      const paths = {
+        'j1-path-6dbc990c687797f6': 'success path with card switch',
+        'j1-path-72d5d5d63df95b4e': 'success path without card switch',
+        'j1-path-8dd88988bdfb09f8': 'submission-failure path with card switch',
+        'j1-path-e41e41af19bb392e': 'submission-failure path without card switch'
+      };
+      const rows = [];
+      const add = (a, av, b, bv, group, evidence, question, scope = false, code = 'approved-axis-non-applicability') => rows.push({
+        n: rows.length + 1, a, av, b, bv, group, evidence, question, scope, code,
+        pair: `pair:${a}=${av}|${b}=${bv}`, decision: 'pending', note: ''
+      });
+
+      add('complication','ambiguous-reference','fixture-state-class','j1-multiple-unambiguous-cards','Complication × fixture','ambiguous-reference requires ambiguous_card_names; this class declares it false.','Does the fixture predicate prove this pair has no valid cell?');
+      add('complication','ambiguous-reference','fixture-state-class','j1-single-card','Complication × fixture','ambiguous-reference requires ambiguous_card_names; this class declares it false.','Does the fixture predicate prove this pair has no valid cell?');
+      add('complication','mid-conversation-correction','fixture-state-class','j1-single-card','Complication × fixture','mid-conversation-correction requires multiple_cards; this class declares it false.','Does correction necessarily require a selectable second card?');
+
+      ['j1-ambiguous-freedom-cards','j1-multiple-unambiguous-cards','j1-single-card'].forEach(f => {
+        [['d4-default','J3'],['d6-default','J5'],['d7-default','J2']].forEach(([t,j]) => add('fixture-state-class',f,'fitness-target',t,'Fixture × target',`${t} belongs to ${j}; ${f} is a J1-only reviewed fixture class.`,`Should a cross-journey pair be excluded now, or remain BLOCKED until ${j} fixture classes are reviewed?`,true));
+      });
+      add('fixture-state-class','j1-multiple-unambiguous-cards','fitness-target','d5-default','Fixture × target','d5 requires ambiguous_card_names; this class declares it false.','Does the target predicate prove this pair has no valid cell?');
+      add('fixture-state-class','j1-single-card','fitness-target','d2-default','Fixture × target','d2 requires multiple_cards and distinguishable_card_amounts; this class declares both false.','Does the target predicate prove this pair has no valid cell?');
+      add('fixture-state-class','j1-single-card','fitness-target','d5-default','Fixture × target','d5 requires ambiguous_card_names; this class declares it false.','Does the target predicate prove this pair has no valid cell?');
+
+      const crossTargets = [['d4-default','J3'],['d6-default','J5'],['d7-default','J2']];
+      Object.keys(paths).forEach(p => crossTargets.forEach(([t,j]) => add('journey-path',p,'fitness-target',t,'Path × target',`${paths[p]} is J1; ${t} belongs to ${j}.`,`Should this cross-journey pair be excluded now, or remain BLOCKED until ${j} is authored?`,true)));
+      add('journey-path','j1-path-6dbc990c687797f6','fitness-target','d3-default','Path × target','Success path with card switch omits required edge j1-submit-handle-failure.','Does the missing required edge prove non-applicability?');
+      add('journey-path','j1-path-72d5d5d63df95b4e','fitness-target','d2-default','Path × target','Success path without card switch omits d2 required card-switch edges.','Does the missing required edge prove non-applicability?');
+      add('journey-path','j1-path-72d5d5d63df95b4e','fitness-target','d3-default','Path × target','Success path without card switch omits required edge j1-submit-handle-failure.','Does the missing required edge prove non-applicability?');
+      add('journey-path','j1-path-e41e41af19bb392e','fitness-target','d2-default','Path × target','Submission-failure path without card switch omits d2 required card-switch edges.','Does the missing required edge prove non-applicability?');
+
+      add('journey-path','j1-path-6dbc990c687797f6','fixture-state-class','j1-single-card','Path × fixture','This path contains card switching; j1-single-card has multiple_cards=false.','Is a card-switch path impossible with this fixture class?',false,'fixture-domain-impossibility');
+      add('journey-path','j1-path-8dd88988bdfb09f8','fixture-state-class','j1-single-card','Path × fixture','This path contains card switching; j1-single-card has multiple_cards=false.','Is a card-switch path impossible with this fixture class?',false,'fixture-domain-impossibility');
+      add('journey-path','j1-path-72d5d5d63df95b4e','complication','mid-conversation-correction','Path × complication','This path omits required edge j1-fetch-options-select-card.','Does the missing required edge prove non-applicability?');
+      add('journey-path','j1-path-e41e41af19bb392e','complication','mid-conversation-correction','Path × complication','This path omits required edge j1-fetch-options-select-card.','Does the missing required edge prove non-applicability?');
+
+      const body = root.querySelector('#per-body');
+      const search = root.querySelector('#per-search');
+      const group = root.querySelector('#per-group');
+      const decision = root.querySelector('#per-decision');
+      const scopeBtn = root.querySelector('#per-scope-only');
+      const note = root.querySelector('#per-note');
+      let selected = null;
+      let scopeOnly = false;
+
+      [...new Set(rows.map(r => r.group))].sort().forEach(g => group.add(new Option(g, g)));
+
+      function updateCounts() {
+        root.querySelector('#per-approved').textContent = rows.filter(r => r.decision === 'approve').length;
+        root.querySelector('#per-rework').textContent = rows.filter(r => r.decision === 'rework').length;
+        root.querySelector('#per-pending').textContent = rows.filter(r => r.decision === 'pending').length;
+      }
+
+      function showDetail(r) {
+        selected = r;
+        root.querySelector('#per-detail-title').textContent = r ? `Proposal ${r.n} · ${r.group}` : 'Select a proposal';
+        root.querySelector('#per-detail-code').textContent = r ? r.code : '—';
+        root.querySelector('#per-detail-evidence').textContent = r ? r.evidence : '—';
+        root.querySelector('#per-detail-question').textContent = r ? r.question : '—';
+        note.disabled = !r;
+        note.value = r ? r.note : '';
+        body.querySelectorAll('tr').forEach(tr => tr.setAttribute('aria-selected', String(r && Number(tr.dataset.n) === r.n)));
+      }
+
+      function render() {
+        const q = search.value.trim().toLowerCase();
+        const filtered = rows.filter(r =>
+          (group.value === 'all' || r.group === group.value) &&
+          (decision.value === 'all' || r.decision === decision.value) &&
+          (!scopeOnly || r.scope) &&
+          (!q || `${r.pair} ${r.evidence} ${r.question}`.toLowerCase().includes(q))
+        );
+        body.innerHTML = '';
+        if (!filtered.length) {
+          const tr = document.createElement('tr');
+          tr.innerHTML = '<td colspan="5" class="per-empty">No proposals match these filters.</td>';
+          body.appendChild(tr);
+          return;
+        }
+        filtered.forEach(r => {
+          const tr = document.createElement('tr');
+          tr.dataset.n = r.n;
+          tr.setAttribute('aria-selected', String(selected === r));
+          tr.innerHTML = `<td class="per-num">${r.n}</td><td class="per-pair">${r.pair}</td><td>${r.evidence}</td><td class="per-scope">${r.scope ? 'Future-scope check' : 'Direct contract check'}</td><td class="per-review"></td>`;
+          const sel = document.createElement('select');
+          sel.setAttribute('aria-label', `Decision for proposal ${r.n}`);
+          [['pending','Pending'],['approve','Approve'],['rework','Needs rework']].forEach(([v,t]) => sel.add(new Option(t,v)));
+          sel.value = r.decision;
+          sel.addEventListener('click', e => e.stopPropagation());
+          sel.addEventListener('change', e => { r.decision = e.target.value; updateCounts(); if (decision.value !== 'all') render(); });
+          tr.lastElementChild.appendChild(sel);
+          tr.addEventListener('click', () => showDetail(r));
+          body.appendChild(tr);
+        });
+      }
+
+      [search, group, decision].forEach(el => el.addEventListener(el === search ? 'input' : 'change', render));
+      scopeBtn.addEventListener('click', () => { scopeOnly = !scopeOnly; scopeBtn.setAttribute('aria-pressed', String(scopeOnly)); scopeBtn.textContent = scopeOnly ? 'Showing scope checks' : 'Scope checks only'; render(); });
+      note.addEventListener('input', () => { if (selected) selected.note = note.value; });
+
+      function payload() {
+        return rows.map(({pair, code, decision, note}) => ({pair_id: pair, proposed_reason_code: code, decision, note}));
+      }
+      root.querySelector('#per-export').addEventListener('click', () => {
+        const blob = new Blob([JSON.stringify(payload(), null, 2) + '\n'], {type: 'application/json'});
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob); a.download = 'pair-exclusion-review.json'; a.click();
+        setTimeout(() => URL.revokeObjectURL(a.href), 0);
+      });
+      root.querySelector('#per-send').addEventListener('click', async () => {
+        const pending = rows.filter(r => r.decision === 'pending').length;
+        const prompt = `Apply this pair-exclusion review. Pending count: ${pending}. Decisions:\n${JSON.stringify(payload(), null, 2)}`;
+        if (window.openai && window.openai.sendFollowUpMessage) await window.openai.sendFollowUpMessage({prompt, title: 'Send exclusion review'});
+      });
+
+      updateCounts(); render(); showDetail(rows[0]);
+    })();
+  </script>
+</div>
