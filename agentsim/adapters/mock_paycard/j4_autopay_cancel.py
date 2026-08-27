@@ -51,7 +51,6 @@ def step(agent, state: ConvState, text: str, calls: list[ToolCall]) -> str:
             f"the next payment is {fmt_date(card.due_date)}. {SATURDAY_DISCLAIMER} "
             "Would you like to turn off automatic payments?"
         )
-        state.turn_off_offered = True
         return " ".join(parts)
 
     if state.awaiting_confirmation:

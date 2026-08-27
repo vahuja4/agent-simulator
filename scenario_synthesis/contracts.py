@@ -19,7 +19,6 @@ from agentsim.scenario import _ASSERTION_TYPES
 from fixtures.paycard import CARDS, FUNDING_ACCOUNTS
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_CONTRACT_DIR = Path(__file__).with_name("contracts")
 CONTRACT_FILENAMES = {
     "persona-archetypes": "persona-archetypes.yaml",
     "complication-applicability": "complication-applicability.yaml",

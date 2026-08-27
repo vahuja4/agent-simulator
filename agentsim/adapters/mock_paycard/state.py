@@ -179,7 +179,6 @@ class ConvState:
     pending_autopay_update: PendingAutoPayUpdate | None = None
 
     # J4 — cancel flow
-    turn_off_offered: bool = False
     pending_autopay_cancel: PendingAutoPayCancel | None = None
 
     # J5 — cancel scheduled payment

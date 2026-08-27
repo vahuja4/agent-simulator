@@ -20,9 +20,6 @@ from .config import create_config_snapshot, load_config
 from .contracts import AXIS_ORDER, ContractSet, canonical_sha256, load_reviewed_contracts
 from .generator import BLOCKED_COMPLICATIONS, EligibleCellSpec, enumerate_eligible_cell_specs
 
-STATUSES = {"covered", "excluded", "BLOCKED", "UNCOVERED"}
-
-
 @dataclass(frozen=True)
 class Obligation:
     obligation_id: str

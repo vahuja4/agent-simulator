@@ -46,10 +46,10 @@ from .types import ToolCall
 
 TRACE_SCHEMA_VERSION = "1.0"
 
-# The full outcome vocabulary. ``task_incomplete`` (simulator stopped or
+# The full outcome vocabulary (``pass``, ``fail``, ``task_incomplete``,
+# ``error``). ``task_incomplete`` (simulator stopped or
 # max_turns hit without goal completion) is distinct from ``fail``: running
 # out of turns is not a policy failure.
-Outcome = Literal["pass", "fail", "task_incomplete", "error"]
 
 
 @dataclass
@@ -94,7 +94,7 @@ class TraceTurn:
 class Trace:
     conversation_id: str
     turns: list[TraceTurn] = field(default_factory=list)
-    outcome: str | None = None  # one of Outcome once the run finishes
+    outcome: str | None = None
     schema_version: str = TRACE_SCHEMA_VERSION
 
     def add_user_turn(self, text: str, intent: str | None, selected_card: str | None) -> TraceTurn:
