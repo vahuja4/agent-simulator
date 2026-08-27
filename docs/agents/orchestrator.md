@@ -70,6 +70,13 @@ The primary thread should avoid retaining:
 
 Treat the repository, `AGENTS.md`, project documentation, commits, and issue records as the durable source of truth.
 
+## Approval gates at delegation
+
+Before briefing any worker on changes to mock behavior, judge models, judge
+prompts or criteria, curated scenarios, or reviewed synthesis contracts,
+obtain explicit user approval. Check these gates during task decomposition,
+not after a diff exists. Under `AGENTS.md`, they bind every agent.
+
 ## Delegated implementation tasks
 
 Give each implementation agent:
@@ -127,7 +134,12 @@ Each delegated implementation agent must:
 * work only within its assigned checkout/worktree;
 * preserve existing user changes;
 * avoid unrelated modifications;
-* commit intended changes before handoff when appropriate.
+* commit intended changes before handoff, or return an explicit handoff
+  document stating what is uncommitted and why.
+
+Delegated work touching an area with an active slice in progress—currently
+`scenario_synthesis/`—must land on an announced branch, never on `main`
+mid-slice.
 
 The primary orchestrator is responsible for:
 
@@ -137,7 +149,17 @@ The primary orchestrator is responsible for:
 * running combined validation;
 * cleaning up completed worktrees and temporary branches only when safe.
 
-Never remove a worktree containing uncommitted work.
+Branches and worktrees must not outlive their task. After merge, remove the
+completed worktree and temporary branch. Never remove a worktree containing
+uncommitted work.
+
+## Merge-readiness review
+
+Before any slice merges to `main`, delegate a review of the result against
+repository contracts, including the transcript contract, specification
+evidence rules, and ADRs. Worker-local review and self-review do not
+substitute for this review. The slice-3 review is the exemplar for this
+standard.
 
 ## Integration
 
@@ -151,8 +173,13 @@ Before integrating:
 4. reconcile overlapping assumptions;
 5. integrate the change;
 6. run appropriate combined tests or validation.
+7. with the full suite green, commit the integrated result.
 
 Worker-local validation is useful but does not replace integration validation where multiple changes interact.
+
+A task is not complete and must not be reported complete until its work is
+committed, or explicitly handed off on an announced branch with a named
+owner.
 
 ## Context preservation
 

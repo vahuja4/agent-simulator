@@ -2,6 +2,9 @@
 
 <!-- Canonical: CLAUDE.md imports this file. -->
 
+Read `CONTEXT.md` and use its vocabulary exactly — in code identifiers,
+filenames, and prose.
+
 ## Environment
 
 - Use `.venv/bin/python` exclusively. Never use Conda or system Python.
@@ -22,6 +25,10 @@
 
 Do not violate these without explicit instruction in the current prompt.
 
+- Zero new dependencies: use the stdlib plus what is already in the
+  environment. If a task appears to need a new package, stop and ask.
+- All agent-platform access goes through the agent adapter interface. No
+  platform client code may be imported elsewhere.
 - The mock under `agentsim/adapters/mock_paycard/` is deterministic and
   makes no LLM calls. Mock behavior changes require explicit approval.
 - Do not change judge criterion wording unless explicitly approved. Any
@@ -34,6 +41,8 @@ Do not violate these without explicit instruction in the current prompt.
   uses overlay files.
 - Validate contract preconditions against their governing ADR definitions,
   never against a single curated exemplar.
+- Before any simulator-instruction change lands, check it for conflicts with
+  existing scenario Personas.
 - Simulator and judge must be from different model families for any reported
   run (acceptance-gate runs and Phase 5 live runs). Development runs against
   the mock may share a model. Separation will be achieved by changing the
@@ -47,6 +56,8 @@ Do not violate these without explicit instruction in the current prompt.
 - Preserve existing user changes.
 - Leave Git clean. Commit evidence artifacts rather than leaving them
   untracked unless the current prompt explicitly requires otherwise.
+- If preserving existing user changes conflicts with leaving Git clean, stop
+  and surface the dirty state to the user. Never silently build around it.
 - Honor all prompt-imposed file-reading and evidence boundaries.
   Otherwise inspect only files relevant to the task; do not browse old
   calibration transcripts, build plans, or unrelated artifacts.
