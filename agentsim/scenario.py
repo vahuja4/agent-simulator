@@ -300,7 +300,7 @@ def load_synthesized_scenario(path: str | Path) -> Scenario:
 
 
 def load_curated_library(directory: str | Path) -> list[Scenario]:
-    return [load_curated_scenario(path) for path in sorted(Path(directory).glob("*.yaml"))]
+    return load_library(directory)
 
 
 def load_synthesized_library(directory: str | Path) -> list[Scenario]:
