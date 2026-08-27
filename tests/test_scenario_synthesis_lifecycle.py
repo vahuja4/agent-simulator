@@ -15,7 +15,7 @@ from agentsim.scenario import (
 from scenario_synthesis import cli
 from scenario_synthesis.candidate import CandidateError, load_candidate, produce_candidate
 from scenario_synthesis.generator import generate_blueprints
-from scenario_synthesis.evidence import canonical_json, sha256_bytes
+from scenario_synthesis.evidence import atomic_json, canonical_json, sha256_bytes, sha256_file
 from scenario_synthesis.ledger import LedgerError, RejectionLedger
 from scenario_synthesis.qualification import (
     EpisodeResult,
@@ -447,7 +447,10 @@ def test_interrupted_staging_bundle_is_quarantined_before_atomic_commit(
     partial = (
         target_root
         / "candidates"
-        / f".{complete.candidate_id}.partial-interrupted-command"
+        / (
+            f".{complete.candidate_id}.{targeted_blueprint.cell_id}"
+            ".partial-interrupted-command"
+        )
     )
     partial.mkdir(parents=True)
     for name in ("blueprint.yaml", "scenario.yaml", "production.json"):
@@ -462,10 +465,116 @@ def test_interrupted_staging_bundle_is_quarantined_before_atomic_commit(
     assert not partial.exists()
     quarantined = list(
         (target_root / "quarantine" / "production").glob(
-            f"{complete.candidate_id}-*"
+            f"{complete.candidate_id}.*"
         )
     )
     assert len(quarantined) == 1
+
+
+def test_interrupted_staging_is_quarantined_before_stochastic_rerealization(
+    tmp_path: Path, targeted_blueprint
+) -> None:
+    class AlternateSurfaceProvider(StubRealizationProvider):
+        provider_id = "alternate-surface-stub"
+
+        def realize(self, *args, **kwargs):
+            surface = dict(super().realize(*args, **kwargs))
+            surface["description"] = str(surface["description"]) + " Alternate wording."
+            return surface
+
+    source_root = tmp_path / "source"
+    interrupted = produce_candidate(
+        targeted_blueprint, output_root=source_root, provider=StubRealizationProvider()
+    )
+    assert interrupted is not None
+    target_root = tmp_path / "target"
+    partial = (
+        target_root
+        / "candidates"
+        / (
+            f".{interrupted.candidate_id}.{targeted_blueprint.cell_id}"
+            ".partial-interrupted-command"
+        )
+    )
+    shutil.copytree(interrupted.bundle, partial)
+
+    reproduced = produce_candidate(
+        targeted_blueprint, output_root=target_root, provider=AlternateSurfaceProvider()
+    )
+
+    assert reproduced is not None
+    assert reproduced.candidate_id != interrupted.candidate_id
+    assert not partial.exists()
+    assert len(list((target_root / "quarantine" / "production").iterdir())) == 1
+
+
+def _rehash_admission_chain(result, root: Path, qualification: dict) -> None:
+    qualification_path = result.bundle / "qualification.json"
+    atomic_json(qualification_path, qualification)
+    admission_path = result.bundle / "admission.json"
+    admission = json.loads(admission_path.read_text())
+    admission["n_split"] = qualification["n_split"]
+    for reference in admission["evidence"]:
+        reference["sha256"] = sha256_file(root / reference["path"])
+    atomic_json(admission_path, admission)
+    terminal_path = result.candidate.bundle / "terminal.json"
+    terminal = json.loads(terminal_path.read_text())
+    terminal["admission_sha256"] = sha256_file(admission_path)
+    atomic_json(terminal_path, terminal)
+
+
+def test_admission_rejects_internally_rehashed_shortened_repetition_split(
+    tmp_path: Path, detection_unproven_blueprint
+) -> None:
+    candidate = produce_candidate(
+        detection_unproven_blueprint,
+        output_root=tmp_path,
+        provider=StubRealizationProvider(),
+    )
+    assert candidate is not None
+    result = qualify_candidate(
+        candidate.candidate_id, output_root=tmp_path, runner=StubQualificationRunner()
+    )
+    qualification = json.loads((result.bundle / "qualification.json").read_text())
+    qualification["n_split"]["defects_off"] = 1
+    _rehash_admission_chain(result, tmp_path, qualification)
+
+    with pytest.raises(CandidateError, match="repetition or defect configuration"):
+        qualify_candidate(
+            candidate.candidate_id, output_root=tmp_path, runner=StubQualificationRunner()
+        )
+    assert RejectionLedger(tmp_path).records()[-1]["subject_type"] == "qualification"
+
+
+def test_admission_rejects_internally_rehashed_episode_defect_configuration(
+    tmp_path: Path, targeted_blueprint
+) -> None:
+    candidate = produce_candidate(
+        targeted_blueprint, output_root=tmp_path, provider=StubRealizationProvider()
+    )
+    assert candidate is not None
+    result = qualify_candidate(
+        candidate.candidate_id, output_root=tmp_path, runner=StubQualificationRunner()
+    )
+    qualification_path = result.bundle / "qualification.json"
+    qualification = json.loads(qualification_path.read_text())
+    defect_on = next(
+        reference
+        for reference in qualification["episodes"]
+        if Path(reference["path"]).name == "defect-on-0.json"
+    )
+    episode_path = tmp_path / defect_on["path"]
+    episode = json.loads(episode_path.read_text())
+    episode["defect_toggles"] = []
+    atomic_json(episode_path, episode)
+    defect_on["sha256"] = sha256_file(episode_path)
+    _rehash_admission_chain(result, tmp_path, qualification)
+
+    with pytest.raises(CandidateError, match="repetition or defect configuration"):
+        qualify_candidate(
+            candidate.candidate_id, output_root=tmp_path, runner=StubQualificationRunner()
+        )
+    assert RejectionLedger(tmp_path).records()[-1]["subject_type"] == "qualification"
 
 
 def test_admission_recovers_if_library_commit_is_interrupted(

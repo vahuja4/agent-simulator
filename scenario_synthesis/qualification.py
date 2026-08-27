@@ -9,7 +9,7 @@ from contextlib import nullcontext
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Mapping, Protocol
+from typing import Any, Callable, Mapping, Protocol
 
 import yaml
 
@@ -330,13 +330,23 @@ def qualify_candidate(
         }
         qualification_path = bundle / "qualification.json"
         atomic_json(qualification_path, qualification_record)
-        try:
-            episode_records = list(_validate_qualification_evidence(
-                candidate, bundle, root, snapshot.sha256, contracts.hashes
-            ))
-        except CandidateError as exc:
-            _record_evidence_rejection(candidate, bundle, root, str(exc))
-            raise
+        episode_records = list(
+            _validate_evidence_or_reject(
+                candidate,
+                bundle,
+                root,
+                lambda: _validate_qualification_evidence(
+                    candidate,
+                    bundle,
+                    root,
+                    snapshot.sha256,
+                    contracts.hashes,
+                    repetitions=repetitions,
+                    expected_failure=expected_failure,
+                    defect_toggles=toggles,
+                ),
+            )
+        )
         decision = evaluate_admission(
             tuple(episode_records),
             expected_failure=expected_failure,
@@ -389,23 +399,24 @@ def _load_existing_result(
     root: Path,
     replacement_provider: RealizationProvider | None,
 ) -> QualificationResult:
-    try:
-        terminal = json.loads((candidate.bundle / "terminal.json").read_text(encoding="utf-8"))
+    config = load_config()
+    contracts = load_reviewed_contracts()
+
+    def validate() -> Mapping[str, Any]:
+        terminal_path = candidate.bundle / "terminal.json"
+        terminal_record = json.loads(terminal_path.read_text(encoding="utf-8"))
         admission_path = bundle / "admission.json"
-        if not admission_path.is_file() or terminal.get("qualification_id") != bundle.name:
+        if (
+            not admission_path.is_file()
+            or terminal_record.get("qualification_id") != bundle.name
+        ):
             raise CandidateError("terminal candidate has incomplete qualification evidence")
-        if terminal.get("admission_sha256") != sha256_file(admission_path):
+        if terminal_record.get("admission_sha256") != sha256_file(admission_path):
             raise CandidateError("terminal admission evidence hash mismatch")
-        config = load_config()
-        contracts = load_reviewed_contracts()
-        admission = _validate_admission_evidence(
-            candidate, bundle, root, config, contracts
-        )
-    except (CandidateError, KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
-        _record_evidence_rejection(candidate, bundle, root, str(exc))
-        if isinstance(exc, CandidateError):
-            raise
-        raise CandidateError(f"qualification evidence is invalid: {exc}") from exc
+        return _validate_admission_evidence(candidate, bundle, root, config, contracts)
+
+    admission = _validate_evidence_or_reject(candidate, bundle, root, validate)
+    terminal = json.loads((candidate.bundle / "terminal.json").read_text(encoding="utf-8"))
     decision = AdmissionDecision(
         admitted=admission["status"] == "admitted",
         status=str(admission["status"]),
@@ -460,13 +471,12 @@ def _resume_incomplete(
 ) -> QualificationResult:
     """Finish the commit steps without moving evidence already referenced by the ledger."""
     admission_path = bundle / "admission.json"
-    try:
-        admission = _validate_admission_evidence(candidate, bundle, root, config, contracts)
-    except (CandidateError, KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
-        _record_evidence_rejection(candidate, bundle, root, str(exc))
-        if isinstance(exc, CandidateError):
-            raise
-        raise CandidateError(f"qualification evidence is invalid: {exc}") from exc
+    admission = _validate_evidence_or_reject(
+        candidate,
+        bundle,
+        root,
+        lambda: _validate_admission_evidence(candidate, bundle, root, config, contracts),
+    )
     qualified_at = str(admission["decided_at"])
     lock = nullcontext() if _cell_lock_held else exclusive_lock(
         root / "locks" / f"{candidate.cell_id}.lock", command="resume-qualify"
@@ -559,6 +569,10 @@ def _validate_qualification_evidence(
     root: Path,
     snapshot_hash: str,
     contract_hashes: Mapping[str, str],
+    *,
+    repetitions: int,
+    expected_failure: Mapping[str, str] | None,
+    defect_toggles: tuple[str, ...],
 ) -> tuple[Mapping[str, Any], ...]:
     qualification_path = bundle / "qualification.json"
     try:
@@ -594,16 +608,32 @@ def _validate_qualification_evidence(
         or snapshot.get("models") != qualification["models"]
     ):
         raise CandidateError("qualification config snapshot does not match current configuration")
-    n_split = qualification["n_split"]
-    if set(n_split) != {"defects_off", "defect_on"}:
-        raise CandidateError("qualification evidence has an incomplete repetition split")
-    expected_count = int(n_split["defects_off"]) + int(n_split["defect_on"])
+    expected_split = {
+        "defects_off": repetitions,
+        "defect_on": 0 if expected_failure is None else repetitions,
+    }
+    if (
+        qualification["n_split"] != expected_split
+        or qualification["expected_failure"] != expected_failure
+        or qualification["defect_toggles"] != list(defect_toggles)
+    ):
+        raise CandidateError("qualification evidence repetition or defect configuration mismatch")
+    expected_count = sum(expected_split.values())
     references = qualification["episodes"]
     if not isinstance(references, list) or len(references) != expected_count:
         raise CandidateError("qualification evidence has incomplete Episodes")
     hydrated: list[Mapping[str, Any]] = []
     inventory = {qualification_path, snapshot_path}
     seen_paths: set[Path] = set()
+    expected_episode_ids = {
+        (side, repetition)
+        for side, count in (
+            ("defects-off", expected_split["defects_off"]),
+            ("defect-on", expected_split["defect_on"]),
+        )
+        for repetition in range(count)
+    }
+    seen_episode_ids: set[tuple[str, int]] = set()
     for reference in references:
         episode_path = _validate_reference(reference, root, suffix=".json")
         if episode_path in seen_paths or episode_path.parent != bundle / "episodes":
@@ -628,6 +658,14 @@ def _validate_qualification_evidence(
             raise CandidateError("Episode evidence configuration mismatch")
         side = episode["side"]
         repetition = episode["repetition"]
+        episode_id = (side, repetition)
+        expected_toggles = [] if side == "defects-off" else list(defect_toggles)
+        if (
+            episode_id not in expected_episode_ids
+            or episode["defect_toggles"] != expected_toggles
+        ):
+            raise CandidateError("Episode evidence repetition or defect configuration mismatch")
+        seen_episode_ids.add(episode_id)
         stem = f"{side}-{repetition}"
         if episode_path.name != f"{stem}.json":
             raise CandidateError("Episode evidence path does not match its identity")
@@ -675,6 +713,8 @@ def _validate_qualification_evidence(
                 "judge_rulings": ruling_artifact["rulings"],
             }
         )
+    if seen_episode_ids != expected_episode_ids:
+        raise CandidateError("qualification evidence has incomplete Episodes")
     actual = {path for path in bundle.rglob("*") if path.is_file()}
     allowed = inventory | ({bundle / "admission.json"} if (bundle / "admission.json").is_file() else set())
     if actual != allowed:
@@ -686,8 +726,17 @@ def _validate_admission_evidence(
     candidate: Candidate, bundle: Path, root: Path, config: Any, contracts: ContractSet
 ) -> Mapping[str, Any]:
     snapshot_hash = create_config_snapshot(config=config, contracts=contracts).sha256
+    expected_failure, defect_toggles = _fitness_contract(candidate, contracts)
+    repetitions = int(config.content["limits"]["admission_repetitions"])
     episodes = _validate_qualification_evidence(
-        candidate, bundle, root, snapshot_hash, contracts.hashes
+        candidate,
+        bundle,
+        root,
+        snapshot_hash,
+        contracts.hashes,
+        repetitions=repetitions,
+        expected_failure=expected_failure,
+        defect_toggles=defect_toggles,
     )
     qualification_path = bundle / "qualification.json"
     qualification = json.loads(qualification_path.read_text(encoding="utf-8"))
@@ -723,8 +772,8 @@ def _validate_admission_evidence(
         _validate_reference(reference, root)
     decision = evaluate_admission(
         episodes,
-        expected_failure=qualification["expected_failure"],
-        repetitions=int(qualification["n_split"]["defects_off"]),
+        expected_failure=expected_failure,
+        repetitions=repetitions,
         required_assertions=tuple(
             assertion.type for assertion in candidate.blueprint.required_assertions
         ),
@@ -738,6 +787,21 @@ def _validate_admission_evidence(
     ):
         raise CandidateError("admission decision does not match complete evidence")
     return admission
+
+
+def _validate_evidence_or_reject(
+    candidate: Candidate,
+    bundle: Path,
+    root: Path,
+    validate: Callable[[], Any],
+) -> Any:
+    try:
+        return validate()
+    except (CandidateError, OSError, KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
+        _record_evidence_rejection(candidate, bundle, root, str(exc))
+        if isinstance(exc, CandidateError):
+            raise
+        raise CandidateError(f"qualification evidence is invalid: {exc}") from exc
 
 
 def _validate_reference(

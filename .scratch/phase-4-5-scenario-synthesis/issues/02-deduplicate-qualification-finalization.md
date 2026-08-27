@@ -17,7 +17,9 @@ risking different evidence rules for normal and resumed completion.
 Resolved by `ab4e3ce`: normal completion enters the same resume/finalization
 path as interrupted completion, with recursive evidence validation before any
 terminal transition. Recovery and idempotency tests cover admission and
-rejection transitions.
+rejection transitions. The final merge-readiness pass also consolidated
+exception normalization and rejection-ledger recording for all evidence
+validation entry points.
 
 ## Comments
 

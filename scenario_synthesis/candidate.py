@@ -70,6 +70,10 @@ def produce_candidate(
     failures: list[dict[str, Any]] = []
     lock_context = nullcontext() if _cell_lock_held else exclusive_lock(cell_lock, command="produce")
     with lock_context:
+        for partial in sorted(
+            (root / "candidates").glob(f".*.{blueprint.cell_id}.partial-*")
+        ):
+            _quarantine_production_path(root, partial)
         existing = _unterminated_candidate(root, blueprint.cell_id)
         if existing is not None:
             if existing.blueprint.blueprint_id != blueprint.blueprint_id:
@@ -142,9 +146,11 @@ def produce_candidate(
                     if existing.cell_id != blueprint.cell_id or existing.ordinal != ordinal:
                         raise CandidateError("candidate ID collision")
                     return existing
-            for partial in sorted((root / "candidates").glob(f".{candidate_id}.partial-*")):
-                _quarantine_production_path(root, partial)
-            staging = root / "candidates" / f".{candidate_id}.partial-{command_id}"
+            staging = (
+                root
+                / "candidates"
+                / f".{candidate_id}.{blueprint.cell_id}.partial-{command_id}"
+            )
             staging.mkdir(parents=True)
             dump_coverage_blueprint(blueprint, staging / "blueprint.yaml")
             (staging / "scenario.yaml").write_text(

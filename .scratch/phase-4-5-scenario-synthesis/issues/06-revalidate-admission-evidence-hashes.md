@@ -18,6 +18,10 @@ Resolved by `ab4e3ce`: admission recursively validates exact Episode and nested
 artifact inventories, schemas, identities, paths, and hashes, recomputes the
 decision, and records failed validation in the rejection ledger. Tests cover
 all four nested artifact classes and extra evidence.
+The final merge-readiness pass additionally rederives repetition counts,
+Fitness configuration, and per-Episode defect toggles from current contracts
+and configuration; internally rehashed shortened or retagged evidence is
+rejected and ledgered.
 
 ## Comments
 
