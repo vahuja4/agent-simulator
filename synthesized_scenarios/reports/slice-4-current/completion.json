@@ -1,0 +1,82 @@
+{
+  "claim": "Phase 4.5 completion",
+  "clauses": [
+    {
+      "clause": 1,
+      "condition": "Every prototype-unemittable pair is reconciled",
+      "evidence": [
+        {
+          "path": "synthesized_scenarios/reports/slice-2-closeout-plan/coverage.json",
+          "sha256": "53f408b0cb51c120daaf5fe2fb1d9170eb522de1b1d38c6e49b8495fec63d286"
+        }
+      ],
+      "gaps": [
+        "eligibility reconciliation is stale against reviewed contract hashes"
+      ],
+      "passed": false
+    },
+    {
+      "clause": 2,
+      "condition": "Required previously-unpopulated Complications are admitted and definition-tested",
+      "evidence": [],
+      "gaps": [
+        "goal-shift: no admitted synthesized Scenario; pre-pilot J1 graph semantics remain pending",
+        "multi-intent-turn: no admitted synthesized Scenario; pre-pilot J1 graph semantics remain pending",
+        "out-of-scope-drift: no admitted synthesized Scenario",
+        "channel-noise: no admitted synthesized Scenario"
+      ],
+      "passed": false
+    },
+    {
+      "clause": 3,
+      "condition": "Every admitted synthesized Scenario holds its fitness contract",
+      "evidence": [],
+      "gaps": [],
+      "passed": true
+    },
+    {
+      "clause": 4,
+      "condition": "Rejection ledger, pairwise gate, and separated coverage reporting are produced",
+      "evidence": [
+        {
+          "path": "reports/slice-4-current/coverage.json",
+          "sha256": "c5080ce0b0fb0f8fa0d8e79da6ee6eb2d6f3298a76270834fb2745b608bd83b7"
+        },
+        {
+          "path": "reports/slice-4-current/coverage.md",
+          "sha256": "821198dc4d654f7e2a55f83ac5f8f12e87f50c5170e4b756f92f4ee3813b4c77"
+        }
+      ],
+      "gaps": [
+        "append-only rejection ledger has not been produced",
+        "eligible-pair gate incomplete: 88 BLOCKED, 286 UNCOVERED, 0 invalid-status out of 374 eligible pairs"
+      ],
+      "passed": false
+    },
+    {
+      "clause": 5,
+      "condition": "The curated suite remains green",
+      "evidence": [],
+      "gaps": [
+        "current curated-suite passing evidence is absent or invalid: [Errno 2] No such file or directory: 'synthesized_scenarios/completion/curated-suite.json'"
+      ],
+      "passed": false
+    }
+  ],
+  "coverage_report": {
+    "content_hash": "395beb39676991b01e47ebfaf8a67d80627e50255105a1be00dcde26268d1dad",
+    "report_id": "slice-4-current"
+  },
+  "gaps": [
+    "eligibility reconciliation is stale against reviewed contract hashes",
+    "goal-shift: no admitted synthesized Scenario; pre-pilot J1 graph semantics remain pending",
+    "multi-intent-turn: no admitted synthesized Scenario; pre-pilot J1 graph semantics remain pending",
+    "out-of-scope-drift: no admitted synthesized Scenario",
+    "channel-noise: no admitted synthesized Scenario",
+    "append-only rejection ledger has not been produced",
+    "eligible-pair gate incomplete: 88 BLOCKED, 286 UNCOVERED, 0 invalid-status out of 374 eligible pairs",
+    "current curated-suite passing evidence is absent or invalid: [Errno 2] No such file or directory: 'synthesized_scenarios/completion/curated-suite.json'"
+  ],
+  "passed": false,
+  "schema_version": 1
+}
