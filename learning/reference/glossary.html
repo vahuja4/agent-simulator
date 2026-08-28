@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Glossary — Agent Simulator</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+<main>
+  <p class="eyebrow">Reference · Agent Simulator course</p>
+  <h1>Glossary</h1>
+  <p class="muted">The repo's nomenclature, one line each, with where it lives.
+  Every lesson uses these terms exactly as defined here.</p>
+
+  <table>
+    <tr><th>Term</th><th>Meaning</th><th>Lives in</th></tr>
+    <tr><td><strong>Journey</strong></td><td>One approved customer task (J1 = one-time payment, J2 = set up AutoPay, … J5 = cancel payment), defined in the design plan.</td><td><code>plans/agent-simulator-design-plan.md</code></td></tr>
+    <tr><td><strong>Fixture</strong></td><td>The single frozen dataset (cards …9013/…0767/…4421, accounts, AutoPay, scheduled payments, frozen "now") that both the mock bank and the customer's knowledge are generated from.</td><td><code>fixtures/paycard.py</code></td></tr>
+    <tr><td><strong>Registry</strong></td><td>The canonical tool names (PayeeList, AddValidateOneTimePayment, …) shared with the real agent, so tests transfer without renames.</td><td><code>agentsim/registry.py</code></td></tr>
+    <tr><td><strong>Message</strong></td><td>OpenAI-style <code>{role, content}</code> dict — the lingua franca between every component.</td><td><code>agentsim/types.py</code></td></tr>
+    <tr><td><strong>Adapter</strong></td><td>The seam: one async <code>call(AgentInput) → AgentResponse</code>. The agent-under-test is a black box behind it (mock today, HTTP tomorrow).</td><td><code>agentsim/adapters/base.py</code></td></tr>
+    <tr><td><strong>Agent-under-test</strong></td><td>The payment assistant being probed — <code>MockPayCardAgent</code> (with plantable defects) or the real agent over HTTP.</td><td><code>agentsim/adapters/</code></td></tr>
+    <tr><td><strong>User simulator</strong></td><td>Role-reversed LLM playing the customer: persona + goal + grounded knowledge, per-turn re-injection, <code>###STOP###</code> sentinel.</td><td><code>agentsim/simulator.py</code></td></tr>
+    <tr><td><strong>Scenario</strong></td><td>One test card: journey, persona, goal, knowledge slice, success criteria, tool assertions, max_turns. YAML in <code>scenarios/</code> or generated.</td><td><code>agentsim/scenario.py</code></td></tr>
+    <tr><td><strong>Judge</strong></td><td>LLM referee returning a forced structured verdict per criterion; fail-closed — only an explicit <code>true</code> passes.</td><td><code>agentsim/judge.py</code></td></tr>
+    <tr><td><strong>Assertion</strong></td><td>Deterministic tool-structure check (e.g. validated_submit: validate before submit) — code, not LLM.</td><td><code>agentsim/assertions.py</code></td></tr>
+    <tr><td><strong>Trace</strong></td><td>The immutable record of what happened in a run; verdicts are derived from it, never stored in it.</td><td><code>agentsim/trace.py</code></td></tr>
+    <tr><td><strong>Orchestrator</strong></td><td>The turn loop: simulator → agent → judge until verdict, <code>###STOP###</code>, or max_turns (which fails closed as task_incomplete).</td><td><code>agentsim/orchestrator.py</code></td></tr>
+    <tr><td><strong>Script / DSL</strong></td><td>Pinned opening turns and checkpoints that share the same machinery as autonomous simulation.</td><td><code>agentsim/script.py</code></td></tr>
+    <tr><td><strong>Procedure graph</strong></td><td>The journey as a checked map: nodes = steps, edges = legal moves carrying tools, policies, curveball slots, turn costs, and source hashes.</td><td><code>scenario_synthesis/procedures/j1.yaml</code></td></tr>
+    <tr><td><strong>Policy</strong></td><td>A journey-borne rule worth testing (explicit_confirmation, tool_output_truth, card_switch_resets, disambiguate_last_four) with its enforcement mapping.</td><td><code>scenario_synthesis/policies.py</code></td></tr>
+    <tr><td><strong>Perturbation (curveball)</strong></td><td>A planned surprise declared on one edge with an executable trigger, acted out via the customer or data; max two per blueprint.</td><td><code>procedures/j1.yaml</code></td></tr>
+    <tr><td><strong>Blueprint</strong></td><td>The structured skeleton of a test (path, policies, bindings, goal facts, perturbations, provenance) — facts only, no prose.</td><td><code>scenario_synthesis/blueprint.py</code></td></tr>
+    <tr><td><strong>Realization</strong></td><td>LLM writing a blueprint into scenario YAML, guarded to be fact-equivalent — retried on any invented detail.</td><td><code>scenario_synthesis/realize.py</code></td></tr>
+    <tr><td><strong>Dry run</strong></td><td>Playing each candidate twice — faithful mock (should pass) and defects-on mock (should fail) — recorded, never used to filter.</td><td><code>scenario_synthesis/dryrun.py</code></td></tr>
+    <tr><td><strong>Planted defect</strong></td><td>One of seven deliberate bugs (D1–D7) toggleable in the mock; the acceptance test is that all seven surface in the report.</td><td><code>agentsim/adapters/mock_paycard/</code></td></tr>
+    <tr><td><strong>Clustering</strong></td><td>Two-stage grouping of failures into ranked unique bugs mapped back to journeys, invariants, and reproducing chats.</td><td><code>agentsim/clustering.py</code></td></tr>
+  </table>
+
+  <p class="followup">Part of the agent-simulator course · <a href="../lessons/0001-the-adapter-seam.html">Lesson 0001</a></p>
+</main>
+</body>
+</html>

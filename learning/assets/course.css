@@ -1,0 +1,188 @@
+/* Shared course stylesheet — every lesson and reference doc links this.
+   Palette matches the repo's visual-story artifacts so the course reads as
+   one system. Light/dark via prefers-color-scheme; print-friendly. */
+
+:root {
+  --bg: #f4f6f5;
+  --surface: #ffffff;
+  --ink: #1d2a32;
+  --muted: #5c6b76;
+  --line: #d3dad8;
+  --accent: #0f766e;   /* petrol teal — the machine / knowledge */
+  --goal: #b7791f;     /* amber — goals & tool calls */
+  --persona: #7c4a8f;  /* plum — customers & personas */
+  --bug: #b0392e;      /* failures */
+  --ok: #2e7d4f;       /* passes */
+  --chip-know-bg: #ddefec;
+  --chip-goal-bg: #f6ecd9;
+  --chip-persona-bg: #eee2f2;
+  --chip-bug-bg: #f6e2df;
+  --chip-ok-bg: #e0efe5;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #131a1e;
+    --surface: #1b2429;
+    --ink: #e7eceb;
+    --muted: #97a5ab;
+    --line: #33414a;
+    --accent: #45b8ab;
+    --goal: #d9a04a;
+    --persona: #b583c7;
+    --bug: #e07364;
+    --ok: #62b585;
+    --chip-know-bg: #17302d;
+    --chip-goal-bg: #33291a;
+    --chip-persona-bg: #2d2233;
+    --chip-bug-bg: #362020;
+    --chip-ok-bg: #1b3024;
+  }
+}
+@media print {
+  :root { --bg: #ffffff; --surface: #ffffff; }
+  .quiz, .followup { display: none; }
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "Avenir Next", "Avenir", "Segoe UI", system-ui, sans-serif;
+  line-height: 1.55;
+  margin: 0;
+}
+main {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 3rem 1.25rem 4rem;
+}
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--accent);
+  margin: 0 0 0.6rem;
+}
+h1 {
+  font-size: clamp(1.9rem, 5.5vw, 2.7rem);
+  font-weight: 700;
+  line-height: 1.1;
+  margin: 0 0 0.8rem;
+  text-wrap: balance;
+}
+h2 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  margin: 2.2rem 0 0.5rem;
+}
+p, li { color: var(--ink); font-size: 1rem; max-width: 62ch; }
+p.muted, .muted { color: var(--muted); }
+a { color: var(--accent); }
+strong { font-weight: 650; }
+
+code, pre code {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 0.85em;
+}
+code {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 0.1em 0.35em;
+}
+pre {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 1rem 1.2rem;
+  overflow-x: auto;
+}
+pre code { background: none; border: none; padding: 0; }
+
+figure {
+  margin: 1.2rem 0;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 1.3rem 1.1rem 0.9rem;
+  overflow-x: auto;
+}
+figure svg { display: block; max-width: 100%; height: auto; margin: 0 auto; }
+figcaption {
+  font-size: 0.85rem;
+  color: var(--muted);
+  text-align: center;
+  margin-top: 0.8rem;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.92rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+th, td { text-align: left; padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+tr:last-child td { border-bottom: none; }
+
+.callout {
+  background: var(--surface);
+  border: 1px dashed var(--accent);
+  border-radius: 10px;
+  padding: 0.9rem 1.1rem;
+  font-size: 0.92rem;
+  margin: 1.2rem 0;
+}
+.callout .label {
+  display: block;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 0.4rem;
+}
+
+/* Quiz component — used with assets/quiz.js */
+.quiz {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 1.1rem 1.2rem;
+  margin: 1.2rem 0;
+}
+.quiz .q { font-weight: 650; margin: 0 0 0.7rem; }
+.quiz .opts { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.quiz button {
+  font: inherit;
+  font-size: 0.92rem;
+  color: var(--ink);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0.35rem 0.9rem;
+  cursor: pointer;
+}
+.quiz button:hover { border-color: var(--accent); }
+.quiz button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.quiz button.correct { background: var(--chip-ok-bg); border-color: var(--ok); color: var(--ok); font-weight: 700; }
+.quiz button.wrong { background: var(--chip-bug-bg); border-color: var(--bug); color: var(--bug); }
+.quiz .feedback { margin: 0.7rem 0 0; font-size: 0.88rem; color: var(--muted); min-height: 1.2em; }
+
+.followup {
+  border-top: 1px solid var(--line);
+  margin-top: 2.5rem;
+  padding-top: 1.2rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+nav.lesson-nav {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  font-size: 0.9rem;
+}

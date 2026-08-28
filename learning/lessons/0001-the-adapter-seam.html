@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0001 — The Adapter Seam</title>
+<link rel="stylesheet" href="../assets/course.css">
+<script src="../assets/quiz.js" defer></script>
+</head>
+<body>
+<main>
+  <p class="eyebrow">Lesson 0001 · Agent Simulator course</p>
+  <h1>The Adapter Seam</h1>
+  <p class="muted">One tangible win: after this lesson you can explain why the
+  entire test suite swaps a mock assistant for the real one with ~30 lines of
+  code — and read the loop that makes it true.</p>
+
+  <h2>The one interface everything hangs on</h2>
+  <p>The core loop never knows <em>what</em> it's testing. It only knows this
+  contract, from <code>agentsim/adapters/base.py</code> (whose docstring opens,
+  literally, with <em>"The seam."</em>):</p>
+
+<pre><code>class AgentAdapter(ABC):
+    @abstractmethod
+    async def call(self, input: AgentInput) -&gt; AgentResponse: ...</code></pre>
+
+  <p>One async method. In: the conversation so far. Out: the assistant's next
+  reply. Everything else — mock vs real, stateful vs stateless — is the
+  adapter's private business, keyed by <code>AgentInput.conversation_id</code>.</p>
+
+  <figure>
+    <svg viewBox="0 0 660 250" role="img" aria-label="The orchestrator loop cycles simulator to adapter to judge; behind the adapter seam sit two interchangeable implementations: the mock with planted defects and the real agent over HTTP.">
+      <defs>
+        <marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+        </marker>
+      </defs>
+      <g fill="none" stroke="currentColor" stroke-width="1.5">
+        <rect x="20" y="90" width="150" height="60" rx="10"/>
+        <rect x="250" y="90" width="150" height="60" rx="10"/>
+      </g>
+      <text class="svg-label" x="95" y="115" text-anchor="middle" font-size="13" font-weight="600" fill="currentColor">UserSimulator</text>
+      <text class="svg-label" x="95" y="135" text-anchor="middle" font-size="11" fill="var(--muted)">plays the customer</text>
+      <text class="svg-label" x="325" y="115" text-anchor="middle" font-size="13" font-weight="600" fill="currentColor">Judge + assertions</text>
+      <text class="svg-label" x="325" y="135" text-anchor="middle" font-size="11" fill="var(--muted)">referee every turn</text>
+      <line x1="175" y1="120" x2="243" y2="120" stroke="currentColor" stroke-width="1.5" marker-end="url(#a1)"/>
+      <g stroke="var(--accent)" stroke-width="2">
+        <line x1="455" y1="40" x2="455" y2="210" stroke-dasharray="7 5"/>
+      </g>
+      <text x="455" y="28" text-anchor="middle" font-size="11.5" font-weight="700" fill="var(--accent)">the seam · call()</text>
+      <line x1="405" y1="110" x2="500" y2="75" stroke="currentColor" stroke-width="1.5" marker-end="url(#a1)"/>
+      <line x1="405" y1="130" x2="500" y2="175" stroke="currentColor" stroke-width="1.5" marker-end="url(#a1)"/>
+      <g fill="none" stroke="currentColor" stroke-width="1.5">
+        <rect x="505" y="50" width="140" height="52" rx="10"/>
+        <rect x="505" y="155" width="140" height="52" rx="10"/>
+      </g>
+      <text x="575" y="72" text-anchor="middle" font-size="12" font-weight="600" fill="currentColor">MockPayCardAgent</text>
+      <text x="575" y="90" text-anchor="middle" font-size="10.5" fill="var(--muted)">defects D1–D7 toggleable</text>
+      <text x="575" y="177" text-anchor="middle" font-size="12" font-weight="600" fill="currentColor">HTTPAgentAdapter</text>
+      <text x="575" y="195" text-anchor="middle" font-size="10.5" fill="var(--muted)">the real assistant</text>
+    </svg>
+    <figcaption>Left of the dashed line, nothing changes when you swap what's on the right. That's the whole trick.</figcaption>
+  </figure>
+
+  <h2>What crosses the seam</h2>
+  <p>Two small dataclasses in <code>agentsim/types.py</code> — whose docstring
+  calls OpenAI-style message dicts "the lingua franca between every
+  component":</p>
+  <table>
+    <tr><th>Type</th><th>Carries</th><th>The non-obvious bit</th></tr>
+    <tr><td><code>AgentInput</code></td><td><code>conversation_id</code> + the <code>Message</code> list (role/content)</td><td>Multi-turn state is the <em>adapter's</em> problem, not the loop's.</td></tr>
+    <tr><td><code>AgentResponse</code></td><td>reply <code>content</code> + <code>tool_calls</code> + <code>selected_card</code></td><td>Each <code>ToolCall</code> carries its <strong>result</strong> — judges and assertions need results, not just calls.</td></tr>
+  </table>
+
+  <h2>The loop that drives it</h2>
+  <p><code>agentsim/orchestrator.py</code> runs: simulator → adapter →
+  judge, turn after turn, until the customer sends
+  <code>###STOP###</code>, the judge reaches a verdict, or
+  <code>max_turns</code> runs out. One design decision to remember —
+  it's fail-closed:</p>
+  <div class="callout">
+    <span class="label">Design decision</span>
+    <p>Reaching <code>max_turns</code> without goal completion is recorded as
+    <code>task_incomplete</code> — a <strong>failure</strong>, never a shrug.
+    Same spirit as the judge: a criterion passes only on an explicit
+    <code>true</code>. Silence never passes anything.</p>
+  </div>
+
+  <h2>Check yourself</h2>
+
+  <div class="quiz"
+       data-explain-right="One async method — call(AgentInput) → AgentResponse. That's the entire contract."
+       data-explain-wrong="Look at the ABC in agentsim/adapters/base.py again.">
+    <p class="q">Every adapter must implement exactly one method. Which?</p>
+    <div class="opts">
+      <button>step</button>
+      <button data-correct>call</button>
+      <button>send</button>
+      <button>next</button>
+    </div>
+    <p class="feedback"></p>
+  </div>
+
+  <div class="quiz"
+       data-explain-right="ToolCall carries name, arguments, and result — because verdicts need what the tool returned, not just that it was called."
+       data-explain-wrong="Think about what a judge would need to check 'tool output is the source of truth'."
+  >
+    <p class="q">Besides name and arguments, what does a <code>ToolCall</code> carry?</p>
+    <div class="opts">
+      <button>timing</button>
+      <button>tokens</button>
+      <button data-correct>result</button>
+      <button>schema</button>
+    </div>
+    <p class="feedback"></p>
+  </div>
+
+  <div class="quiz"
+       data-explain-right="task_incomplete — running out of turns without the goal done is a recorded failure. The harness is fail-closed everywhere."
+       data-explain-wrong="Remember: silence never passes anything in this codebase.">
+    <p class="q">The chat hits <code>max_turns</code> and the goal isn't done. The run is…</p>
+    <div class="opts">
+      <button>quietly dropped</button>
+      <button>judged passing</button>
+      <button data-correct>task incomplete</button>
+      <button>retried again</button>
+    </div>
+    <p class="feedback"></p>
+  </div>
+
+  <h2>Primary source</h2>
+  <p>Read <a href="../../agentsim/adapters/base.py"><code>agentsim/adapters/base.py</code></a>
+  (22 lines — the seam itself) and the module docstring plus first 60 lines of
+  <a href="../../agentsim/types.py"><code>agentsim/types.py</code></a>. Ten
+  minutes, and you've read the load-bearing wall of the whole system.</p>
+
+  <nav class="lesson-nav">
+    <span><a href="../reference/glossary.html">Glossary</a></span>
+    <span class="muted">Next: how the UserSimulator role-reverses the chat</span>
+  </nav>
+
+  <p class="followup">Stuck or curious? Ask your teacher (the agent) anything —
+  "why async?", "who creates the adapter?", "show me the HTTP adapter's TODOs" —
+  it can open any file and walk you through it.</p>
+</main>
+</body>
+</html>
