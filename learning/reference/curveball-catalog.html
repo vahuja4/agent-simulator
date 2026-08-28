@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Curveball Catalog — Agent Simulator</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+<main>
+  <p class="eyebrow">Reference · Agent Simulator course</p>
+  <h1>The Curveball Catalog</h1>
+  <p class="muted">Every perturbation that exists, verbatim from
+  <code>scenario_synthesis/procedures/j1.yaml</code>. The set is closed by
+  declaration: no global enum exists in code — a perturbation is real only if
+  an edge declares it, and the validator rejects any blueprint using an
+  undeclared (type, position) pair or an edge its path doesn't traverse.</p>
+
+  <table>
+    <tr><th>#</th><th>Type</th><th>Edge (the move)</th><th>Position</th><th>Executable trigger</th><th>Vs mock</th></tr>
+    <tr><td>1</td><td><code>partial_disclosure</code></td><td>disclose → select_card</td><td>after_disclosure</td><td>customer fact <code>disclosure_style: one_fact_at_a_time</code></td><td>✓</td></tr>
+    <tr><td>2</td><td><code>card_switch</code></td><td>fetch_options → select_card <em>(loop back)</em></td><td>after_options</td><td>two distinct cards bound in goal facts</td><td>✓</td></tr>
+    <tr><td>3</td><td><code>validation_warning</code></td><td>fetch_options → validate</td><td>at_validation</td><td><code>validation_outcome: warning</code></td><td>✗ parked</td></tr>
+    <tr><td>4</td><td><code>validation_block</code></td><td>fetch_options → validate</td><td>at_validation</td><td><code>validation_outcome: blocking_error</code></td><td>✗ parked</td></tr>
+    <tr><td>5</td><td><code>validation_retry</code></td><td>validate → validate <em>(self-loop)</em></td><td>after_validation</td><td><code>validation_outcome: retry</code></td><td>✗ parked</td></tr>
+    <tr><td>6</td><td><code>submission_failure</code></td><td>confirm → submit <strong>and</strong> submit → handle_failure</td><td>at_submission / after_submission</td><td>custom amount &gt; <code>LARGE_PAYMENT_THRESHOLD</code></td><td>✓</td></tr>
+  </table>
+
+  <h2>The rules that bound the set</h2>
+  <ul>
+    <li><strong>Finite by declaration.</strong> 6 types, 7 declaration sites.
+      The graph file is the single authority; <code>blueprint.py</code> stores
+      only <code>(type, position)</code> strings and the validator checks them
+      against the traversed edges.</li>
+    <li><strong>Journey-specific, twice.</strong> Graphs are per-journey (only
+      J1 exists today → J2–J5 have no perturbations yet), and within a journey
+      each perturbation is pinned to specific edges, not "anywhere".</li>
+    <li><strong>At most two per blueprint</strong>
+      (<code>MAX_PERTURBATIONS = 2</code> in <code>enumerate.py</code>), so a
+      failing test points at a clear cause.</li>
+    <li><strong>Compiled into the customer.</strong> <code>_goal_facts()</code>
+      turns each into a customer habit, a data binding, or an amount — never a
+      script for the assistant.</li>
+    <li><strong>Parked ≠ deleted.</strong> The three validation types are
+      declared (the journey defines those outcomes) but marked
+      <code>non_executable_against: mock</code>; blueprints using them are
+      parked in <code>generated_scenarios/unexecutable_blueprints/</code> with
+      the reason.</li>
+    <li><strong>How the set grows.</strong> A new documented journey behavior
+      or observed customer shape → a new edge declaration with an executable
+      trigger. Never a free-form addition (the graph "must be derived from the
+      approved journey definitions").</li>
+  </ul>
+
+  <p class="followup">Part of the agent-simulator course ·
+  <a href="../lessons/0002-personas-and-curveballs.html">Lesson 0002</a> ·
+  <a href="glossary.html">Glossary</a></p>
+</main>
+</body>
+</html>
