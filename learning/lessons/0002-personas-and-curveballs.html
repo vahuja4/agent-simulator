@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0002 — Personas &amp; Curveballs</title>
+<link rel="stylesheet" href="../assets/course.css">
+<script src="../assets/quiz.js" defer></script>
+</head>
+<body>
+<main>
+  <p class="eyebrow">Lesson 0002 · Agent Simulator course</p>
+  <h1>Where Personas and Curveballs Actually Enter</h1>
+  <p class="muted">One tangible win: you can point at the exact lines where a
+  curveball gets into a generated test, and the exact mechanism that stops the
+  LLM from inventing a persona.</p>
+
+  <h2>The factory, with its three entry points</h2>
+  <figure>
+    <svg viewBox="0 0 660 240" role="img" aria-label="Pipeline from journey map to blueprint to scenario YAML. Curveballs enter at the map's edges and are compiled into goal facts; personas enter at realization from a whitelist; a fact-check gate guards the output.">
+      <defs>
+        <marker id="b1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+        </marker>
+      </defs>
+      <g fill="none" stroke="currentColor" stroke-width="1.5">
+        <rect x="15" y="80" width="150" height="60" rx="10"/>
+        <rect x="255" y="80" width="150" height="60" rx="10"/>
+        <rect x="495" y="80" width="150" height="60" rx="10"/>
+      </g>
+      <text x="90" y="105" text-anchor="middle" font-size="12.5" font-weight="600" fill="currentColor">journey map</text>
+      <text x="90" y="123" text-anchor="middle" font-size="10.5" fill="var(--muted)">procedures/j1.yaml</text>
+      <text x="330" y="105" text-anchor="middle" font-size="12.5" font-weight="600" fill="currentColor">blueprint</text>
+      <text x="330" y="123" text-anchor="middle" font-size="10.5" fill="var(--muted)">goal_facts, no prose</text>
+      <text x="570" y="105" text-anchor="middle" font-size="12.5" font-weight="600" fill="currentColor">scenario YAML</text>
+      <text x="570" y="123" text-anchor="middle" font-size="10.5" fill="var(--muted)">persona + goal prose</text>
+      <g stroke="currentColor" stroke-width="1.5" fill="none">
+        <line x1="170" y1="110" x2="247" y2="110" marker-end="url(#b1)"/>
+        <line x1="410" y1="110" x2="487" y2="110" marker-end="url(#b1)"/>
+      </g>
+      <text x="208" y="98" text-anchor="middle" font-size="10.5" fill="var(--muted)">enumerate.py</text>
+      <text x="448" y="98" text-anchor="middle" font-size="10.5" fill="var(--muted)">realize.py</text>
+      <g stroke="var(--bug)" stroke-width="1.5" fill="none">
+        <line x1="90" y1="45" x2="90" y2="72" marker-end="url(#b1)" stroke-dasharray="4 3"/>
+      </g>
+      <text x="90" y="32" text-anchor="middle" font-size="11" font-weight="700" fill="var(--bug)">⚡ curveballs declared here</text>
+      <g stroke="var(--persona)" stroke-width="1.5" fill="none">
+        <line x1="448" y1="180" x2="448" y2="148" marker-end="url(#b1)" stroke-dasharray="4 3"/>
+      </g>
+      <text x="448" y="200" text-anchor="middle" font-size="11" font-weight="700" fill="var(--persona)">persona whitelist enters here</text>
+      <g stroke="var(--accent)" stroke-width="1.5" fill="none">
+        <line x1="570" y1="180" x2="570" y2="148" marker-end="url(#b1)" stroke-dasharray="4 3"/>
+      </g>
+      <text x="572" y="200" text-anchor="middle" font-size="11" font-weight="700" fill="var(--accent)">fact-check gate guards here</text>
+    </svg>
+    <figcaption>Three entry points, three different mechanisms: declaration, whitelisting, verification.</figcaption>
+  </figure>
+
+  <h2>1 · A curveball is compiled into customer facts</h2>
+  <p>Declared on one edge of the map (<code>valid_perturbations</code> in
+  <code>procedures/j1.yaml</code>), chosen by the enumerator (every subset of
+  what the path allows, at most two), and then — the key move — <strong>compiled
+  into the customer</strong> by <code>_goal_facts()</code> in
+  <code>scenario_synthesis/enumerate.py:400</code>:</p>
+
+<pre><code>if "partial_disclosure" in perturbation_types:
+    facts["disclosure_style"] = "one_fact_at_a_time"   # drip-feed = a customer habit
+if CARD_SWITCH_EDGE in path and len(bindings.cards) &gt; 1:
+    facts["initial_card_last_four"] = bindings.cards[0]  # switch = two bound cards
+    facts["final_card_last_four"]   = bindings.cards[1]
+if "submission_failure" in perturbation_types:
+    facts["amount_type"] = "custom"
+    facts["amount"] = LARGE_PAYMENT_THRESHOLD + 1000.0   # failure = the data itself</code></pre>
+
+  <div class="callout">
+    <span class="label">The insight</span>
+    <p>No curveball ever scripts the assistant. Drip-feed becomes a customer
+    <em>habit</em>, card-switch becomes two bound <em>cards</em>, submission
+    failure becomes an <em>amount</em> $1,000 over the large-payment threshold —
+    so the mock's submit genuinely fails. The assistant's unscripted reaction is
+    the thing being tested.</p>
+  </div>
+
+  <h2>2 · A persona is picked from a menu the LLM can't escape</h2>
+  <p>At realization, the persona has exactly four dimensions with two allowed
+  values each (<code>scenario_synthesis/persona_traits.yaml</code>):</p>
+  <table>
+    <tr><th>Dimension</th><th>Allowed values</th></tr>
+    <tr><td>patience</td><td>patient · mildly_impatient</td></tr>
+    <tr><td>attention_to_amounts</td><td>attentive_to_amounts · trusts_presented_amounts</td></tr>
+    <tr><td>disclosure_style</td><td>concise_upfront · answers_as_asked</td></tr>
+    <tr><td>decisiveness</td><td>decisive · changes_mind_once</td></tr>
+  </table>
+  <p>The whitelist isn't a suggestion in the prompt — <code>realize.py</code>
+  turns it into the <strong>JSON schema of the LLM's forced structured
+  output</strong>: each dimension is an enum field. An off-menu trait isn't
+  rejected later; it can't be produced at all. The four picked values are then
+  joined into the trait string the simulator will actually role-play:
+  <em>"patient, attentive to amounts, answers as asked, changes mind once"</em>
+  — which is verbatim the persona of generated scenario
+  <code>j1-0d64354fd7908d7b</code>, a card-switch test. Notice the coherence:
+  a customer who switches cards <em>is</em> one who "changes mind once".</p>
+  <p class="muted">Two more persona layers to know about: reviewed behavioral
+  <strong>archetypes</strong> (cooperative, pressure, vigilant, persistent) in
+  <code>scenario_synthesis/contracts/persona-archetypes.yaml</code>, mapped to
+  every hand-written scenario per ADR-0003 — and runtime <strong>overlays</strong>
+  (<code>persona_variants/</code>) that append a mood without touching goal or
+  facts.</p>
+
+  <h2>3 · The gate that keeps the prose honest</h2>
+  <p>The writer LLM is instructed: <em>"Realize only the supplied scenario
+  facts. Do not invent numbers, identifiers, dates, accounts, amounts, tools,
+  or persona traits."</em> But instruction is not enforcement —
+  <code>_check_equivalence()</code> (<code>realize.py:418</code>) is. It
+  regex-extracts from the generated prose:</p>
+  <ul>
+    <li>every bare <strong>number</strong>, every <strong>$-amount</strong>, every <strong>date</strong>,</li>
+    <li>every <strong>registry tool name</strong> mentioned,</li>
+  </ul>
+  <p>and requires each one to exist in the serialized blueprint. Any orphan
+  fact → <code>RealizationError</code>, one retry with the rejection reason
+  pasted into the prompt ("The prior output was rejected: … Correct it."),
+  then hard failure. Creativity in wording, zero creativity in facts.</p>
+
+  <h2>Check yourself</h2>
+
+  <div class="quiz"
+       data-explain-right="On the edges of the procedure graph — each edge's valid_perturbations block, with a position and an executable trigger."
+       data-explain-wrong="Think about which file records where a surprise is *allowed* to strike.">
+    <p class="q">Where is a curveball declared?</p>
+    <div class="opts">
+      <button>in policies file</button>
+      <button data-correct>on graph edges</button>
+      <button>in fixtures data</button>
+      <button>in judge prompts</button>
+    </div>
+    <p class="feedback"></p>
+  </div>
+
+  <div class="quiz"
+       data-explain-right="Goal facts — a curveball becomes a customer habit, a data binding, or an amount. The assistant is never scripted."
+       data-explain-wrong="Recall _goal_facts() in enumerate.py — what does it write into?">
+    <p class="q">During enumeration, a curveball is compiled into…</p>
+    <div class="opts">
+      <button>judge rules</button>
+      <button>tool schemas</button>
+      <button data-correct>goal facts</button>
+      <button>agent prompts</button>
+    </div>
+    <p class="feedback"></p>
+  </div>
+
+  <div class="quiz"
+       data-explain-right="A whitelist enum — the trait dimensions become the JSON schema of the forced structured output, so off-menu traits can't exist."
+       data-explain-wrong="It's stronger than a prompt instruction and earlier than a review.">
+    <p class="q">What stops the LLM from inventing persona traits?</p>
+    <div class="opts">
+      <button>a human review</button>
+      <button data-correct>a whitelist enum</button>
+      <button>a judge model</button>
+      <button>a retry prompt</button>
+    </div>
+    <p class="feedback"></p>
+  </div>
+
+  <div class="quiz"
+       data-explain-right="Numbers, $-amounts, dates, and tool names — each extracted from the prose must already exist in the serialized blueprint."
+       data-explain-wrong="The gate is regex-based and literal. What kinds of tokens can a regex reliably catch?">
+    <p class="q">The fact-check gate extracts and verifies which tokens?</p>
+    <div class="opts">
+      <button>verbs and adjectives</button>
+      <button>persona trait words</button>
+      <button data-correct>numbers and tools</button>
+      <button>criteria sentences</button>
+    </div>
+    <p class="feedback"></p>
+  </div>
+
+  <h2>Primary source</h2>
+  <p>Read, in order:
+  <a href="../../scenario_synthesis/procedures/j1.yaml"><code>procedures/j1.yaml</code></a>
+  (the six <code>valid_perturbations</code> blocks),
+  <a href="../../scenario_synthesis/enumerate.py"><code>enumerate.py</code></a>
+  from <code>_goal_facts</code> (line 400), and
+  <a href="../../scenario_synthesis/realize.py"><code>realize.py</code></a>
+  from <code>realize_blueprint</code> (line 118) through
+  <code>_check_equivalence</code> (line 418). ~15 minutes.</p>
+
+  <nav class="lesson-nav">
+    <span><a href="0001-the-adapter-seam.html">← 0001 The Adapter Seam</a> · <a href="../reference/glossary.html">Glossary</a></span>
+    <span class="muted">Next: the judge &amp; assertions — how verdicts are made</span>
+  </nav>
+
+  <p class="followup">Questions to throw at your teacher: "why regex and not an
+  LLM for the gate?" · "what happens if both realization attempts fail?" ·
+  "show me a parked non-executable blueprint" — it can open any file and walk
+  you through it.</p>
+</main>
+</body>
+</html>
