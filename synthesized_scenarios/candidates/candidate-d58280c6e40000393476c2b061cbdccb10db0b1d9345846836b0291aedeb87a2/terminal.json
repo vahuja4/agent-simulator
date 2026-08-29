@@ -1,0 +1,10 @@
+{
+  "admission_sha256": "5d829eb313e476a5cf0f3f25a4692af8a1f2b8b29113473b04e4040ab4ca082e",
+  "candidate_id": "candidate-d58280c6e40000393476c2b061cbdccb10db0b1d9345846836b0291aedeb87a2",
+  "detection_unproven": true,
+  "library_path": "library/synth-ecbf1aff1445-3294d7b49232.yaml",
+  "qualification_id": "qualification-368424e1e937b968bcc8b470aa8fb516c43980d14b4789c6ea07ebc15f71ccc8",
+  "schema_version": 1,
+  "status": "admitted",
+  "terminal_at": "2026-08-29T05:37:38.648841Z"
+}

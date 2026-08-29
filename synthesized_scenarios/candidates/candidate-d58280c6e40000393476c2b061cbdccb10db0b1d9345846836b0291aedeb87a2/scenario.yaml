@@ -1,0 +1,38 @@
+name: synth-ecbf1aff1445-3294d7b49232
+journey: J1
+description: Assist the customer with setting up a one-time payment for card ending
+  in 9013, using account ending in 5678. The customer needs the statement balance
+  payment amount on the due date. Because their knowledge level is low and they have
+  a material fluency gap about payment amount types, clearly distinguish the statement
+  balance from other payment amount options before confirmation and submission.
+persona:
+  name: Cooperative customer
+  traits: Cooperative and receptive to guidance; has low knowledge and needs help
+    understanding the payment amount type.
+goal: Set up and submit a validated one-time payment for the statement balance on
+  the due date for card ending in 9013 using account ending in 5678.
+knowledge:
+  cards:
+  - '9013'
+  accounts:
+  - '5678'
+success_criteria:
+- The card ending in 9013 is selected.
+- Payment options are fetched and include the statement balance amount.
+- The statement balance is identified as the payment amount type.
+- The due date is selected.
+- The payment is validated with AddValidateOneTimePayment.
+- The validated payment is submitted with AddOneTimePayment.
+max_turns: 10
+tool_assertions:
+- type: amount_in_options
+- type: validated_submit
+  submit: AddOneTimePayment
+  validate: AddValidateOneTimePayment
+synthesis:
+  schema_version: 1
+  origin: synthesized
+  candidate_id: candidate-d58280c6e40000393476c2b061cbdccb10db0b1d9345846836b0291aedeb87a2
+  blueprint_id: blueprint-7d9a9dfb615dabb85d3baf622f20418d5a3b3a863606258b0ea4d24c0188e7a0
+  cell_id: cell-ecbf1aff14454844ace6f1119cad7223b00355053952bede562b4b709e01cd55
+  blueprint_content_hash: 7d9a9dfb615dabb85d3baf622f20418d5a3b3a863606258b0ea4d24c0188e7a0

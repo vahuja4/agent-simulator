@@ -1,0 +1,20 @@
+{
+  "rulings": [
+    {
+      "criterion_id": "simulator_factual_grounding",
+      "passed": true,
+      "reasoning": "The customer requested a payment using facts supported by the trace: card ending 9013, Chase Total Checking ending 5678, statement balance, and due date June 20. No unsupported amount, account, card, or prior action was introduced."
+    },
+    {
+      "criterion_id": "simulator_confirmation_timing",
+      "passed": true,
+      "reasoning": "The customer only confirmed after the assistant presented the validated payment details\u2014$875.20, Chase Sapphire Preferred (...9013), Chase Total Checking (...5678), June 20, 2026\u2014and asked for confirmation."
+    },
+    {
+      "criterion_id": "simulator_goal_persistence",
+      "passed": true,
+      "reasoning": "The customer consistently pursued the original goal of scheduling a one-time statement-balance payment and confirmed scheduling when prompted. The payment was successfully scheduled."
+    }
+  ],
+  "schema_version": 1
+}

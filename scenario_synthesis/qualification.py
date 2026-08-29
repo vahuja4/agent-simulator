@@ -369,10 +369,17 @@ def qualify_candidate(
     if (candidate.bundle / "terminal.json").exists():
         return _load_existing_result(candidate, bundle, root, replacement_provider)
     if bundle.exists():
-        if (bundle / "qualification.json").is_file() and (bundle / "admission.json").is_file():
-            return _resume_incomplete(
-                candidate, bundle, root, replacement_provider, config, contracts
-            )
+        if (bundle / "qualification.json").is_file():
+            if (bundle / "admission.json").is_file():
+                return _resume_incomplete(
+                    candidate, bundle, root, replacement_provider, config, contracts
+                )
+            try:
+                return _resume_qualification_evaluation(
+                    candidate, bundle, root, replacement_provider, config, contracts
+                )
+            except CandidateError:
+                pass
         quarantine = bundle.with_name(
             bundle.name + ".corrupt-" + datetime.now(UTC).strftime("%Y%m%d%H%M%S%f")
         )
@@ -527,58 +534,111 @@ def qualify_candidate(
         }
         qualification_path = bundle / "qualification.json"
         atomic_json(qualification_path, qualification_record)
-        episode_records = list(
-            _validate_evidence_or_reject(
-                candidate,
-                bundle,
-                root,
-                lambda: _validate_qualification_evidence(
-                    candidate,
-                    bundle,
-                    root,
-                    snapshot.sha256,
-                    contracts.hashes,
-                    repetitions=repetitions,
-                    expected_failure=expected_failure,
-                    defect_toggles=toggles,
-                ),
-            )
-        )
-        decision = evaluate_admission(
-            tuple(episode_records),
-            expected_failure=expected_failure,
-            repetitions=repetitions,
-            required_assertions=tuple(
-                assertion.type for assertion in candidate.blueprint.required_assertions
-            ),
-            required_criteria=candidate.blueprint.required_criteria,
-        )
-        exhausted = not decision.admitted and candidate.ordinal >= int(
-            config.content["limits"]["replacement_bound"]
-        )
-        admission_record = {
-            "schema_version": 1,
-            "qualification_id": qualification_id,
-            "candidate_id": candidate_id,
-            "cell_id": candidate.cell_id,
-            "candidate_ordinal": candidate.ordinal,
-            "status": decision.status,
-            "reason_code": decision.reason_code,
-            "detection_unproven": decision.detection_unproven,
-            "attribution": [dict(item) for item in decision.attribution],
-            "n_split": qualification_record["n_split"],
-            "evidence": [*episode_refs, evidence_reference(qualification_path, root=root)],
-            "config_snapshot_hash": snapshot.sha256,
-            "contract_hashes": contracts.hashes,
-            "regeneration_exhausted": exhausted,
-            "decided_at": qualified_at,
-        }
-        admission_path = bundle / "admission.json"
-        atomic_json(admission_path, admission_record)
+        _write_admission_from_qualification(candidate, bundle, root, config, contracts)
         return _resume_incomplete(
             candidate, bundle, root, replacement_provider, config, contracts,
             _cell_lock_held=True,
         )
+
+
+def _resume_qualification_evaluation(
+    candidate: Candidate,
+    bundle: Path,
+    root: Path,
+    replacement_provider: RealizationProvider | None,
+    config: Any,
+    contracts: ContractSet,
+) -> QualificationResult:
+    """Evaluate complete Episode evidence after interruption before admission."""
+    with exclusive_lock(
+        root / "locks" / f"{candidate.cell_id}.lock", command="resume-qualify"
+    ):
+        RejectionLedger(root).records()
+        expected_failure, toggles = _fitness_contract(candidate, contracts)
+        repetitions = int(config.content["limits"]["admission_repetitions"])
+        snapshot = create_config_snapshot(config=config, contracts=contracts)
+        _validate_qualification_evidence(
+            candidate,
+            bundle,
+            root,
+            snapshot.sha256,
+            contracts.hashes,
+            repetitions=repetitions,
+            expected_failure=expected_failure,
+            defect_toggles=toggles,
+        )
+        _write_admission_from_qualification(candidate, bundle, root, config, contracts)
+        return _resume_incomplete(
+            candidate,
+            bundle,
+            root,
+            replacement_provider,
+            config,
+            contracts,
+            _cell_lock_held=True,
+        )
+
+
+def _write_admission_from_qualification(
+    candidate: Candidate,
+    bundle: Path,
+    root: Path,
+    config: Any,
+    contracts: ContractSet,
+) -> None:
+    qualification_path = bundle / "qualification.json"
+    qualification = json.loads(qualification_path.read_text(encoding="utf-8"))
+    expected_failure, toggles = _fitness_contract(candidate, contracts)
+    repetitions = int(config.content["limits"]["admission_repetitions"])
+    snapshot = create_config_snapshot(config=config, contracts=contracts)
+    episode_records = _validate_evidence_or_reject(
+        candidate,
+        bundle,
+        root,
+        lambda: _validate_qualification_evidence(
+            candidate,
+            bundle,
+            root,
+            snapshot.sha256,
+            contracts.hashes,
+            repetitions=repetitions,
+            expected_failure=expected_failure,
+            defect_toggles=toggles,
+        ),
+    )
+    decision = evaluate_admission(
+        episode_records,
+        expected_failure=expected_failure,
+        repetitions=repetitions,
+        required_assertions=tuple(
+            assertion.type for assertion in candidate.blueprint.required_assertions
+        ),
+        required_criteria=candidate.blueprint.required_criteria,
+    )
+    exhausted = not decision.admitted and candidate.ordinal >= int(
+        config.content["limits"]["replacement_bound"]
+    )
+    admission_record = {
+        "schema_version": 1,
+        "qualification_id": bundle.name,
+        "candidate_id": candidate.candidate_id,
+        "cell_id": candidate.cell_id,
+        "candidate_ordinal": candidate.ordinal,
+        "status": decision.status,
+        "reason_code": decision.reason_code,
+        "detection_unproven": decision.detection_unproven,
+        "attribution": [dict(item) for item in decision.attribution],
+        "n_split": qualification["n_split"],
+        "evidence": [
+            *qualification["episodes"],
+            evidence_reference(qualification_path, root=root),
+        ],
+        "config_snapshot_hash": snapshot.sha256,
+        "contract_hashes": contracts.hashes,
+        "regeneration_exhausted": exhausted,
+        "decided_at": qualification["qualified_at"],
+    }
+    atomic_json(bundle / "admission.json", admission_record)
 
 
 def _revalidate_candidate(candidate: Candidate, config_hash: str, contracts: ContractSet) -> None:
@@ -771,6 +831,8 @@ def _validate_qualification_evidence(
     expected_failure: Mapping[str, str] | None,
     defect_toggles: tuple[str, ...],
 ) -> tuple[Mapping[str, Any], ...]:
+    root = root.resolve()
+    bundle = bundle.resolve()
     qualification_path = bundle / "qualification.json"
     try:
         qualification = json.loads(qualification_path.read_text(encoding="utf-8"))

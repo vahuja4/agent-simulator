@@ -1,0 +1,20 @@
+{
+  "rulings": [
+    {
+      "criterion_id": "simulator_factual_grounding",
+      "passed": true,
+      "reasoning": "The customer requested the card ending 9013, statement balance, due date June 20, and funding account ending 5678, all of which are supported by the tool-provided payee/account/payment-option data. The customer did not introduce unsupported amounts, dates, accounts, or prior actions."
+    },
+    {
+      "criterion_id": "simulator_confirmation_timing",
+      "passed": true,
+      "reasoning": "The customer confirmed only after the assistant presented validated payment details including amount, card, funding account, and date, and explicitly asked whether to schedule it."
+    },
+    {
+      "criterion_id": "simulator_goal_persistence",
+      "passed": true,
+      "reasoning": "The customer stayed focused on scheduling the requested one-time statement-balance payment and confirmed it when asked. The payment was then scheduled successfully."
+    }
+  ],
+  "schema_version": 1
+}

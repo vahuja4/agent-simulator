@@ -20,6 +20,8 @@ filenames, and prose.
 - The expected baseline is recorded in `ENVIRONMENT.md`. Run the full baseline
   test suite and verify its result before code changes unless the current prompt
   imposes a narrower read boundary.
+- Before an approved live LLM command, export the ignored `.env` into the command
+  environment without printing secrets and verify that credentials are available.
 
 ## Project invariants
 

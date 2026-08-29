@@ -326,6 +326,69 @@ def test_completed_qualification_is_idempotently_reused(
     assert second.library_path == first.library_path
 
 
+def test_qualification_accepts_relative_output_root(
+    tmp_path: Path,
+    detection_unproven_blueprint,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    output_root = Path("synthesized_scenarios")
+    candidate = produce_candidate(
+        detection_unproven_blueprint,
+        output_root=output_root,
+        provider=StubRealizationProvider(),
+    )
+    assert candidate is not None
+
+    result = qualify_candidate(
+        candidate.candidate_id,
+        output_root=output_root,
+        runner=StubQualificationRunner(),
+    )
+
+    assert result.decision.admitted
+
+
+def test_qualification_resumes_after_evidence_write_before_admission(
+    tmp_path: Path, detection_unproven_blueprint
+) -> None:
+    candidate = produce_candidate(
+        detection_unproven_blueprint,
+        output_root=tmp_path,
+        provider=StubRealizationProvider(),
+    )
+    assert candidate is not None
+    first = qualify_candidate(
+        candidate.candidate_id,
+        output_root=tmp_path,
+        runner=StubQualificationRunner(),
+    )
+    assert first.library_path is not None
+    (first.bundle / "admission.json").unlink()
+    (candidate.bundle / "terminal.json").unlink()
+    first.library_path.unlink()
+
+    class FailIfRun:
+        runner_id = "offline-stub-run-scenario-v1"
+        provider_mode = "offline-stub"
+        calls = 0
+
+        def run_scenario(self, *args, **kwargs):
+            self.calls += 1
+            raise AssertionError("complete Qualification evidence must not rerun")
+
+    runner = FailIfRun()
+    resumed = qualify_candidate(
+        candidate.candidate_id,
+        output_root=tmp_path,
+        runner=runner,
+    )
+
+    assert runner.calls == 0
+    assert resumed.qualification_id == first.qualification_id
+    assert resumed.decision.admitted
+
+
 @pytest.mark.parametrize(
     "nested_key",
     [

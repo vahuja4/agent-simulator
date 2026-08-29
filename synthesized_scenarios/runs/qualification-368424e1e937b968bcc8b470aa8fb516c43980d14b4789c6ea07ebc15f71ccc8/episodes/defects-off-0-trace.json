@@ -1,0 +1,164 @@
+{
+  "outcome": "pass",
+  "provider": "live-run-scenario-v1",
+  "repetition": 0,
+  "schema_version": 1,
+  "side": "defects-off",
+  "turns": [
+    {
+      "index": 0,
+      "intent": "state goal",
+      "selected_card": null,
+      "speaker": "user",
+      "text": "I\u2019d like to set up a one-time payment for the statement balance on my card ending in 9013, due June 20, from my Chase Total Checking account ending in 5678.",
+      "tool_calls": []
+    },
+    {
+      "index": 1,
+      "intent": null,
+      "selected_card": "Chase Sapphire Preferred (...9013)",
+      "speaker": "agent",
+      "text": "Here's what I have: a payment of $875.20 to your Chase Sapphire Preferred (...9013) from your Chase Total Checking (...5678) on June 20, 2026 (Eastern Time). Shall I schedule it?",
+      "tool_calls": [
+        {
+          "arguments": {},
+          "name": "PayeeList",
+          "result": {
+            "payees": [
+              {
+                "dueDate": "2026-06-20",
+                "mask": "9013",
+                "name": "Chase Sapphire Preferred",
+                "payeeId": "card-sapphire-9013"
+              },
+              {
+                "dueDate": "2026-06-25",
+                "mask": "0767",
+                "name": "Chase Freedom Unlimited",
+                "payeeId": "card-freedom-unlimited-0767"
+              },
+              {
+                "dueDate": "2026-06-28",
+                "mask": "4421",
+                "name": "Chase Freedom Flex",
+                "payeeId": "card-freedom-flex-4421"
+              }
+            ]
+          }
+        },
+        {
+          "arguments": {},
+          "name": "FundingAccountPicker",
+          "result": {
+            "accounts": [
+              {
+                "accountId": "acct-chase-checking-5678",
+                "mask": "5678",
+                "name": "Chase Total Checking",
+                "type": "chase"
+              },
+              {
+                "accountId": "acct-ally-savings-9999",
+                "mask": "9999",
+                "name": "Ally Savings",
+                "type": "external"
+              }
+            ]
+          }
+        },
+        {
+          "arguments": {
+            "payeeId": "card-sapphire-9013"
+          },
+          "name": "AddOptionsOneTimePayment",
+          "result": {
+            "dueDate": "2026-06-20",
+            "options": [
+              {
+                "amount": 40.0,
+                "label": "Minimum payment due",
+                "optionId": "minimum_due"
+              },
+              {
+                "amount": 875.2,
+                "label": "Statement balance",
+                "optionId": "statement_balance"
+              },
+              {
+                "amount": 875.2,
+                "label": "Remaining statement balance",
+                "optionId": "remaining_statement_balance"
+              },
+              {
+                "amount": 1240.5,
+                "label": "Current balance",
+                "optionId": "current_balance"
+              },
+              {
+                "amount": null,
+                "label": "Other amount",
+                "optionId": "other"
+              }
+            ],
+            "timezone": "America/New_York"
+          }
+        },
+        {
+          "arguments": {
+            "accountId": "acct-chase-checking-5678",
+            "amount": 875.2,
+            "payeeId": "card-sapphire-9013",
+            "paymentDate": "2026-06-20"
+          },
+          "name": "AddValidateOneTimePayment",
+          "result": {
+            "formId": "form-0001",
+            "pendingPayment": {
+              "accountLabel": "Chase Total Checking (...5678)",
+              "amount": 875.2,
+              "cardLabel": "Chase Sapphire Preferred (...9013)",
+              "formId": "form-0001",
+              "paymentDate": "2026-06-20"
+            },
+            "status": "ready"
+          }
+        }
+      ]
+    },
+    {
+      "index": 2,
+      "intent": "confirm payment",
+      "selected_card": "Chase Sapphire Preferred (...9013)",
+      "speaker": "user",
+      "text": "Yes, schedule it.",
+      "tool_calls": []
+    },
+    {
+      "index": 3,
+      "intent": null,
+      "selected_card": "Chase Sapphire Preferred (...9013)",
+      "speaker": "agent",
+      "text": "Done! Your payment of $875.20 to your Chase Sapphire Preferred (...9013) from your Chase Total Checking (...5678) is scheduled for June 20, 2026 (Eastern Time). Your confirmation number is CONF-0001.",
+      "tool_calls": [
+        {
+          "arguments": {
+            "formId": "form-0001"
+          },
+          "name": "AddOneTimePayment",
+          "result": {
+            "confirmationNumber": "CONF-0001",
+            "payment": {
+              "accountLabel": "Chase Total Checking (...5678)",
+              "amount": 875.2,
+              "cardLabel": "Chase Sapphire Preferred (...9013)",
+              "formId": "form-0001",
+              "paymentDate": "2026-06-20"
+            },
+            "status": "SCHEDULED",
+            "success": true
+          }
+        }
+      ]
+    }
+  ]
+}

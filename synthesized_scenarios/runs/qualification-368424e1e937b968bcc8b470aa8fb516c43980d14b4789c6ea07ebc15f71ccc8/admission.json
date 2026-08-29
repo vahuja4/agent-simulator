@@ -1,0 +1,59 @@
+{
+  "attribution": [
+    {
+      "check": "defects-off-precision",
+      "repetition": 0,
+      "side": "defects-off"
+    },
+    {
+      "check": "defects-off-precision",
+      "repetition": 1,
+      "side": "defects-off"
+    },
+    {
+      "check": "defects-off-precision",
+      "repetition": 2,
+      "side": "defects-off"
+    }
+  ],
+  "candidate_id": "candidate-d58280c6e40000393476c2b061cbdccb10db0b1d9345846836b0291aedeb87a2",
+  "candidate_ordinal": 0,
+  "cell_id": "cell-ecbf1aff14454844ace6f1119cad7223b00355053952bede562b4b709e01cd55",
+  "config_snapshot_hash": "f9fe4f048dfdcb03da25ca29f4d3b92ecc0ece3a72a0df7d6fa36b979b7deb87",
+  "contract_hashes": {
+    "complication-applicability": "d5eed26d686c9de2054496ef961e6395a5da854c1df9f65db3b58c7bc007651d",
+    "fitness-targets": "b5cc687f593379d626d27293dcd4d3aa1ea8902a3e866d83b27cf24f3e06efd1",
+    "fixture-state-classes": "e05aa23560d818a840e762ec7970f67adbe995514fefad837bf2b5bb09ba7db8",
+    "pair-exclusions": "d9bb6c87c53302d4351b4837086b83615af1a9d27b8ab49350585654fe07b6ad",
+    "persona-archetypes": "ed1daef6913eb36263efbdf0f14565ba2416a4e9778dc535e0456d15f810e5d0"
+  },
+  "decided_at": "2026-08-29T05:37:38.648841Z",
+  "detection_unproven": true,
+  "evidence": [
+    {
+      "path": "runs/qualification-368424e1e937b968bcc8b470aa8fb516c43980d14b4789c6ea07ebc15f71ccc8/episodes/defects-off-0.json",
+      "sha256": "40aee9e672397cd1c982db28ffd7e6b9bfb6a743a9e6d6ef38ae0743b31f7ee1"
+    },
+    {
+      "path": "runs/qualification-368424e1e937b968bcc8b470aa8fb516c43980d14b4789c6ea07ebc15f71ccc8/episodes/defects-off-1.json",
+      "sha256": "dbea359aca38d76be075ca78f27b69de18e64427073204ed53e0cc1b94091e40"
+    },
+    {
+      "path": "runs/qualification-368424e1e937b968bcc8b470aa8fb516c43980d14b4789c6ea07ebc15f71ccc8/episodes/defects-off-2.json",
+      "sha256": "b6ac0a74f9781039d3e1fef1b571e83c580a10fbd009cb0e973f8e4e5ebde8f0"
+    },
+    {
+      "path": "runs/qualification-368424e1e937b968bcc8b470aa8fb516c43980d14b4789c6ea07ebc15f71ccc8/qualification.json",
+      "sha256": "c66f0e7e59ae63ed33b89a9ab42cdad43e3ebc775aac3733c80aef3ed3203e05"
+    }
+  ],
+  "n_split": {
+    "defect_on": 0,
+    "defects_off": 3
+  },
+  "qualification_id": "qualification-368424e1e937b968bcc8b470aa8fb516c43980d14b4789c6ea07ebc15f71ccc8",
+  "reason_code": null,
+  "regeneration_exhausted": false,
+  "schema_version": 1,
+  "status": "admitted"
+}
