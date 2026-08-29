@@ -102,16 +102,7 @@ class LiveRealizationProvider:
         self, blueprint: CoverageBlueprint, *, candidate_ordinal: int, attempt: int
     ) -> Mapping[str, Any]:
         prompt = {
-            "instruction": (
-                "Return only narrative surface fields. Preserve every supplied fact and "
-                "do not introduce any fact, number, identifier, policy, or behavior. "
-                "Express the facts behaviorally at the declared Knowledge level; do not "
-                "recite goal_facts as a fluent opening request. Low must show its specified "
-                "material fluency gap, medium must visibly rely on the agent for its specified "
-                "rule or consequence, and high must correctly state its specified rule or "
-                "consequence without prompting. Knowledge level must not change disclosure "
-                "timing or invent facts."
-            ),
+            "instruction": _realization_instruction(blueprint),
             "candidate_ordinal": candidate_ordinal,
             "corrective_attempt": attempt,
             "blueprint": blueprint.to_dict(),
@@ -219,6 +210,35 @@ def _stub_goal(blueprint: CoverageBlueprint, facts: str) -> str:
         "The customer calls the desired amount 'the amount from my last bill' and needs "
         "the agent to explain which payment option that means before proceeding."
     )
+
+
+def _realization_instruction(blueprint: CoverageBlueprint) -> str:
+    required_tokens = ", ".join(_required_fact_tokens(blueprint))
+    instruction = (
+        "Return only narrative surface fields. Preserve every supplied fact and do not "
+        "introduce any fact, number, identifier, policy, or behavior. Express the facts "
+        "behaviorally at the declared Knowledge level; do not recite goal_facts as a fluent "
+        "opening request. Low must show its specified material fluency gap, medium must "
+        "visibly rely on the agent for its specified rule or consequence, and high must "
+        "correctly state its specified rule or consequence without prompting. Knowledge "
+        "level must not change disclosure timing or invent facts. The goal field must contain "
+        f"each required grounded identifier exactly: {required_tokens}."
+    )
+    evidence = blueprint.goal_facts.get("knowledge_evidence")
+    amount_type = blueprint.goal_facts.get("amount_type")
+    if (
+        blueprint.knowledge_level == "low"
+        and isinstance(evidence, Mapping)
+        and evidence.get("referent") == "payment_amount_type"
+        and isinstance(amount_type, str)
+    ):
+        canonical_label = amount_type.replace("_", " ").replace("-", " ")
+        instruction += (
+            f" The low-Knowledge goal field must not contain the canonical label "
+            f"{canonical_label!r}; use a plausible informal or wrong label and make the "
+            "customer visibly need the agent to explain which real option it means."
+        )
+    return instruction
 
 
 def _validate_knowledge_surface(

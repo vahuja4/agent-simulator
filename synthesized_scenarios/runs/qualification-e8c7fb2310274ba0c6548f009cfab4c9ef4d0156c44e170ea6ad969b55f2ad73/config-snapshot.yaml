@@ -1,0 +1,19 @@
+schema_version: 1
+config_hash: e425297e253559a3f2a316fb69f5003b69838dc355edbe3dc1195b1ea1f716d5
+repository_revision: 77d12a1245218d8fe91ad197feac8c69bab8d92d
+repository_dirty: true
+models:
+  simulator: gpt-5.6-luna
+  judge: gpt-5.5
+prompt_hashes:
+  realization-system: 37cd12db0e05807e3553441180110397905e145a7333bd1edc34161b3398e8ba
+fixture:
+  version: paycard-v1
+  sha256: 1670acf7f56e48733e3cd2055e858ab54dc57d81b29089dd73ed22e164364b70
+contract_hashes:
+  complication-applicability: d5eed26d686c9de2054496ef961e6395a5da854c1df9f65db3b58c7bc007651d
+  fitness-targets: b5cc687f593379d626d27293dcd4d3aa1ea8902a3e866d83b27cf24f3e06efd1
+  fixture-state-classes: e05aa23560d818a840e762ec7970f67adbe995514fefad837bf2b5bb09ba7db8
+  pair-exclusions: d9bb6c87c53302d4351b4837086b83615af1a9d27b8ab49350585654fe07b6ad
+  persona-archetypes: ed1daef6913eb36263efbdf0f14565ba2416a4e9778dc535e0456d15f810e5d0
+snapshot_hash: c521ee1c897ed329062b6e003418f0c4bf3d82171635f889ddf749667dc9b28d

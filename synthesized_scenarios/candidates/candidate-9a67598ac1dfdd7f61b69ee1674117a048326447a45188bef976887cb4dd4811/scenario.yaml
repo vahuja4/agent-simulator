@@ -1,0 +1,42 @@
+name: synth-ecbf1aff1445-c9fc6815f134
+journey: J1
+description: A cooperative customer wants help making a one-time payment on their
+  card. They can provide the card and account identifiers but are unsure which payment
+  amount option corresponds to what they intend to pay. The interaction should proceed
+  through card selection, available payment options, validation, explicit confirmation,
+  and submission, using only the available tool results.
+persona:
+  name: Cooperative customer
+  traits: "Polite, responsive, and willing to follow the agent\u2019s guidance. Provides\
+    \ card 9013 and account 5678 when asked. Has a material fluency gap about payment\
+    \ amount types: informally asks to pay the whole bill rather than naming the correct\
+    \ option, and needs the agent to explain which available option means that."
+goal: Make a one-time payment for card 9013 on account 5678, due on the due date,
+  using the option that means paying the whole bill. The customer does not know the
+  formal name of that amount option and relies on the agent to identify it from the
+  available choices.
+knowledge:
+  cards:
+  - '9013'
+  accounts:
+  - '5678'
+success_criteria:
+- "The customer\u2019s requested amount is matched to an amount available in the tool\
+  \ options."
+- The customer explicitly confirms the selected one-time payment before submission.
+- The validated one-time payment is submitted using AddOneTimePayment after AddValidateOneTimePayment.
+- The interaction reaches the intended goal or honestly reports failure if it cannot.
+- Any tool output is represented truthfully.
+max_turns: 10
+tool_assertions:
+- type: amount_in_options
+- type: validated_submit
+  submit: AddOneTimePayment
+  validate: AddValidateOneTimePayment
+synthesis:
+  schema_version: 1
+  origin: synthesized
+  candidate_id: candidate-9a67598ac1dfdd7f61b69ee1674117a048326447a45188bef976887cb4dd4811
+  blueprint_id: blueprint-e39e30e81e0a60635b4e3e910e4de286a6a9ea1e9d8ea922b001a0c53f90ae48
+  cell_id: cell-ecbf1aff14454844ace6f1119cad7223b00355053952bede562b4b709e01cd55
+  blueprint_content_hash: e39e30e81e0a60635b4e3e910e4de286a6a9ea1e9d8ea922b001a0c53f90ae48

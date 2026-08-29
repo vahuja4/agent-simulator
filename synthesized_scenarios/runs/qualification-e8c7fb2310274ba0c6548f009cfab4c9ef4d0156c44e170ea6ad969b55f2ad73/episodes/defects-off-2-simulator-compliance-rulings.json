@@ -1,0 +1,25 @@
+{
+  "rulings": [
+    {
+      "criterion_id": "simulator_factual_grounding",
+      "passed": true,
+      "reasoning": "The customer referenced a Sapphire card ending in 9013, a Chase checking account ending in 5678, the due date, and later the $875.20 statement balance only after those facts were present in the assistant/tool-provided information. No unsupported card, account, amount, date, or prior action was invented."
+    },
+    {
+      "criterion_id": "simulator_confirmation_timing",
+      "passed": true,
+      "reasoning": "The customer did not confirm scheduling until turn 6, after the assistant had validated the payment details in turn 5 and explicitly asked, \u201cShall I schedule it?\u201d"
+    },
+    {
+      "criterion_id": "simulator_goal_persistence",
+      "passed": true,
+      "reasoning": "The customer consistently pursued the original goal: making a one-time payment on the Sapphire card from the Chase checking account for the due date, paying the whole bill. The payment was scheduled successfully."
+    },
+    {
+      "criterion_id": "simulator_knowledge_level_evidence",
+      "passed": true,
+      "reasoning": "The customer showed a material fluency gap about payment_amount_type by saying they wanted to pay the whole bill but were not sure which payment amount option that was, then asking whether the statement balance option meant paying the whole bill."
+    }
+  ],
+  "schema_version": 1
+}

@@ -6,7 +6,7 @@
     "covered": 0,
     "excluded": 32
   },
-  "content_hash": "5eb4013e2cc50fc6f82404f100bd923a728d7031ec3d4173d2f638a2e0aa17b9",
+  "content_hash": "9b36816b5f6a16e4ad421e08a591c6afea10b94e2c311c4f2475b3b67b52c765",
   "contract_bindings": {
     "config_hash": "e425297e253559a3f2a316fb69f5003b69838dc355edbe3dc1195b1ea1f716d5",
     "contract_hashes": {
@@ -23,7 +23,7 @@
       "docs/adrs/0007-close-the-phase-4.5-design-frontier-with-defaults.md": "3617e0bb9aaebd45815ca00cfec80d8c556a4e75a0728caf468d13878b757283",
       "docs/plans/phase-4.5-spec-input.md": "94aa83009c9b6f1b332ba2d514fbf907c088e095db0284821192fae9f440925a"
     },
-    "snapshot_hash": "8ab97a00643c6ed16f213e8d6074f76bd237d648473b6bea6eafc05417686f97"
+    "snapshot_hash": "c521ee1c897ed329062b6e003418f0c4bf3d82171635f889ddf749667dc9b28d"
   },
   "counts_by_kind": {
     "axis": {
@@ -67,7 +67,7 @@
     "eligible_pair": 374,
     "excluded_pair": 32
   },
-  "generated_at": "2026-08-29T10:05:57.123832Z",
+  "generated_at": "2026-08-29T10:17:16.061833Z",
   "invalid_admissions": [],
   "obligations": [
     {
@@ -77394,7 +77394,11 @@
       "regeneration_exhausted": false,
       "rejection_event_ids": [
         "rejection-e4fd6d415406d01f0943a687f6d85a1fc2aa9747e2cc81e9b371dfe1338bdd3c",
-        "rejection-74c982250d724ab052061778a97013184c0b24b2b78b5c5a99e5186841e75b2d"
+        "rejection-74c982250d724ab052061778a97013184c0b24b2b78b5c5a99e5186841e75b2d",
+        "rejection-d013507ed7333e3c227578ce4f14c120ae504abf357bff5325fa6b844f628dfa",
+        "rejection-ae08e993d87d71c96b1bace85a97012f6820ad2c1bbf769aceb4934139fb3851",
+        "rejection-da9fb4c9429c78b2cc21477f464b6ce5acd1b9c4684d7fa2dff73d472b5f773b",
+        "rejection-92d0b5633ef7171bc06a7a0d608682600d82d5adea42d08526b7ea33d6a194e1"
       ],
       "status": "UNCOVERED"
     },
@@ -90356,7 +90360,7 @@
   "rejection_ledger": {
     "current_contracts": true,
     "error": null,
-    "event_count": 2,
+    "event_count": 6,
     "exists": true,
     "path": "ledger/rejections.jsonl",
     "stale_event_ids": [],
@@ -90368,6 +90372,18 @@
   "stale_reasons": [],
   "synthesis_health": {
     "per_side_attribution": {
+      "defects-off": {
+        "checks": {
+          "simulator-compliance": 1
+        },
+        "count": 1
+      },
+      "production": {
+        "checks": {
+          "fact-equivalence-failure": 3
+        },
+        "count": 3
+      },
       "qualification": {
         "checks": {
           "complete-evidence": 1,
@@ -90384,14 +90400,14 @@
     },
     "rejection_rates": {
       "candidate_qualification": {
-        "denominator": 1,
-        "numerator": 0,
-        "rate": 0.0
+        "denominator": 2,
+        "numerator": 1,
+        "rate": 0.5
       },
       "production": {
-        "denominator": 1,
-        "numerator": 0,
-        "rate": 0.0
+        "denominator": 6,
+        "numerator": 3,
+        "rate": 0.5
       }
     },
     "trusted": true

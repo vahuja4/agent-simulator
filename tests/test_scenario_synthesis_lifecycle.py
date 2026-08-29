@@ -1203,6 +1203,11 @@ def test_live_providers_pin_current_configured_models_without_calling_them(
 def test_live_realization_provider_uses_structured_blueprint_surface(
     detection_unproven_blueprint,
 ) -> None:
+    detection_unproven_blueprint = next(
+        item
+        for item in generate_blueprints()
+        if item.fitness_target_id is None and item.knowledge_level == "low"
+    )
     calls: list[dict[str, object]] = []
 
     class RecordingLLM:
@@ -1233,6 +1238,14 @@ def test_live_realization_provider_uses_structured_blueprint_surface(
     assert request["blueprint"] == detection_unproven_blueprint.to_dict()
     assert "declared Knowledge level" in request["instruction"]
     assert "do not recite goal_facts" in request["instruction"]
+    assert all(
+        token in request["instruction"]
+        for token in (
+            *detection_unproven_blueprint.fixture_bindings.cards,
+            *detection_unproven_blueprint.fixture_bindings.accounts,
+        )
+    )
+    assert "must not contain the canonical label 'statement balance'" in request["instruction"]
 
 
 def test_low_knowledge_surface_rejects_fluent_goal_fact_recital(

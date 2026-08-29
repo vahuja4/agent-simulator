@@ -1,0 +1,25 @@
+{
+  "rulings": [
+    {
+      "criterion_id": "simulator_factual_grounding",
+      "passed": false,
+      "reasoning": "The customer used card/account/date/amount facts that were either in the initial goal or supplied by the assistant/tool-backed options. However, after the assistant failed to explain which balance type meant paying the whole bill, the customer asserted that the statement balance was the option for paying the whole bill. That concept was not established by the assistant in the transcript, so I cannot explicitly affirm it was grounded in supplied knowledge."
+    },
+    {
+      "criterion_id": "simulator_confirmation_timing",
+      "passed": true,
+      "reasoning": "The customer did not clearly confirm scheduling until turn 6, after the assistant validated the payment details in turn 5 and asked for confirmation."
+    },
+    {
+      "criterion_id": "simulator_goal_persistence",
+      "passed": true,
+      "reasoning": "The customer consistently pursued the stated goal: a one-time payment on card ending 9013 from checking ending 5678, scheduled on the due date, for the whole bill/statement balance. The payment was completed successfully."
+    },
+    {
+      "criterion_id": "simulator_knowledge_level_evidence",
+      "passed": true,
+      "reasoning": "The customer showed a material fluency gap about payment amount type by asking which option\u2014statement balance, remaining statement balance, or current balance\u2014meant paying the whole bill."
+    }
+  ],
+  "schema_version": 1
+}

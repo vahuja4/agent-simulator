@@ -1,0 +1,25 @@
+{
+  "rulings": [
+    {
+      "criterion_id": "simulator_factual_grounding",
+      "passed": true,
+      "reasoning": "The customer referenced the card ending 9013 and Chase checking ending 5678, both present in the tool results. The amount $875.20 and date June 20 were only stated after the assistant presented those validated options. No unsupported card, account, amount, date, or prior action was introduced."
+    },
+    {
+      "criterion_id": "simulator_confirmation_timing",
+      "passed": true,
+      "reasoning": "The customer did not confirm scheduling until turn 4, after the assistant validated the payment details in turn 3 and explicitly asked, \u201cShall I schedule it?\u201d"
+    },
+    {
+      "criterion_id": "simulator_goal_persistence",
+      "passed": true,
+      "reasoning": "The customer consistently pursued making a one-time payment for the card ending 9013 from the checking account ending 5678 on the due date, and the payment was successfully scheduled."
+    },
+    {
+      "criterion_id": "simulator_knowledge_level_evidence",
+      "passed": true,
+      "reasoning": "The customer showed a material fluency gap about payment amount type by asking which payment option corresponds to paying the whole bill, requiring the assistant to explain/list the payment amount options."
+    }
+  ],
+  "schema_version": 1
+}

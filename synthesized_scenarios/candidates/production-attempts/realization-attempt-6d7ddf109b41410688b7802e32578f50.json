@@ -1,0 +1,13 @@
+{
+  "attempt_index": 0,
+  "candidate_ordinal": 0,
+  "cell_id": "cell-ecbf1aff14454844ace6f1119cad7223b00355053952bede562b4b709e01cd55",
+  "detail": "realization did not express the declared low Knowledge level: the Goal fluently recites the canonical payment amount type",
+  "production_command_id": "production-command-e0b85d73c0004286bc61f0100a9c5e1c",
+  "provider_id": "openai-structured-realization:gpt-5.6-luna",
+  "realization_attempt_id": "realization-attempt-6d7ddf109b41410688b7802e32578f50",
+  "reason_code": "fact-equivalence-failure",
+  "schema_version": 1,
+  "status": "failed",
+  "timestamp": "2026-08-29T10:13:02.974374Z"
+}
