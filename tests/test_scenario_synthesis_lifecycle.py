@@ -6,12 +6,15 @@ from pathlib import Path
 
 import pytest
 
+from agentsim.orchestrator import RunResult
 from agentsim.scenario import (
     ScenarioError,
     load_curated_scenario,
     load_library,
     load_synthesized_scenario,
 )
+from agentsim.trace import Trace
+from agentsim.types import CriterionVerdict, TurnVerdict
 from scenario_synthesis import cli
 from scenario_synthesis.candidate import CandidateError, load_candidate, produce_candidate
 from scenario_synthesis.generator import generate_blueprints
@@ -19,11 +22,15 @@ from scenario_synthesis.evidence import atomic_json, canonical_json, sha256_byte
 from scenario_synthesis.ledger import LedgerError, RejectionLedger
 from scenario_synthesis.qualification import (
     EpisodeResult,
+    LiveQualificationRunner,
     StubQualificationRunner,
     evaluate_admission,
     qualify_candidate,
 )
-from scenario_synthesis.realization_provider import StubRealizationProvider
+from scenario_synthesis.realization_provider import (
+    LiveRealizationProvider,
+    StubRealizationProvider,
+)
 
 
 @pytest.fixture(scope="module")
@@ -161,6 +168,7 @@ def test_targeted_admission_requires_exact_three_by_three_and_hashes_evidence(
     assert {
         "simulator_id", "judge_id", "prompt_hashes", "fixture", "termination",
         "assertion_results", "judge_rulings", "trace", "transcript",
+        "simulator_compliance_rulings",
     } <= set(first_episode)
     transcript = tmp_path / first_episode["transcript"]["path"]
     assert transcript.suffix == ".jsonl"
@@ -320,7 +328,13 @@ def test_completed_qualification_is_idempotently_reused(
 
 @pytest.mark.parametrize(
     "nested_key",
-    ["transcript", "trace", "assertion_results", "judge_rulings"],
+    [
+        "transcript",
+        "trace",
+        "assertion_results",
+        "judge_rulings",
+        "simulator_compliance_rulings",
+    ],
 )
 def test_completed_qualification_rejects_nested_evidence_hash_mismatch(
     tmp_path: Path, detection_unproven_blueprint, nested_key: str
@@ -858,11 +872,200 @@ def test_cli_requires_explicit_execution_mode_before_client_construction(
     assert exc.value.code == 2
     error = capsys.readouterr().err
     assert "choose --stub for offline development" in error
-    assert "--live is not implemented" in error
+    assert "explicit --live execution" in error
 
 
-def test_live_modes_remain_unimplemented(capsys: pytest.CaptureFixture[str]) -> None:
+def test_live_produce_requires_explicit_cell_before_client_construction(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    monkeypatch.setattr(
+        cli.LiveRealizationProvider,
+        "from_config",
+        lambda: pytest.fail("constructed live realization provider"),
+    )
     with pytest.raises(SystemExit) as exc:
         cli.main(["produce", "--live"])
     assert exc.value.code == 2
-    assert "not implemented" in capsys.readouterr().err
+    assert "requires an explicit --cell-id" in capsys.readouterr().err
+
+
+def test_live_commands_print_cost_ceiling_before_offline_injected_execution(
+    tmp_path: Path,
+    targeted_blueprint,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    monkeypatch.setattr(
+        cli.LiveRealizationProvider,
+        "from_config",
+        lambda: StubRealizationProvider(),
+    )
+    assert cli.main(
+        [
+            "produce",
+            "--live",
+            "--cell-id",
+            targeted_blueprint.cell_id,
+            "--output-root",
+            str(tmp_path),
+        ]
+    ) == 0
+    produced_lines = [json.loads(line) for line in capsys.readouterr().out.splitlines()]
+    assert produced_lines[0]["status"] == "live-cost-ceiling"
+    assert produced_lines[0]["maximum_planned_realization_calls"] == 2
+    assert produced_lines[0]["maximum_planned_episodes"] == 0
+    candidate_id = produced_lines[1]["candidate_id"]
+
+    runner = StubQualificationRunner()
+    runner.runner_id = "injected-live-run-scenario-v1"
+    runner.provider_mode = "live"
+    monkeypatch.setattr(
+        cli.LiveQualificationRunner,
+        "from_config",
+        lambda: runner,
+    )
+    assert cli.main(
+        [
+            "qualify",
+            "--live",
+            "--candidate-id",
+            candidate_id,
+            "--output-root",
+            str(tmp_path),
+        ]
+    ) == 0
+    qualified_lines = [json.loads(line) for line in capsys.readouterr().out.splitlines()]
+    assert qualified_lines[0]["status"] == "live-cost-ceiling"
+    assert qualified_lines[0]["maximum_planned_realization_calls"] == 2
+    assert qualified_lines[0]["maximum_planned_episodes"] == 6
+    qualification = json.loads(
+        (tmp_path / "runs" / qualified_lines[1]["qualification_id"] / "qualification.json").read_text()
+    )
+    assert qualification["provider_mode"] == "live"
+
+
+def test_live_providers_pin_current_configured_models_without_calling_them(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    realization_models: list[str] = []
+    qualification_models: list[str] = []
+
+    class FakeLLM:
+        def __init__(self, model: str) -> None:
+            realization_models.append(model)
+
+    monkeypatch.setattr(
+        "scenario_synthesis.realization_provider.OpenAILLM", FakeLLM
+    )
+    provider = LiveRealizationProvider.from_config()
+    assert provider.provider_id == "openai-structured-realization:gpt-5.6-luna"
+    assert realization_models == ["gpt-5.6-luna"]
+
+    class FakeQualificationLLM:
+        def __init__(self, model: str) -> None:
+            qualification_models.append(model)
+
+    monkeypatch.setattr(
+        "scenario_synthesis.qualification.OpenAILLM", FakeQualificationLLM
+    )
+    LiveQualificationRunner.from_config()
+    assert qualification_models == ["gpt-5.6-luna", "gpt-5.5"]
+
+
+def test_live_realization_provider_uses_structured_blueprint_surface(
+    detection_unproven_blueprint,
+) -> None:
+    calls: list[dict[str, object]] = []
+
+    class RecordingLLM:
+        async def structured(self, **kwargs):
+            calls.append(kwargs)
+            return StubRealizationProvider().realize(
+                detection_unproven_blueprint,
+                candidate_ordinal=0,
+                attempt=0,
+            )
+
+    provider = LiveRealizationProvider(
+        llm=RecordingLLM(),
+        system_prompt="configured realization prompt",
+        token_budget=8192,
+        provider_id="test-live-realization",
+    )
+
+    surface = provider.realize(
+        detection_unproven_blueprint, candidate_ordinal=0, attempt=0
+    )
+
+    assert set(surface) == {"description", "persona", "goal", "success_criteria"}
+    assert calls[0]["system"] == "configured realization prompt"
+    assert calls[0]["effort"] == "none"
+    assert calls[0]["max_tokens"] == 8192
+    request = json.loads(calls[0]["messages"][0]["content"])
+    assert request["blueprint"] == detection_unproven_blueprint.to_dict()
+
+
+def test_live_qualification_runner_uses_run_scenario_and_compliance_judge(
+    detection_unproven_blueprint,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    candidate = produce_candidate(
+        detection_unproven_blueprint,
+        output_root=tmp_path,
+        provider=StubRealizationProvider(),
+    )
+    assert candidate is not None
+    scenario = load_synthesized_scenario(candidate.scenario_path)
+    simulator_llm = object()
+    judge_llm = object()
+    observed: dict[str, object] = {}
+
+    async def fake_run_scenario(scenario_arg, llm, agent, **kwargs):
+        observed.update(
+            scenario=scenario_arg,
+            simulator_llm=llm,
+            judge_llm=kwargs["judge_llm"],
+            mock_config=agent.config,
+        )
+        trace = Trace("live-qualification-test", outcome="pass")
+        return RunResult(trace=trace, outcome="pass", final_reasoning="completed", llm_calls=4)
+
+    class FakeComplianceJudge:
+        def __init__(self, llm, *, criteria):
+            observed["compliance_llm"] = llm
+            observed["compliance_criteria"] = criteria
+
+        async def judge(self, trace):
+            del trace
+            return TurnVerdict(
+                "continue",
+                [
+                    CriterionVerdict(criterion.id, True, "compliant")
+                    for criterion in observed["compliance_criteria"]
+                ],
+                "compliant",
+            )
+
+    monkeypatch.setattr("agentsim.scenario.run_scenario", fake_run_scenario)
+    monkeypatch.setattr(
+        "scenario_synthesis.qualification.GeneralJudge", FakeComplianceJudge
+    )
+    runner = LiveQualificationRunner(simulator_llm, judge_llm)
+
+    result = runner.run_scenario(
+        scenario,
+        side="defects-off",
+        repetition=0,
+        defect_toggles=(),
+        expected_failure=None,
+    )
+
+    assert result.kind == "pass"
+    assert result.run_result is not None
+    assert result.to_dict(side="defects-off", repetition=0, toggles=())["llm_calls"] == 5
+    assert observed["scenario"] is scenario
+    assert observed["simulator_llm"] is simulator_llm
+    assert observed["judge_llm"] is judge_llm
+    assert observed["compliance_llm"] is judge_llm
+    assert not any(vars(observed["mock_config"]).values())

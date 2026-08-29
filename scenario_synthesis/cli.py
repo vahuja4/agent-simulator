@@ -4,16 +4,24 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from collections.abc import Sequence
 from pathlib import Path
 
-from .candidate import produce_candidate
+from .candidate import load_candidate, produce_candidate
 from .completion import check_completion
 from .config import validate_all
 from .generator import generate_blueprints
 from .planner import write_plan_report
-from .qualification import StubQualificationRunner, qualify_candidate
-from .realization_provider import StubRealizationProvider
+from .qualification import (
+    LiveQualificationRunner,
+    StubQualificationRunner,
+    qualify_candidate,
+)
+from .realization_provider import (
+    LiveRealizationProvider,
+    StubRealizationProvider,
+)
 from .reporting import generate_coverage_report
 
 COMMANDS = ("validate-contracts", "plan", "produce", "qualify", "report", "check-completion")
@@ -74,17 +82,33 @@ def main(argv: Sequence[str] | None = None) -> int:
             blueprints = tuple(item for item in blueprints if item.cell_id == args.cell_id)
         if not blueprints:
             parser.error("no realizable blueprint matches --cell-id")
+        if args.live and not args.cell_id:
+            parser.error("produce --live requires an explicit --cell-id")
         failures = {}
+        if args.live and args.stub_failure:
+            parser.error("--stub-failure is available only with --stub")
         for value in args.stub_failure:
             try:
                 attempt, mode = value.split(":", 1)
                 failures[(0, int(attempt))] = mode
             except ValueError:
                 parser.error("--stub-failure must be ATTEMPT:MODE")
+        if args.live:
+            config, _contracts, snapshot = validate_all()
+            _print_live_cost_ceiling(
+                command="produce",
+                snapshot_hash=snapshot.sha256,
+                realization_calls=int(config.content["limits"]["realization_retry_bound"]) + 1,
+                episodes=0,
+                llm_calls=int(config.content["limits"]["realization_retry_bound"]) + 1,
+            )
+            provider = LiveRealizationProvider.from_config()
+        else:
+            provider = StubRealizationProvider(failure_modes=failures)
         candidate = produce_candidate(
             blueprints[0],
             output_root=args.output_root,
-            provider=StubRealizationProvider(failure_modes=failures),
+            provider=provider,
         )
         if candidate is None:
             _print(status="production-failed", cell_id=blueprints[0].cell_id)
@@ -100,17 +124,44 @@ def main(argv: Sequence[str] | None = None) -> int:
     if args.command == "qualify":
         _require_execution_mode(parser, args)
         outcomes = {}
+        if args.live and args.stub_outcome:
+            parser.error("--stub-outcome is available only with --stub")
         for value in args.stub_outcome:
             try:
                 side, repetition, kind = value.split(":", 2)
                 outcomes[(side, int(repetition))] = kind
             except ValueError:
                 parser.error("--stub-outcome must be SIDE:REPETITION:KIND")
+        if args.live:
+            candidate = load_candidate(args.output_root, args.candidate_id)
+            config, _contracts, snapshot = validate_all()
+            repetitions = int(config.content["limits"]["admission_repetitions"])
+            sides = 1 if candidate.blueprint.fitness_target_id is None else 2
+            replacement_calls = (
+                int(config.content["limits"]["realization_retry_bound"]) + 1
+                if candidate.ordinal < int(config.content["limits"]["replacement_bound"])
+                else 0
+            )
+            _print_live_cost_ceiling(
+                command="qualify",
+                snapshot_hash=snapshot.sha256,
+                realization_calls=replacement_calls,
+                episodes=repetitions * sides,
+                llm_calls=(
+                    replacement_calls
+                    + repetitions * sides * (candidate.blueprint.max_turns * 2 + 1)
+                ),
+            )
+            runner = LiveQualificationRunner.from_config()
+            replacement_provider = LiveRealizationProvider.from_config()
+        else:
+            runner = StubQualificationRunner(outcomes=outcomes)
+            replacement_provider = StubRealizationProvider()
         result = qualify_candidate(
             args.candidate_id,
             output_root=args.output_root,
-            runner=StubQualificationRunner(outcomes=outcomes),
-            replacement_provider=StubRealizationProvider(),
+            runner=runner,
+            replacement_provider=replacement_provider,
         )
         _print(
             status=result.decision.status,
@@ -161,15 +212,32 @@ def _require_execution_mode(
 ) -> None:
     if args.stub and args.live:
         parser.error("choose exactly one execution mode: --stub or --live")
-    if args.live:
-        parser.exit(2, f"{args.command} --live: not implemented in Slice 3\n")
-    if not args.stub:
+    if not args.stub and not args.live:
         parser.exit(
             2,
-            f"{args.command}: choose --stub for offline development; "
-            "--live is not implemented in Slice 3\n",
+            f"{args.command}: choose --stub for offline development or "
+            "explicit --live execution\n",
         )
 
 
 def _print(**value: object) -> None:
     print(json.dumps(value, sort_keys=True))
+
+
+def _print_live_cost_ceiling(
+    *,
+    command: str,
+    snapshot_hash: str,
+    realization_calls: int,
+    episodes: int,
+    llm_calls: int,
+) -> None:
+    _print(
+        status="live-cost-ceiling",
+        command=command,
+        snapshot_hash=snapshot_hash,
+        maximum_planned_realization_calls=realization_calls,
+        maximum_planned_episodes=episodes,
+        maximum_planned_llm_calls=llm_calls,
+    )
+    sys.stdout.flush()

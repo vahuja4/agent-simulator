@@ -13,11 +13,17 @@ from typing import Any, Callable, Mapping, Protocol
 
 import yaml
 
+from agentsim.adapters import MockConfig, MockPayCardAgent
+from agentsim.judge import GeneralJudge
+from agentsim.llm import LLMClient, OpenAILLM
+from agentsim.orchestrator import RunResult
 from agentsim.scenario import Scenario, load_synthesized_library, load_synthesized_scenario
 
+from ._async import run
 from .candidate import Candidate, CandidateError, load_candidate, produce_candidate, write_terminal
 from .config import create_config_snapshot, load_config
 from .contracts import ContractSet, load_reviewed_contracts
+from .dryrun import SIMULATOR_COMPLIANCE_CRITERIA
 from .evidence import (
     EvidenceReferenceError,
     atomic_json,
@@ -45,6 +51,9 @@ class EpisodeResult:
     degraded_checks: tuple[str, ...] = ()
     simulator_compliant: bool = True
     error: str | None = None
+    run_result: RunResult | None = None
+    simulator_compliance_rulings: tuple[Mapping[str, Any], ...] = ()
+    additional_llm_calls: int = 0
 
     def to_dict(self, *, side: str, repetition: int, toggles: tuple[str, ...]) -> dict[str, Any]:
         return {
@@ -57,12 +66,18 @@ class EpisodeResult:
             "degraded_checks": list(self.degraded_checks),
             "simulator_compliance": "pass" if self.simulator_compliant else "fail",
             "error": self.error,
-            "llm_calls": 0,
+            "llm_calls": (
+                0
+                if self.run_result is None
+                else self.run_result.llm_calls
+                + self.additional_llm_calls
+            ),
         }
 
 
 class QualificationRunner(Protocol):
     runner_id: str
+    provider_mode: str
 
     def run_scenario(
         self,
@@ -79,6 +94,7 @@ class QualificationRunner(Protocol):
 class StubQualificationRunner:
     outcomes: Mapping[tuple[str, int], str | EpisodeResult] = field(default_factory=dict)
     runner_id: str = "offline-stub-run-scenario-v1"
+    provider_mode: str = "offline-stub"
 
     def run_scenario(
         self,
@@ -109,6 +125,112 @@ class StubQualificationRunner:
         if kind == "error":
             return EpisodeResult(kind, error="injected stub error")
         return EpisodeResult(kind)
+
+
+@dataclass
+class LiveQualificationRunner:
+    """Run Qualification Episodes through the existing simulator and Judge path."""
+
+    simulator_llm: LLMClient
+    judge_llm: LLMClient
+    enforce_model_family_separation: bool = False
+    runner_id: str = "live-run-scenario-v1"
+    provider_mode: str = "live"
+
+    @classmethod
+    def from_config(cls) -> LiveQualificationRunner:
+        config = load_config()
+        return cls(
+            simulator_llm=OpenAILLM(model=str(config.content["models"]["simulator"])),
+            judge_llm=OpenAILLM(model=str(config.content["models"]["judge"])),
+            enforce_model_family_separation=bool(
+                config.content["enforce_model_family_separation"]
+            ),
+        )
+
+    def run_scenario(
+        self,
+        scenario: Scenario,
+        *,
+        side: str,
+        repetition: int,
+        defect_toggles: tuple[str, ...],
+        expected_failure: Mapping[str, str] | None,
+    ) -> EpisodeResult:
+        del side, repetition
+        config = MockConfig(**{toggle: True for toggle in defect_toggles})
+        effective = {
+            name
+            for name, enabled in vars(config).items()
+            if enabled is True
+        }
+        if effective != set(defect_toggles):
+            raise CandidateError("effective mock defect configuration does not match Qualification")
+        return run(
+            self._run_scenario(
+                scenario,
+                agent=MockPayCardAgent(config),
+                expected_failure=expected_failure,
+            )
+        )
+
+    async def _run_scenario(
+        self,
+        scenario: Scenario,
+        *,
+        agent: MockPayCardAgent,
+        expected_failure: Mapping[str, str] | None,
+    ) -> EpisodeResult:
+        from agentsim.scenario import run_scenario
+
+        result = await run_scenario(
+            scenario,
+            self.simulator_llm,
+            agent=agent,
+            judge_llm=self.judge_llm,
+            enforce_model_family_separation=self.enforce_model_family_separation,
+        )
+        if result.outcome == "error":
+            return EpisodeResult("error", error=result.final_reasoning, run_result=result)
+        try:
+            compliance = await GeneralJudge(
+                self.judge_llm, criteria=SIMULATOR_COMPLIANCE_CRITERIA
+            ).judge(result.trace)
+        except Exception as exc:
+            return EpisodeResult(
+                "error",
+                error=f"simulator compliance raised {type(exc).__name__}: {exc}",
+                run_result=result,
+                additional_llm_calls=1,
+            )
+        compliance_rulings = tuple(item.to_dict() for item in compliance.criteria)
+        simulator_compliant = all(item.passed for item in compliance.criteria)
+        failures = tuple(
+            {"source": failure.source, "id": failure.id}
+            for failure in result.failures
+        )
+        if not simulator_compliant:
+            kind = "simulator-compliance-fail"
+        elif result.outcome == "pass":
+            kind = "pass"
+        elif result.outcome == "task_incomplete":
+            kind = "task_incomplete"
+        elif expected_failure is not None and expected_failure in failures:
+            kind = "expected-failure"
+        else:
+            kind = "unexpected-failure"
+        return EpisodeResult(
+            kind,
+            failures=failures,
+            degraded_checks=tuple(
+                str(item.get("check", item.get("type", "unknown")))
+                for item in result.degraded_checks
+            ),
+            simulator_compliant=simulator_compliant,
+            run_result=result,
+            simulator_compliance_rulings=compliance_rulings,
+            additional_llm_calls=1,
+        )
 
 
 @dataclass(frozen=True)
@@ -291,23 +413,41 @@ def qualify_candidate(
                     }
                     for assertion in candidate.blueprint.required_assertions
                 ]
-                judge_rulings = [
-                    {
-                        "id": criterion,
-                        "passed": not any(
-                            failure["source"] == "judge" and failure["id"] == criterion
-                            for failure in record["failures"]
-                        ),
+                if result.run_result is None:
+                    judge_rulings = [
+                        {
+                            "id": criterion,
+                            "passed": not any(
+                                failure["source"] == "judge"
+                                and failure["id"] == criterion
+                                for failure in record["failures"]
+                            ),
+                        }
+                        for criterion in candidate.blueprint.required_criteria
+                    ]
+                    turns: list[Mapping[str, Any]] = []
+                    termination = "stub-completed"
+                else:
+                    observed = {
+                        ruling.criterion_id: ruling
+                        for verdict in result.run_result.verdicts
+                        for ruling in verdict.criteria
+                        if ruling.criterion_id in candidate.blueprint.required_criteria
                     }
-                    for criterion in candidate.blueprint.required_criteria
-                ]
+                    judge_rulings = [
+                        {"id": criterion, "passed": observed[criterion].passed}
+                        for criterion in candidate.blueprint.required_criteria
+                        if criterion in observed
+                    ]
+                    turns = [turn.to_dict() for turn in result.run_result.trace.turns]
+                    termination = result.run_result.final_reasoning
                 record.update(
                     {
                         "simulator_id": config.content["models"]["simulator"],
                         "judge_id": config.content["models"]["judge"],
                         "prompt_hashes": dict(snapshot.content["prompt_hashes"]),
                         "fixture": dict(snapshot.content["fixture"]),
-                        "termination": "stub-completed",
+                        "termination": termination,
                     }
                 )
                 stem = f"{side}-{repetition}"
@@ -315,6 +455,9 @@ def qualify_candidate(
                 transcript_path = bundle / "episodes" / f"{stem}-transcript.jsonl"
                 assertion_results_path = bundle / "episodes" / f"{stem}-assertion-results.json"
                 judge_rulings_path = bundle / "episodes" / f"{stem}-judge-rulings.json"
+                compliance_path = (
+                    bundle / "episodes" / f"{stem}-simulator-compliance-rulings.json"
+                )
                 atomic_json(
                     trace_path,
                     {
@@ -323,7 +466,7 @@ def qualify_candidate(
                         "side": side,
                         "repetition": repetition,
                         "outcome": record["outcome"],
-                        "turns": [],
+                        "turns": turns,
                     },
                 )
                 _write_transcript(
@@ -334,8 +477,8 @@ def qualify_candidate(
                         "episode_id": f"{qualification_id}:{side}:{repetition}",
                         "side": side,
                         "repetition": repetition,
-                        "turns": [],
-                        "termination": {"reason": "stub-completed", "outcome": record["outcome"]},
+                        "turns": turns,
+                        "termination": {"reason": termination, "outcome": record["outcome"]},
                         "timing": {"started_at": qualified_at, "completed_at": qualified_at},
                         "models": {
                             "simulator": config.content["models"]["simulator"],
@@ -345,10 +488,20 @@ def qualify_candidate(
                 )
                 atomic_json(assertion_results_path, {"schema_version": 1, "results": assertion_results})
                 atomic_json(judge_rulings_path, {"schema_version": 1, "rulings": judge_rulings})
+                atomic_json(
+                    compliance_path,
+                    {
+                        "schema_version": 1,
+                        "rulings": [dict(item) for item in result.simulator_compliance_rulings],
+                    },
+                )
                 record["trace"] = evidence_reference(trace_path, root=root)
                 record["transcript"] = evidence_reference(transcript_path, root=root)
                 record["assertion_results"] = evidence_reference(assertion_results_path, root=root)
                 record["judge_rulings"] = evidence_reference(judge_rulings_path, root=root)
+                record["simulator_compliance_rulings"] = evidence_reference(
+                    compliance_path, root=root
+                )
                 episode_path = bundle / "episodes" / f"{side}-{repetition}.json"
                 atomic_json(episode_path, record)
                 episode_refs.append(evidence_reference(episode_path, root=root))
@@ -359,7 +512,7 @@ def qualify_candidate(
             "cell_id": candidate.cell_id,
             "candidate_ordinal": candidate.ordinal,
             "runner_id": runner.runner_id,
-            "provider_mode": "offline-stub",
+            "provider_mode": runner.provider_mode,
             "config_snapshot_hash": snapshot.sha256,
             "contract_hashes": contracts.hashes,
             "models": dict(config.content["models"]),
@@ -690,6 +843,7 @@ def _validate_qualification_evidence(
             "degraded_checks", "simulator_compliance", "error", "llm_calls",
             "simulator_id", "judge_id", "prompt_hashes", "fixture", "termination",
             "trace", "transcript", "assertion_results", "judge_rulings",
+            "simulator_compliance_rulings",
         }
         if set(episode) != episode_required:
             raise CandidateError("Episode evidence has an incomplete schema")
@@ -718,6 +872,10 @@ def _validate_qualification_evidence(
             "transcript": (".jsonl", f"{stem}-transcript.jsonl"),
             "assertion_results": (".json", f"{stem}-assertion-results.json"),
             "judge_rulings": (".json", f"{stem}-judge-rulings.json"),
+            "simulator_compliance_rulings": (
+                ".json",
+                f"{stem}-simulator-compliance-rulings.json",
+            ),
         }
         nested_paths = {}
         for key, (suffix, name) in nested.items():
@@ -729,6 +887,7 @@ def _validate_qualification_evidence(
         _validate_transcript(
             nested_paths["transcript"], bundle.name, side, repetition,
             qualification["models"], episode["outcome"],
+            episode["termination"],
         )
         trace = json.loads(nested_paths["trace"].read_text(encoding="utf-8"))
         if (
@@ -746,10 +905,19 @@ def _validate_qualification_evidence(
         ruling_artifact = json.loads(
             nested_paths["judge_rulings"].read_text(encoding="utf-8")
         )
+        compliance_artifact = json.loads(
+            nested_paths["simulator_compliance_rulings"].read_text(encoding="utf-8")
+        )
         if set(assertion_artifact) != {"schema_version", "results"} or assertion_artifact["schema_version"] != 1:
             raise CandidateError("Assertion result evidence has an incomplete schema")
         if set(ruling_artifact) != {"schema_version", "rulings"} or ruling_artifact["schema_version"] != 1:
             raise CandidateError("Judge ruling evidence has an incomplete schema")
+        if (
+            set(compliance_artifact) != {"schema_version", "rulings"}
+            or compliance_artifact["schema_version"] != 1
+            or not isinstance(compliance_artifact["rulings"], list)
+        ):
+            raise CandidateError("simulator-compliance ruling evidence has an incomplete schema")
         hydrated.append(
             {
                 **episode,
@@ -877,6 +1045,7 @@ def _validate_transcript(
     repetition: int,
     models: Mapping[str, str],
     outcome: str,
+    termination: str,
 ) -> None:
     lines = path.read_text(encoding="utf-8").splitlines()
     if not lines:
@@ -903,7 +1072,7 @@ def _validate_transcript(
         or record["repetition"] != repetition
         or not isinstance(record["turns"], list)
         or record["models"] != models
-        or record["termination"] != {"reason": "stub-completed", "outcome": outcome}
+        or record["termination"] != {"reason": termination, "outcome": outcome}
         or set(record["timing"]) != {"started_at", "completed_at"}
     ):
         raise CandidateError("Transcript evidence violates the repository contract")

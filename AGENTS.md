@@ -41,6 +41,8 @@ Do not violate these without explicit instruction in the current prompt.
   uses overlay files.
 - Validate contract preconditions against their governing ADR definitions,
   never against a single curated exemplar.
+- Synchronous synthesis providers that reuse the shared OpenAI client must
+  execute on one process-local event loop; do not create a new event loop per call.
 - Before any simulator-instruction change lands, check it for conflicts with
   existing scenario Personas.
 - Simulator and judge must be from different model families for any reported

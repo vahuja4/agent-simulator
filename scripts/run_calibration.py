@@ -42,8 +42,8 @@ sys.path.insert(0, str(REPO))
 
 
 def _load_dotenv() -> None:
-    """Minimal .env loader (matches tests/test_live_smoke.py): existing
-    environment variables win; only KEY=VALUE lines are read."""
+    """Minimal .env loader: existing environment variables win; only
+    KEY=VALUE lines are read."""
     env_path = REPO / ".env"
     if not env_path.exists():
         return

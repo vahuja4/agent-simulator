@@ -5,9 +5,14 @@ from __future__ import annotations
 import json
 import re
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any, Mapping, Protocol
 
+from agentsim.llm import LLMClient, LLMError, OpenAILLM
+
+from ._async import run
 from .blueprint import CoverageBlueprint
+from .config import load_config
 
 
 class RealizationError(ValueError):
@@ -68,6 +73,88 @@ class StubRealizationProvider:
         elif mode is not None:
             raise ValueError(f"unknown stub realization failure mode {mode!r}")
         return surface
+
+
+@dataclass
+class LiveRealizationProvider:
+    """Realize reviewed Blueprint narrative fields with the configured simulator."""
+
+    llm: LLMClient
+    system_prompt: str
+    token_budget: int
+    provider_id: str
+
+    @classmethod
+    def from_config(cls) -> LiveRealizationProvider:
+        config = load_config()
+        model = str(config.content["models"]["simulator"])
+        prompt_path = Path(config.path).parents[1] / str(
+            config.content["paths"]["prompts"]["realization-system"]
+        )
+        return cls(
+            llm=OpenAILLM(model=model),
+            system_prompt=prompt_path.read_text(encoding="utf-8").strip(),
+            token_budget=int(config.content["limits"]["realization_token_budget"]),
+            provider_id=f"openai-structured-realization:{model}",
+        )
+
+    def realize(
+        self, blueprint: CoverageBlueprint, *, candidate_ordinal: int, attempt: int
+    ) -> Mapping[str, Any]:
+        prompt = {
+            "instruction": (
+                "Return only narrative surface fields. Preserve every supplied fact and "
+                "do not introduce any fact, number, identifier, policy, or behavior."
+            ),
+            "candidate_ordinal": candidate_ordinal,
+            "corrective_attempt": attempt,
+            "blueprint": blueprint.to_dict(),
+        }
+        try:
+            return run(
+                self.llm.structured(
+                    system=self.system_prompt,
+                    messages=[
+                        {
+                            "role": "user",
+                            "content": json.dumps(prompt, sort_keys=True, ensure_ascii=False),
+                        }
+                    ],
+                    schema=_live_realization_schema(),
+                    effort="none",
+                    max_tokens=self.token_budget,
+                )
+            )
+        except LLMError as exc:
+            raise RealizationError(
+                "schema-failure", f"realization provider failed: {exc}"
+            ) from exc
+
+
+def _live_realization_schema() -> dict[str, Any]:
+    return {
+        "type": "object",
+        "additionalProperties": False,
+        "properties": {
+            "description": {"type": "string"},
+            "persona": {
+                "type": "object",
+                "additionalProperties": False,
+                "properties": {
+                    "name": {"type": "string"},
+                    "traits": {"type": "string"},
+                },
+                "required": ["name", "traits"],
+            },
+            "goal": {"type": "string"},
+            "success_criteria": {
+                "type": "array",
+                "items": {"type": "string"},
+                "minItems": 1,
+            },
+        },
+        "required": ["description", "persona", "goal", "success_criteria"],
+    }
 
 
 def validate_surface(

@@ -308,7 +308,7 @@ def test_check_completion_fails_honestly_without_resolved_graph_gaps(
 
     assert output["status"] == "fail"
     assert [item["clause"] for item in result["clauses"]] == [1, 2, 3, 4, 5]
-    assert result["clauses"][0]["passed"] is False
+    assert result["clauses"][0]["passed"] is True
     assert result["clauses"][1]["passed"] is False
     assert result["clauses"][2]["passed"] is True
     assert result["clauses"][3]["passed"] is False
