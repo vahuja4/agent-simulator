@@ -10,25 +10,32 @@
 <body>
 <main>
   <p class="eyebrow">Lesson 0003 · Agent Simulator course</p>
-  <h1>Perturbations vs Complications</h1>
-  <p class="muted">One tangible win: given any test difficulty, you can say
-  which taxonomy it belongs to, which value it is, and why the repo refuses to
-  mix the two.</p>
+  <h1>Two Kinds of Trouble</h1>
+  <p class="muted">The win for this lesson: for any tricky test, you can say
+  whether it's a <strong>perturbation</strong> or a <strong>complication</strong>
+  — and which one exactly.</p>
 
-  <h2>The boundary, in one sentence</h2>
+  <h2>The rule, in plain words</h2>
+  <p>Every hard test makes trouble for the assistant. The repo splits trouble
+  into two kinds:</p>
+  <ul>
+    <li>A <strong>perturbation</strong> changes <em>what happens</em> —
+    the data, the steps, a tool that fails.</li>
+    <li>A <strong>complication</strong> changes <em>how the customer talks</em>,
+    or what they wrongly believe.</li>
+  </ul>
+  <p>Example: a payment that fails because it's $6,000 — that's something that
+  <em>happens</em>. A customer who says "my Freedom card" when they own two
+  Freedom cards — that's how they <em>talk</em>. One chat can have both.</p>
   <div class="callout">
-    <span class="label">ADR-0005, verbatim</span>
+    <span class="label">The repo's own words (ADR-0005)</span>
     <p>"Procedure branches, validation outcomes, tool failures, and fixture
-    conditions are <strong>not</strong> conversational Complications."</p>
+    conditions are <strong>not</strong> conversational Complications."
+    In short: if it's about the flow or the data, it's not a complication.</p>
   </div>
-  <p>The intuition: a <strong>perturbation</strong> changes <em>what happens</em>
-  — the flow, the data, the tool outcomes. A <strong>complication</strong>
-  changes <em>how the customer talks or what they believe</em>. A payment that
-  fails because it's $6,000 is mechanics. A customer who says "my Freedom card"
-  when they own two Freedom cards is conversation. Same chat can carry both.</p>
 
   <figure>
-    <svg viewBox="0 0 660 260" role="img" aria-label="Two lanes feed one scenario: the mechanics lane goes from graph edges through goal facts; the conversation lane goes from the complication contract into the coverage cell.">
+    <svg viewBox="0 0 660 260" role="img" aria-label="Two lanes feed one test: perturbations come from the journey map and become data; complications come from a fixed list and shape how the customer talks.">
       <defs>
         <marker id="c1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
           <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
@@ -41,145 +48,124 @@
         <rect x="20" y="160" width="185" height="60" rx="10"/>
       </g>
       <text x="112" y="63" text-anchor="middle" font-size="12" font-weight="700" fill="var(--bug)">PERTURBATION</text>
-      <text x="112" y="81" text-anchor="middle" font-size="10.5" fill="var(--muted)">declared on graph edges</text>
-      <text x="112" y="94" text-anchor="middle" font-size="10.5" fill="var(--muted)">procedures/j1.yaml</text>
+      <text x="112" y="81" text-anchor="middle" font-size="10.5" fill="var(--muted)">what happens</text>
+      <text x="112" y="94" text-anchor="middle" font-size="10.5" fill="var(--muted)">listed on the journey map</text>
       <text x="112" y="183" text-anchor="middle" font-size="12" font-weight="700" fill="var(--persona)">COMPLICATION</text>
-      <text x="112" y="201" text-anchor="middle" font-size="10.5" fill="var(--muted)">closed 9-value contract</text>
-      <text x="112" y="214" text-anchor="middle" font-size="10.5" fill="var(--muted)">complication-applicability.yaml</text>
+      <text x="112" y="201" text-anchor="middle" font-size="10.5" fill="var(--muted)">how the customer talks</text>
+      <text x="112" y="214" text-anchor="middle" font-size="10.5" fill="var(--muted)">a fixed list of 9</text>
       <g fill="none" stroke="currentColor" stroke-width="1.5">
         <rect x="280" y="40" width="160" height="60" rx="10"/>
         <rect x="280" y="160" width="160" height="60" rx="10"/>
         <rect x="510" y="95" width="135" height="70" rx="10"/>
       </g>
-      <text x="360" y="63" text-anchor="middle" font-size="11.5" font-weight="600" fill="currentColor">compiled into</text>
-      <text x="360" y="81" text-anchor="middle" font-size="11.5" font-weight="600" fill="currentColor">goal facts &amp; data</text>
-      <text x="360" y="94" text-anchor="middle" font-size="10" fill="var(--muted)">amount=$6,000 · two cards</text>
-      <text x="360" y="183" text-anchor="middle" font-size="11.5" font-weight="600" fill="currentColor">one axis of the</text>
-      <text x="360" y="201" text-anchor="middle" font-size="11.5" font-weight="600" fill="currentColor">coverage cell</text>
-      <text x="360" y="214" text-anchor="middle" font-size="10" fill="var(--muted)">bound to journey events</text>
+      <text x="360" y="63" text-anchor="middle" font-size="11.5" font-weight="600" fill="currentColor">becomes data</text>
+      <text x="360" y="81" text-anchor="middle" font-size="10.5" fill="var(--muted)">amount = $6,000</text>
+      <text x="360" y="94" text-anchor="middle" font-size="10.5" fill="var(--muted)">two cards bound</text>
+      <text x="360" y="183" text-anchor="middle" font-size="11.5" font-weight="600" fill="currentColor">becomes behavior</text>
+      <text x="360" y="201" text-anchor="middle" font-size="10.5" fill="var(--muted)">"my Freedom card…"</text>
+      <text x="360" y="214" text-anchor="middle" font-size="10.5" fill="var(--muted)">"forget that payment…"</text>
       <g stroke="currentColor" stroke-width="1.5" fill="none">
         <line x1="210" y1="70" x2="272" y2="70" marker-end="url(#c1)"/>
         <line x1="210" y1="190" x2="272" y2="190" marker-end="url(#c1)"/>
         <line x1="445" y1="70" x2="510" y2="115" marker-end="url(#c1)"/>
         <line x1="445" y1="190" x2="510" y2="145" marker-end="url(#c1)"/>
       </g>
-      <text x="577" y="125" text-anchor="middle" font-size="12" font-weight="600" fill="currentColor">one scenario</text>
-      <text x="577" y="143" text-anchor="middle" font-size="10.5" fill="var(--muted)">≤2 perturbations</text>
+      <text x="577" y="125" text-anchor="middle" font-size="12" font-weight="600" fill="currentColor">one test</text>
+      <text x="577" y="143" text-anchor="middle" font-size="10.5" fill="var(--muted)">up to 2 perturbations</text>
       <text x="577" y="156" text-anchor="middle" font-size="10.5" fill="var(--muted)">exactly 1 complication</text>
     </svg>
-    <figcaption>Two lanes, two authorities, one test. Mechanics rides the graph; conversation rides the contract.</figcaption>
+    <figcaption>Two kinds of trouble, two separate lists, one test.</figcaption>
   </figure>
 
-  <h2>Lane 1 · Perturbations (mechanics)</h2>
-  <p>Current working-tree catalog — <strong>five</strong> types, six declaration
-  sites. (The graph recently evolved: the validate self-loop and
-  <code>validation_retry</code> were removed, and edges gained ids like
-  <code>j1-confirm-submit</code>. If you learned "six" from the earlier
-  reference, this supersedes it.)</p>
+  <h2>Kind 1 · Perturbations — things that happen</h2>
+  <p>There are <strong>five</strong> right now, each tied to one spot on the
+  journey map. (Heads-up: an older version had six — <code>validation_retry</code>
+  was removed from the map recently.)</p>
   <table>
-    <tr><th>Type</th><th>Edge</th><th>Concrete example</th><th>Vs mock</th></tr>
-    <tr><td><code>partial_disclosure</code></td><td>j1-disclose-select-card</td><td>"I want to make a payment." → card, amount, date each arrive one turn at a time</td><td>✓</td></tr>
-    <tr><td><code>card_switch</code></td><td>j1-fetch-options-select-card</td><td>options fetched for …0767, then "actually, use my Freedom Flex" (…4421)</td><td>✓</td></tr>
-    <tr><td><code>validation_warning</code></td><td>j1-fetch-options-validate</td><td>validation returns a warning to relay &amp; acknowledge</td><td>✗ parked</td></tr>
-    <tr><td><code>validation_block</code></td><td>j1-fetch-options-validate</td><td>validation refuses outright; fix and re-validate</td><td>✗ parked</td></tr>
-    <tr><td><code>submission_failure</code></td><td>j1-confirm-submit · j1-submit-handle-failure</td><td>amount set to $6,000 (&gt; large-payment threshold) so submit genuinely fails — assistant must admit it</td><td>✓</td></tr>
+    <tr><th>Name</th><th>What it looks like</th><th>Works today?</th></tr>
+    <tr><td><code>partial_disclosure</code></td><td>"I want to make a payment." Card, amount, and date come out one turn at a time.</td><td>✓</td></tr>
+    <tr><td><code>card_switch</code></td><td>Options are fetched for card …0767, then: "actually, use my Freedom Flex" (…4421).</td><td>✓</td></tr>
+    <tr><td><code>validation_warning</code></td><td>The pre-payment check raises a caution the assistant must pass on.</td><td>✗ waiting</td></tr>
+    <tr><td><code>validation_block</code></td><td>The check says no; the assistant must help fix it.</td><td>✗ waiting</td></tr>
+    <tr><td><code>submission_failure</code></td><td>The amount is $6,000 — over the limit — so the final submit really fails. Does the assistant admit it?</td><td>✓</td></tr>
   </table>
-  <p class="muted">Remember the mechanism from lesson 0002: each is compiled
-  into the <em>customer's data</em> by <code>_goal_facts()</code> — a habit, a
-  binding, an amount. Never a script for the assistant.</p>
+  <p class="muted">From lesson 0002: each one is turned into the customer's
+  <em>data</em> — a habit, a second card, an amount. The assistant is never
+  scripted.</p>
 
-  <h2>Lane 2 · Complications (conversation)</h2>
-  <p>Exactly nine values; every scenario carries exactly one; synthesized
-  scenarios use at most one non-<code>none</code>. Each row below is a line the
-  simulated customer could actually say, grounded in the real fixtures
-  (Sapphire …9013 is the only AutoPay-enrolled card; the two "Freedom" cards
-  are Unlimited …0767 and Flex …4421):</p>
+  <h2>Kind 2 · Complications — ways of talking</h2>
+  <p>Exactly nine, and every test has exactly one (usually <code>none</code>).
+  Here's each one as a line the fake customer could really say. Remember the
+  fixtures: only the Sapphire (…9013) has AutoPay, and there are two "Freedom"
+  cards (…0767 and …4421).</p>
   <table>
-    <tr><th>Value</th><th>The customer, concretely</th><th>What it tests</th></tr>
-    <tr><td><code>none</code></td><td>"Pay the statement balance on my Freedom Unlimited ending 0767 from checking, on the due date."</td><td>the happy path</td></tr>
-    <tr><td><code>underspecification</code></td><td>"I'd like to pay my credit card." <em>(which card? how much? when? — all omitted)</em></td><td>elicitation — asks instead of assumes</td></tr>
-    <tr><td><code>ambiguous-reference</code></td><td>"Pay $50 on my <strong>Freedom</strong> card." <em>(matches BOTH …0767 and …4421)</em></td><td>disambiguation by last four</td></tr>
-    <tr><td><code>false-premise</code></td><td>"Why didn't AutoPay cover my Freedom Unlimited this month?" <em>(…0767 has no AutoPay — only Sapphire …9013 does)</em></td><td>correcting a wrong belief about real data, not playing along</td></tr>
-    <tr><td><code>mid-conversation-correction</code></td><td>"Actually make it $200 instead of $150 — same card, same date."</td><td>amend + re-validate, instruction preserved</td></tr>
-    <tr><td><code>goal-shift</code></td><td>"Forget that payment entirely. Instead, pay the $40 minimum on my Sapphire."</td><td>discard the abandoned instruction cleanly</td></tr>
-    <tr><td><code>multi-intent-turn</code></td><td>"Pay the $40 minimum on the Sapphire AND schedule $89.99 on the Flex."</td><td>two independent instructions, both completed</td></tr>
-    <tr><td><code>out-of-scope-drift</code></td><td>"While we're at it — what's my mortgage rate?"</td><td>steering back without derailing</td></tr>
-    <tr><td><code>channel-noise</code></td><td>"pya my frdeom unlimtd crad pls, statment balnce"</td><td>robustness to garble</td></tr>
+    <tr><th>Name</th><th>The customer says…</th><th>The assistant should…</th></tr>
+    <tr><td><code>none</code></td><td>"Pay the statement balance on my Freedom Unlimited 0767 from checking, on the due date."</td><td>just do the job</td></tr>
+    <tr><td><code>underspecification</code></td><td>"I'd like to pay my credit card." <em>(which card? how much? when?)</em></td><td>ask for the missing pieces</td></tr>
+    <tr><td><code>ambiguous-reference</code></td><td>"Pay $50 on my <strong>Freedom</strong> card." <em>(there are two!)</em></td><td>ask which one — never guess</td></tr>
+    <tr><td><code>false-premise</code></td><td>"Why didn't AutoPay pay my Freedom Unlimited this month?" <em>(that card has no AutoPay)</em></td><td>gently correct them, not play along</td></tr>
+    <tr><td><code>mid-conversation-correction</code></td><td>"Actually make it $200 instead of $150 — same card, same date."</td><td>update the amount and re-check</td></tr>
+    <tr><td><code>goal-shift</code></td><td>"Forget that payment entirely. Instead, pay the $40 minimum on my Sapphire."</td><td>drop the old payment cleanly, start the new one</td></tr>
+    <tr><td><code>multi-intent-turn</code></td><td>"Pay the $40 minimum on the Sapphire AND put $89.99 on the Flex."</td><td>handle both, finish both</td></tr>
+    <tr><td><code>out-of-scope-drift</code></td><td>"While we're at it — what's my mortgage rate?"</td><td>steer back politely</td></tr>
+    <tr><td><code>channel-noise</code></td><td>"pya my frdeom unlimtd crad pls"</td><td>cope with the typos</td></tr>
   </table>
 
   <div class="callout">
-    <span class="label">The razor cases (straight from ADR-0005)</span>
-    <p><strong>Ambiguous-reference ≠ underspecification:</strong> supplying a
-    <em>colliding</em> fact vs <em>omitting</em> a fact.
-    <strong>Correction ≠ goal-shift:</strong> preserving vs abandoning the
-    instruction — "parameter count is never the discriminator."
-    <strong>And the trap:</strong> a below-minimum request made with correct
-    knowledge is <code>none</code> — the warning is a journey/fixture
-    condition, i.e. perturbation territory.</p>
+    <span class="label">The tricky cases</span>
+    <p><strong>"My Freedom card" vs "my credit card":</strong> the first gives a
+    clue that matches two cards (ambiguous-reference); the second gives no clue
+    at all (underspecification).<br>
+    <strong>"Make it $200" vs "forget it, do this instead":</strong> the first
+    keeps the payment and tweaks it (correction); the second throws it away and
+    starts over (goal-shift). What matters is keep-vs-throw-away — not how many
+    things changed.<br>
+    <strong>The trap:</strong> a customer who knowingly asks to pay $10 (below
+    the $35 minimum) is <code>none</code>. Nothing is wrong with how they talk —
+    the difficulty is in the data, so it belongs to the other kind.</p>
   </div>
 
-  <h2>How a complication becomes checkable: journey events</h2>
-  <p>The three hardest complications don't stay prose — they bind to
-  <strong>events</strong> now defined in the graph itself
-  (<code>procedures/j1.yaml</code>, <code>events:</code> block), each with
-  countable semantics:</p>
+  <h2>How the hard ones are made checkable</h2>
+  <p>"Keep vs throw away" sounds fuzzy — so the journey map now pins it down
+  with numbers a machine can check (the <code>events:</code> block in
+  <code>procedures/j1.yaml</code>):</p>
   <table>
-    <tr><th>Event</th><th>Goal relationship</th><th>Instructions / completed</th><th>State transition</th></tr>
-    <tr><td><code>correctable-parameter-supplied</code></td><td>preserved</td><td>1 / 1</td><td>revalidate-amended-instruction</td></tr>
-    <tr><td><code>j1-abandon-replace-payment-goal</code></td><td>abandoned-and-replaced</td><td>2 / 1</td><td>discard-abandoned-instruction</td></tr>
-    <tr><td><code>j1-two-payment-intents-one-turn</code></td><td>independent-same-turn</td><td>2 / 2</td><td>preserve-independent-instructions</td></tr>
+    <tr><th>Complication</th><th>Payments mentioned</th><th>Payments completed</th></tr>
+    <tr><td>correction</td><td>1</td><td>1</td></tr>
+    <tr><td>goal-shift</td><td>2</td><td>1 <em>(only the replacement)</em></td></tr>
+    <tr><td>multi-intent turn</td><td>2</td><td>2</td></tr>
   </table>
-  <p class="muted">Read the middle column as the discriminator made machine-checkable:
-  correction = one instruction ends completed; goal-shift = two instructions,
-  only the replacement completes; multi-intent = two instructions, both
-  complete. The contract's <code>required_event_ids</code> points at these.</p>
-
-  <h2>Where each lives in a blueprint</h2>
-  <p>Two synthesis generations, two homes:</p>
-  <ul>
-    <li><strong>Phase 4.1 blueprint</strong> (<code>enumerate.py</code>):
-      carries a <code>perturbations:</code> list (≤2 entries of type+position).
-      No complication field exists here.</li>
-    <li><strong>Phase 4.5 CoverageBlueprint</strong> (<code>generator.py</code> /
-      <code>planner.py</code>): <code>complication</code> is one of the
-      <strong>six axes of a coverage cell</strong> — journey path ×
-      persona archetype (cooperative/pressure/vigilant/persistent) ×
-      knowledge level (high/medium/low) × <strong>complication</strong> ×
-      fixture state class × fitness target. The planner sweeps cells; each
-      cell becomes one test.</li>
-  </ul>
+  <p class="muted">Simple counts, no judgment calls.</p>
 
   <h2>Side by side</h2>
   <table>
     <tr><th></th><th>Perturbation</th><th>Complication</th></tr>
-    <tr><td>Difficulty of…</td><td>the flow &amp; data</td><td>the conversation &amp; beliefs</td></tr>
-    <tr><td>Authority</td><td>graph edges</td><td>reviewed contract + ADR-0005</td></tr>
-    <tr><td>Count today</td><td>5 types (J1)</td><td>9 values</td></tr>
-    <tr><td>Per scenario</td><td>0–2</td><td>exactly 1 (≤1 non-none)</td></tr>
-    <tr><td>Made real via</td><td>goal facts &amp; bindings</td><td>customer behavior, bound to journey events</td></tr>
-    <tr><td>Preconditions</td><td>executable_trigger per edge</td><td>required edges/events/fixture predicates</td></tr>
-    <tr><td>Validation status</td><td>2 of 5 parked vs mock</td><td>4 of 9 designed-not-yet-validated</td></tr>
+    <tr><td>Trouble with…</td><td>what happens</td><td>how the customer talks</td></tr>
+    <tr><td>Listed in</td><td>the journey map</td><td>a fixed list of 9 (with its own rule doc)</td></tr>
+    <tr><td>How many per test</td><td>0, 1, or 2</td><td>exactly 1</td></tr>
+    <tr><td>Becomes real as</td><td>data (amounts, cards, habits)</td><td>customer behavior</td></tr>
+    <tr><td>Example</td><td>payment too big → submit fails</td><td>wrong belief about AutoPay</td></tr>
   </table>
 
-  <h2>Check yourself — classify these</h2>
+  <h2>Check yourself — sort these</h2>
 
   <div class="quiz"
-       data-explain-right="Perturbation (submission_failure): the amount is data; the failing submit is a tool outcome — mechanics, per ADR-0005's boundary."
+       data-explain-right="Perturbation — a failing tool call is something that happens, not a way of talking."
        data-explain-wrong="Is a failing tool call a way of talking, or a thing that happens?">
-    <p class="q">"The amount is $6,000, so the submit call fails." This is a…</p>
+    <p class="q">"The amount is $6,000, so the submit fails." Which kind of trouble?</p>
     <div class="opts">
-      <button>complication value</button>
-      <button data-correct>perturbation type</button>
-      <button>journey policy</button>
-      <button>fixture predicate</button>
+      <button>a complication</button>
+      <button data-correct>a perturbation</button>
+      <button>a journey rule</button>
+      <button>a judge check</button>
     </div>
     <p class="feedback"></p>
   </div>
 
   <div class="quiz"
-       data-explain-right="Ambiguous-reference: a supplied fact matching two real entities (…0767 and …4421). Underspecification would be omitting the card entirely."
-       data-explain-wrong="They said which card — sort of. Did they omit a fact, or supply a colliding one?">
-    <p class="q">"Pay $50 on my Freedom card" (they own two Freedoms). Which complication?</p>
+       data-explain-right="Ambiguous-reference — they gave a clue, but it matches two cards. Leaving the card out entirely would be underspecification."
+       data-explain-wrong="They did name a card — sort of. Did they leave info out, or give info that matches two things?">
+    <p class="q">"Pay $50 on my Freedom card" (they own two Freedoms). Which one?</p>
     <div class="opts">
       <button>underspecification</button>
       <button data-correct>ambiguous-reference</button>
@@ -190,12 +176,12 @@
   </div>
 
   <div class="quiz"
-       data-explain-right="Mid-conversation-correction: the instruction is preserved, one parameter amended. Parameter count is never the discriminator — abandonment is."
-       data-explain-wrong="Did the customer abandon the payment, or amend it?">
-    <p class="q">"Change it to $200 — same card, same date." Which complication?</p>
+       data-explain-right="A correction — the payment is kept, one detail changes. Goal-shift would mean throwing the payment away and starting over."
+       data-explain-wrong="Did the customer throw the payment away, or just tweak it?">
+    <p class="q">"Change it to $200 — same card, same date." Which one?</p>
     <div class="opts">
-      <button>a goal-shift move</button>
-      <button data-correct>a correction move</button>
+      <button>a goal-shift</button>
+      <button data-correct>a correction</button>
       <button>a multi-intent turn</button>
       <button>out-of-scope drift</button>
     </div>
@@ -203,8 +189,8 @@
   </div>
 
   <div class="quiz"
-       data-explain-right="none — ADR-0005's own trap case: with correct knowledge, the below-minimum warning is a journey/fixture condition, not conversational difficulty."
-       data-explain-wrong="The customer knows exactly what they're asking. Where does the difficulty actually live?">
+       data-explain-right="None — they talk perfectly clearly. The $10-below-minimum problem lives in the data, so it's the other kind of trouble."
+       data-explain-wrong="Is anything wrong with HOW they're talking? Or only with the numbers?">
     <p class="q">Customer knowingly asks to pay $10 (below the $35 minimum). Which complication?</p>
     <div class="opts">
       <button>false-premise</button>
@@ -215,23 +201,22 @@
     <p class="feedback"></p>
   </div>
 
-  <h2>Primary source</h2>
+  <h2>Read the source</h2>
   <p>Read
-  <a href="../../docs/adrs/0005-use-a-closed-complication-taxonomy.md"><code>docs/adrs/0005-use-a-closed-complication-taxonomy.md</code></a>
-  in full (one page, and every sentence is a design decision), then skim
-  <a href="../../scenario_synthesis/contracts/complication-applicability.yaml"><code>contracts/complication-applicability.yaml</code></a>
-  and the <code>events:</code> block of
+  <a href="../../docs/adrs/0005-use-a-closed-complication-taxonomy.md"><code>docs/adrs/0005</code></a>
+  (one page — it defines all nine and the tricky cases), then glance at the
+  <code>events:</code> block at the top of
   <a href="../../scenario_synthesis/procedures/j1.yaml"><code>procedures/j1.yaml</code></a>.
-  ~12 minutes.</p>
+  About 10 minutes.</p>
 
   <nav class="lesson-nav">
-    <span><a href="0002-personas-and-curveballs.html">← 0002 Personas &amp; Curveballs</a> · <a href="../reference/complication-taxonomy.html">Complication reference</a> · <a href="../reference/curveball-catalog.html">Curveball catalog</a></span>
-    <span class="muted">Next: the coverage planner — cells, contracts, and the ledger</span>
+    <span><a href="0002-personas-and-curveballs.html">← 0002 Personas &amp; Curveballs</a> · <a href="../reference/complication-taxonomy.html">Complication list</a> · <a href="../reference/curveball-catalog.html">Perturbation list</a></span>
+    <span class="muted">Next: how tests get graded — the judge and the hard checks</span>
   </nav>
 
-  <p class="followup">Good follow-ups for your teacher: "why was validation_retry
-  removed?" · "show me a coverage cell end-to-end" · "which complications have
-  curated examples vs none?" — it can open any file and walk you through it.</p>
+  <p class="followup">Questions worth asking your teacher: "why was
+  validation_retry removed?" · "show me one full test that uses goal-shift" ·
+  "which of the nine have real examples already?"</p>
 </main>
 </body>
 </html>

@@ -17,6 +17,12 @@
   recipe, the scenario factory, curveballs, and the ALMITA lineage. Lessons
   should go *deeper* than those overviews, not repeat them.
 
+- **Use plain language** (explicit feedback, 2026-08-29): short sentences,
+  everyday words. No "taxonomy", "discriminator", "supersession",
+  "precondition matrix" — say "list", "the real difference", "replaced",
+  "when it's allowed". Concrete examples are what works; fancy vocabulary is
+  what doesn't. Applies to lessons AND chat replies.
+
 ## Working notes
 
 - Existing self-authored primers (published artifacts + `agent-simulator-story.html`
