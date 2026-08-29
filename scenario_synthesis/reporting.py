@@ -253,7 +253,12 @@ def _validated_admissions(
                     for key in ("transcript", "trace", "assertion_results", "judge_rulings"):
                         _verify_reference(root, episode[key])
             _validate_admission_evidence(
-                candidate, admission_path.parent, root, config, contracts
+                candidate,
+                admission_path.parent,
+                root,
+                config,
+                contracts,
+                allow_repository_state_drift=True,
             )
             library_path = root / str(terminal["library_path"])
             if not library_path.is_file() or library_path.read_bytes() != candidate.scenario_path.read_bytes():

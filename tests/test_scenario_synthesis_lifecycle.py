@@ -15,6 +15,7 @@ from agentsim.scenario import (
 )
 from agentsim.trace import Trace
 from agentsim.types import CriterionVerdict, TurnVerdict
+from scenario_synthesis import config as synthesis_config
 from scenario_synthesis import cli
 from scenario_synthesis.candidate import CandidateError, load_candidate, produce_candidate
 from scenario_synthesis.generator import generate_blueprints
@@ -324,6 +325,49 @@ def test_completed_qualification_is_idempotently_reused(
     )
     assert second.qualification_id == first.qualification_id
     assert second.library_path == first.library_path
+
+
+def test_completed_qualification_survives_repository_state_change(
+    tmp_path: Path,
+    detection_unproven_blueprint,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    candidate = produce_candidate(
+        detection_unproven_blueprint,
+        output_root=tmp_path,
+        provider=StubRealizationProvider(),
+    )
+    assert candidate is not None
+    first = qualify_candidate(
+        candidate.candidate_id,
+        output_root=tmp_path,
+        runner=StubQualificationRunner(),
+    )
+    monkeypatch.setattr(
+        synthesis_config,
+        "_repository_state",
+        lambda root: ("f" * 40, False),
+    )
+
+    class FailIfRun:
+        runner_id = "offline-stub-run-scenario-v1"
+        provider_mode = "offline-stub"
+        calls = 0
+
+        def run_scenario(self, *args, **kwargs):
+            self.calls += 1
+            raise AssertionError("committed Qualification evidence must not rerun")
+
+    runner = FailIfRun()
+    reused = qualify_candidate(
+        candidate.candidate_id,
+        output_root=tmp_path,
+        runner=runner,
+    )
+
+    assert runner.calls == 0
+    assert reused.qualification_id == first.qualification_id
+    assert reused.decision.admitted
 
 
 def test_qualification_accepts_relative_output_root(

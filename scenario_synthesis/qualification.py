@@ -367,6 +367,10 @@ def qualify_candidate(
     )
     bundle = root / "runs" / qualification_id
     if (candidate.bundle / "terminal.json").exists():
+        terminal = json.loads(
+            (candidate.bundle / "terminal.json").read_text(encoding="utf-8")
+        )
+        bundle = root / "runs" / str(terminal.get("qualification_id", ""))
         return _load_existing_result(candidate, bundle, root, replacement_provider)
     if bundle.exists():
         if (bundle / "qualification.json").is_file():
@@ -670,7 +674,14 @@ def _load_existing_result(
             raise CandidateError("terminal candidate has incomplete qualification evidence")
         if terminal_record.get("admission_sha256") != sha256_file(admission_path):
             raise CandidateError("terminal admission evidence hash mismatch")
-        return _validate_admission_evidence(candidate, bundle, root, config, contracts)
+        return _validate_admission_evidence(
+            candidate,
+            bundle,
+            root,
+            config,
+            contracts,
+            allow_repository_state_drift=True,
+        )
 
     admission = _validate_evidence_or_reject(candidate, bundle, root, validate)
     terminal = json.loads((candidate.bundle / "terminal.json").read_text(encoding="utf-8"))
@@ -863,6 +874,12 @@ def _validate_qualification_evidence(
     if (
         not isinstance(snapshot, dict)
         or snapshot.get("snapshot_hash") != snapshot_hash
+        or sha256_bytes(
+            canonical_json(
+                {key: value for key, value in snapshot.items() if key != "snapshot_hash"}
+            ).encode("utf-8")
+        )
+        != snapshot_hash
         or snapshot.get("contract_hashes") != contract_hashes
         or snapshot.get("models") != qualification["models"]
     ):
@@ -997,9 +1014,39 @@ def _validate_qualification_evidence(
 
 
 def _validate_admission_evidence(
-    candidate: Candidate, bundle: Path, root: Path, config: Any, contracts: ContractSet
+    candidate: Candidate,
+    bundle: Path,
+    root: Path,
+    config: Any,
+    contracts: ContractSet,
+    *,
+    allow_repository_state_drift: bool = False,
 ) -> Mapping[str, Any]:
-    snapshot_hash = create_config_snapshot(config=config, contracts=contracts).sha256
+    snapshot_path = bundle / "config-snapshot.yaml"
+    try:
+        persisted_snapshot = yaml.safe_load(snapshot_path.read_text(encoding="utf-8"))
+    except (OSError, yaml.YAMLError) as exc:
+        raise CandidateError("qualification config snapshot is missing or invalid") from exc
+    if not isinstance(persisted_snapshot, dict):
+        raise CandidateError("qualification config snapshot is missing or invalid")
+    snapshot_hash = str(persisted_snapshot.get("snapshot_hash", ""))
+    current_snapshot = create_config_snapshot(config=config, contracts=contracts)
+    if allow_repository_state_drift:
+        semantic_keys = {
+            "schema_version",
+            "config_hash",
+            "models",
+            "prompt_hashes",
+            "fixture",
+            "contract_hashes",
+        }
+        if any(
+            persisted_snapshot.get(key) != current_snapshot.content.get(key)
+            for key in semantic_keys
+        ):
+            raise CandidateError("qualification evidence semantic configuration mismatch")
+    elif snapshot_hash != current_snapshot.sha256:
+        raise CandidateError("qualification evidence identity or configuration mismatch")
     expected_failure, defect_toggles = _fitness_contract(candidate, contracts)
     repetitions = int(config.content["limits"]["admission_repetitions"])
     episodes = _validate_qualification_evidence(
