@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Complication Taxonomy — Agent Simulator</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+<main>
+  <p class="eyebrow">Reference · Agent Simulator course</p>
+  <h1>The Complication Taxonomy</h1>
+  <p class="muted">The <em>second</em> closed difficulty axis — not to be
+  confused with <a href="curveball-catalog.html">perturbations</a>. Source:
+  <code>scenario_synthesis/contracts/complication-applicability.yaml</code>,
+  governed by <code>docs/adrs/0005-use-a-closed-complication-taxonomy.md</code>.</p>
+
+  <div class="callout">
+    <span class="label">The boundary rule (ADR-0005, verbatim)</span>
+    <p>"Procedure branches, validation outcomes, tool failures, and fixture
+    conditions are not conversational Complications." —
+    <strong>Perturbation</strong> = journey/data mechanics (what happens in the
+    flow). <strong>Complication</strong> = conversational difficulty (how the
+    customer communicates, or what they wrongly believe).</p>
+  </div>
+
+  <table>
+    <tr><th>Complication</th><th>Meaning</th><th>Preconditions</th><th>Review state</th></tr>
+    <tr><td><code>none</code></td><td>No conversational difficulty. (A below-minimum request with correct knowledge is <code>none</code> — that difficulty belongs to the journey.)</td><td>—</td><td>approved</td></tr>
+    <tr><td><code>underspecification</code></td><td>Omits a required fact; tests elicitation.</td><td>disclose→select_card edge</td><td>approved</td></tr>
+    <tr><td><code>mid-conversation-correction</code></td><td>Amends one or more parameters of the in-progress payment <em>without</em> abandoning it.</td><td>correctable-parameter event</td><td>approved</td></tr>
+    <tr><td><code>goal-shift</code></td><td>Explicitly abandons the in-progress payment and fully replaces it. Cross-journey shift deferred until J2–J5 graphs exist.</td><td>abandon-replace-goal event</td><td>designed, not empirically validated</td></tr>
+    <tr><td><code>multi-intent-turn</code></td><td>Two independently actionable payment instructions in a single turn.</td><td>two-intents-one-turn event</td><td>designed, not empirically validated</td></tr>
+    <tr><td><code>false-premise</code></td><td>An incorrect belief about <em>real</em> fixture state — requires a real fact to be wrong about.</td><td><code>has_real_fixture_fact</code></td><td>approved</td></tr>
+    <tr><td><code>out-of-scope-drift</code></td><td>Wanders outside the journey's scope.</td><td>—</td><td>designed, not empirically validated</td></tr>
+    <tr><td><code>channel-noise</code></td><td>Garbled or noisy communication.</td><td>—</td><td>designed, not empirically validated</td></tr>
+    <tr><td><code>ambiguous-reference</code></td><td>Supplies a fact matching <em>multiple</em> real entities (the two "Freedom" cards); tests disambiguation. Distinct from underspecification: colliding fact vs omitted fact.</td><td>disclose edge + <code>ambiguous_card_names</code></td><td>approved</td></tr>
+  </table>
+
+  <h2>Rules</h2>
+  <ul>
+    <li><strong>Exactly nine values, closed.</strong> Every scenario carries
+      exactly one; synthesized scenarios use at most one non-<code>none</code>.</li>
+    <li><strong>Applicability is a reviewed precondition matrix</strong> —
+      each value names the journey edges, events, and fixture predicates it
+      requires; missing semantic support is a pair-eligibility exclusion,
+      missing implementation support is BLOCKED.</li>
+    <li><strong>Sharp discriminators are written down:</strong> correction
+      preserves the instruction, goal-shift replaces it ("parameter count is
+      never the discriminator"); a J1 "complete payment instruction" is itself
+      the definition of a Goal.</li>
+    <li><strong>Hash-pinned</strong> to the journey graph, fixtures, and the
+      curated mapping doc (<code>docs/reports/complication-taxonomy-mapping.md</code>)
+      — same drift-guard pattern as everything else.</li>
+    <li><strong>Where it lives:</strong> the <code>complication</code> field on
+      the coverage-planner blueprints (<code>generator.py</code> /
+      <code>planner.py</code>, the phase-4.5 synthesis layer), one axis among
+      several (persona-archetype × complication × …). The simulator's system
+      prompt honors it ("even when your persona or complication calls for
+      pressure").</li>
+  </ul>
+
+  <h2>Perturbation vs complication at a glance</h2>
+  <table>
+    <tr><th></th><th>Perturbation</th><th>Complication</th></tr>
+    <tr><td>Kind of difficulty</td><td>journey / data mechanics</td><td>conversational behavior / belief</td></tr>
+    <tr><td>Count</td><td>6 types (J1)</td><td>9 values</td></tr>
+    <tr><td>Declared in</td><td>graph edges (<code>procedures/j1.yaml</code>)</td><td>contract (<code>complication-applicability.yaml</code>)</td></tr>
+    <tr><td>Per test</td><td>at most 2</td><td>exactly 1 (≤1 non-none)</td></tr>
+    <tr><td>Example</td><td>payment too large → submit fails</td><td>customer wrongly believes AutoPay is off</td></tr>
+    <tr><td>Blueprint layer</td><td>phase-4.1 (<code>enumerate.py</code>)</td><td>phase-4.5 coverage planner (<code>generator.py</code>)</td></tr>
+  </table>
+
+  <p class="followup">Part of the agent-simulator course ·
+  <a href="curveball-catalog.html">Curveball catalog</a> ·
+  <a href="glossary.html">Glossary</a></p>
+</main>
+</body>
+</html>
