@@ -558,6 +558,13 @@ class CoverageBlueprintValidator:
         unknown_criteria = set(blueprint.required_criteria) - known_criteria
         if unknown_criteria:
             errors.append(f"required_criteria has unknown ID(s) {sorted(unknown_criteria)}")
+        missing_base = {criterion.id for criterion in DEFAULT_CRITERIA} - set(
+            blueprint.required_criteria
+        )
+        if missing_base:
+            errors.append(
+                f"required_criteria is missing curated base ID(s) {sorted(missing_base)}"
+            )
 
     def _sealed_world(self, blueprint: CoverageBlueprint, errors: list[str]) -> None:
         bound = set(blueprint.fixture_bindings.cards) | set(

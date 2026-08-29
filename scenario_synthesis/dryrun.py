@@ -22,12 +22,13 @@ from typing import Any
 import yaml
 
 from agentsim.adapters import MockConfig, MockPayCardAgent
-from agentsim.judge import Criterion, GeneralJudge
+from agentsim.judge import GeneralJudge
 from agentsim.scenario import Scenario, run_scenario
 from agentsim.trace import Trace
 
 from .blueprint import Blueprint
 from .contracts import fitness_entries_for_policies
+from .simulator_compliance import BASE_SIMULATOR_COMPLIANCE_CRITERIA
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_MANIFEST = ROOT / "generated_scenarios" / "manifest.json"
@@ -36,25 +37,7 @@ GRAPH_FILE = Path(__file__).with_name("procedures") / "j1.yaml"
 
 # Simulator compliance is deliberately judged with its own criterion set.
 # DEFAULT_CRITERIA and the shared specialist wording remain untouched.
-SIMULATOR_COMPLIANCE_CRITERIA: tuple[Criterion, ...] = (
-    Criterion(
-        "simulator_factual_grounding",
-        "The customer simulator used only facts available in the scenario goal "
-        "and supplied knowledge. It did not invent a card, account, amount, "
-        "date, prior action, or other behavior-changing fact.",
-    ),
-    Criterion(
-        "simulator_confirmation_timing",
-        "The customer simulator did not clearly confirm the payment before the "
-        "assistant presented validated payment details and asked for confirmation.",
-    ),
-    Criterion(
-        "simulator_goal_persistence",
-        "The customer simulator continued pursuing the scenario goal and did not "
-        "abandon or replace it prematurely. A stop after completion or after the "
-        "assistant made completion impossible is compliant.",
-    ),
-)
+SIMULATOR_COMPLIANCE_CRITERIA = BASE_SIMULATOR_COMPLIANCE_CRITERIA
 
 
 @dataclass(frozen=True)

@@ -96,8 +96,15 @@ file in the same commit.
   evaluation for one Candidate. It contains the required N repetitions on the
   defects-off side and, when a Fitness target applies, the defect-on side.
 - **Rejection ledger** — the append-only, hash-linked JSON Lines history of
-  failed production attempts and rejected Candidates, with side, repetition,
-  check, configuration, contract, and evidence attribution.
+  failed production attempts, rejected Candidates, and explicit harness-fault
+  Admission invalidations, with side, repetition, check, configuration,
+  contract, and evidence attribution.
+- **Admission invalidation** — an explicit append-only `harness-fault`
+  lifecycle transition that retires an Admission whose evidence was invalidated
+  by the harness. It archives the admitted library Scenario, returns the
+  Coverage cell to UNCOVERED, and does not consume the cell's K regeneration
+  budget. It never relabels or deletes the historical Candidate, Qualification,
+  or Admission evidence.
 - **Historical quarantine** — the read-only `generated_scenarios/` prototype
   output. It may supply reconciliation facts but never a candidate, admission,
   Fitness result, or coverage denominator.

@@ -8,6 +8,7 @@ from dataclasses import dataclass, replace
 from datetime import UTC, datetime
 from typing import Any
 
+from agentsim.judge import DEFAULT_CRITERIA
 from agentsim.scenario import ToolAssertion
 from fixtures.paycard import CARDS, LARGE_PAYMENT_THRESHOLD
 
@@ -316,7 +317,7 @@ def _required_checks(
         assertions["refetch_after_card_switch"] = ToolAssertion(
             "refetch_after_card_switch"
         )
-    criteria: set[str] = set()
+    criteria = {criterion.id for criterion in DEFAULT_CRITERIA}
     if spec.fitness_entry is not None:
         failure = spec.fitness_entry["expected_failure"]
         if failure["source"] == "assertion":

@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 import yaml
 
+from agentsim.judge import DEFAULT_CRITERIA
 from agentsim.scenario import ScenarioError, load_scenario
 from scenario_synthesis.blueprint import (
     BlueprintError,
@@ -131,6 +132,8 @@ def test_generated_blueprints_use_edge_paths_and_validate_contracts() -> None:
     assert blueprints
     assert all(item.journey_edge_ids[0].startswith("j1-") for item in blueprints)
     validator.validate(blueprints[0])
+    base_criterion_ids = {criterion.id for criterion in DEFAULT_CRITERIA}
+    assert all(base_criterion_ids <= set(item.required_criteria) for item in blueprints)
 
     disconnected = replace(
         blueprints[0],

@@ -54,7 +54,7 @@ class StubRealizationProvider:
                     f"fluency; complication={blueprint.complication}"
                 ),
             },
-            "goal": f"Complete the journey using these blueprint facts: {facts}",
+            "goal": _stub_goal(blueprint, facts),
             "success_criteria": [
                 f"Satisfy required criterion {criterion}."
                 for criterion in blueprint.required_criteria
@@ -104,7 +104,13 @@ class LiveRealizationProvider:
         prompt = {
             "instruction": (
                 "Return only narrative surface fields. Preserve every supplied fact and "
-                "do not introduce any fact, number, identifier, policy, or behavior."
+                "do not introduce any fact, number, identifier, policy, or behavior. "
+                "Express the facts behaviorally at the declared Knowledge level; do not "
+                "recite goal_facts as a fluent opening request. Low must show its specified "
+                "material fluency gap, medium must visibly rely on the agent for its specified "
+                "rule or consequence, and high must correctly state its specified rule or "
+                "consequence without prompting. Knowledge level must not change disclosure "
+                "timing or invent facts."
             ),
             "candidate_ordinal": candidate_ordinal,
             "corrective_attempt": attempt,
@@ -185,6 +191,7 @@ def validate_surface(
         raise RealizationError(
             "fact-equivalence-failure", f"realization drifted from blueprint fact {missing[0]!r}"
         )
+    _validate_knowledge_surface(blueprint, surface)
     allowed = set(_required_fact_tokens(blueprint)) | set(blueprint.fixture_bindings.cards) | set(
         blueprint.fixture_bindings.accounts
     )
@@ -200,6 +207,43 @@ def validate_surface(
         "goal": str(surface["goal"]),
         "success_criteria": list(criteria),
     }
+
+
+def _stub_goal(blueprint: CoverageBlueprint, facts: str) -> str:
+    if blueprint.knowledge_level != "low":
+        return f"Complete the journey using these blueprint facts: {facts}"
+    cards = ", ".join(blueprint.fixture_bindings.cards)
+    accounts = ", ".join(blueprint.fixture_bindings.accounts)
+    return (
+        f"Complete the grounded payment journey for card {cards} from account {accounts}. "
+        "The customer calls the desired amount 'the amount from my last bill' and needs "
+        "the agent to explain which payment option that means before proceeding."
+    )
+
+
+def _validate_knowledge_surface(
+    blueprint: CoverageBlueprint, surface: Mapping[str, Any]
+) -> None:
+    evidence = blueprint.goal_facts.get("knowledge_evidence")
+    if not isinstance(evidence, Mapping):
+        raise RealizationError(
+            "fact-equivalence-failure", "Blueprint Knowledge evidence is missing"
+        )
+    if (
+        blueprint.knowledge_level == "low"
+        and evidence.get("kind") == "material_fluency_gap"
+        and evidence.get("referent") == "payment_amount_type"
+    ):
+        amount_type = blueprint.goal_facts.get("amount_type")
+        if isinstance(amount_type, str):
+            canonical_label = amount_type.replace("_", " ").replace("-", " ").lower()
+            goal = str(surface["goal"]).replace("_", " ").replace("-", " ").lower()
+            if canonical_label in goal:
+                raise RealizationError(
+                    "fact-equivalence-failure",
+                    "realization did not express the declared low Knowledge level: "
+                    "the Goal fluently recites the canonical payment amount type",
+                )
 
 
 def _required_fact_tokens(blueprint: CoverageBlueprint) -> list[str]:

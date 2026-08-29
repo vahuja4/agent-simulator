@@ -23,18 +23,18 @@ Exhausted cells (still UNCOVERED): **0**.
 
 ## Rejection ledger and synthesis health
 
-Ledger events: **0**; valid: **true**.
+Ledger events: **2**; valid: **true**.
 
 | Rejection rate | Numerator | Denominator | Rate |
 |---|---:|---:|---:|
-| candidate_qualification | 0 | 0 | n/a |
-| production | 0 | 0 | n/a |
+| candidate_qualification | 0 | 1 | 0.000 |
+| production | 0 | 1 | 0.000 |
 
 ### Per-side attribution
 
 | Side | Attributions | Checks |
 |---|---:|---|
-| — | 0 | — |
+| qualification | 2 | complete-evidence=1, harness-validity=1 |
 
 ## Gaps
 

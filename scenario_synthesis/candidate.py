@@ -25,7 +25,11 @@ from .evidence import (
     sha256_bytes,
     sha256_file,
 )
-from .ledger import RejectionLedger, exclusive_lock
+from .ledger import (
+    RejectionLedger,
+    exclusive_lock,
+    qualification_admission_is_invalidated,
+)
 from .realization_provider import RealizationError, RealizationProvider, validate_surface
 from .validator import CoverageBlueprintValidator
 
@@ -264,11 +268,20 @@ def write_terminal(candidate: Candidate, record: Mapping[str, Any]) -> None:
 
 def _next_ordinal(root: Path, cell_id: str) -> tuple[int, str | None]:
     found: list[tuple[int, str, Path]] = []
+    ledger_records = RejectionLedger(root).records()
     candidates = root / "candidates"
     if candidates.exists():
         for production_path in candidates.glob("candidate-*/production.json"):
             production = json.loads(production_path.read_text(encoding="utf-8"))
             if production.get("cell_id") == cell_id:
+                terminal_path = production_path.parent / "terminal.json"
+                if terminal_path.is_file():
+                    terminal = json.loads(terminal_path.read_text(encoding="utf-8"))
+                    qualification_id = str(terminal.get("qualification_id", ""))
+                    if terminal.get("status") == "admitted" and qualification_admission_is_invalidated(
+                        ledger_records, qualification_id
+                    ):
+                        continue
                 found.append(
                     (int(production["candidate_ordinal"]), str(production["candidate_id"]), production_path.parent)
                 )

@@ -6,7 +6,7 @@
     "covered": 0,
     "excluded": 32
   },
-  "content_hash": "898d96f92059eea0fb3a8ba0526ac09b792ebdd0a94b031b6af4b9b9e2e49316",
+  "content_hash": "5eb4013e2cc50fc6f82404f100bd923a728d7031ec3d4173d2f638a2e0aa17b9",
   "contract_bindings": {
     "config_hash": "e425297e253559a3f2a316fb69f5003b69838dc355edbe3dc1195b1ea1f716d5",
     "contract_hashes": {
@@ -23,7 +23,7 @@
       "docs/adrs/0007-close-the-phase-4.5-design-frontier-with-defaults.md": "3617e0bb9aaebd45815ca00cfec80d8c556a4e75a0728caf468d13878b757283",
       "docs/plans/phase-4.5-spec-input.md": "94aa83009c9b6f1b332ba2d514fbf907c088e095db0284821192fae9f440925a"
     },
-    "snapshot_hash": "69de2def70f3138cbe09b833a3f4a2ed67a50384d5824e33baa8cd24f04c3a9e"
+    "snapshot_hash": "8ab97a00643c6ed16f213e8d6074f76bd237d648473b6bea6eafc05417686f97"
   },
   "counts_by_kind": {
     "axis": {
@@ -67,7 +67,7 @@
     "eligible_pair": 374,
     "excluded_pair": 32
   },
-  "generated_at": "2026-08-27T14:10:08.076472Z",
+  "generated_at": "2026-08-29T10:05:57.123832Z",
   "invalid_admissions": [],
   "obligations": [
     {
@@ -77392,7 +77392,10 @@
       "kind": "eligible-cell",
       "obligation_id": "cell-ecbf1aff14454844ace6f1119cad7223b00355053952bede562b4b709e01cd55",
       "regeneration_exhausted": false,
-      "rejection_event_ids": [],
+      "rejection_event_ids": [
+        "rejection-e4fd6d415406d01f0943a687f6d85a1fc2aa9747e2cc81e9b371dfe1338bdd3c",
+        "rejection-74c982250d724ab052061778a97013184c0b24b2b78b5c5a99e5186841e75b2d"
+      ],
       "status": "UNCOVERED"
     },
     {
@@ -90353,8 +90356,8 @@
   "rejection_ledger": {
     "current_contracts": true,
     "error": null,
-    "event_count": 0,
-    "exists": false,
+    "event_count": 2,
+    "exists": true,
     "path": "ledger/rejections.jsonl",
     "stale_event_ids": [],
     "valid": true
@@ -90364,25 +90367,33 @@
   "schema_version": 1,
   "stale_reasons": [],
   "synthesis_health": {
-    "per_side_attribution": {},
+    "per_side_attribution": {
+      "qualification": {
+        "checks": {
+          "complete-evidence": 1,
+          "harness-validity": 1
+        },
+        "count": 2
+      }
+    },
     "regeneration_budget": {
       "exhausted_cell_count": 0,
       "exhausted_cell_ids": [],
-      "exhaustion_trusted": false,
+      "exhaustion_trusted": true,
       "post_fitness_replacements_per_cell": 2
     },
     "rejection_rates": {
       "candidate_qualification": {
-        "denominator": 0,
+        "denominator": 1,
         "numerator": 0,
-        "rate": null
+        "rate": 0.0
       },
       "production": {
-        "denominator": 0,
+        "denominator": 1,
         "numerator": 0,
-        "rate": null
+        "rate": 0.0
       }
     },
-    "trusted": false
+    "trusted": true
   }
 }

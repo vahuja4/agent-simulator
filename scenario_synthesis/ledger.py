@@ -53,6 +53,13 @@ class RejectionLedger:
         self.lock_path = self.output_root / "ledger/rejections.lock"
 
     def records(self, *, verify_evidence: bool = True) -> tuple[Mapping[str, Any], ...]:
+        records = self._read_records(verify_evidence=verify_evidence)
+        self._validate_lifecycle(records)
+        return records
+
+    def _read_records(
+        self, *, verify_evidence: bool = True
+    ) -> tuple[Mapping[str, Any], ...]:
         if not self.path.exists():
             return ()
         records: list[Mapping[str, Any]] = []
@@ -103,6 +110,44 @@ class RejectionLedger:
             previous_timestamp = record["timestamp"]
         return tuple(records)
 
+    def _validate_lifecycle(self, records: Sequence[Mapping[str, Any]]) -> None:
+        invalidations = {
+            str(record["subject_id"]): str(record["timestamp"])
+            for record in records
+            if record["subject_type"] == "qualification"
+            and record["lifecycle_stage"] == "admission-invalidation"
+            and record["reason_code"] == "harness-fault"
+        }
+        candidates = self.output_root / "candidates"
+        for terminal_path in candidates.glob("candidate-*/terminal.json"):
+            try:
+                terminal = json.loads(terminal_path.read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError) as exc:
+                raise LedgerError(
+                    f"candidate terminal is invalid: {terminal_path.parent.name}"
+                ) from exc
+            if terminal.get("status") != "admitted":
+                continue
+            qualification_id = str(terminal.get("qualification_id", ""))
+            terminal_at = str(terminal.get("terminal_at", ""))
+            conflicts = [
+                record
+                for record in records
+                if record["subject_type"] == "qualification"
+                and record["subject_id"] == qualification_id
+                and record["lifecycle_stage"] != "admission-invalidation"
+                and record["timestamp"] > terminal_at
+            ]
+            invalidated_at = invalidations.get(qualification_id)
+            if conflicts and (
+                invalidated_at is None
+                or invalidated_at < max(str(item["timestamp"]) for item in conflicts)
+            ):
+                raise LedgerError(
+                    "admitted candidate has a post-admission rejection event: "
+                    f"{terminal_path.parent.name}"
+                )
+
     def append(
         self,
         *,
@@ -121,10 +166,15 @@ class RejectionLedger:
         predecessor_candidate_id: str | None = None,
         successor_candidate_id: str | None = None,
         timestamp: str | None = None,
+        _repair_lifecycle: bool = False,
     ) -> Mapping[str, Any]:
         self.path.parent.mkdir(parents=True, exist_ok=True)
         with exclusive_lock(self.lock_path, command="append-rejection-ledger"):
-            existing = self.records()
+            existing = (
+                self._read_records()
+                if _repair_lifecycle
+                else self.records()
+            )
             duplicate = next(
                 (
                     item
@@ -164,8 +214,21 @@ class RejectionLedger:
             material["event_id"] = "rejection-" + identity
             event_hash = sha256_bytes(canonical_json(material).encode("utf-8"))
             record = {**material, "event_hash": event_hash}
+            self._validate_lifecycle((*existing, record))
             with self.path.open("a", encoding="utf-8") as handle:
                 handle.write(canonical_json(record) + "\n")
                 handle.flush()
                 os.fsync(handle.fileno())
             return record
+
+
+def qualification_admission_is_invalidated(
+    records: Sequence[Mapping[str, Any]], qualification_id: str
+) -> bool:
+    return any(
+        record["subject_type"] == "qualification"
+        and record["subject_id"] == qualification_id
+        and record["lifecycle_stage"] == "admission-invalidation"
+        and record["reason_code"] == "harness-fault"
+        for record in records
+    )

@@ -6,7 +6,7 @@ import json
 import os
 import tempfile
 from contextlib import nullcontext
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Callable, Mapping, Protocol
@@ -23,7 +23,6 @@ from ._async import run
 from .candidate import Candidate, CandidateError, load_candidate, produce_candidate, write_terminal
 from .config import create_config_snapshot, load_config
 from .contracts import ContractSet, load_reviewed_contracts
-from .dryrun import SIMULATOR_COMPLIANCE_CRITERIA
 from .evidence import (
     EvidenceReferenceError,
     atomic_json,
@@ -33,8 +32,13 @@ from .evidence import (
     sha256_file,
     validate_evidence_reference,
 )
-from .ledger import RejectionLedger, exclusive_lock
+from .ledger import (
+    RejectionLedger,
+    exclusive_lock,
+    qualification_admission_is_invalidated,
+)
 from .realization_provider import RealizationProvider
+from .simulator_compliance import simulator_compliance_criteria
 from .validator import CoverageBlueprintValidator
 
 
@@ -87,6 +91,8 @@ class QualificationRunner(Protocol):
         repetition: int,
         defect_toggles: tuple[str, ...],
         expected_failure: Mapping[str, str] | None,
+        knowledge_level: str,
+        knowledge_evidence: Mapping[str, Any],
     ) -> EpisodeResult: ...
 
 
@@ -104,27 +110,86 @@ class StubQualificationRunner:
         repetition: int,
         defect_toggles: tuple[str, ...],
         expected_failure: Mapping[str, str] | None,
+        knowledge_level: str,
+        knowledge_evidence: Mapping[str, Any],
     ) -> EpisodeResult:
         del scenario, defect_toggles
+        compliance_rulings = tuple(
+            {
+                "criterion_id": criterion.id,
+                "passed": True,
+                "reasoning": "offline stub compliance",
+            }
+            for criterion in simulator_compliance_criteria(
+                knowledge_level, knowledge_evidence
+            )
+        )
         injected = self.outcomes.get(
             (side, repetition), "pass" if side == "defects-off" else "expected-failure"
         )
         if isinstance(injected, EpisodeResult):
-            return injected
+            if injected.simulator_compliance_rulings:
+                return injected
+            if injected.simulator_compliant:
+                return replace(
+                    injected,
+                    simulator_compliance_rulings=compliance_rulings,
+                )
+            return replace(
+                injected,
+                simulator_compliance_rulings=tuple(
+                    {
+                        **item,
+                        "passed": item["criterion_id"]
+                        != "simulator_knowledge_level_evidence",
+                    }
+                    for item in compliance_rulings
+                ),
+            )
         kind = injected
         if kind not in KINDS:
             raise ValueError(f"unknown stub qualification outcome {kind!r}")
         if kind == "expected-failure":
             if expected_failure is None:
-                return EpisodeResult("unexpected-failure", ({"source": "judge", "id": "unexpected"},))
-            return EpisodeResult(kind, (dict(expected_failure),))
+                return EpisodeResult(
+                    "unexpected-failure",
+                    ({"source": "judge", "id": "unexpected"},),
+                    simulator_compliance_rulings=compliance_rulings,
+                )
+            return EpisodeResult(
+                kind,
+                (dict(expected_failure),),
+                simulator_compliance_rulings=compliance_rulings,
+            )
         if kind == "unexpected-failure":
-            return EpisodeResult(kind, ({"source": "judge", "id": "unexpected"},))
+            return EpisodeResult(
+                kind,
+                ({"source": "judge", "id": "unexpected"},),
+                simulator_compliance_rulings=compliance_rulings,
+            )
         if kind == "simulator-compliance-fail":
-            return EpisodeResult(kind, simulator_compliant=False)
+            failed = tuple(
+                {
+                    **item,
+                    "passed": item["criterion_id"]
+                    != "simulator_knowledge_level_evidence",
+                }
+                for item in compliance_rulings
+            )
+            return EpisodeResult(
+                kind,
+                simulator_compliant=False,
+                simulator_compliance_rulings=failed,
+            )
         if kind == "error":
-            return EpisodeResult(kind, error="injected stub error")
-        return EpisodeResult(kind)
+            return EpisodeResult(
+                kind,
+                error="injected stub error",
+                simulator_compliance_rulings=compliance_rulings,
+            )
+        return EpisodeResult(
+            kind, simulator_compliance_rulings=compliance_rulings
+        )
 
 
 @dataclass
@@ -156,6 +221,8 @@ class LiveQualificationRunner:
         repetition: int,
         defect_toggles: tuple[str, ...],
         expected_failure: Mapping[str, str] | None,
+        knowledge_level: str,
+        knowledge_evidence: Mapping[str, Any],
     ) -> EpisodeResult:
         del side, repetition
         config = MockConfig(**{toggle: True for toggle in defect_toggles})
@@ -171,6 +238,8 @@ class LiveQualificationRunner:
                 scenario,
                 agent=MockPayCardAgent(config),
                 expected_failure=expected_failure,
+                knowledge_level=knowledge_level,
+                knowledge_evidence=knowledge_evidence,
             )
         )
 
@@ -180,6 +249,8 @@ class LiveQualificationRunner:
         *,
         agent: MockPayCardAgent,
         expected_failure: Mapping[str, str] | None,
+        knowledge_level: str,
+        knowledge_evidence: Mapping[str, Any],
     ) -> EpisodeResult:
         from agentsim.scenario import run_scenario
 
@@ -192,9 +263,21 @@ class LiveQualificationRunner:
         )
         if result.outcome == "error":
             return EpisodeResult("error", error=result.final_reasoning, run_result=result)
+        if result.outcome == "pass" and not any(
+            verdict.criteria for verdict in result.verdicts
+        ):
+            return EpisodeResult(
+                "error",
+                degraded_checks=("judge-rulings",),
+                error="passing Episode has no Judge rulings",
+                run_result=result,
+            )
         try:
             compliance = await GeneralJudge(
-                self.judge_llm, criteria=SIMULATOR_COMPLIANCE_CRITERIA
+                self.judge_llm,
+                criteria=simulator_compliance_criteria(
+                    knowledge_level, knowledge_evidence
+                ),
             ).judge(result.trace)
         except Exception as exc:
             return EpisodeResult(
@@ -276,6 +359,10 @@ def evaluate_admission(
             return _reject("simulator-noncompliance", (item,), "simulator-compliance")
         if item["kind"] in {"error", "task_incomplete"} or item["degraded_checks"]:
             return _reject("degraded-error-incomplete-evidence", (item,), "episode-evidence")
+        if not item.get("judge_rulings"):
+            return _reject(
+                "degraded-error-incomplete-evidence", (item,), "judge-rulings"
+            )
         if not _check_results_are_complete(
             item.get("assertion_results"),
             required_assertions,
@@ -407,6 +494,10 @@ def qualify_candidate(
                         repetition=repetition,
                         defect_toggles=side_toggles,
                         expected_failure=expected_failure,
+                        knowledge_level=candidate.blueprint.knowledge_level,
+                        knowledge_evidence=candidate.blueprint.goal_facts[
+                            "knowledge_evidence"
+                        ],
                     )
                 except Exception as exc:
                     result = EpisodeResult(
@@ -662,6 +753,9 @@ def _load_existing_result(
 ) -> QualificationResult:
     config = load_config()
     contracts = load_reviewed_contracts()
+    ledger_records = RejectionLedger(root).records()
+    if qualification_admission_is_invalidated(ledger_records, bundle.name):
+        raise CandidateError("candidate admission has been invalidated")
 
     def validate() -> Mapping[str, Any]:
         terminal_path = candidate.bundle / "terminal.json"
@@ -725,6 +819,93 @@ def _load_existing_result(
                 provider=replacement_provider,
             )
     return QualificationResult(bundle.name, bundle, candidate, decision, library_path, replacement)
+
+
+def invalidate_admission(
+    candidate_id: str,
+    *,
+    output_root: str | Path,
+    detail: str,
+    timestamp: str | None = None,
+) -> tuple[Mapping[str, Any], Path]:
+    """Retire a harness-invalid admission without rewriting historical evidence."""
+    root = Path(output_root)
+    candidate = load_candidate(root, candidate_id)
+    terminal_path = candidate.bundle / "terminal.json"
+    try:
+        terminal = json.loads(terminal_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise CandidateError("candidate terminal evidence is missing or invalid") from exc
+    if terminal.get("status") != "admitted":
+        raise CandidateError("only an admitted candidate can be invalidated")
+    qualification_id = str(terminal.get("qualification_id", ""))
+    admission_path = root / "runs" / qualification_id / "admission.json"
+    library_path = root / str(terminal.get("library_path", ""))
+    if not admission_path.is_file():
+        raise CandidateError("admission evidence is missing")
+    archive_path = root / "invalidated-library" / library_path.name
+    archive_path.parent.mkdir(parents=True, exist_ok=True)
+    invalidated_at = timestamp or datetime.now(UTC).isoformat().replace("+00:00", "Z")
+    with exclusive_lock(
+        root / "locks" / f"{candidate.cell_id}.lock",
+        command="invalidate-admission",
+    ):
+        ledger = RejectionLedger(root)
+        raw_records = ledger._read_records()
+        existing = next(
+            (
+                item
+                for item in raw_records
+                if item["subject_type"] == "qualification"
+                and item["subject_id"] == qualification_id
+                and item["lifecycle_stage"] == "admission-invalidation"
+            ),
+            None,
+        )
+        if existing is not None:
+            ledger.records()
+            return existing, archive_path
+        moved = False
+        if library_path.is_file():
+            if archive_path.exists():
+                raise CandidateError("invalidated library archive already exists")
+            os.replace(library_path, archive_path)
+            moved = True
+        elif not archive_path.is_file():
+            raise CandidateError("admitted library evidence is missing")
+        try:
+            config = load_config()
+            contracts = load_reviewed_contracts()
+            snapshot = create_config_snapshot(config=config, contracts=contracts)
+            record = ledger.append(
+                subject_type="qualification",
+                subject_id=qualification_id,
+                cell_id=candidate.cell_id,
+                candidate_ordinal=candidate.ordinal,
+                lifecycle_stage="admission-invalidation",
+                reason_code="harness-fault",
+                detail=detail,
+                attribution=[{
+                    "side": "qualification",
+                    "repetition": None,
+                    "check": "harness-validity",
+                }],
+                n_split={"defects_off": 0, "defect_on": 0},
+                evidence=[
+                    evidence_reference(admission_path, root=root),
+                    evidence_reference(archive_path, root=root),
+                ],
+                config_snapshot_hash=snapshot.sha256,
+                contract_hashes=contracts.hashes,
+                timestamp=invalidated_at,
+                _repair_lifecycle=True,
+            )
+        except Exception:
+            if moved and archive_path.is_file() and not library_path.exists():
+                os.replace(archive_path, library_path)
+            raise
+        ledger.records()
+        return record, archive_path
 
 
 def _resume_incomplete(
@@ -997,6 +1178,35 @@ def _validate_qualification_evidence(
             or not isinstance(compliance_artifact["rulings"], list)
         ):
             raise CandidateError("simulator-compliance ruling evidence has an incomplete schema")
+        expected_compliance_ids = {
+            criterion.id
+            for criterion in simulator_compliance_criteria(
+                candidate.blueprint.knowledge_level,
+                candidate.blueprint.goal_facts["knowledge_evidence"],
+            )
+        }
+        compliance_rulings = compliance_artifact["rulings"]
+        if any(
+            not isinstance(ruling, Mapping)
+            or set(ruling) != {"criterion_id", "passed", "reasoning"}
+            or not isinstance(ruling["criterion_id"], str)
+            or not isinstance(ruling["passed"], bool)
+            or not isinstance(ruling["reasoning"], str)
+            for ruling in compliance_rulings
+        ):
+            raise CandidateError(
+                "simulator-compliance ruling evidence has an incomplete schema"
+            )
+        compliance_ids = [ruling["criterion_id"] for ruling in compliance_rulings]
+        if (
+            len(compliance_ids) != len(set(compliance_ids))
+            or set(compliance_ids) != expected_compliance_ids
+            or (episode["simulator_compliance"] == "pass")
+            != all(ruling["passed"] for ruling in compliance_rulings)
+        ):
+            raise CandidateError(
+                "simulator-compliance ruling evidence is incomplete or inconsistent"
+            )
         hydrated.append(
             {
                 **episode,
@@ -1119,7 +1329,15 @@ def _validate_evidence_or_reject(
     try:
         return validate()
     except (CandidateError, OSError, KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
-        _record_evidence_rejection(candidate, bundle, root, str(exc))
+        terminal_path = candidate.bundle / "terminal.json"
+        terminal = None
+        if terminal_path.is_file():
+            try:
+                terminal = json.loads(terminal_path.read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError):
+                pass
+        if not isinstance(terminal, Mapping) or terminal.get("status") != "admitted":
+            _record_evidence_rejection(candidate, bundle, root, str(exc))
         if isinstance(exc, CandidateError):
             raise
         raise CandidateError(f"qualification evidence is invalid: {exc}") from exc

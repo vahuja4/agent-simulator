@@ -26,11 +26,14 @@ from scenario_synthesis.qualification import (
     LiveQualificationRunner,
     StubQualificationRunner,
     evaluate_admission,
+    invalidate_admission,
     qualify_candidate,
 )
 from scenario_synthesis.realization_provider import (
     LiveRealizationProvider,
+    RealizationError,
     StubRealizationProvider,
+    validate_surface,
 )
 
 
@@ -308,6 +311,126 @@ def test_admission_requires_exact_unique_repetition_indices() -> None:
     assert decision.reason_code == "degraded-error-incomplete-evidence"
 
 
+def test_admission_rejects_pass_with_empty_judge_rulings() -> None:
+    episodes = tuple(
+        {
+            "side": "defects-off",
+            "repetition": repetition,
+            "kind": "pass",
+            "failures": [],
+            "degraded_checks": [],
+            "simulator_compliance": "pass",
+            "assertion_results": [],
+            "judge_rulings": [],
+        }
+        for repetition in range(3)
+    )
+
+    decision = evaluate_admission(episodes, expected_failure=None)
+
+    assert not decision.admitted
+    assert decision.reason_code == "degraded-error-incomplete-evidence"
+
+
+def test_post_admission_rejection_is_a_ledger_contradiction(
+    tmp_path: Path, detection_unproven_blueprint
+) -> None:
+    candidate = produce_candidate(
+        detection_unproven_blueprint,
+        output_root=tmp_path,
+        provider=StubRealizationProvider(),
+    )
+    assert candidate is not None
+    qualified = qualify_candidate(
+        candidate.candidate_id,
+        output_root=tmp_path,
+        runner=StubQualificationRunner(),
+        timestamp="2026-08-29T05:37:38Z",
+    )
+    admission = json.loads((qualified.bundle / "admission.json").read_text())
+    terminal_path = candidate.bundle / "terminal.json"
+    terminal = json.loads(terminal_path.read_text())
+    terminal_path.unlink()
+    RejectionLedger(tmp_path).append(
+        subject_type="qualification",
+        subject_id=qualified.qualification_id,
+        cell_id=candidate.cell_id,
+        candidate_ordinal=candidate.ordinal,
+        lifecycle_stage="admission",
+        reason_code="degraded-error-incomplete-evidence",
+        detail="late contradictory rejection",
+        attribution=[{
+            "side": "qualification", "repetition": None, "check": "complete-evidence"
+        }],
+        n_split={"defects_off": 0, "defect_on": 0},
+        evidence=[],
+        config_snapshot_hash=admission["config_snapshot_hash"],
+        contract_hashes=admission["contract_hashes"],
+        timestamp="2026-08-29T05:39:09Z",
+    )
+    atomic_json(terminal_path, terminal)
+
+    with pytest.raises(LedgerError, match="post-admission rejection"):
+        RejectionLedger(tmp_path).records()
+
+
+def test_harness_fault_invalidation_retires_admission_without_consuming_budget(
+    tmp_path: Path, detection_unproven_blueprint
+) -> None:
+    candidate = produce_candidate(
+        detection_unproven_blueprint,
+        output_root=tmp_path,
+        provider=StubRealizationProvider(),
+    )
+    assert candidate is not None
+    qualified = qualify_candidate(
+        candidate.candidate_id,
+        output_root=tmp_path,
+        runner=StubQualificationRunner(),
+        timestamp="2026-08-29T05:37:38Z",
+    )
+    assert qualified.library_path is not None
+
+    record, archive_path = invalidate_admission(
+        candidate.candidate_id,
+        output_root=tmp_path,
+        detail="HARNESS fault; candidate not at fault; K regeneration budget unchanged",
+        timestamp="2026-08-29T05:40:00Z",
+    )
+
+    assert record["reason_code"] == "harness-fault"
+    assert record["lifecycle_stage"] == "admission-invalidation"
+    assert record["subject_type"] == "qualification"
+    assert not qualified.library_path.exists()
+    assert archive_path.is_file()
+    assert RejectionLedger(tmp_path).records()[-1] == record
+
+    ordinals: list[int] = []
+
+    class DifferentSurfaceProvider:
+        provider_id = "different-offline-surface"
+
+        def realize(self, blueprint, *, candidate_ordinal, attempt):
+            del attempt
+            ordinals.append(candidate_ordinal)
+            surface = dict(
+                StubRealizationProvider().realize(
+                    blueprint, candidate_ordinal=candidate_ordinal, attempt=0
+                )
+            )
+            surface["description"] += " Fresh harness-valid realization."
+            return surface
+
+    replacement = produce_candidate(
+        detection_unproven_blueprint,
+        output_root=tmp_path,
+        provider=DifferentSurfaceProvider(),
+    )
+    assert replacement is not None
+    assert replacement.ordinal == 0
+    assert ordinals == [0]
+
+
 def test_completed_qualification_is_idempotently_reused(
     tmp_path: Path, detection_unproven_blueprint
 ) -> None:
@@ -464,9 +587,7 @@ def test_completed_qualification_rejects_nested_evidence_hash_mismatch(
         qualify_candidate(
             candidate.candidate_id, output_root=tmp_path, runner=StubQualificationRunner()
         )
-    rejection = RejectionLedger(tmp_path).records(verify_evidence=False)[-1]
-    assert rejection["subject_type"] == "qualification"
-    assert rejection["reason_code"] == "degraded-error-incomplete-evidence"
+    assert RejectionLedger(tmp_path).records(verify_evidence=False) == ()
 
 
 def test_completed_qualification_rejects_absolute_nested_evidence_path(
@@ -527,7 +648,7 @@ def test_completed_qualification_rejects_extra_episode_artifact(
         qualify_candidate(
             candidate.candidate_id, output_root=tmp_path, runner=StubQualificationRunner()
         )
-    assert RejectionLedger(tmp_path).records()[-1]["subject_type"] == "qualification"
+    assert RejectionLedger(tmp_path).records() == ()
 
 
 def test_qualification_rejects_non_contract_transcript_with_ledger_entry(
@@ -705,7 +826,7 @@ def test_admission_rejects_internally_rehashed_shortened_repetition_split(
         qualify_candidate(
             candidate.candidate_id, output_root=tmp_path, runner=StubQualificationRunner()
         )
-    assert RejectionLedger(tmp_path).records()[-1]["subject_type"] == "qualification"
+    assert RejectionLedger(tmp_path).records() == ()
 
 
 def test_admission_rejects_internally_rehashed_episode_defect_configuration(
@@ -736,7 +857,7 @@ def test_admission_rejects_internally_rehashed_episode_defect_configuration(
         qualify_candidate(
             candidate.candidate_id, output_root=tmp_path, runner=StubQualificationRunner()
         )
-    assert RejectionLedger(tmp_path).records()[-1]["subject_type"] == "qualification"
+    assert RejectionLedger(tmp_path).records() == ()
 
 
 @pytest.mark.parametrize(
@@ -784,7 +905,7 @@ def test_admission_rejects_internally_rehashed_incomplete_check_results(
         qualify_candidate(
             candidate.candidate_id, output_root=tmp_path, runner=StubQualificationRunner()
         )
-    assert RejectionLedger(tmp_path).records()[-1]["subject_type"] == "qualification"
+    assert RejectionLedger(tmp_path).records() == ()
 
 
 def test_admission_recovers_if_library_commit_is_interrupted(
@@ -1110,6 +1231,106 @@ def test_live_realization_provider_uses_structured_blueprint_surface(
     assert calls[0]["max_tokens"] == 8192
     request = json.loads(calls[0]["messages"][0]["content"])
     assert request["blueprint"] == detection_unproven_blueprint.to_dict()
+    assert "declared Knowledge level" in request["instruction"]
+    assert "do not recite goal_facts" in request["instruction"]
+
+
+def test_low_knowledge_surface_rejects_fluent_goal_fact_recital(
+    detection_unproven_blueprint,
+) -> None:
+    detection_unproven_blueprint = next(
+        item
+        for item in generate_blueprints()
+        if item.fitness_target_id is None and item.knowledge_level == "low"
+    )
+    surface = {
+        "description": "A cooperative customer with a material fluency gap.",
+        "persona": {"name": "Customer", "traits": "Needs help with amount types."},
+        "goal": (
+            "Set up the statement balance payment for card 9013 from account 5678 "
+            "on the due date."
+        ),
+        "success_criteria": ["Complete the payment."],
+    }
+
+    with pytest.raises(RealizationError, match="Knowledge level"):
+        validate_surface(detection_unproven_blueprint, surface)
+
+
+def test_live_qualification_fails_missing_low_knowledge_evidence(
+    detection_unproven_blueprint,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    detection_unproven_blueprint = next(
+        item
+        for item in generate_blueprints()
+        if item.fitness_target_id is None and item.knowledge_level == "low"
+    )
+    candidate = produce_candidate(
+        detection_unproven_blueprint,
+        output_root=tmp_path,
+        provider=StubRealizationProvider(),
+    )
+    assert candidate is not None
+    scenario = load_synthesized_scenario(candidate.scenario_path)
+
+    async def fake_run_scenario(*args, **kwargs):
+        del args, kwargs
+        trace = Trace("missing-level-evidence", outcome="pass")
+        trace.add_user_turn(
+            "Pay the statement balance on card 9013 from account 5678 on the due date.",
+            "state goal",
+            None,
+        )
+        return RunResult(
+            trace=trace,
+            verdicts=[TurnVerdict(
+                "pass", [CriterionVerdict("goal_completion", True, "complete")], "complete"
+            )],
+            outcome="pass",
+            final_reasoning="completed",
+        )
+
+    class FakeComplianceJudge:
+        def __init__(self, llm, *, criteria):
+            del llm
+            self.criteria = criteria
+
+        async def judge(self, trace):
+            del trace
+            return TurnVerdict(
+                "continue",
+                [
+                    CriterionVerdict(
+                        criterion.id,
+                        criterion.id != "simulator_knowledge_level_evidence",
+                        "missing material fluency gap"
+                        if criterion.id == "simulator_knowledge_level_evidence"
+                        else "compliant",
+                    )
+                    for criterion in self.criteria
+                ],
+                "checked",
+            )
+
+    monkeypatch.setattr("agentsim.scenario.run_scenario", fake_run_scenario)
+    monkeypatch.setattr(
+        "scenario_synthesis.qualification.GeneralJudge", FakeComplianceJudge
+    )
+    runner = LiveQualificationRunner(object(), object())
+
+    result = runner.run_scenario(
+        scenario,
+        side="defects-off",
+        repetition=0,
+        defect_toggles=(),
+        expected_failure=None,
+        knowledge_level=detection_unproven_blueprint.knowledge_level,
+        knowledge_evidence=detection_unproven_blueprint.goal_facts["knowledge_evidence"],
+    )
+
+    assert result.kind == "simulator-compliance-fail"
 
 
 def test_live_qualification_runner_uses_run_scenario_and_compliance_judge(
@@ -1136,7 +1357,15 @@ def test_live_qualification_runner_uses_run_scenario_and_compliance_judge(
             mock_config=agent.config,
         )
         trace = Trace("live-qualification-test", outcome="pass")
-        return RunResult(trace=trace, outcome="pass", final_reasoning="completed", llm_calls=4)
+        return RunResult(
+            trace=trace,
+            verdicts=[TurnVerdict(
+                "pass", [CriterionVerdict("goal_completion", True, "complete")], "complete"
+            )],
+            outcome="pass",
+            final_reasoning="completed",
+            llm_calls=4,
+        )
 
     class FakeComplianceJudge:
         def __init__(self, llm, *, criteria):
@@ -1166,6 +1395,10 @@ def test_live_qualification_runner_uses_run_scenario_and_compliance_judge(
         repetition=0,
         defect_toggles=(),
         expected_failure=None,
+        knowledge_level=detection_unproven_blueprint.knowledge_level,
+        knowledge_evidence=detection_unproven_blueprint.goal_facts[
+            "knowledge_evidence"
+        ],
     )
 
     assert result.kind == "pass"
@@ -1176,3 +1409,42 @@ def test_live_qualification_runner_uses_run_scenario_and_compliance_judge(
     assert observed["judge_llm"] is judge_llm
     assert observed["compliance_llm"] is judge_llm
     assert not any(vars(observed["mock_config"]).values())
+
+
+def test_live_qualification_runner_rejects_pass_without_judge_rulings(
+    detection_unproven_blueprint,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    candidate = produce_candidate(
+        detection_unproven_blueprint,
+        output_root=tmp_path,
+        provider=StubRealizationProvider(),
+    )
+    assert candidate is not None
+    scenario = load_synthesized_scenario(candidate.scenario_path)
+
+    async def fake_run_scenario(*args, **kwargs):
+        del args, kwargs
+        return RunResult(
+            trace=Trace("empty-judge-rulings", outcome="pass"),
+            verdicts=[],
+            outcome="pass",
+            final_reasoning="completed without Judge evidence",
+        )
+
+    monkeypatch.setattr("agentsim.scenario.run_scenario", fake_run_scenario)
+    result = LiveQualificationRunner(object(), object()).run_scenario(
+        scenario,
+        side="defects-off",
+        repetition=0,
+        defect_toggles=(),
+        expected_failure=None,
+        knowledge_level=detection_unproven_blueprint.knowledge_level,
+        knowledge_evidence=detection_unproven_blueprint.goal_facts[
+            "knowledge_evidence"
+        ],
+    )
+
+    assert result.kind == "error"
+    assert result.degraded_checks == ("judge-rulings",)

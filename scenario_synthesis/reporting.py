@@ -19,7 +19,11 @@ from .evidence import (
     sha256_file,
     validate_evidence_reference,
 )
-from .ledger import LedgerError, RejectionLedger
+from .ledger import (
+    LedgerError,
+    RejectionLedger,
+    qualification_admission_is_invalidated,
+)
 from .planner import Obligation, build_obligation_inventory, coverage_cell_axes
 from .qualification import _validate_admission_evidence
 
@@ -78,10 +82,17 @@ def build_coverage(
         for obligation in inventory.obligations
         if obligation.kind == "eligible-cell"
     }
-    admissions, invalid_admissions = _validated_admissions(
-        output_root, contracts, config, valid_cells
-    )
     ledger_records, ledger_error = _ledger_records(output_root)
+    if ledger_error is None:
+        admissions, invalid_admissions = _validated_admissions(
+            output_root, contracts, config, valid_cells, ledger_records
+        )
+    else:
+        admissions = []
+        invalid_admissions = [{
+            "candidate_id": "<lifecycle>",
+            "reason": "invalid-rejection-ledger",
+        }]
     ledger_exists = (output_root / "ledger/rejections.jsonl").is_file()
     stale_ledger_event_ids = [
         str(item["event_id"])
@@ -207,6 +218,7 @@ def _validated_admissions(
     contracts: Any,
     config: Any,
     valid_cells: Mapping[str, Any],
+    ledger_records: tuple[Mapping[str, Any], ...],
 ) -> tuple[list[dict[str, Any]], list[dict[str, str]]]:
     admitted: list[dict[str, Any]] = []
     invalid: list[dict[str, str]] = []
@@ -218,6 +230,10 @@ def _validated_admissions(
             invalid.append({"candidate_id": candidate_id, "reason": "invalid-terminal"})
             continue
         if terminal.get("status") != "admitted":
+            continue
+        if qualification_admission_is_invalidated(
+            ledger_records, str(terminal.get("qualification_id", ""))
+        ):
             continue
         try:
             candidate = load_candidate(root, candidate_id)

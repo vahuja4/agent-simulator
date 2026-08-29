@@ -16,6 +16,7 @@ from .planner import write_plan_report
 from .qualification import (
     LiveQualificationRunner,
     StubQualificationRunner,
+    invalidate_admission,
     qualify_candidate,
 )
 from .realization_provider import (
@@ -24,7 +25,10 @@ from .realization_provider import (
 )
 from .reporting import generate_coverage_report
 
-COMMANDS = ("validate-contracts", "plan", "produce", "qualify", "report", "check-completion")
+COMMANDS = (
+    "validate-contracts", "plan", "produce", "qualify", "invalidate-admission",
+    "report", "check-completion",
+)
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -42,6 +46,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     _offline_arguments(qualify)
     qualify.add_argument("--candidate-id", required=True)
     qualify.add_argument("--stub-outcome", action="append", default=[], metavar="SIDE:REPETITION:KIND")
+    invalidate = subparsers.add_parser("invalidate-admission")
+    invalidate.add_argument("--output-root", default="synthesized_scenarios")
+    invalidate.add_argument("--candidate-id", required=True)
+    invalidate.add_argument("--detail", required=True)
     report = subparsers.add_parser("report")
     report.add_argument("--output-root", default="synthesized_scenarios")
     report.add_argument("--report-id", default="slice-4-current")
@@ -185,6 +193,21 @@ def main(argv: Sequence[str] | None = None) -> int:
             report_status=coverage["report_status"],
             eligible_pair_count=coverage["denominators"]["eligible_pair"],
             eligible_cell_count=coverage["denominators"]["eligible_cell"],
+        )
+        return 0
+    if args.command == "invalidate-admission":
+        record, archive_path = invalidate_admission(
+            args.candidate_id,
+            output_root=args.output_root,
+            detail=args.detail,
+        )
+        _print(
+            status="admission-invalidated",
+            candidate_id=args.candidate_id,
+            qualification_id=record["subject_id"],
+            reason_code=record["reason_code"],
+            regeneration_budget_consumed=False,
+            invalidated_library_path=str(archive_path),
         )
         return 0
     if args.command == "check-completion":
