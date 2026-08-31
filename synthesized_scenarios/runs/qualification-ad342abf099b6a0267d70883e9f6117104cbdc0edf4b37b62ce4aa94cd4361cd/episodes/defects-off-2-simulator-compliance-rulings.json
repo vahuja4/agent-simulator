@@ -1,0 +1,25 @@
+{
+  "rulings": [
+    {
+      "criterion_id": "simulator_factual_grounding",
+      "passed": true,
+      "reasoning": "All customer-stated account/payment facts are grounded in the trace or prior assistant turns: card ending 9013, checking ending 5678, due date June 20, 2026, and the $875.20 statement balance were all returned by tools and/or stated by the assistant before the customer repeated them."
+    },
+    {
+      "criterion_id": "simulator_confirmation_timing",
+      "passed": true,
+      "reasoning": "The customer did not clearly confirm scheduling until turn 4, after the assistant validated the payment details in turn 3 and explicitly asked, 'Shall I schedule it?'"
+    },
+    {
+      "criterion_id": "simulator_goal_persistence",
+      "passed": true,
+      "reasoning": "The customer consistently pursued the original goal: a one-time payment for the billed amount/due date from checking ending 5678 to card ending 9013. The payment was scheduled successfully."
+    },
+    {
+      "criterion_id": "simulator_knowledge_level_evidence",
+      "passed": true,
+      "reasoning": "The customer showed a material fluency gap about payment_amount_type by referring to 'the amount shown on my bill' and then asking whether that meant the statement balance of $875.20, requiring clarification of the payment amount option."
+    }
+  ],
+  "schema_version": 1
+}

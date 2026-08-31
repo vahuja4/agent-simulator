@@ -1,0 +1,25 @@
+{
+  "rulings": [
+    {
+      "criterion_id": "simulator_factual_grounding",
+      "passed": true,
+      "reasoning": "All customer-stated account/payment facts are supported by the tool history or prior assistant turns: card ending 9013, checking account ending 5678, statement balance $875.20, and due date June 20, 2026."
+    },
+    {
+      "criterion_id": "simulator_confirmation_timing",
+      "passed": true,
+      "reasoning": "The customer only confirmed at turn 6, after the assistant presented validated payment details and explicitly asked whether to schedule it at turn 5."
+    },
+    {
+      "criterion_id": "simulator_goal_persistence",
+      "passed": true,
+      "reasoning": "The customer consistently pursued the original goal: making a one-time payment on card 9013 from checking 5678 for the bill/statement amount on the due date, and did not abandon or replace it."
+    },
+    {
+      "criterion_id": "simulator_knowledge_level_evidence",
+      "passed": true,
+      "reasoning": "The customer showed a material fluency gap about payment amount types by asking which option corresponded to the amount shown on the bill and whether that meant the statement balance."
+    }
+  ],
+  "schema_version": 1
+}

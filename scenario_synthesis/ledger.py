@@ -118,6 +118,13 @@ class RejectionLedger:
             and record["lifecycle_stage"] == "admission-invalidation"
             and record["reason_code"] == "harness-fault"
         }
+        validation_error_invalidations = {
+            str(record["subject_id"]): str(record["timestamp"])
+            for record in records
+            if record["subject_type"] == "qualification"
+            and record["lifecycle_stage"] == "validation-error-invalidation"
+            and record["reason_code"] == "harness-fault"
+        }
         candidates = self.output_root / "candidates"
         for terminal_path in candidates.glob("candidate-*/terminal.json"):
             try:
@@ -130,13 +137,23 @@ class RejectionLedger:
                 continue
             qualification_id = str(terminal.get("qualification_id", ""))
             terminal_at = str(terminal.get("terminal_at", ""))
+            validation_error_invalidated_at = validation_error_invalidations.get(
+                qualification_id
+            )
             conflicts = [
                 record
                 for record in records
                 if record["subject_type"] == "qualification"
                 and record["subject_id"] == qualification_id
-                and record["lifecycle_stage"] != "admission-invalidation"
+                and record["lifecycle_stage"] not in {
+                    "admission-invalidation",
+                    "validation-error-invalidation",
+                }
                 and record["timestamp"] > terminal_at
+                and (
+                    validation_error_invalidated_at is None
+                    or record["timestamp"] > validation_error_invalidated_at
+                )
             ]
             invalidated_at = invalidations.get(qualification_id)
             if conflicts and (

@@ -475,6 +475,44 @@ def qualify_candidate(
             bundle.name + ".corrupt-" + datetime.now(UTC).strftime("%Y%m%d%H%M%S%f")
         )
         os.replace(bundle, quarantine)
+    prior_bundles: list[tuple[str, Path]] = []
+    for qualification_path in (root / "runs").glob(
+        "qualification-*/qualification.json"
+    ):
+        prior_bundle = qualification_path.parent
+        if prior_bundle == bundle:
+            continue
+        try:
+            prior = json.loads(qualification_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        if (
+            prior.get("candidate_id") == candidate_id
+            and prior.get("runner_id") == runner.runner_id
+            and prior.get("provider_mode") == runner.provider_mode
+        ):
+            prior_bundles.append((str(prior.get("qualified_at", "")), prior_bundle))
+    for _qualified_at, prior_bundle in sorted(prior_bundles, reverse=True):
+        try:
+            if (prior_bundle / "admission.json").is_file():
+                return _resume_incomplete(
+                    candidate,
+                    prior_bundle,
+                    root,
+                    replacement_provider,
+                    config,
+                    contracts,
+                )
+            return _resume_qualification_evaluation(
+                candidate,
+                prior_bundle,
+                root,
+                replacement_provider,
+                config,
+                contracts,
+            )
+        except CandidateError:
+            continue
     qualified_at = timestamp or datetime.now(UTC).isoformat().replace("+00:00", "Z")
     with exclusive_lock(root / "locks" / f"{candidate.cell_id}.lock", command="qualify"):
         RejectionLedger(root).records()
@@ -651,12 +689,14 @@ def _resume_qualification_evaluation(
         RejectionLedger(root).records()
         expected_failure, toggles = _fitness_contract(candidate, contracts)
         repetitions = int(config.content["limits"]["admission_repetitions"])
-        snapshot = create_config_snapshot(config=config, contracts=contracts)
+        qualification = json.loads(
+            (bundle / "qualification.json").read_text(encoding="utf-8")
+        )
         _validate_qualification_evidence(
             candidate,
             bundle,
             root,
-            snapshot.sha256,
+            str(qualification.get("config_snapshot_hash", "")),
             contracts.hashes,
             repetitions=repetitions,
             expected_failure=expected_failure,
@@ -685,7 +725,7 @@ def _write_admission_from_qualification(
     qualification = json.loads(qualification_path.read_text(encoding="utf-8"))
     expected_failure, toggles = _fitness_contract(candidate, contracts)
     repetitions = int(config.content["limits"]["admission_repetitions"])
-    snapshot = create_config_snapshot(config=config, contracts=contracts)
+    snapshot_hash = str(qualification.get("config_snapshot_hash", ""))
     episode_records = _validate_evidence_or_reject(
         candidate,
         bundle,
@@ -694,7 +734,7 @@ def _write_admission_from_qualification(
             candidate,
             bundle,
             root,
-            snapshot.sha256,
+            snapshot_hash,
             contracts.hashes,
             repetitions=repetitions,
             expected_failure=expected_failure,
@@ -728,7 +768,7 @@ def _write_admission_from_qualification(
             *qualification["episodes"],
             evidence_reference(qualification_path, root=root),
         ],
-        "config_snapshot_hash": snapshot.sha256,
+        "config_snapshot_hash": snapshot_hash,
         "contract_hashes": contracts.hashes,
         "regeneration_exhausted": exhausted,
         "decided_at": qualification["qualified_at"],
@@ -924,7 +964,14 @@ def _resume_incomplete(
         candidate,
         bundle,
         root,
-        lambda: _validate_admission_evidence(candidate, bundle, root, config, contracts),
+        lambda: _validate_admission_evidence(
+            candidate,
+            bundle,
+            root,
+            config,
+            contracts,
+            allow_repository_state_drift=True,
+        ),
     )
     qualified_at = str(admission["decided_at"])
     lock = nullcontext() if _cell_lock_held else exclusive_lock(

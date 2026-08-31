@@ -1,0 +1,42 @@
+{
+  "candidate_id": "candidate-4a296207b9dd03895648ada38cfaaa043c2891b04e58b5a92792e3f327d25549",
+  "candidate_ordinal": 1,
+  "cell_id": "cell-ecbf1aff14454844ace6f1119cad7223b00355053952bede562b4b709e01cd55",
+  "config_snapshot_hash": "4e6681548e819ec5c2158c3806aa94ca1eb629570315946f64df36b7a98d187e",
+  "contract_hashes": {
+    "complication-applicability": "d5eed26d686c9de2054496ef961e6395a5da854c1df9f65db3b58c7bc007651d",
+    "fitness-targets": "b5cc687f593379d626d27293dcd4d3aa1ea8902a3e866d83b27cf24f3e06efd1",
+    "fixture-state-classes": "e05aa23560d818a840e762ec7970f67adbe995514fefad837bf2b5bb09ba7db8",
+    "pair-exclusions": "d9bb6c87c53302d4351b4837086b83615af1a9d27b8ab49350585654fe07b6ad",
+    "persona-archetypes": "ed1daef6913eb36263efbdf0f14565ba2416a4e9778dc535e0456d15f810e5d0"
+  },
+  "defect_toggles": [],
+  "episodes": [
+    {
+      "path": "runs/qualification-ad342abf099b6a0267d70883e9f6117104cbdc0edf4b37b62ce4aa94cd4361cd/episodes/defects-off-0.json",
+      "sha256": "eb3ae93d4aef45634ac58ad1b1454799246ee6569dd8f432a49eb30a543e70a8"
+    },
+    {
+      "path": "runs/qualification-ad342abf099b6a0267d70883e9f6117104cbdc0edf4b37b62ce4aa94cd4361cd/episodes/defects-off-1.json",
+      "sha256": "cb7d93e06fb1e46d3b9b893105dfc322f6e7f87742893fb119a5dc9ab3c58ce3"
+    },
+    {
+      "path": "runs/qualification-ad342abf099b6a0267d70883e9f6117104cbdc0edf4b37b62ce4aa94cd4361cd/episodes/defects-off-2.json",
+      "sha256": "0bda1137cbd5801e7a845e599b5f6d7d838ee657a7dc63e8c09837d43f00f85f"
+    }
+  ],
+  "expected_failure": null,
+  "models": {
+    "judge": "gpt-5.5",
+    "simulator": "gpt-5.6-luna"
+  },
+  "n_split": {
+    "defect_on": 0,
+    "defects_off": 3
+  },
+  "provider_mode": "live",
+  "qualification_id": "qualification-ad342abf099b6a0267d70883e9f6117104cbdc0edf4b37b62ce4aa94cd4361cd",
+  "qualified_at": "2026-08-31T03:52:12.745877Z",
+  "runner_id": "live-run-scenario-v1",
+  "schema_version": 1
+}

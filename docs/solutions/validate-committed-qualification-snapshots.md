@@ -17,7 +17,9 @@ For a terminal Candidate, follow the Qualification ID recorded in `terminal.json
 Validate the persisted snapshot's own hash and require its semantic inputs—configuration,
 models, prompts, Fixture, and reviewed contracts—to match current inputs. Repository
 revision and dirty state remain recorded evidence but may drift for completed admission
-validation and reporting. In-progress resume continues to require the exact snapshot hash.
+validation and reporting. Before Admission, complete immutable Qualification evidence is
+validated against its own persisted snapshot; only its semantic inputs must still match
+the current configuration. See `finalize-qualification-against-persisted-snapshot.md`.
 
 # Why
 

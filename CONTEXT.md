@@ -105,6 +105,13 @@ file in the same commit.
   Coverage cell to UNCOVERED, and does not consume the cell's K regeneration
   budget. It never relabels or deletes the historical Candidate, Qualification,
   or Admission evidence.
+- **Candidate rejection invalidation** — an explicit append-only `harness-fault`
+  lifecycle transition that supersedes a Candidate rejection for accounting
+  without relabeling or deleting its historical evidence. The invalidated
+  rejection does not consume the cell's K regeneration budget.
+- **Validation-error invalidation** — an explicit append-only `harness-fault`
+  lifecycle transition that supersedes a spurious finalization rejection while
+  preserving the valid Qualification and any resulting Admission.
 - **Historical quarantine** — the read-only `generated_scenarios/` prototype
   output. It may supply reconciliation facts but never a candidate, admission,
   Fitness result, or coverage denominator.

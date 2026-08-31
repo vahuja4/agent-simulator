@@ -374,6 +374,65 @@ def test_post_admission_rejection_is_a_ledger_contradiction(
         RejectionLedger(tmp_path).records()
 
 
+def test_harness_fault_can_supersede_a_spurious_post_admission_rejection(
+    tmp_path: Path, detection_unproven_blueprint
+) -> None:
+    candidate = produce_candidate(
+        detection_unproven_blueprint,
+        output_root=tmp_path,
+        provider=StubRealizationProvider(),
+    )
+    assert candidate is not None
+    qualified = qualify_candidate(
+        candidate.candidate_id,
+        output_root=tmp_path,
+        runner=StubQualificationRunner(),
+        timestamp="2026-08-29T05:37:38Z",
+    )
+    admission = json.loads((qualified.bundle / "admission.json").read_text())
+    terminal_path = candidate.bundle / "terminal.json"
+    terminal = json.loads(terminal_path.read_text())
+    terminal_path.unlink()
+    ledger = RejectionLedger(tmp_path)
+    ledger.append(
+        subject_type="qualification",
+        subject_id=qualified.qualification_id,
+        cell_id=candidate.cell_id,
+        candidate_ordinal=candidate.ordinal,
+        lifecycle_stage="admission",
+        reason_code="degraded-error-incomplete-evidence",
+        detail="spurious finalization rejection",
+        attribution=[{
+            "side": "qualification", "repetition": None, "check": "complete-evidence"
+        }],
+        n_split={"defects_off": 0, "defect_on": 0},
+        evidence=[],
+        config_snapshot_hash=admission["config_snapshot_hash"],
+        contract_hashes=admission["contract_hashes"],
+        timestamp="2026-08-29T05:39:09Z",
+    )
+    ledger.append(
+        subject_type="qualification",
+        subject_id=qualified.qualification_id,
+        cell_id=candidate.cell_id,
+        candidate_ordinal=candidate.ordinal,
+        lifecycle_stage="validation-error-invalidation",
+        reason_code="harness-fault",
+        detail="finalizer compared against repository state changed by its own evidence",
+        attribution=[{
+            "side": "qualification", "repetition": None, "check": "harness-validity"
+        }],
+        n_split=admission["n_split"],
+        evidence=[],
+        config_snapshot_hash=admission["config_snapshot_hash"],
+        contract_hashes=admission["contract_hashes"],
+        timestamp="2026-08-29T05:40:00Z",
+    )
+    atomic_json(terminal_path, terminal)
+
+    assert RejectionLedger(tmp_path).records()[-1]["reason_code"] == "harness-fault"
+
+
 def test_harness_fault_invalidation_retires_admission_without_consuming_budget(
     tmp_path: Path, detection_unproven_blueprint
 ) -> None:
@@ -517,7 +576,9 @@ def test_qualification_accepts_relative_output_root(
 
 
 def test_qualification_resumes_after_evidence_write_before_admission(
-    tmp_path: Path, detection_unproven_blueprint
+    tmp_path: Path,
+    detection_unproven_blueprint,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     candidate = produce_candidate(
         detection_unproven_blueprint,
@@ -534,6 +595,11 @@ def test_qualification_resumes_after_evidence_write_before_admission(
     (first.bundle / "admission.json").unlink()
     (candidate.bundle / "terminal.json").unlink()
     first.library_path.unlink()
+    monkeypatch.setattr(
+        synthesis_config,
+        "_repository_state",
+        lambda root: ("f" * 40, False),
+    )
 
     class FailIfRun:
         runner_id = "offline-stub-run-scenario-v1"
@@ -554,6 +620,36 @@ def test_qualification_resumes_after_evidence_write_before_admission(
     assert runner.calls == 0
     assert resumed.qualification_id == first.qualification_id
     assert resumed.decision.admitted
+
+
+def test_qualification_finalization_ignores_its_own_repository_dirtying(
+    tmp_path: Path,
+    detection_unproven_blueprint,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    candidate = produce_candidate(
+        detection_unproven_blueprint,
+        output_root=tmp_path,
+        provider=StubRealizationProvider(),
+    )
+    assert candidate is not None
+    calls = 0
+
+    def repository_state(root):
+        nonlocal calls
+        del root
+        calls += 1
+        return "a" * 40, calls > 1
+
+    monkeypatch.setattr(synthesis_config, "_repository_state", repository_state)
+
+    result = qualify_candidate(
+        candidate.candidate_id,
+        output_root=tmp_path,
+        runner=StubQualificationRunner(),
+    )
+
+    assert result.decision.admitted
 
 
 @pytest.mark.parametrize(

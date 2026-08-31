@@ -1,0 +1,43 @@
+name: synth-ecbf1aff1445-1dbe3fc02763
+journey: J1
+description: A cooperative customer wants help making a one-time payment on a card
+  account. They can provide the account and card details, but are unsure which payment
+  amount option corresponds to what they intend to pay. The agent should explain the
+  available option and obtain explicit confirmation before submitting.
+persona:
+  name: Cooperative customer
+  traits: "Polite, responsive, and willing to follow the agent\u2019s guidance; has\
+    \ a material fluency gap about payment amount options and may use an informal\
+    \ or imprecise label until the agent clarifies it."
+goal: Make a one-time payment using account ending in 5678 and card ending in 9013,
+  due on the due date. The customer informally asks to pay the amount shown on the
+  bill, but does not know the correct option name and needs the agent to explain which
+  available option means that.
+knowledge:
+  cards:
+  - '9013'
+  accounts:
+  - '5678'
+success_criteria:
+- The agent identifies the card ending in 9013 and retrieves the available payment
+  options.
+- The selected payment amount is present in the available options and is clarified
+  for the customer before proceeding.
+- The customer explicitly confirms the one-time payment.
+- The agent submits the payment only after validation using AddValidateOneTimePayment,
+  then uses AddOneTimePayment.
+- The interaction completes the goal truthfully, or clearly reports failure if completion
+  is not possible.
+max_turns: 10
+tool_assertions:
+- type: amount_in_options
+- type: validated_submit
+  submit: AddOneTimePayment
+  validate: AddValidateOneTimePayment
+synthesis:
+  schema_version: 1
+  origin: synthesized
+  candidate_id: candidate-4a296207b9dd03895648ada38cfaaa043c2891b04e58b5a92792e3f327d25549
+  blueprint_id: blueprint-e39e30e81e0a60635b4e3e910e4de286a6a9ea1e9d8ea922b001a0c53f90ae48
+  cell_id: cell-ecbf1aff14454844ace6f1119cad7223b00355053952bede562b4b709e01cd55
+  blueprint_content_hash: e39e30e81e0a60635b4e3e910e4de286a6a9ea1e9d8ea922b001a0c53f90ae48

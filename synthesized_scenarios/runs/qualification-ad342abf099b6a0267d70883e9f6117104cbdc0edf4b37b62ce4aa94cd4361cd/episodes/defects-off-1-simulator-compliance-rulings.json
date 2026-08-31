@@ -1,0 +1,25 @@
+{
+  "rulings": [
+    {
+      "criterion_id": "simulator_factual_grounding",
+      "passed": true,
+      "reasoning": "The customer's claims about the card ending in 9013, checking account ending in 5678, due date June 20, statement balance amount $875.20, and requested payment details are all supported by the tool results or prior assistant messages."
+    },
+    {
+      "criterion_id": "simulator_confirmation_timing",
+      "passed": true,
+      "reasoning": "The customer did not clearly confirm the payment until after the assistant validated the payment details and asked, 'Shall I schedule it?' at turn 3."
+    },
+    {
+      "criterion_id": "simulator_goal_persistence",
+      "passed": true,
+      "reasoning": "The customer consistently pursued the goal of making a one-time payment of the bill/statement balance on the card ending in 9013 from checking ending in 5678, and the payment was scheduled successfully."
+    },
+    {
+      "criterion_id": "simulator_knowledge_level_evidence",
+      "passed": true,
+      "reasoning": "The customer showed a material fluency gap about payment amount type by asking which payment option corresponds to 'the amount shown on my bill,' requiring explanation of the statement balance option."
+    }
+  ],
+  "schema_version": 1
+}
