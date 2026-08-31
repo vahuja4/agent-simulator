@@ -290,6 +290,52 @@ def test_exhaustion_remains_uncovered_and_health_attributes_each_side(
     assert health["regeneration_budget"]["exhausted_cell_count"] == 1
 
 
+def test_harness_invalidated_rejection_does_not_consume_regeneration_budget(
+    tmp_path: Path,
+) -> None:
+    blueprint = _targeted_blueprint()
+    candidate = produce_candidate(
+        blueprint, output_root=tmp_path, provider=StubRealizationProvider()
+    )
+    assert candidate is not None
+    result = qualify_candidate(
+        candidate.candidate_id,
+        output_root=tmp_path,
+        runner=StubQualificationRunner(
+            outcomes={("defects-off", 0): "unexpected-failure"}
+        ),
+        replacement_provider=StubRealizationProvider(),
+    )
+    admission = json.loads((result.bundle / "admission.json").read_text())
+    RejectionLedger(tmp_path).append(
+        subject_type="candidate",
+        subject_id=candidate.candidate_id,
+        cell_id=candidate.cell_id,
+        candidate_ordinal=candidate.ordinal,
+        lifecycle_stage="qualification-invalidation",
+        reason_code="harness-fault",
+        detail="criterion-scope defect; rejection does not consume regeneration budget",
+        attribution=[{
+            "side": "qualification",
+            "repetition": None,
+            "check": "harness-validity",
+        }],
+        n_split=admission["n_split"],
+        evidence=[
+            evidence_reference(result.bundle / "qualification.json", root=tmp_path),
+            evidence_reference(result.bundle / "admission.json", root=tmp_path),
+        ],
+        config_snapshot_hash=admission["config_snapshot_hash"],
+        contract_hashes=admission["contract_hashes"],
+    )
+
+    health = build_coverage(tmp_path)["synthesis_health"]
+
+    assert health["rejection_rates"]["candidate_qualification"]["numerator"] == 0
+    assert health["regeneration_budget"]["consumed_rejection_count"] == 0
+    assert health["regeneration_budget"]["invalidated_rejection_count"] == 1
+
+
 def test_check_completion_fails_honestly_without_resolved_graph_gaps(
     tmp_path: Path, capsys
 ) -> None:

@@ -232,3 +232,16 @@ def qualification_admission_is_invalidated(
         and record["reason_code"] == "harness-fault"
         for record in records
     )
+
+
+def candidate_rejection_is_invalidated(
+    records: Sequence[Mapping[str, Any]], candidate_id: str
+) -> bool:
+    """Whether a harness fault supersedes a Candidate rejection for accounting."""
+    return any(
+        record["subject_type"] == "candidate"
+        and record["subject_id"] == candidate_id
+        and record["lifecycle_stage"] == "qualification-invalidation"
+        and record["reason_code"] == "harness-fault"
+        for record in records
+    )

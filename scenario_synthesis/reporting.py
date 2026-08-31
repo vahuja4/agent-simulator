@@ -20,6 +20,7 @@ from .evidence import (
     validate_evidence_reference,
 )
 from .ledger import (
+    candidate_rejection_is_invalidated,
     LedgerError,
     RejectionLedger,
     qualification_admission_is_invalidated,
@@ -199,6 +200,8 @@ def build_coverage(
             "rejection_rates": health["rejection_rates"],
             "regeneration_budget": {
                 "post_fitness_replacements_per_cell": 2,
+                "consumed_rejection_count": health["consumed_candidate_rejections"],
+                "invalidated_rejection_count": health["invalidated_candidate_rejections"],
                 "exhaustion_trusted": health_trusted,
                 "exhausted_cell_count": len(exhaustion),
                 "exhausted_cell_ids": sorted(exhaustion),
@@ -372,12 +375,20 @@ def _exhaustion(records: tuple[Mapping[str, Any], ...], root: Path) -> set[str]:
     cells = {
         str(item["cell_id"])
         for item in records
-        if item["subject_type"] == "candidate" and item["candidate_ordinal"] == 2
+        if item["subject_type"] == "candidate"
+        and item["candidate_ordinal"] == 2
+        and not candidate_rejection_is_invalidated(records, str(item["subject_id"]))
     }
     for terminal_path in (root / "candidates").glob("candidate-*/terminal.json"):
         try:
             terminal = json.loads(terminal_path.read_text())
-            if terminal.get("status") == "rejected" and terminal.get("regeneration_exhausted"):
+            if (
+                terminal.get("status") == "rejected"
+                and terminal.get("regeneration_exhausted")
+                and not candidate_rejection_is_invalidated(
+                    records, str(terminal.get("candidate_id", ""))
+                )
+            ):
                 production = json.loads((terminal_path.parent / "production.json").read_text())
                 cells.add(str(production["cell_id"]))
         except (OSError, ValueError, KeyError):
@@ -399,9 +410,20 @@ def _synthesis_health(
     successful_productions = len(list((root / "candidates").glob("candidate-*/production.json")))
     failed_productions = sum(item["lifecycle_stage"] == "production" for item in records)
     terminal_candidates = len(list((root / "candidates").glob("candidate-*/terminal.json")))
-    rejected_candidates = sum(
-        item["subject_type"] == "candidate" and item["lifecycle_stage"] == "qualification"
+    candidate_rejections = tuple(
+        item
         for item in records
+        if item["subject_type"] == "candidate"
+        and item["lifecycle_stage"] == "qualification"
+    )
+    invalidated_rejections = {
+        str(item["subject_id"])
+        for item in candidate_rejections
+        if candidate_rejection_is_invalidated(records, str(item["subject_id"]))
+    }
+    rejected_candidates = sum(
+        str(item["subject_id"]) not in invalidated_rejections
+        for item in candidate_rejections
     )
     return {
         "path": "ledger/rejections.jsonl",
@@ -413,6 +435,8 @@ def _synthesis_health(
             "production": _rate(failed_productions, failed_productions + successful_productions),
             "candidate_qualification": _rate(rejected_candidates, terminal_candidates),
         },
+        "consumed_candidate_rejections": rejected_candidates,
+        "invalidated_candidate_rejections": len(invalidated_rejections),
         "per_side_attribution": {
             side: {"count": count, "checks": dict(sorted(checks[side].items()))}
             for side, count in sorted(sides.items())
