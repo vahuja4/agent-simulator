@@ -1,0 +1,20 @@
+{
+  "passed": true,
+  "rulings": [
+    {
+      "criterion_id": "simulator_factual_grounding",
+      "passed": true,
+      "reasoning": "All customer-stated account/card facts, amounts, and dates are supported by the scenario contract: Sapphire ending 9013, Freedom Unlimited ending 0767, Chase Total Checking ending 5678, Freedom statement balance $310.45, and due date June 25, 2026. The customer\u2019s objection to the offered remaining statement balance is consistent with the supplied Freedom information and the instruction to question mismatched Freedom amounts."
+    },
+    {
+      "criterion_id": "simulator_confirmation_timing",
+      "passed": true,
+      "reasoning": "The customer did not confirm the payment until after the assistant validated and presented the payment details at turn 5 and asked for confirmation. The confirmation occurs at turn 6."
+    },
+    {
+      "criterion_id": "simulator_goal_persistence",
+      "passed": true,
+      "reasoning": "The customer followed the scenario goal: started with Sapphire, switched to Freedom after Sapphire options were offered, questioned the incorrect Freedom amount, requested the Freedom statement balance payment on the due date, confirmed correct details, and then stopped after scheduling."
+    }
+  ]
+}

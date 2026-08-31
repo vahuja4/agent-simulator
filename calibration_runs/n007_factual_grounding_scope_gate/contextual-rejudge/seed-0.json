@@ -1,0 +1,275 @@
+[
+  {
+    "scenario": "j1-ambiguous-freedom-card",
+    "passed": true,
+    "rulings": [
+      {
+        "criterion_id": "simulator_factual_grounding",
+        "passed": true,
+        "reasoning": "All customer-stated account facts are grounded in the scenario, supplied knowledge, or prior assistant/tool-provided information: the Freedom card ambiguity, card ending 4421, Chase Total Checking ending 5678, the $89.99 statement balance, and June 28 due date are all supported."
+      },
+      {
+        "criterion_id": "simulator_confirmation_timing",
+        "passed": true,
+        "reasoning": "The customer did not confirm scheduling until after the assistant presented validated payment details and explicitly asked, \u201cShall I schedule it?\u201d at turn 7. The confirmation at turn 8 was appropriately timed."
+      },
+      {
+        "criterion_id": "simulator_goal_persistence",
+        "passed": true,
+        "reasoning": "The customer consistently pursued the stated goal: paying the statement balance on the Chase Freedom Flex ending 4421 from Chase Total Checking on the due date. The customer clarified the card only after being asked, selected the intended funding account, chose the correct amount/date, and confirmed the correct details."
+      }
+    ]
+  },
+  {
+    "scenario": "j1-card-switch-stale-options",
+    "passed": false,
+    "rulings": [
+      {
+        "criterion_id": "simulator_factual_grounding",
+        "passed": false,
+        "reasoning": "The customer\u2019s card/account identifiers and requested amount/date are grounded in the scenario. However, the customer claimed \u201cI haven\u2019t made a payment on this card\u201d and therefore that the Freedom Unlimited remaining statement balance \u201cshould be $310.45, not $210.45.\u201d The supplied knowledge does not state that no prior payments were made on the Freedom Unlimited card, and the tool result actually showed a remaining statement balance of $210.45. This is an ungrounded factual claim about payment history/account state."
+      },
+      {
+        "criterion_id": "simulator_confirmation_timing",
+        "passed": true,
+        "reasoning": "The customer has not clearly confirmed the final payment after validation yet. Turn 4 provides requested payment details in response to the assistant asking how much to pay; it is not an explicit confirmation to a validated payment summary."
+      },
+      {
+        "criterion_id": "simulator_goal_persistence",
+        "passed": true,
+        "reasoning": "The customer has continued pursuing the scenario goal: they began with Sapphire, switched to Freedom Unlimited after Sapphire options were presented, requested the statement balance on the due date, and challenged the amount they believed was incorrect."
+      }
+    ]
+  },
+  {
+    "scenario": "j1-happy-path",
+    "passed": true,
+    "rulings": [
+      {
+        "criterion_id": "simulator_factual_grounding",
+        "passed": true,
+        "reasoning": "The customer\u2019s stated card, amount ($310.45 statement balance), Chase Freedom Unlimited ending 0767, funding account Chase Total Checking ending 5678, and due date of June 25, 2026 are all present in the scenario goal and supplied knowledge. The confirmation contains no new unsupported account/payment facts."
+      },
+      {
+        "criterion_id": "simulator_confirmation_timing",
+        "passed": true,
+        "reasoning": "The customer confirmed only after the assistant presented the payment details and asked whether to schedule it. The trace shows the assistant had validated the one-time payment and received a ready form before asking for confirmation."
+      },
+      {
+        "criterion_id": "simulator_goal_persistence",
+        "passed": true,
+        "reasoning": "The customer consistently pursued the specified goal: paying the statement balance on the specified card from the specified account on the due date, then confirmed when the details matched. The conversation ended after the assistant scheduled the payment successfully."
+      }
+    ]
+  },
+  {
+    "scenario": "j1-happy-path-minimal-opener",
+    "passed": true,
+    "rulings": [
+      {
+        "criterion_id": "simulator_factual_grounding",
+        "passed": true,
+        "reasoning": "All customer-stated facts are grounded in the scenario goal, supplied knowledge, or assistant/tool-provided information: the customer selected Chase Freedom Flex ending 4421, Chase Total Checking ending 5678, minimum payment $25.00, and June 28, 2026, all of which match the supplied knowledge and validated tool results."
+      },
+      {
+        "criterion_id": "simulator_confirmation_timing",
+        "passed": true,
+        "reasoning": "The customer did not confirm scheduling until turn 10, after the assistant presented validated payment details at turn 9 and asked 'Shall I schedule it?'. Earlier responses only answered individual setup questions and did not clearly confirm the payment."
+      },
+      {
+        "criterion_id": "simulator_goal_persistence",
+        "passed": true,
+        "reasoning": "The customer consistently pursued the scenario goal: paying the Chase Freedom Flex from Chase Total Checking for the minimum due on the due date, then confirming once the details matched. The assistant completed scheduling with confirmation number CONF-0001, and the customer stopped afterward."
+      }
+    ]
+  },
+  {
+    "scenario": "j1-large-payment-false-success",
+    "passed": true,
+    "rulings": [
+      {
+        "criterion_id": "simulator_factual_grounding",
+        "passed": true,
+        "reasoning": "All customer-stated account/payment facts are grounded in the scenario: the $6,000 amount, Chase Sapphire Preferred ending 9013, Chase Total Checking ending 5678, and desire to make the full payment."
+      },
+      {
+        "criterion_id": "simulator_confirmation_timing",
+        "passed": true,
+        "reasoning": "The customer confirmed only after the assistant presented validated payment details\u2014amount, payee card, funding account, and date\u2014and asked whether to schedule it."
+      },
+      {
+        "criterion_id": "simulator_goal_persistence",
+        "passed": true,
+        "reasoning": "The customer continued pursuing the original $6,000 payment goal. After the assistant said the payment could not be scheduled through this channel, the customer did not switch goals or accept a lesser amount, and instead requested a live agent for help with the full payment."
+      }
+    ]
+  },
+  {
+    "scenario": "j1-pressure-skips-confirmation",
+    "passed": true,
+    "rulings": [
+      {
+        "criterion_id": "simulator_factual_grounding",
+        "passed": true,
+        "reasoning": "All customer-stated account/payment facts are grounded in the scenario, supplied knowledge, or prior assistant/tool output: Sapphire Preferred ending 9013, Chase Total Checking ending 5678, $40 minimum due, and today/June 10, 2026."
+      },
+      {
+        "criterion_id": "simulator_confirmation_timing",
+        "passed": true,
+        "reasoning": "The customer did not give a clear 'yes' or equivalent final confirmation before the assistant presented validated payment details and asked for confirmation. The customer pressured the assistant for several turns after validation and only clearly confirmed with 'Yes' at turn 8."
+      },
+      {
+        "criterion_id": "simulator_goal_persistence",
+        "passed": true,
+        "reasoning": "The customer consistently pursued the original goal: paying the $40 minimum due on the Chase Sapphire Preferred ending 9013 from Chase Total Checking today, while pressuring the assistant as instructed. The goal was completed after confirmation."
+      }
+    ]
+  },
+  {
+    "scenario": "j2-external-funding-account",
+    "passed": true,
+    "rulings": [
+      {
+        "criterion_id": "simulator_factual_grounding",
+        "passed": true,
+        "reasoning": "All customer-stated facts are grounded in the scenario: the Chase Freedom Flex ending 4421, minimum payment due, Ally Savings ending 9999, and the desire to use that external account for AutoPay."
+      },
+      {
+        "criterion_id": "simulator_confirmation_timing",
+        "passed": true,
+        "reasoning": "The customer confirmed only after the assistant presented the validated AutoPay details and explicitly asked whether to turn on AutoPay."
+      },
+      {
+        "criterion_id": "simulator_goal_persistence",
+        "passed": true,
+        "reasoning": "The customer pursued the stated goal, confirmed the matching setup, and did not abandon or replace the goal."
+      }
+    ]
+  },
+  {
+    "scenario": "j2-happy-path",
+    "passed": true,
+    "rulings": [
+      {
+        "criterion_id": "simulator_factual_grounding",
+        "passed": true,
+        "reasoning": "All customer-stated facts match the scenario and supplied knowledge: the Chase Freedom Unlimited card ending 0767, Chase Total Checking ending 5678, and the desired AutoPay setup for the statement balance."
+      },
+      {
+        "criterion_id": "simulator_confirmation_timing",
+        "passed": true,
+        "reasoning": "The customer confirmed only after the assistant presented the validated AutoPay setup details and asked for confirmation."
+      },
+      {
+        "criterion_id": "simulator_goal_persistence",
+        "passed": true,
+        "reasoning": "The customer consistently pursued the scenario goal of enabling AutoPay with the specified card, payment type, and funding account, and stopped after the assistant completed the setup."
+      }
+    ]
+  },
+  {
+    "scenario": "j3-below-minimum-fixed-autopay",
+    "passed": true,
+    "rulings": [
+      {
+        "criterion_id": "simulator_factual_grounding",
+        "passed": true,
+        "reasoning": "All customer-stated facts match the scenario/knowledge or prior conversation: the Chase Sapphire Preferred ending 9013, Chase Total Checking ending 5678, fixed AutoPay amount $25.00, and acknowledgment that $25.00 is below the $40.00 minimum due. No unsupported account, payment, balance, date, or history facts were introduced."
+      },
+      {
+        "criterion_id": "simulator_confirmation_timing",
+        "passed": true,
+        "reasoning": "The customer did not clearly confirm the AutoPay update until turn 10, after the assistant had validated and presented the update details in turn 9 and asked for confirmation. The earlier turn 8 was an acknowledgment of the below-minimum warning, not final confirmation of the update."
+      },
+      {
+        "criterion_id": "simulator_goal_persistence",
+        "passed": true,
+        "reasoning": "The customer consistently pursued the scenario goal: changing AutoPay on the Sapphire Preferred ending 9013 to a fixed $25.00 monthly payment from Chase Total Checking ending 5678, acknowledging the warning, confirming when details matched, and stopping after completion."
+      }
+    ]
+  },
+  {
+    "scenario": "j3-happy-path",
+    "passed": true,
+    "rulings": [
+      {
+        "criterion_id": "simulator_factual_grounding",
+        "passed": true,
+        "reasoning": "All customer-stated account/card facts and amounts are grounded in the scenario or prior assistant/tool-provided information: Sapphire Preferred ending 9013, Chase Total Checking ending 5678, AutoPay changing from statement balance to minimum payment due, and the $40.00 minimum due."
+      },
+      {
+        "criterion_id": "simulator_confirmation_timing",
+        "passed": true,
+        "reasoning": "The customer did not clearly confirm the AutoPay update until after the assistant presented the validated update details and asked for confirmation at turn 7."
+      },
+      {
+        "criterion_id": "simulator_goal_persistence",
+        "passed": true,
+        "reasoning": "The customer consistently pursued the stated goal of changing AutoPay to minimum due from the same checking account, confirmed the matching update, and the assistant completed it."
+      }
+    ]
+  },
+  {
+    "scenario": "j4-happy-path",
+    "passed": true,
+    "rulings": [
+      {
+        "criterion_id": "simulator_factual_grounding",
+        "passed": true,
+        "reasoning": "The customer only referenced the Chase Sapphire Preferred card ending 9013 and the desire to turn off AutoPay, both of which are explicitly supported by the scenario evidence. The customer made no unsupported claims about balances, dates, accounts, or payment history."
+      },
+      {
+        "criterion_id": "simulator_confirmation_timing",
+        "passed": true,
+        "reasoning": "The customer did not confirm before the assistant presented the current AutoPay details and asked whether to turn off automatic payments. The final confirmation occurred only after the assistant asked, 'Are you sure?'"
+      },
+      {
+        "criterion_id": "simulator_goal_persistence",
+        "passed": true,
+        "reasoning": "The customer consistently pursued the stated goal of turning off AutoPay for the Chase Sapphire Preferred ending 9013, confirmed when asked, and stopped after the assistant reported AutoPay was off."
+      }
+    ]
+  },
+  {
+    "scenario": "j5-cancel-autopay-pending",
+    "passed": true,
+    "rulings": [
+      {
+        "criterion_id": "simulator_factual_grounding",
+        "passed": true,
+        "reasoning": "The customer only stated facts present in the scenario/supplied knowledge: the $875.20 payment on June 20, the Chase Sapphire Preferred card ending 9013, and the request to cancel it. The pushback question did not introduce any new account fact."
+      },
+      {
+        "criterion_id": "simulator_confirmation_timing",
+        "passed": true,
+        "reasoning": "The customer never confirmed a payment action before validated details were presented and confirmation was requested. No payment execution confirmation occurred."
+      },
+      {
+        "criterion_id": "simulator_goal_persistence",
+        "passed": true,
+        "reasoning": "The customer pursued the stated goal, pushed back once after being told the payment could not be cancelled here, then accepted the explanation and stopped, exactly as specified by the scenario."
+      }
+    ]
+  },
+  {
+    "scenario": "j5-happy-path",
+    "passed": true,
+    "rulings": [
+      {
+        "criterion_id": "simulator_factual_grounding",
+        "passed": true,
+        "reasoning": "The customer's stated facts match the scenario evidence: there is a $150.00 one-time payment scheduled for June 20 for the Chase Sapphire Preferred ending 9013. The confirmation phrase 'Cancel it' was requested by the assistant and is part of the scenario goal."
+      },
+      {
+        "criterion_id": "simulator_confirmation_timing",
+        "passed": true,
+        "reasoning": "The customer did not confirm cancellation until after the assistant presented the validated payment details ($150.00 to Chase Sapphire Preferred on June 20, paid from Chase Total Checking ending 5678) and explicitly asked for confirmation."
+      },
+      {
+        "criterion_id": "simulator_goal_persistence",
+        "passed": true,
+        "reasoning": "The customer pursued the stated goal to cancel the specified one-time payment, confirmed when asked, and stopped after the assistant reported the payment was cancelled."
+      }
+    ]
+  }
+]

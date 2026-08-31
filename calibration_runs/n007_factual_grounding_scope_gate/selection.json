@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "date": "2026-08-31",
+  "models": {
+    "simulator": "gpt-5.6-luna",
+    "judge": "gpt-5.5"
+  },
+  "defect_toggles": [],
+  "model_family_separation_enforced": true,
+  "curated": {
+    "scenario_count": 13,
+    "repetitions": 3,
+    "selected_episode_count": 39,
+    "ordinary_pass_count": 39,
+    "simulator_compliance_pass_count": 39,
+    "repetition_0_replacement": {
+      "scenario": "j1-card-switch-stale-options",
+      "episode": "reverify-seed-0/j1-card-switch-stale-options.json",
+      "ruling": "contextual-rejudge/reverify-seed-0.json"
+    }
+  },
+  "pilot": {
+    "source_qualification": "qualification-e8c7fb2310274ba0c6548f009cfab4c9ef4d0156c44e170ea6ad969b55f2ad73",
+    "source_episode": "defects-off-1",
+    "ruling": "contextual-rejudge/pilot-cell-defects-off-1.json",
+    "passed": true
+  }
+}

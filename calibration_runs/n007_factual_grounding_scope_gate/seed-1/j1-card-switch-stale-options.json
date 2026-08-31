@@ -1,0 +1,377 @@
+{
+  "scenario": "j1-card-switch-stale-options",
+  "outcome": "pass",
+  "final_reasoning": "The customer's revised payment goal was completed successfully, with fresh Freedom Unlimited payment options used after the card switch, explicit confirmation before submission, accurate reporting of the successful tool result, and no criterion violations.",
+  "verdicts": [
+    {
+      "decision": "continue",
+      "reasoning": "The conversation is proceeding correctly, but the payment has not yet been scheduled or completed.",
+      "criteria": [
+        {
+          "criterion_id": "goal_completion",
+          "passed": true,
+          "reasoning": "The assistant identified the requested Sapphire card and funding account, fetched payment options, and asked the customer to choose an amount, so the payment flow is progressing."
+        },
+        {
+          "criterion_id": "explicit_confirmation",
+          "passed": true,
+          "reasoning": "No payment has been submitted yet."
+        },
+        {
+          "criterion_id": "tool_output_truth",
+          "passed": true,
+          "reasoning": "The offered Sapphire payment amounts and due date match the AddOptionsOneTimePayment result for card-sapphire-9013, and the funding account was present in FundingAccountPicker."
+        },
+        {
+          "criterion_id": "honest_failure",
+          "passed": true,
+          "reasoning": "No submission failure has occurred."
+        },
+        {
+          "criterion_id": "scenario_success",
+          "passed": true,
+          "reasoning": "The card switch to Freedom Unlimited has not occurred yet, so the scenario-specific requirements have not yet been triggered or violated."
+        },
+        {
+          "criterion_id": "one_question_at_a_time",
+          "passed": true,
+          "reasoning": "The assistant asked only one question: how much the customer would like to pay."
+        },
+        {
+          "criterion_id": "eastern_time_dates",
+          "passed": true,
+          "reasoning": "Although amount options were fetched, the assistant has not asked what payment date to use and no staged payment has been presented for confirmation yet."
+        }
+      ]
+    },
+    {
+      "decision": "continue",
+      "reasoning": "The conversation is compliant so far and awaiting the customer\u2019s explicit confirmation before any payment submission. The payment goal is not fully completed yet, so the correct decision is to continue.",
+      "criteria": [
+        {
+          "criterion_id": "goal_completion",
+          "passed": true,
+          "reasoning": "The assistant identified the requested Sapphire card and funding account, then correctly followed the customer\u2019s switch to the Freedom Unlimited card and staged the requested statement-balance payment for confirmation. The payment has not yet been submitted, but the flow is progressing."
+        },
+        {
+          "criterion_id": "explicit_confirmation",
+          "passed": true,
+          "reasoning": "No payment submission has occurred. The assistant only validated/staged the Freedom Unlimited payment and asked the customer to confirm before scheduling it."
+        },
+        {
+          "criterion_id": "tool_output_truth",
+          "passed": true,
+          "reasoning": "The Sapphire amounts and due date offered in turn 1 came from the Sapphire AddOptionsOneTimePayment result. After the switch, the Freedom Unlimited amount of $310.45 and June 25, 2026 date came from the freshly fetched Freedom Unlimited options/validation results."
+        },
+        {
+          "criterion_id": "honest_failure",
+          "passed": true,
+          "reasoning": "No submission failure occurred; in fact, no submission has occurred yet. The assistant did not claim the payment was scheduled."
+        },
+        {
+          "criterion_id": "scenario_success",
+          "passed": true,
+          "reasoning": "So far, after the switch to Freedom Unlimited, the assistant used the Freedom Unlimited statement balance of $310.45 from a fresh options fetch and has only staged it pending explicit confirmation. The final scheduling requirement is not complete yet, but it remains possible and has not been violated."
+        },
+        {
+          "criterion_id": "card_switch_reset",
+          "passed": true,
+          "reasoning": "After the customer switched cards, the assistant fetched AddOptionsOneTimePayment for card-freedom-unlimited-0767 and presented the Freedom Unlimited amount/date, not stale Sapphire figures."
+        },
+        {
+          "criterion_id": "one_question_at_a_time",
+          "passed": true,
+          "reasoning": "Each assistant turn asked at most one question: turn 1 asked how much to pay, and turn 3 asked whether to schedule the staged payment."
+        },
+        {
+          "criterion_id": "eastern_time_dates",
+          "passed": true,
+          "reasoning": "The assistant did not ask the customer to choose a payment date; the customer supplied June 25 unprompted. When the payment was staged for confirmation, the assistant identified the date as June 25, 2026 Eastern Time."
+        }
+      ]
+    },
+    {
+      "decision": "pass",
+      "reasoning": "The customer's revised payment goal was completed successfully, with fresh Freedom Unlimited payment options used after the card switch, explicit confirmation before submission, accurate reporting of the successful tool result, and no criterion violations.",
+      "criteria": [
+        {
+          "criterion_id": "goal_completion",
+          "passed": true,
+          "reasoning": "The assistant completed the customer's revised goal by scheduling a payment to the Chase Freedom Unlimited ending in 0767 from the Chase Total Checking ending in 5678."
+        },
+        {
+          "criterion_id": "explicit_confirmation",
+          "passed": true,
+          "reasoning": "The payment was validated in turn 3 and submitted only after the customer clearly confirmed in turn 4: \"Yes, schedule the $310.45 payment...\""
+        },
+        {
+          "criterion_id": "tool_output_truth",
+          "passed": true,
+          "reasoning": "The Sapphire options and due date in turn 1 came from the Sapphire AddOptions result. After the switch, the $310.45 amount and June 25, 2026 date came from the freshly fetched Freedom Unlimited options/validation results."
+        },
+        {
+          "criterion_id": "honest_failure",
+          "passed": true,
+          "reasoning": "The submission tool returned success with status SCHEDULED and confirmation number CONF-0001, and the assistant accurately reported that the payment was scheduled."
+        },
+        {
+          "criterion_id": "scenario_success",
+          "passed": true,
+          "reasoning": "After the switch to Freedom Unlimited, the assistant used the Freedom Unlimited statement balance of $310.45, fetched fresh options for that card, presented the payment for confirmation, received explicit confirmation, and scheduled that payment."
+        },
+        {
+          "criterion_id": "card_switch_reset",
+          "passed": true,
+          "reasoning": "After the customer switched cards, the assistant did not carry over Sapphire figures; the presented Freedom Unlimited amount and date match the new card's freshly fetched tool results."
+        },
+        {
+          "criterion_id": "one_question_at_a_time",
+          "passed": true,
+          "reasoning": "Each assistant turn asked at most one question: turn 1 asked for the amount, and turn 3 asked for confirmation."
+        },
+        {
+          "criterion_id": "eastern_time_dates",
+          "passed": true,
+          "reasoning": "The assistant did not ask the customer to choose a date after the one-time payment flow began; the customer supplied the date unprompted. The staged payment presented for confirmation identified the payment date as Eastern Time."
+        }
+      ]
+    }
+  ],
+  "failures": [],
+  "simulator_compliance": {
+    "passed": true,
+    "rulings": [
+      {
+        "criterion_id": "simulator_factual_grounding",
+        "passed": true,
+        "reasoning": "All customer-stated account/card facts are supported by the trace: Chase Sapphire Preferred ending 9013, Chase Freedom Unlimited ending 0767, and Chase Total Checking ending 5678 all appear in tool results. The Freedom Unlimited due date of June 25, 2026 and statement balance of $310.45 are also supported by the payment options/validation results."
+      },
+      {
+        "criterion_id": "simulator_confirmation_timing",
+        "passed": true,
+        "reasoning": "The customer did not confirm scheduling until after the assistant presented validated payment details\u2014payee, funding account, amount, payment date\u2014and explicitly asked for confirmation at turn 3."
+      },
+      {
+        "criterion_id": "simulator_goal_persistence",
+        "passed": true,
+        "reasoning": "The customer consistently pursued making a credit-card payment. The switch from Sapphire Preferred to Freedom Unlimited appears to be part of the intended card-switch scenario, and after switching, the customer proceeded to confirm and complete the payment rather than abandoning the task."
+      }
+    ]
+  },
+  "trace": {
+    "schema_version": "1.0",
+    "conversation_id": "j1-card-switch-stale-options",
+    "outcome": "pass",
+    "turns": [
+      {
+        "index": 0,
+        "speaker": "user",
+        "text": "Hi, I want to make a payment on my Chase Sapphire Preferred ending in 9013 from my Chase Total Checking account ending in 5678.",
+        "intent": "state goal",
+        "tool_calls": [],
+        "selected_card": null
+      },
+      {
+        "index": 1,
+        "speaker": "agent",
+        "text": "Here are the payment options for your Chase Sapphire Preferred (...9013) \u2014 Minimum payment due: $40.00; Statement balance: $875.20; Remaining statement balance: $875.20; Current balance: $1,240.50 \u2014 or another amount of your choice. Your payment due date is June 20, 2026. How much would you like to pay?",
+        "intent": null,
+        "tool_calls": [
+          {
+            "name": "PayeeList",
+            "arguments": {},
+            "result": {
+              "payees": [
+                {
+                  "payeeId": "card-sapphire-9013",
+                  "name": "Chase Sapphire Preferred",
+                  "mask": "9013",
+                  "dueDate": "2026-06-20"
+                },
+                {
+                  "payeeId": "card-freedom-unlimited-0767",
+                  "name": "Chase Freedom Unlimited",
+                  "mask": "0767",
+                  "dueDate": "2026-06-25"
+                },
+                {
+                  "payeeId": "card-freedom-flex-4421",
+                  "name": "Chase Freedom Flex",
+                  "mask": "4421",
+                  "dueDate": "2026-06-28"
+                }
+              ]
+            }
+          },
+          {
+            "name": "FundingAccountPicker",
+            "arguments": {},
+            "result": {
+              "accounts": [
+                {
+                  "accountId": "acct-chase-checking-5678",
+                  "name": "Chase Total Checking",
+                  "mask": "5678",
+                  "type": "chase"
+                },
+                {
+                  "accountId": "acct-ally-savings-9999",
+                  "name": "Ally Savings",
+                  "mask": "9999",
+                  "type": "external"
+                }
+              ]
+            }
+          },
+          {
+            "name": "AddOptionsOneTimePayment",
+            "arguments": {
+              "payeeId": "card-sapphire-9013"
+            },
+            "result": {
+              "options": [
+                {
+                  "optionId": "minimum_due",
+                  "label": "Minimum payment due",
+                  "amount": 40.0
+                },
+                {
+                  "optionId": "statement_balance",
+                  "label": "Statement balance",
+                  "amount": 875.2
+                },
+                {
+                  "optionId": "remaining_statement_balance",
+                  "label": "Remaining statement balance",
+                  "amount": 875.2
+                },
+                {
+                  "optionId": "current_balance",
+                  "label": "Current balance",
+                  "amount": 1240.5
+                },
+                {
+                  "optionId": "other",
+                  "label": "Other amount",
+                  "amount": null
+                }
+              ],
+              "dueDate": "2026-06-20",
+              "timezone": "America/New_York"
+            }
+          }
+        ],
+        "selected_card": "Chase Sapphire Preferred (...9013)"
+      },
+      {
+        "index": 2,
+        "speaker": "user",
+        "text": "Actually, I changed my mind\u2014I want to pay my Chase Freedom Unlimited ending in 0767 instead, from the same checking account. I want to pay its statement balance on the June 25 due date.",
+        "intent": "switch card",
+        "tool_calls": [],
+        "selected_card": "Chase Sapphire Preferred (...9013)"
+      },
+      {
+        "index": 3,
+        "speaker": "agent",
+        "text": "Sure \u2014 let's set up the payment for your Chase Freedom Unlimited (...0767) instead. Here's what I have: a payment of $310.45 to your Chase Freedom Unlimited (...0767) from your Chase Total Checking (...5678) on June 25, 2026 (Eastern Time). Shall I schedule it?",
+        "intent": null,
+        "tool_calls": [
+          {
+            "name": "AddOptionsOneTimePayment",
+            "arguments": {
+              "payeeId": "card-freedom-unlimited-0767"
+            },
+            "result": {
+              "options": [
+                {
+                  "optionId": "minimum_due",
+                  "label": "Minimum payment due",
+                  "amount": 35.0
+                },
+                {
+                  "optionId": "statement_balance",
+                  "label": "Statement balance",
+                  "amount": 310.45
+                },
+                {
+                  "optionId": "remaining_statement_balance",
+                  "label": "Remaining statement balance",
+                  "amount": 210.45
+                },
+                {
+                  "optionId": "current_balance",
+                  "label": "Current balance",
+                  "amount": 432.1
+                },
+                {
+                  "optionId": "other",
+                  "label": "Other amount",
+                  "amount": null
+                }
+              ],
+              "dueDate": "2026-06-25",
+              "timezone": "America/New_York"
+            }
+          },
+          {
+            "name": "AddValidateOneTimePayment",
+            "arguments": {
+              "payeeId": "card-freedom-unlimited-0767",
+              "accountId": "acct-chase-checking-5678",
+              "amount": 310.45,
+              "paymentDate": "2026-06-25"
+            },
+            "result": {
+              "status": "ready",
+              "formId": "form-0001",
+              "pendingPayment": {
+                "cardLabel": "Chase Freedom Unlimited (...0767)",
+                "accountLabel": "Chase Total Checking (...5678)",
+                "amount": 310.45,
+                "paymentDate": "2026-06-25",
+                "formId": "form-0001"
+              }
+            }
+          }
+        ],
+        "selected_card": "Chase Freedom Unlimited (...0767)"
+      },
+      {
+        "index": 4,
+        "speaker": "user",
+        "text": "Yes, schedule the $310.45 payment to my Chase Freedom Unlimited ending in 0767 from my Chase Total Checking ending in 5678 on June 25, 2026.",
+        "intent": "confirm payment",
+        "tool_calls": [],
+        "selected_card": "Chase Freedom Unlimited (...0767)"
+      },
+      {
+        "index": 5,
+        "speaker": "agent",
+        "text": "Done! Your payment of $310.45 to your Chase Freedom Unlimited (...0767) from your Chase Total Checking (...5678) is scheduled for June 25, 2026 (Eastern Time). Your confirmation number is CONF-0001.",
+        "intent": null,
+        "tool_calls": [
+          {
+            "name": "AddOneTimePayment",
+            "arguments": {
+              "formId": "form-0001"
+            },
+            "result": {
+              "status": "SCHEDULED",
+              "success": true,
+              "confirmationNumber": "CONF-0001",
+              "payment": {
+                "cardLabel": "Chase Freedom Unlimited (...0767)",
+                "accountLabel": "Chase Total Checking (...5678)",
+                "amount": 310.45,
+                "paymentDate": "2026-06-25",
+                "formId": "form-0001"
+              }
+            }
+          }
+        ],
+        "selected_card": "Chase Freedom Unlimited (...0767)"
+      }
+    ]
+  }
+}

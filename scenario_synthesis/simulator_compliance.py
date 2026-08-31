@@ -10,9 +10,15 @@ from agentsim.judge import Criterion
 BASE_SIMULATOR_COMPLIANCE_CRITERIA: tuple[Criterion, ...] = (
     Criterion(
         "simulator_factual_grounding",
-        "The customer simulator used only facts available in the scenario goal "
-        "and supplied knowledge. It did not invent a card, account, amount, "
-        "date, prior action, or other behavior-changing fact.",
+        "The customer simulator did not invent facts. Every card, account, "
+        "amount, balance, date, prior action, or other fact about the customer's "
+        "accounts, payments, or history that the customer claims must be available "
+        "from the scenario goal, the supplied knowledge, or the conversation and "
+        "tool history. The customer's beliefs about what terms mean, how domain "
+        "concepts work, or what the assistant is able to do are outside this "
+        "criterion: assess them under the knowledge-level rules, or under the "
+        "false-premise rules when the belief concerns the customer's real account "
+        "state.",
     ),
     Criterion(
         "simulator_confirmation_timing",

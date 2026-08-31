@@ -1,0 +1,25 @@
+{
+  "passed": true,
+  "rulings": [
+    {
+      "criterion_id": "simulator_factual_grounding",
+      "passed": true,
+      "reasoning": "All customer-stated account and payment facts are grounded in the scenario, supplied knowledge, or prior tool-backed assistant statements: card ending 9013, funding account ending 5678, due date June 20, 2026, statement balance $875.20, and the available amount options were all available. The customer\u2019s uncertainty about which option corresponds to \u201cwhole bill\u201d is a concept/label issue rather than an unsupported account-state claim."
+    },
+    {
+      "criterion_id": "simulator_confirmation_timing",
+      "passed": true,
+      "reasoning": "The customer did not confirm scheduling until turn 6, after the assistant had validated the payment details in turn 5 and explicitly asked for confirmation."
+    },
+    {
+      "criterion_id": "simulator_goal_persistence",
+      "passed": true,
+      "reasoning": "The customer consistently pursued the original goal: a one-time payment for card 9013 from checking 5678 on the due date using the whole-bill amount option. The payment was ultimately scheduled with the requested details."
+    },
+    {
+      "criterion_id": "simulator_knowledge_level_evidence",
+      "passed": true,
+      "reasoning": "The customer showed a material fluency gap about payment amount type by asking which option\u2014statement balance, remaining statement balance, or current balance\u2014means paying the whole bill."
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+[
+  {
+    "scenario": "j1-card-switch-stale-options",
+    "journey": "J1",
+    "defect": null,
+    "outcome": "pass",
+    "user_turns": 4,
+    "agent_turns": 4,
+    "max_turns": 14,
+    "tools": [
+      "PayeeList",
+      "FundingAccountPicker",
+      "AddOptionsOneTimePayment",
+      "AddOptionsOneTimePayment",
+      "AddValidateOneTimePayment",
+      "AddOneTimePayment"
+    ],
+    "failures": [],
+    "simulator_compliance": false,
+    "final_reasoning": "The payment was scheduled successfully after a proper card switch, fresh option retrieval, validation, and explicit customer confirmation. No criteria were violated."
+  }
+]

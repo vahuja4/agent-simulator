@@ -1,0 +1,48 @@
+SCENARIO: j2-external-funding-account  (/Users/vishal/Desktop/agent_simulator/scenarios/j2_external_funding_account.yaml)
+JOURNEY: J2   MAX_TURNS: 12
+========================================================================
+TRANSCRIPT (with tool calls)
+========================================================================
+
+[0] Customer (intent: state goal):
+    Hi, I’d like to set up AutoPay on my Freedom Flex ending in 4421 for the minimum payment due each month, using my Ally Savings account ending in 9999.
+[1] Assistant:
+    Just so you know, since Ally Savings isn't a Chase account, we can't see its balance. Here's your AutoPay setup: the minimum payment due for your Chase Freedom Flex (...4421), paid from your Ally Savings (...9999) on your statement due date each month. Shall I turn on AutoPay?
+      tool: PayeeList({}) -> {'payees': [{'payeeId': 'card-sapphire-9013', 'name': 'Chase Sapphire Preferred', 'mask': '9013', 'dueDate': '2026-06-20'}, {'payeeId': 'card-freedom-unlimited-0767', 'name': 'Chase Freedom Unlimited', 'mask': '0767', 'dueDate': '2026-06-25'}, {'payeeId': 'card-freedom-flex-4421', 'name': 'Chase Freedom Flex', 'mask': '4421', 'dueDate': '2026-06-28'}]}
+      tool: AddOptionsAutoPay({'payeeId': 'card-freedom-flex-4421'}) -> {'options': [{'optionId': 'minimum_due', 'label': 'Minimum payment due', 'amount': 25.0}, {'optionId': 'statement_balance', 'label': 'Statement balance', 'amount': 89.99}, {'optionId': 'fixed', 'label': 'Fixed amount', 'amount': None}], 'dueDate': '2026-06-28'}
+      tool: FundingAccountPicker({}) -> {'accounts': [{'accountId': 'acct-chase-checking-5678', 'name': 'Chase Total Checking', 'mask': '5678', 'type': 'chase'}, {'accountId': 'acct-ally-savings-9999', 'name': 'Ally Savings', 'mask': '9999', 'type': 'external'}]}
+      tool: AddValidateAutoPay({'payeeId': 'card-freedom-flex-4421', 'accountId': 'acct-ally-savings-9999', 'paymentType': 'minimum_due', 'fixedAmount': None}) -> {'status': 'ready', 'formId': 'form-0001', 'pendingAutoPay': {'cardLabel': 'Chase Freedom Flex (...4421)', 'accountLabel': 'Ally Savings (...9999)', 'paymentType': 'minimum_due', 'paymentTypeLabel': 'Minimum payment due', 'fixedAmount': None, 'formId': 'form-0001'}}
+
+[2] Customer (intent: confirm):
+    Yes, turn it on with those settings.
+[3] Assistant:
+    AutoPay is on for your Chase Freedom Flex (...4421): the minimum payment due from your Ally Savings (...9999) on your statement due date each month. You'll receive a confirmation email.
+      tool: AddAutoPay({'formId': 'form-0001'}) -> {'status': 'ENROLLED', 'success': True, 'repeatingModelId': 'rpm-freedom-flex-4421', 'autoPay': {'cardLabel': 'Chase Freedom Flex (...4421)', 'accountLabel': 'Ally Savings (...9999)', 'paymentType': 'minimum_due', 'paymentTypeLabel': 'Minimum payment due', 'fixedAmount': None, 'formId': 'form-0001'}}
+
+========================================================================
+PER-TURN VERDICTS
+========================================================================
+
+After agent turn 1: decision=continue
+  [PASS] goal_completion: The assistant selected the requested Freedom Flex card, Ally Savings funding account, and minimum-due AutoPay option, then validated the setup and is awaiting confirmation.
+  [PASS] explicit_confirmation: No payment or AutoPay submission has occurred yet; the assistant is asking for confirmation before submitting.
+  [PASS] tool_output_truth: The card, funding account, and minimum payment due AutoPay option the assistant presented match the tool results for the selected Freedom Flex card and Ally Savings account.
+  [PASS] honest_failure: No submission tool has reported failure.
+  [PASS] scenario_success: The assistant warned that Chase cannot see the balance of the external Ally Savings account before requesting confirmation. AutoPay has not yet been enrolled, so the explicit-confirmation requirement has not been violated.
+  [PASS] one_question_at_a_time: The assistant asked only one question: whether to turn on AutoPay.
+  [PASS] external_account_caveat: The assistant explicitly stated that because Ally Savings is not a Chase account, Chase cannot see its balance, before any action was completed.
+  overall: The flow is on track and properly awaiting the customer’s explicit confirmation before submitting the AutoPay enrollment.
+
+After agent turn 2: decision=pass
+  [PASS] goal_completion: The customer wanted AutoPay set up for the minimum payment due on the Freedom Flex ending 4421 from Ally Savings ending 9999. The assistant validated those settings, received confirmation, submitted the enrollment, and the tool result showed success/ENROLLED.
+  [PASS] explicit_confirmation: The assistant called AddValidateAutoPay and presented the setup. The next customer turn was a clear confirmation: "Yes, turn it on with those settings." Only after that did the assistant call AddAutoPay.
+  [PASS] tool_output_truth: The card, funding account, and payment type offered were all present in the tool results for the selected card/account. The external-account balance caveat is a required disclosure and not a tool-output violation.
+  [PASS] honest_failure: The AddAutoPay result reported success with status ENROLLED, and the assistant accurately stated that AutoPay is on.
+  [PASS] scenario_success: The assistant warned before confirmation that Chase cannot see the balance of the non-Chase Ally Savings account, and AutoPay for the minimum due from Ally Savings was enrolled only after the customer's explicit confirmation.
+  [PASS] one_question_at_a_time: The assistant asked only one confirmation question in its turn: whether to turn on AutoPay.
+  [PASS] external_account_caveat: Before completing the AutoPay setup from the external Ally Savings account, the assistant stated that because Ally Savings is not a Chase account, Chase cannot see its balance.
+  overall: The customer's AutoPay setup goal was successfully completed with explicit confirmation, accurate use of tool outputs, required external-account caveat, and no failed submission or multi-question turn.
+
+========================================================================
+OUTCOME: pass — The customer's AutoPay setup goal was successfully completed with explicit confirmation, accurate use of tool outputs, required external-account caveat, and no failed submission or multi-question turn.
+========================================================================
