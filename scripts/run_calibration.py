@@ -144,6 +144,11 @@ CURATED_COMPLICATION_EVIDENCE = {
 }
 
 STANDARD_TOKEN_PRICES_PER_MILLION_USD = {
+    "gpt-4.1-mini": {
+        "input": Decimal("0.40"),
+        "cached_input": Decimal("0.10"),
+        "output": Decimal("1.60"),
+    },
     "o3": {
         "input": Decimal("2.00"),
         "cached_input": Decimal("0.50"),
@@ -157,6 +162,7 @@ STANDARD_TOKEN_PRICES_PER_MILLION_USD = {
 }
 PRICING_VERIFIED_ON = "2026-09-01"
 PRICING_SOURCE = "https://developers.openai.com/api/docs/pricing"
+COMPLIANCE_GATE_EPISODE_TIMEOUT_SECONDS = 300
 
 
 def _role_usage_summary(provider: OpenAILLM) -> dict:
@@ -391,30 +397,32 @@ async def _run_compliance_gate_episode(
     declared_complication: str,
     goal_facts: dict,
     sem: asyncio.Semaphore,
+    timeout_seconds: float = COMPLIANCE_GATE_EPISODE_TIMEOUT_SECONDS,
 ) -> dict:
     identity = {"kind": kind, "scenario": scenario.name, "repetition": repetition}
     path = out_dir / kind / f"repetition-{repetition}" / f"{scenario.name}.json"
     path.parent.mkdir(parents=True, exist_ok=True)
     try:
         async with sem:
-            result = await run_scenario(
-                scenario,
-                simulator_llm,
-                agent=MockPayCardAgent(),
-                judge_llm=judge_llm,
-                enforce_model_family_separation=True,
-                conversation_id=(
-                    f"simulator-compliance-gate-{kind}-{repetition}-{scenario.name}"
-                ),
-            )
-            compliance = await judge_calibration_simulator_compliance(
-                judge_llm,
-                result,
-                scenario=scenario,
-                criteria=criteria,
-                declared_complication=declared_complication,
-                goal_facts=goal_facts,
-            )
+            async with asyncio.timeout(timeout_seconds):
+                result = await run_scenario(
+                    scenario,
+                    simulator_llm,
+                    agent=MockPayCardAgent(),
+                    judge_llm=judge_llm,
+                    enforce_model_family_separation=True,
+                    conversation_id=(
+                        f"simulator-compliance-gate-{kind}-{repetition}-{scenario.name}"
+                    ),
+                )
+                compliance = await judge_calibration_simulator_compliance(
+                    judge_llm,
+                    result,
+                    scenario=scenario,
+                    criteria=criteria,
+                    declared_complication=declared_complication,
+                    goal_facts=goal_facts,
+                )
     except BaseException as exc:
         status = (
             "infrastructure-interrupted"
@@ -504,8 +512,14 @@ async def _run_simulator_compliance_gate(args) -> int:
     if terminal.get("status") != "admitted":
         raise SystemExit("simulator-compliance gate Candidate is not admitted")
     synthesized = load_synthesized_scenario(candidate.scenario_path)
-    simulator_llm = OpenAILLM(args.simulator_model)
-    judge_llm = OpenAILLM(args.model)
+    simulator_llm = OpenAILLM(
+        args.simulator_model,
+        usage_path=out_dir / "usage" / "simulator.jsonl",
+    )
+    judge_llm = OpenAILLM(
+        args.model,
+        usage_path=out_dir / "usage" / "judge.jsonl",
+    )
     sem = asyncio.Semaphore(args.concurrency)
 
     pressure = next(

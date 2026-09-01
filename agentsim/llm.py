@@ -12,6 +12,7 @@ from __future__ import annotations
 import json
 import os
 import re
+from pathlib import Path
 from typing import Any, Protocol
 
 import openai
@@ -75,6 +76,7 @@ async def structured(
     effort: str = "high",
     max_tokens: int = 8192,
     usage_records: list[dict[str, Any]] | None = None,
+    usage_path: Path | None = None,
 ) -> dict[str, Any]:
     """One OpenAI call constrained to a JSON schema. Returns the parsed object.
 
@@ -106,12 +108,15 @@ async def structured(
         ) from e
 
     if usage_records is not None and response.usage is not None:
-        usage_records.append(
-            {
-                "model": model or DEFAULT_MODEL,
-                "usage": response.usage.model_dump(),
-            }
-        )
+        record = {
+            "model": model or DEFAULT_MODEL,
+            "usage": response.usage.model_dump(),
+        }
+        usage_records.append(record)
+        if usage_path is not None:
+            usage_path.parent.mkdir(parents=True, exist_ok=True)
+            with usage_path.open("a") as stream:
+                stream.write(json.dumps(record, sort_keys=True) + "\n")
 
     choice = response.choices[0]
     if choice.message.refusal:
@@ -131,9 +136,15 @@ async def structured(
 class OpenAILLM:
     """LLMClient backed by the module-level ``structured()`` OpenAI call."""
 
-    def __init__(self, model: str | None = None) -> None:
+    def __init__(
+        self,
+        model: str | None = None,
+        *,
+        usage_path: str | Path | None = None,
+    ) -> None:
         self.model = model or DEFAULT_MODEL
         self.usage_records: list[dict[str, Any]] = []
+        self.usage_path = Path(usage_path) if usage_path is not None else None
 
     async def structured(
         self,
@@ -152,4 +163,5 @@ class OpenAILLM:
             effort=effort,
             max_tokens=max_tokens,
             usage_records=self.usage_records,
+            usage_path=self.usage_path,
         )

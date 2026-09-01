@@ -20,6 +20,7 @@ from scripts import run_calibration
 
 
 async def test_openai_llm_records_successful_call_usage(
+    tmp_path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     usage = SimpleNamespace(
@@ -51,7 +52,8 @@ async def test_openai_llm_records_successful_call_usage(
         chat=SimpleNamespace(completions=Completions()),
     )
     monkeypatch.setattr(llm_module, "_get_client", lambda: client)
-    provider = OpenAILLM("o3")
+    usage_path = tmp_path / "usage" / "simulator.jsonl"
+    provider = OpenAILLM("o3", usage_path=usage_path)
 
     result = await provider.structured(
         system="system",
@@ -75,6 +77,9 @@ async def test_openai_llm_records_successful_call_usage(
             },
         }
     ]
+    assert [json.loads(line) for line in usage_path.read_text().splitlines()] == (
+        provider.usage_records
+    )
 
 
 def test_gate_role_usage_reports_actual_cost_and_judge_cache_hit_rate() -> None:
@@ -329,6 +334,38 @@ async def test_compliance_gate_error_persists_kind_scenario_and_repetition(
     )
     path = tmp_path / "curated" / "repetition-2" / f"{scenario.name}.json"
     assert json.loads(path.read_text()) == record
+
+
+async def test_compliance_gate_episode_timeout_is_bounded_and_attributed(
+    tmp_path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    scenario = load_library("scenarios")[0]
+
+    async def never_finishes(*args, **kwargs):
+        del args, kwargs
+        await asyncio.Event().wait()
+
+    monkeypatch.setattr(run_calibration, "run_scenario", never_finishes)
+    goal_facts = run_calibration._curated_goal_facts(scenario)
+    record = await run_calibration._run_compliance_gate_episode(
+        scenario=scenario,
+        repetition=1,
+        kind="curated",
+        out_dir=tmp_path,
+        simulator_llm=object(),
+        judge_llm=object(),
+        criteria=curated_simulator_compliance_criteria(
+            run_calibration.CURATED_COMPLICATIONS[scenario.name], goal_facts
+        ),
+        declared_complication=run_calibration.CURATED_COMPLICATIONS[scenario.name],
+        goal_facts=goal_facts,
+        sem=asyncio.Semaphore(1),
+        timeout_seconds=0.01,
+    )
+
+    assert record["status"] == "infrastructure-error"
+    assert record["error"].startswith("TimeoutError:")
+    assert (record["scenario"], record["repetition"]) == (scenario.name, 1)
 
 
 async def test_compliance_gate_rejects_same_gpt_family_before_live_calls(
