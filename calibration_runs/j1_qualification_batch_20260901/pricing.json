@@ -1,0 +1,23 @@
+{
+  "basis": "standard short-context text-token rates per 1M tokens",
+  "models": {
+    "gpt-5.5": {
+      "cached_input_usd": "0.50",
+      "input_usd": "5.00",
+      "output_usd": "30.00",
+      "role": "judge",
+      "source": "https://developers.openai.com/api/docs/models/gpt-5.5"
+    },
+    "gpt-5.6-luna": {
+      "cached_input_usd": "0.02",
+      "input_usd": "0.20",
+      "output_usd": "1.20",
+      "roles": [
+        "realization",
+        "simulator"
+      ],
+      "source": "https://developers.openai.com/api/docs/models/gpt-5.6-luna"
+    }
+  },
+  "verified_on": "2026-09-01"
+}
