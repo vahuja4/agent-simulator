@@ -150,6 +150,12 @@ def test_report_cli_writes_authoritative_json_and_markdown_projection(
     assert coverage["aggregate_counts"]["BLOCKED"] > 0
     assert coverage["aggregate_counts"]["UNCOVERED"] > 0
     assert coverage["aggregate_counts"]["excluded"] == 32
+    target = coverage["pairwise_covering_target"]
+    assert target["method"] == "deterministic-greedy-set-cover"
+    assert target["target_size"] == 56
+    assert target["candidate_cell_count"] == 4368
+    assert target["realizable_pair_count"] == 326
+    assert target["uncovered_pair_ids"] == []
     assert coverage["regeneration_exhaustion"]["count"] == 0
     markdown = (bundle / "coverage.md").read_text()
     assert markdown == render_coverage_markdown(coverage)
@@ -157,6 +163,7 @@ def test_report_cli_writes_authoritative_json_and_markdown_projection(
     assert "| eligible-cell |" in markdown
     assert "| pair |" in markdown
     assert "Unlike obligation kinds are not pooled" in markdown
+    assert "Target size: **56 Scenarios**" in markdown
 
 
 def test_admitted_scenario_covers_its_cell_and_pairs_with_hashed_evidence(

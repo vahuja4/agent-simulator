@@ -25,7 +25,12 @@ from .ledger import (
     RejectionLedger,
     qualification_admission_is_invalidated,
 )
-from .planner import Obligation, build_obligation_inventory, coverage_cell_axes
+from .planner import (
+    Obligation,
+    build_obligation_inventory,
+    coverage_cell_axes,
+    estimate_pairwise_cover,
+)
 from .qualification import _validate_admission_evidence
 
 DECISION_PATHS = (
@@ -180,6 +185,7 @@ def build_coverage(
             for status in ("covered", "excluded", "BLOCKED", "UNCOVERED")
         },
         "counts_by_kind": by_kind,
+        "pairwise_covering_target": estimate_pairwise_cover(inventory.obligations),
         "obligations": rendered,
         "admissions": admissions,
         "invalid_admissions": invalid_admissions,
@@ -463,6 +469,12 @@ def render_coverage_markdown(coverage: Mapping[str, Any]) -> str:
         "",
         f"Eligible cells (reporting denominator): **{denominators['eligible_cell']}**.",
         f"Eligible pairs (acceptance-gate unit): **{denominators['eligible_pair']}**.",
+        "",
+        "## Pairwise-covering target",
+        "",
+        f"Target size: **{coverage['pairwise_covering_target']['target_size']} Scenarios**.",
+        f"Method: {coverage['pairwise_covering_target']['selection_rule']}",
+        "This is a deterministic greedy planning estimate, not a proof of minimum cardinality.",
         "",
         "## Status counts by obligation kind",
         "",

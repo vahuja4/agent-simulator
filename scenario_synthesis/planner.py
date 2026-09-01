@@ -75,6 +75,58 @@ class ObligationInventory:
     proposed_exclusions: tuple[Mapping[str, Any], ...]
 
 
+def estimate_pairwise_cover(
+    obligations: tuple[Obligation, ...],
+) -> dict[str, Any]:
+    """Return ADR 0007's deterministic greedy pairwise-cover estimate."""
+    pairs = tuple(
+        item
+        for item in obligations
+        if item.kind == "pair" and item.status == "UNCOVERED"
+    )
+    cells = tuple(
+        item
+        for item in obligations
+        if item.kind == "eligible-cell" and item.status == "UNCOVERED"
+    )
+    pair_ids_by_cell = {
+        cell.obligation_id: {
+            pair.obligation_id
+            for pair in pairs
+            if all(cell.axes.get(axis) == value for axis, value in pair.axes.items())
+        }
+        for cell in cells
+    }
+    uncovered = {item.obligation_id for item in pairs}
+    selected: list[str] = []
+    while uncovered:
+        cell = min(
+            cells,
+            key=lambda item: (
+                -len(pair_ids_by_cell[item.obligation_id] & uncovered),
+                item.obligation_id,
+            ),
+        )
+        newly_covered = pair_ids_by_cell[cell.obligation_id] & uncovered
+        if not newly_covered:
+            break
+        selected.append(cell.obligation_id)
+        uncovered -= newly_covered
+    return {
+        "method": "deterministic-greedy-set-cover",
+        "selection_rule": (
+            "Select the eligible cell covering the most uncovered realizable "
+            "pair obligations; break ties by canonical cell_id."
+        ),
+        "minimum_cardinality_proven": False,
+        "candidate_cell_count": len(cells),
+        "realizable_pair_count": len(pairs),
+        "target_size": len(selected) if not uncovered else None,
+        "selected_cell_ids": selected,
+        "uncovered_pair_ids": sorted(uncovered),
+    }
+
+
 @dataclass(frozen=True)
 class CoveragePlan:
     report_id: str
@@ -141,6 +193,7 @@ class CoveragePlan:
                 "complication": {"none": 9, "non_none": 4},
             },
             "synthesized_distribution": {"scenario_count": 0},
+            "pairwise_covering_target": estimate_pairwise_cover(self.obligations),
             "prototype_eligibility_reconciliation": [
                 item.to_dict() for item in self.prototype_reconciliation
             ],
