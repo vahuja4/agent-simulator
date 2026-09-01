@@ -6,7 +6,8 @@
     "judge": "gpt-5.5"
   },
   "defect_toggles": [],
-  "model_family_separation_enforced": true,
+  "model_family_separation_enforced": false,
+  "legacy_name_comparison_flag_enabled": true,
   "curated": {
     "scenario_count": 13,
     "repetitions": 3,

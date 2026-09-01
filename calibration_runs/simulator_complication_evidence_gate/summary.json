@@ -58,7 +58,8 @@
     "total": 4
   },
   "first_pass_only": true,
-  "model_family_separation_enforced": true,
+  "model_family_separation_enforced": false,
+  "legacy_name_comparison_flag_enabled": true,
   "models": {
     "judge": "gpt-5.5",
     "simulator": "gpt-5.6-luna"

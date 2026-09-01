@@ -22,6 +22,8 @@ filenames, and prose.
   imposes a narrower read boundary.
 - Before an approved live LLM command, export the ignored `.env` into the command
   environment without printing secrets and verify that credentials are available.
+- Before any live LLM call, require a configured available-credit lower bound to
+  strictly exceed the printed USD cost ceiling; never infer or invent that bound.
 - Live calibration fan-out must persist each Episode's infrastructure error with
   its identity and must not fail fast by cancelling sibling denominator Episodes.
 

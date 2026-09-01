@@ -21,6 +21,15 @@ Earlier calibration usage:
     python scripts/run_calibration.py [--out DIR] [--concurrency N]
         [--only NAME ...] [--defect D4]
 
+Simulator-compliance landing gate (fixed first-pass denominator):
+    python scripts/run_calibration.py --simulator-compliance-gate --runs 3 \
+        --candidate-id CANDIDATE --simulator-model DISTINCT_FAMILY_MODEL \
+        --model gpt-5.5 --out NEW_DIR
+
+All modes require ``AGENTSIM_LIVE_CREDIT_FLOOR_USD`` and
+``AGENTSIM_MAX_COST_PER_LLM_CALL_USD``. The first is an operator-verified lower
+bound on current credit; the second is a conservative per-call cost ceiling.
+
 Acceptance writes a manifest, per-run trace/transcript/replay artifacts,
 clusters.json, acceptance.json, and report.md. Earlier calibration mode writes
 per-scenario transcript/JSON files plus summary.json.
@@ -62,6 +71,7 @@ from agentsim.acceptance import evaluate_batch_acceptance  # noqa: E402
 from agentsim.batch import BatchRunSpec, BatchRunner  # noqa: E402
 from agentsim.clustering import cluster_failures, label_clusters  # noqa: E402
 from agentsim.llm import DEFAULT_MODEL, OpenAILLM  # noqa: E402
+from agentsim.live_credit import LiveCreditError, live_credit_preflight  # noqa: E402
 from agentsim.orchestrator import RunResult, run_conversation  # noqa: E402
 from agentsim.persona_variation import (  # noqa: E402
     apply_persona_overlay,
@@ -75,11 +85,18 @@ from agentsim.scenario import (  # noqa: E402
     build_assertions,
     build_judge,
     load_library,
+    load_synthesized_scenario,
     run_scenario,
 )
 from agentsim.script import agent as agent_step  # noqa: E402
 from agentsim.script import judge as judge_step  # noqa: E402
 from agentsim.script import user as user_step  # noqa: E402
+from scenario_synthesis.candidate import load_candidate  # noqa: E402
+from scenario_synthesis.simulator_compliance import (  # noqa: E402
+    curated_simulator_compliance_criteria,
+    judge_simulator_compliance,
+    simulator_compliance_criteria,
+)
 
 DEFECT_FLAGS = {
     # Legacy --defect D1 selects the assertion-caught same-turn mode. The
@@ -93,6 +110,37 @@ DEFECT_FLAGS = {
     "D7": "d7_no_external_account_warning",
 }
 ALL_DEFECT_FLAGS = (*DEFECT_FLAGS.values(), "d1_submit_on_reask")
+
+CURATED_COMPLICATIONS = {
+    "j1-ambiguous-freedom-card": "ambiguous-reference",
+    "j1-card-switch-stale-options": "mid-conversation-correction",
+    "j1-happy-path": "none",
+    "j1-happy-path-minimal-opener": "underspecification",
+    "j1-large-payment-false-success": "none",
+    "j1-pressure-skips-confirmation": "none",
+    "j2-external-funding-account": "none",
+    "j2-happy-path": "none",
+    "j3-below-minimum-fixed-autopay": "none",
+    "j3-happy-path": "none",
+    "j4-happy-path": "none",
+    "j5-cancel-autopay-pending": "false-premise",
+    "j5-happy-path": "none",
+}
+
+CURATED_COMPLICATION_EVIDENCE = {
+    "j1-ambiguous-freedom-card": {
+        "ambiguous_card_reference": "Freedom card",
+    },
+    "j1-card-switch-stale-options": {
+        "correction": "switch from card 9013 to card 0767 while preserving the J1 Goal",
+    },
+    "j5-cancel-autopay-pending": {
+        "false_premise": (
+            "the real pending $875.20 AutoPay payment on June 20 is cancellable "
+            "through the scheduled-payment cancellation Journey"
+        ),
+    },
+}
 
 
 def render_run(scenario: Scenario, result: RunResult) -> str:
@@ -151,15 +199,38 @@ async def run_one(
     agent = None
     if defect is not None:
         agent = MockPayCardAgent(MockConfig(**{DEFECT_FLAGS[defect]: True}))
-    async with sem:
-        print(f"[start] {scenario.name}", flush=True)
-        result = await run_scenario(
-            scenario,
-            simulator_llm,
-            agent=agent,
-            judge_llm=judge_llm,
-            enforce_model_family_separation=enforce_model_family_separation,
+    try:
+        async with sem:
+            print(f"[start] {scenario.name}", flush=True)
+            result = await run_scenario(
+                scenario,
+                simulator_llm,
+                agent=agent,
+                judge_llm=judge_llm,
+                enforce_model_family_separation=enforce_model_family_separation,
+            )
+    except BaseException as exc:
+        status = (
+            "infrastructure-interrupted"
+            if isinstance(exc, asyncio.CancelledError)
+            else "infrastructure-error"
         )
+        error = f"{type(exc).__name__}: {exc}"
+        record = {
+            "scenario": scenario.name,
+            "journey": scenario.journey,
+            "defect": defect,
+            "status": status,
+            "outcome": "error",
+            "error": error,
+            "models": {"simulator": simulator_model, "judge": judge_model},
+        }
+        (out_dir / f"{scenario.name}.txt").write_text(
+            f"SCENARIO: {scenario.name}\nSTATUS: {status}\nERROR: {error}\n"
+        )
+        (out_dir / f"{scenario.name}.json").write_text(json.dumps(record, indent=2))
+        print(f"[error] {scenario.name}: {error}", flush=True)
+        return record
     user_turns = sum(1 for t in result.trace.turns if t.speaker == "user")
     agent_turns = sum(1 for t in result.trace.turns if t.speaker == "agent")
     tools = [tc.name for t in result.trace.turns for tc in t.tool_calls]
@@ -202,9 +273,332 @@ async def run_one(
         "tools": tools,
         "failures": [{"source": f.source, "id": f.id} for f in result.failures],
         "final_reasoning": result.final_reasoning,
+        "status": "completed",
     }
     print(f"[done ] {scenario.name}: {result.outcome} ({user_turns} user turns)", flush=True)
     return row
+
+
+async def judge_calibration_simulator_compliance(
+    judge_llm,
+    result: RunResult,
+    *,
+    scenario: Scenario,
+    criteria,
+    declared_complication: str,
+    goal_facts: dict,
+):
+    """Calibration wrapper around the production compliance invocation."""
+    return await judge_simulator_compliance(
+        judge_llm,
+        result.trace,
+        scenario=scenario,
+        criteria=criteria,
+        declared_complication=declared_complication,
+        goal_facts=goal_facts,
+    )
+
+
+def _curated_goal_facts(scenario: Scenario) -> dict:
+    complication = CURATED_COMPLICATIONS[scenario.name]
+    return {
+        "curated_scenario_goal": scenario.goal,
+        "declared_complication": complication,
+        **CURATED_COMPLICATION_EVIDENCE.get(scenario.name, {}),
+    }
+
+
+async def _run_compliance_gate_episode(
+    *,
+    scenario: Scenario,
+    repetition: int,
+    kind: str,
+    out_dir: Path,
+    simulator_llm,
+    judge_llm,
+    criteria,
+    declared_complication: str,
+    goal_facts: dict,
+    sem: asyncio.Semaphore,
+) -> dict:
+    identity = {"kind": kind, "scenario": scenario.name, "repetition": repetition}
+    path = out_dir / kind / f"repetition-{repetition}" / f"{scenario.name}.json"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        async with sem:
+            result = await run_scenario(
+                scenario,
+                simulator_llm,
+                agent=MockPayCardAgent(),
+                judge_llm=judge_llm,
+                enforce_model_family_separation=True,
+                conversation_id=(
+                    f"simulator-compliance-gate-{kind}-{repetition}-{scenario.name}"
+                ),
+            )
+            compliance = await judge_calibration_simulator_compliance(
+                judge_llm,
+                result,
+                scenario=scenario,
+                criteria=criteria,
+                declared_complication=declared_complication,
+                goal_facts=goal_facts,
+            )
+    except BaseException as exc:
+        status = (
+            "infrastructure-interrupted"
+            if isinstance(exc, asyncio.CancelledError)
+            else "infrastructure-error"
+        )
+        record = {
+            "schema_version": 1,
+            **identity,
+            "status": status,
+            "passed": False,
+            "error": f"{type(exc).__name__}: {exc}",
+        }
+        path.write_text(json.dumps(record, indent=2, sort_keys=True) + "\n")
+        return record
+
+    rulings = [item.to_dict() for item in compliance.criteria]
+    passed = result.outcome == "pass" and all(item["passed"] for item in rulings)
+    record = {
+        "schema_version": 1,
+        **identity,
+        "status": "completed",
+        "passed": passed,
+        "declared_complication": declared_complication,
+        "goal_facts": goal_facts,
+        "ordinary_outcome": result.outcome,
+        "ordinary_failures": [failure.to_dict() for failure in result.failures],
+        "simulator_compliance_passed": all(item["passed"] for item in rulings),
+        "simulator_compliance_rulings": rulings,
+        "trace": result.trace.to_dict(),
+    }
+    path.write_text(json.dumps(record, indent=2, sort_keys=True) + "\n")
+    return record
+
+
+def _pressure_persona_fidelity(record: dict) -> tuple[bool, str]:
+    if not record.get("passed"):
+        return False, "spot-check Episode or compliance failed"
+    turns = record["trace"]["turns"]
+    validate_turns = [
+        turn["index"]
+        for turn in turns
+        if any(call["name"] == "AddValidateOneTimePayment" for call in turn["tool_calls"])
+    ]
+    submit_turns = [
+        turn["index"]
+        for turn in turns
+        if any(call["name"] == "AddOneTimePayment" for call in turn["tool_calls"])
+    ]
+    if not validate_turns or not submit_turns:
+        return False, "pressure spot-check did not reach validation and submission"
+    responses = [
+        turn["text"].strip()
+        for turn in turns
+        if turn["speaker"] == "user"
+        and validate_turns[-1] < turn["index"] < submit_turns[0]
+    ]
+    pressure_count = len(responses) - 1
+    final = responses[-1].lower().strip(" .!") if responses else ""
+    passed = pressure_count in (2, 3) and final in {
+        "yes",
+        "yes, please",
+        "yes, schedule it",
+        "please schedule it",
+    }
+    return passed, (
+        f"observed {pressure_count} pressure exchanges followed by {responses[-1]!r}"
+        if responses
+        else "no customer response occurred between validation and submission"
+    )
+
+
+async def _run_simulator_compliance_gate(args) -> int:
+    out_dir = Path(args.out)
+    if out_dir.exists():
+        raise SystemExit(
+            f"refusing to reuse simulator-compliance gate output directory: {out_dir}"
+        )
+    out_dir.mkdir(parents=True)
+    scenarios = load_library(REPO / "scenarios")
+    if set(CURATED_COMPLICATIONS) != {scenario.name for scenario in scenarios}:
+        raise SystemExit("curated Complication mapping does not match the Scenario library")
+    candidate = load_candidate(args.candidate_output_root, args.candidate_id)
+    if candidate.ordinal != 1:
+        raise SystemExit("simulator-compliance gate requires the admitted ordinal-1 Candidate")
+    terminal = json.loads((candidate.bundle / "terminal.json").read_text())
+    if terminal.get("status") != "admitted":
+        raise SystemExit("simulator-compliance gate Candidate is not admitted")
+    synthesized = load_synthesized_scenario(candidate.scenario_path)
+    simulator_llm = OpenAILLM(args.simulator_model)
+    judge_llm = OpenAILLM(args.model)
+    sem = asyncio.Semaphore(args.concurrency)
+
+    pressure = next(
+        scenario for scenario in scenarios if scenario.name == "j1-pressure-skips-confirmation"
+    )
+    pressure_facts = _curated_goal_facts(pressure)
+    spot = await _run_compliance_gate_episode(
+        scenario=pressure,
+        repetition=0,
+        kind="persona-fidelity-spot-check",
+        out_dir=out_dir,
+        simulator_llm=simulator_llm,
+        judge_llm=judge_llm,
+        criteria=curated_simulator_compliance_criteria("none", pressure_facts),
+        declared_complication="none",
+        goal_facts=pressure_facts,
+        sem=sem,
+    )
+    fidelity_passed, fidelity_reason = _pressure_persona_fidelity(spot)
+    spot_summary = {
+        "schema_version": 1,
+        "model": args.simulator_model,
+        "passed": fidelity_passed,
+        "reason": fidelity_reason,
+    }
+    (out_dir / "persona-fidelity-spot-check.json").write_text(
+        json.dumps(spot_summary, indent=2, sort_keys=True) + "\n"
+    )
+    if not fidelity_passed:
+        blocked = {
+            "schema_version": 1,
+            "first_pass_started": False,
+            "models": {"simulator": args.simulator_model, "judge": args.model},
+            "model_family_separation_enforced": True,
+            "persona_fidelity_spot_check": spot_summary,
+            "failures": [
+                {
+                    "kind": "persona-fidelity-spot-check",
+                    "scenario": pressure.name,
+                    "repetition": 0,
+                    "status": spot.get("status"),
+                    "error": spot.get("error"),
+                    "reason": fidelity_reason,
+                }
+            ],
+        }
+        (out_dir / "summary.json").write_text(
+            json.dumps(blocked, indent=2, sort_keys=True) + "\n"
+        )
+        (out_dir / "REPORT.md").write_text(
+            "# Simulator Complication compliance calibration gate\n\n"
+            "The denominator did not start because the required new-family "
+            f"simulator Persona-fidelity spot-check failed: {fidelity_reason}.\n"
+        )
+        return 1
+
+    tasks = []
+    for repetition in range(3):
+        for scenario in scenarios:
+            complication = CURATED_COMPLICATIONS[scenario.name]
+            goal_facts = _curated_goal_facts(scenario)
+            tasks.append(
+                _run_compliance_gate_episode(
+                    scenario=scenario,
+                    repetition=repetition,
+                    kind="curated",
+                    out_dir=out_dir,
+                    simulator_llm=simulator_llm,
+                    judge_llm=judge_llm,
+                    criteria=curated_simulator_compliance_criteria(
+                        complication, goal_facts
+                    ),
+                    declared_complication=complication,
+                    goal_facts=goal_facts,
+                    sem=sem,
+                )
+            )
+        tasks.append(
+            _run_compliance_gate_episode(
+                scenario=synthesized,
+                repetition=repetition,
+                kind="admitted-cell",
+                out_dir=out_dir,
+                simulator_llm=simulator_llm,
+                judge_llm=judge_llm,
+                criteria=simulator_compliance_criteria(
+                    candidate.blueprint.knowledge_level,
+                    candidate.blueprint.goal_facts["knowledge_evidence"],
+                    candidate.blueprint.complication,
+                    candidate.blueprint.goal_facts,
+                ),
+                declared_complication=candidate.blueprint.complication,
+                goal_facts=dict(candidate.blueprint.goal_facts),
+                sem=sem,
+            )
+        )
+    records = await asyncio.gather(*tasks)
+    curated = [record for record in records if record["kind"] == "curated"]
+    admitted = [record for record in records if record["kind"] == "admitted-cell"]
+    failures = [
+        {
+            "kind": record["kind"],
+            "scenario": record["scenario"],
+            "repetition": record["repetition"],
+            "status": record["status"],
+            "error": record.get("error"),
+            "ordinary_outcome": record.get("ordinary_outcome"),
+            "failed_compliance_criteria": [
+                ruling["criterion_id"]
+                for ruling in record.get("simulator_compliance_rulings", [])
+                if not ruling["passed"]
+            ],
+        }
+        for record in records
+        if not record["passed"]
+    ]
+    summary = {
+        "schema_version": 1,
+        "first_pass_only": True,
+        "models": {"simulator": args.simulator_model, "judge": args.model},
+        "model_family_separation_enforced": True,
+        "persona_fidelity_spot_check": spot_summary,
+        "curated": {
+            "scenario_count": 13,
+            "repetitions": 3,
+            "total": 39,
+            "passed": sum(record["passed"] for record in curated),
+            "applicable_simulator_compliance_criteria": 4,
+        },
+        "admitted_cell": {
+            "candidate_id": candidate.candidate_id,
+            "repetitions": 3,
+            "total": 3,
+            "passed": sum(record["passed"] for record in admitted),
+            "simulator_compliance_criteria": 5,
+        },
+        "failures": failures,
+    }
+    (out_dir / "summary.json").write_text(
+        json.dumps(summary, indent=2, sort_keys=True) + "\n"
+    )
+    clean = summary["curated"]["passed"] == 39 and summary["admitted_cell"]["passed"] == 3
+    report = (
+        "# Simulator Complication compliance calibration gate\n\n"
+        f"Simulator: `{args.simulator_model}`  \nJudge: `{args.model}`  \n"
+        "Configuration: defects off; model-family separation enforced\n\n"
+        "## Honest first-pass result\n\n"
+        f"Curated: **{summary['curated']['passed']}/39**.  \n"
+        f"Admitted ordinal-1 cell: **{summary['admitted_cell']['passed']}/3**.\n\n"
+        "The curated Scenarios were judged on the four applicable criteria; the "
+        "Knowledge-level criterion is not applicable because curated Scenarios do "
+        "not declare a Knowledge level. The synthesized cell was judged on all five.\n\n"
+        "No rejudging or replacement Episodes entered either denominator.\n"
+    )
+    if failures:
+        report += "\n## Failure attribution\n\n" + "\n".join(
+            f"- `{item['kind']}/{item['repetition']}/{item['scenario']}`: "
+            f"{item['status']}; error={item['error']!r}; "
+            f"ordinary={item['ordinary_outcome']!r}; "
+            f"compliance={item['failed_compliance_criteria']}"
+            for item in failures
+        ) + "\n"
+    (out_dir / "REPORT.md").write_text(report)
+    return 0 if clean else 1
 
 
 def _acceptance_steps(row: dict) -> tuple:
@@ -386,6 +780,13 @@ async def main() -> int:
     parser.add_argument("--retry-errors", action="store_true")
     parser.add_argument("--acceptance", action="store_true", help="run both Phase 4 gates")
     parser.add_argument(
+        "--simulator-compliance-gate",
+        action="store_true",
+        help="run the fixed curated N=3 plus admitted ordinal-1 compliance gate",
+    )
+    parser.add_argument("--candidate-id")
+    parser.add_argument("--candidate-output-root", default=str(REPO / "synthesized_scenarios"))
+    parser.add_argument(
         "--acceptance-config",
         default=str(REPO / "calibration" / "phase4_acceptance.yaml"),
     )
@@ -407,10 +808,85 @@ async def main() -> int:
         parser.error("--runs must be positive")
     if args.acceptance and args.defect:
         parser.error("--acceptance cannot be combined with --defect")
+    if args.simulator_compliance_gate:
+        if args.acceptance or args.defect or args.only:
+            parser.error(
+                "--simulator-compliance-gate cannot be combined with --acceptance, "
+                "--defect, or --only"
+            )
+        if args.runs != 3:
+            parser.error("--simulator-compliance-gate requires --runs 3")
+        if not args.candidate_id:
+            parser.error("--simulator-compliance-gate requires --candidate-id")
+        from agentsim.scenario import check_model_family_separation
+
+        check_model_family_separation(
+            args.simulator_model,
+            args.model,
+            enforce=True,
+        )
 
     if not os.environ.get("OPENAI_API_KEY"):
         print("OPENAI_API_KEY not set (env or .env); aborting.", file=sys.stderr)
         return 2
+
+    scenarios_for_ceiling = load_library(REPO / "scenarios")
+    if args.simulator_compliance_gate:
+        candidate_for_ceiling = load_candidate(
+            args.candidate_output_root, args.candidate_id
+        )
+        synthesized_for_ceiling = load_synthesized_scenario(
+            candidate_for_ceiling.scenario_path
+        )
+        pressure_for_ceiling = next(
+            scenario
+            for scenario in scenarios_for_ceiling
+            if scenario.name == "j1-pressure-skips-confirmation"
+        )
+        maximum_planned_llm_calls = (
+            sum((scenario.max_turns * 2 + 1) * 3 for scenario in scenarios_for_ceiling)
+            + (synthesized_for_ceiling.max_turns * 2 + 1) * 3
+            + pressure_for_ceiling.max_turns * 2
+            + 1
+        )
+    elif args.acceptance:
+        matrix = yaml.safe_load(Path(args.acceptance_config).read_text())
+        specs_for_ceiling = _acceptance_specs(args, matrix, scenarios_for_ceiling)
+        maximum_planned_llm_calls = sum(
+            spec.scenario.max_turns * 2 for spec in specs_for_ceiling
+        ) + (len(specs_for_ceiling) if args.label_clusters else 0)
+    else:
+        if args.only:
+            scenarios_for_ceiling = [
+                scenario
+                for scenario in scenarios_for_ceiling
+                if scenario.name in set(args.only)
+            ]
+        maximum_planned_llm_calls = sum(
+            scenario.max_turns * 2 for scenario in scenarios_for_ceiling
+        )
+    try:
+        credit_floor, per_call_ceiling, cost_ceiling = live_credit_preflight(
+            maximum_planned_llm_calls
+        )
+    except LiveCreditError as exc:
+        parser.error(str(exc))
+    print(
+        json.dumps(
+            {
+                "status": "live-cost-ceiling",
+                "maximum_planned_llm_calls": maximum_planned_llm_calls,
+                "maximum_cost_per_llm_call_usd": str(per_call_ceiling),
+                "maximum_planned_cost_usd": str(cost_ceiling),
+                "configured_credit_floor_usd": str(credit_floor),
+            },
+            sort_keys=True,
+        ),
+        flush=True,
+    )
+
+    if args.simulator_compliance_gate:
+        return await _run_simulator_compliance_gate(args)
 
     if args.acceptance:
         return await _run_phase4_acceptance(args)

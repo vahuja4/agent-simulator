@@ -14,7 +14,6 @@ from typing import Any, Callable, Mapping, Protocol
 import yaml
 
 from agentsim.adapters import MockConfig, MockPayCardAgent
-from agentsim.judge import GeneralJudge
 from agentsim.llm import LLMClient, OpenAILLM
 from agentsim.orchestrator import RunResult
 from agentsim.scenario import Scenario, load_synthesized_library, load_synthesized_scenario
@@ -40,6 +39,7 @@ from .ledger import (
 from .realization_provider import RealizationProvider
 from .simulator_compliance import (
     LEGACY_SIMULATOR_COMPLIANCE_CRITERION_IDS,
+    judge_simulator_compliance,
     simulator_compliance_criteria,
 )
 from .validator import CoverageBlueprintValidator
@@ -289,15 +289,19 @@ class LiveQualificationRunner:
                 run_result=result,
             )
         try:
-            compliance = await GeneralJudge(
+            compliance = await judge_simulator_compliance(
                 self.judge_llm,
+                result.trace,
+                scenario=scenario,
                 criteria=simulator_compliance_criteria(
                     knowledge_level,
                     knowledge_evidence,
                     complication,
                     complication_evidence,
                 ),
-            ).judge(result.trace)
+                declared_complication=complication,
+                goal_facts=complication_evidence,
+            )
         except Exception as exc:
             return EpisodeResult(
                 "error",

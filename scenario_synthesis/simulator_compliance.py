@@ -2,9 +2,15 @@
 
 from __future__ import annotations
 
-from typing import Any, Mapping
+import json
+from typing import TYPE_CHECKING, Any, Mapping
 
-from agentsim.judge import Criterion
+from agentsim.judge import Criterion, GeneralJudge, TurnVerdict
+from agentsim.llm import LLMClient
+from agentsim.trace import Trace
+
+if TYPE_CHECKING:
+    from agentsim.scenario import Scenario
 
 
 BASE_SIMULATOR_COMPLIANCE_CRITERIA: tuple[Criterion, ...] = (
@@ -43,6 +49,69 @@ SIMULATOR_COMPLIANCE_CRITERION_IDS: tuple[str, ...] = (
     *LEGACY_SIMULATOR_COMPLIANCE_CRITERION_IDS,
     "simulator_complication_evidence",
 )
+
+
+def simulator_compliance_evidence(
+    scenario: "Scenario",
+    *,
+    declared_complication: str,
+    goal_facts: Mapping[str, Any],
+) -> str:
+    """Render governing Scenario evidence separately from criterion wording."""
+    return json.dumps(
+        {
+            "scenario_goal": scenario.goal,
+            "supplied_knowledge": scenario.render_knowledge(),
+            "declared_complication": declared_complication,
+            "goal_facts": dict(goal_facts),
+        },
+        ensure_ascii=False,
+        sort_keys=True,
+    )
+
+
+async def judge_simulator_compliance(
+    llm: LLMClient,
+    trace: Trace,
+    *,
+    scenario: "Scenario",
+    criteria: tuple[Criterion, ...],
+    declared_complication: str,
+    goal_facts: Mapping[str, Any],
+) -> TurnVerdict:
+    """Use the one context-supplying Judge invocation for simulator compliance."""
+    evidence = simulator_compliance_evidence(
+        scenario,
+        declared_complication=declared_complication,
+        goal_facts=goal_facts,
+    )
+    return await SimulatorComplianceJudge(
+        llm,
+        criteria=criteria,
+        evidence=evidence,
+    ).judge(trace)
+
+
+class SimulatorComplianceJudge(GeneralJudge):
+    """General Judge whose user input also carries governing Scenario evidence."""
+
+    def __init__(
+        self,
+        llm: LLMClient,
+        *,
+        criteria: tuple[Criterion, ...],
+        evidence: str,
+    ) -> None:
+        super().__init__(llm, criteria=criteria)
+        self.evidence = evidence
+
+    def _render(self, trace: Trace) -> str:
+        return (
+            "GOVERNING SCENARIO EVIDENCE:\n"
+            + self.evidence
+            + "\n\n"
+            + super()._render(trace)
+        )
 
 
 def simulator_compliance_criteria(
@@ -169,4 +238,26 @@ def simulator_compliance_criteria(
         Criterion("simulator_goal_persistence", persistence),
         Criterion("simulator_knowledge_level_evidence", detail),
         Criterion("simulator_complication_evidence", complication_detail),
+    )
+
+
+def curated_simulator_compliance_criteria(
+    complication: str,
+    complication_evidence: Mapping[str, Any],
+) -> tuple[Criterion, ...]:
+    """Return the four applicable criteria for a curated Scenario.
+
+    Curated Scenarios do not declare a Knowledge level, so the governing
+    contract forbids inventing one retroactively for calibration.
+    """
+    criteria = simulator_compliance_criteria(
+        "medium",
+        {"kind": "relies_on_agent_for_rule", "rule": "not evaluated"},
+        complication,
+        complication_evidence,
+    )
+    return tuple(
+        criterion
+        for criterion in criteria
+        if criterion.id != "simulator_knowledge_level_evidence"
     )

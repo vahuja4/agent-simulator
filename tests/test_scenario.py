@@ -52,6 +52,7 @@ tool_assertions:
 
 def test_model_family_comparison_normalizes_dated_snapshots():
     assert models_share_family("gpt-5.5", "GPT-5.5-2026-08-01")
+    assert models_share_family("gpt-5.6-luna", "gpt-5.5")
     assert not models_share_family("gpt-5.5", "gpt-6")
 
 
@@ -63,6 +64,8 @@ def test_matching_model_family_warns_by_default():
 def test_matching_model_family_enforcement_raises():
     with pytest.raises(ModelFamilySeparationError, match="same model family"):
         check_model_family_separation("gpt-5.5", "gpt-5.5", enforce=True)
+    with pytest.raises(ModelFamilySeparationError, match="same model family"):
+        check_model_family_separation("gpt-5.6-luna", "gpt-5.5", enforce=True)
 
 
 def write(tmp_path: Path, text: str, name: str = "s.yaml") -> Path:

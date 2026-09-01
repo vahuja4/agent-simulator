@@ -3,7 +3,9 @@
 Date: 2026-08-31  
 Simulator: `gpt-5.6-luna`  
 Judge: `gpt-5.5`  
-Configuration: defects off; model-family separation enforced
+Configuration: defects off; the separation flag was enabled, but the then-current
+name comparator incorrectly treated `gpt-5.6-luna` and `gpt-5.5` as different
+families. Both are GPT-5-family models, so model-family separation was not achieved.
 
 ## Approved wording
 

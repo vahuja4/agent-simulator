@@ -13,6 +13,7 @@ import os
 from pathlib import Path
 
 from agentsim.llm import OpenAILLM
+from agentsim.live_credit import live_credit_preflight
 from scenario_synthesis.blueprint import Blueprint
 from scenario_synthesis.enumerate import enumerate_blueprints
 from scenario_synthesis.realize import DEFAULT_MANIFEST, realize_catalog
@@ -83,9 +84,26 @@ def main() -> None:
     load_dotenv()
     if not os.environ.get("OPENAI_API_KEY"):
         raise SystemExit("OPENAI_API_KEY not set (environment or .env)")
+    blueprints = load_manifest_sample()
+    maximum_planned_llm_calls = len(blueprints) * 2
+    credit_floor, per_call, cost_ceiling = live_credit_preflight(
+        maximum_planned_llm_calls
+    )
+    print(
+        json.dumps(
+            {
+                "status": "live-cost-ceiling",
+                "maximum_planned_llm_calls": maximum_planned_llm_calls,
+                "maximum_cost_per_llm_call_usd": str(per_call),
+                "maximum_planned_cost_usd": str(cost_ceiling),
+                "configured_credit_floor_usd": str(credit_floor),
+            },
+            sort_keys=True,
+        )
+    )
     asyncio.run(
         realize_catalog(
-            load_manifest_sample(),
+            blueprints,
             OpenAILLM(),
             batch_label=args.batch_label,
             report=print,

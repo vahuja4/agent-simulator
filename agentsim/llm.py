@@ -34,7 +34,9 @@ class LLMTruncationError(LLMError):
 
 def model_family(model: str) -> str:
     """Return the stable family name for a model alias or dated snapshot."""
-    return _DATED_MODEL_SUFFIX.sub("", model.strip().lower())
+    normalized = _DATED_MODEL_SUFFIX.sub("", model.strip().lower())
+    match = re.match(r"^(gpt-\d+)(?:[.-]|$)", normalized)
+    return match.group(1) if match is not None else normalized
 
 
 def models_share_family(simulator_model: str, judge_model: str) -> bool:

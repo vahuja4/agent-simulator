@@ -1332,6 +1332,8 @@ def test_live_commands_print_cost_ceiling_before_offline_injected_execution(
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
+    monkeypatch.setenv("AGENTSIM_LIVE_CREDIT_FLOOR_USD", "1000")
+    monkeypatch.setenv("AGENTSIM_MAX_COST_PER_LLM_CALL_USD", "0.01")
     monkeypatch.setattr(
         cli.LiveRealizationProvider,
         "from_config",
@@ -1379,6 +1381,33 @@ def test_live_commands_print_cost_ceiling_before_offline_injected_execution(
         (tmp_path / "runs" / qualified_lines[1]["qualification_id"] / "qualification.json").read_text()
     )
     assert qualification["provider_mode"] == "live"
+
+
+def test_live_command_refuses_without_credit_floor_before_provider_construction(
+    targeted_blueprint,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    monkeypatch.delenv("AGENTSIM_LIVE_CREDIT_FLOOR_USD", raising=False)
+    monkeypatch.delenv("AGENTSIM_MAX_COST_PER_LLM_CALL_USD", raising=False)
+    monkeypatch.setattr(
+        cli.LiveRealizationProvider,
+        "from_config",
+        lambda: pytest.fail("constructed live realization provider before credit pre-flight"),
+    )
+
+    with pytest.raises(SystemExit) as exc:
+        cli.main(
+            [
+                "produce",
+                "--live",
+                "--cell-id",
+                targeted_blueprint.cell_id,
+            ]
+        )
+
+    assert exc.value.code == 2
+    assert "AGENTSIM_LIVE_CREDIT_FLOOR_USD" in capsys.readouterr().err
 
 
 def test_live_providers_pin_current_configured_models_without_calling_them(
@@ -1515,8 +1544,8 @@ def test_live_qualification_fails_missing_low_knowledge_evidence(
         )
 
     class FakeComplianceJudge:
-        def __init__(self, llm, *, criteria):
-            del llm
+        def __init__(self, llm, *, criteria, evidence):
+            del llm, evidence
             self.criteria = criteria
 
         async def judge(self, trace):
@@ -1538,7 +1567,8 @@ def test_live_qualification_fails_missing_low_knowledge_evidence(
 
     monkeypatch.setattr("agentsim.scenario.run_scenario", fake_run_scenario)
     monkeypatch.setattr(
-        "scenario_synthesis.qualification.GeneralJudge", FakeComplianceJudge
+        "scenario_synthesis.simulator_compliance.SimulatorComplianceJudge",
+        FakeComplianceJudge,
     )
     runner = LiveQualificationRunner(object(), object())
 
@@ -1592,9 +1622,10 @@ def test_live_qualification_runner_uses_run_scenario_and_compliance_judge(
         )
 
     class FakeComplianceJudge:
-        def __init__(self, llm, *, criteria):
+        def __init__(self, llm, *, criteria, evidence):
             observed["compliance_llm"] = llm
             observed["compliance_criteria"] = criteria
+            observed["compliance_evidence"] = evidence
 
         async def judge(self, trace):
             del trace
@@ -1609,7 +1640,8 @@ def test_live_qualification_runner_uses_run_scenario_and_compliance_judge(
 
     monkeypatch.setattr("agentsim.scenario.run_scenario", fake_run_scenario)
     monkeypatch.setattr(
-        "scenario_synthesis.qualification.GeneralJudge", FakeComplianceJudge
+        "scenario_synthesis.simulator_compliance.SimulatorComplianceJudge",
+        FakeComplianceJudge,
     )
     runner = LiveQualificationRunner(simulator_llm, judge_llm)
 
@@ -1634,6 +1666,11 @@ def test_live_qualification_runner_uses_run_scenario_and_compliance_judge(
     assert observed["simulator_llm"] is simulator_llm
     assert observed["judge_llm"] is judge_llm
     assert observed["compliance_llm"] is judge_llm
+    evidence = json.loads(observed["compliance_evidence"])
+    assert evidence["scenario_goal"] == scenario.goal
+    assert evidence["supplied_knowledge"] == scenario.render_knowledge()
+    assert evidence["declared_complication"] == detection_unproven_blueprint.complication
+    assert evidence["goal_facts"] == detection_unproven_blueprint.goal_facts
     assert not any(vars(observed["mock_config"]).values())
 
 

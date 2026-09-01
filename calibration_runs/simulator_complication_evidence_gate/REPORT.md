@@ -3,7 +3,9 @@
 Date: 2026-09-01
 Simulator: `gpt-5.6-luna`
 Judge: `gpt-5.5`
-Configuration: defects off; model-family separation enforced
+Configuration: defects off; the separation flag was enabled, but the then-current
+name comparator incorrectly treated `gpt-5.6-luna` and `gpt-5.5` as different
+families. Both are GPT-5-family models, so model-family separation was not achieved.
 
 ## Scope
 
@@ -62,11 +64,11 @@ complete-context rejudging, corroborating the attribution above.
 
 ## Decision
 
-The wording change caused no observed regression. The only completed raw
-failures were resolved by supplying the governing Scenario context to the
-same transcript, and the admitted production cell passed 3/3. The approved
-wording is eligible to land; the fixed first-pass result remains 32/39 and is
-not restated as a selected or rerolled pass set.
+This run is rejected as landing evidence. Its honest first pass remains 32/39:
+the missing Scenario context, unattributed interruption, exhausted credit, and
+same-family simulator/Judge pairing prevent it from qualifying as the requested
+gate. The diagnostics still support the infrastructure attribution, but they do
+not turn the run into a pass or authorize landing the wording.
 
 Machine-readable counts are in `summary.json`; complete-context results are in
 `contextual-rejudge/summary.json`.

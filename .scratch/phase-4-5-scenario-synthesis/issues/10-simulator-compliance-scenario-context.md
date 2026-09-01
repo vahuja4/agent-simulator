@@ -1,6 +1,6 @@
 # M-012: Supply Scenario contract evidence to simulator compliance
 
-Status: deferred
+Status: resolved
 
 ## Observation
 
@@ -27,3 +27,11 @@ shared Judge interface, then live-verify it before use.
 ## Comments
 
 Recorded by the required compound pass on 2026-08-31; no fix in this session.
+
+## Answer
+
+Production Qualification and curated calibration use the same specialized
+simulator-compliance Judge invocation. It supplies the Scenario Goal, rendered
+Fixture knowledge, declared Complication, and `goal_facts` as a separate
+evidence block while leaving all criterion wording and the ordinary Judge path
+unchanged. A regression test compares the complete Judge input from both paths.
