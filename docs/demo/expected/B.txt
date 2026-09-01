@@ -1,0 +1,9 @@
+B — Defect catch
+Proof: enabling only D2 produced the expected structured stale-options failure, attributed to the deterministic Assertion layer.
+Scenario YAML: scenarios/j1_card_switch_stale_options.yaml — card switch from ...9013 to ...0767 requires a fresh options fetch
+Transcript: calibration_runs/phase4_acceptance_baseline_v2/runs/j1-card-switch-stale-options-recall-d2-stale-options-dcef331c8d8f/transcript.md
+Trace: calibration_runs/phase4_acceptance_baseline_v2/runs/j1-card-switch-stale-options-recall-d2-stale-options-dcef331c8d8f/trace.json
+Run: defect d2_stale_options_after_card_switch=true; outcome=fail; llm_calls=0
+Assertion failure: amount_in_options at turn 7 — validation used $875.20 for ...0767 without its options fetch
+Assertion failure: refetch_after_card_switch at turn 7 — no fresh AddOptionsOneTimePayment after the turn-3 card switch
+Attribution: deterministic Assertion hard gate; Judge rulings=[] because the Assertion layer already failed

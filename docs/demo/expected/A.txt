@@ -1,0 +1,8 @@
+A — Curated Scenario and two-layer Verdict
+Proof: the latest successful full curated acceptance gate passed Overall, Recall, and Precision, and this defects-off Episode passed both Verdict layers.
+Gate: calibration_runs/phase4_acceptance_baseline_v2/report.md at 59f96aedf566d0407dc1bbf12c6e6fab086a9741 — Overall=pass, Recall=pass, Precision=pass
+Scenario YAML: scenarios/j1_happy_path.yaml — j1-happy-path, J1, statement-balance payment after explicit confirmation
+Transcript: calibration_runs/phase4_acceptance_baseline_v2/runs/j1-happy-path-precision-000-2280a7bdb42b/transcript.md — customer pays $310.45 from ...5678 to ...0767 on 2026-06-25; CONF-0001
+Trace: calibration_runs/phase4_acceptance_baseline_v2/runs/j1-happy-path-precision-000-2280a7bdb42b/trace.json — PayeeList → FundingAccountPicker → AddOptionsOneTimePayment → AddValidateOneTimePayment → AddOneTimePayment
+Verdict: deterministic Assertions=PASS (failures=[]); Judge=PASS (final decision=pass, all seven final criteria passed); final outcome=pass; failure attribution=none
+Caveat: a newer chronological curated calibration gate exists, but its REPORT rejects it as landing evidence (32/39), so it is not presented as a successful gate.

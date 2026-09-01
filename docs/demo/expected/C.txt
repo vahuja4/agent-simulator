@@ -1,0 +1,10 @@
+C — Coverage map
+Proof: the current committed report keeps eligible obligations, BLOCKED engineering debt, UNCOVERED backlog, and exclusions separate with explicit reasons.
+Report: synthesized_scenarios/reports/slice-4-current/coverage.md
+Eligible Coverage cells: 4,368 (all 4,368 UNCOVERED in this snapshot)
+Eligible pairs: 374 = 326 UNCOVERED + 48 BLOCKED; excluded pairs: 32
+Other obligations: axes 29 UNCOVERED/7 BLOCKED; Journey edges 9 UNCOVERED; known defects 5 UNCOVERED/3 BLOCKED
+BLOCKED reasons: missing reviewed Journey graph/Fixture-state classes for declared Fitness targets, plus unauthored J2–J5 Journey graphs
+Excluded reasons: explicit Fixture/target incompatibility, cross-Journey mismatch, missing Fitness predicates or required edges, and single-card/multi-card incompatibility
+Target-cardinality finding: NOT PROVEN — no committed artifact states 43 Scenarios
+Closest committed evidence: ADR 0007 records an older 42-Scenario greedy estimate for 3,060 unblocked J1 cells and 283 realizable pairs at b8cf29c; it requires recomputation when contracts change

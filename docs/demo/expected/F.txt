@@ -1,0 +1,11 @@
+F — Committed completion roadmap
+Proof: the fail-closed committed completion snapshot names the remaining Phase 4.5 obligations instead of claiming completion.
+Output: synthesized_scenarios/reports/slice-4-current/completion.md
+Overall: FAIL
+Clause 1 prototype reconciliation: PASS
+Clause 2 required Complications admitted and definition-tested: FAIL
+Clause 3 every admitted synthesized Scenario holds its fitness contract: PASS
+Clause 4 ledger/pairwise gate/separated reporting: FAIL
+Clause 5 curated suite remains green: FAIL
+Roadmap: admit goal-shift, multi-intent-turn, out-of-scope-drift, and channel-noise; close 48 BLOCKED and 326 UNCOVERED eligible pairs; add valid current curated-suite evidence
+Historical-snapshot caveat: this committed output also says the Rejection ledger was absent, although a ledger was committed later; replaying it verbatim preserves chronology without presenting the statement as current

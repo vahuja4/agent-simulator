@@ -1,0 +1,9 @@
+E — Ordinal-0 rejection and criterion-scope finding
+Proof: the historical rejection remains hash-linked, while the next ledger event correctly reattributes it to a Judge criterion-scope harness fault rather than the Candidate.
+Rejected Candidate: synthesized_scenarios/candidates/candidate-9a67598ac1dfdd7f61b69ee1674117a048326447a45188bef976887cb4dd4811/scenario.yaml, ordinal 0
+Ledger line 6: rejection-92d0b5633ef7171bc06a7a0d608682600d82d5adea42d08526b7ea33d6a194e1; simulator-noncompliance; defects-off repetition 1; check=simulator-compliance
+Trigger: simulator_factual_grounding failed when the low-Knowledge user called statement balance “whole bill”; simulator_knowledge_level_evidence passed for that same fluency gap
+Ledger line 7: rejection-acb8088ce44b2aacf288219e2f4cdc362235af73fc8f472bda9f5070cbfe4cf9; previous event hash=2737f2fe…; reason=harness-fault; check=harness-validity
+Correct attribution: systematic simulator_factual_grounding criterion-scope defect; Candidate not at fault; K regeneration budget not consumed; successor=candidate-4a296207…
+Finding: docs/ledgers/judge-findings.md N-007-S1
+Calibration: calibration_runs/n007_factual_grounding_scope_gate/REPORT.md; same-Transcript contextual rejudge passes and treats “whole bill” uncertainty as a concept/label issue, not unsupported Fixture state

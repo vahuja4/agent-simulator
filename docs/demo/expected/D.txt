@@ -1,0 +1,14 @@
+D — Admitted synthesis chain
+Proof: immutable hashes link a low-Knowledge Blueprint through three passing defects-off Episodes and Judge rulings to a detection-unproven Admission and byte-identical library Scenario.
+Blueprint file: synthesized_scenarios/candidates/candidate-4a296207b9dd03895648ada38cfaaa043c2891b04e58b5a92792e3f327d25549/blueprint.yaml
+Blueprint: blueprint-e39e30e81e0a60635b4e3e910e4de286a6a9ea1e9d8ea922b001a0c53f90ae48 → cell-ecbf1aff14454844ace6f1119cad7223b00355053952bede562b4b709e01cd55
+Axes: J1 / cooperative Persona / low Knowledge level / Complication none / j1-single-card / no Fitness target
+Knowledge evidence: material_fluency_gap / payment_amount_type
+Realized Scenario: synthesized_scenarios/candidates/candidate-4a296207b9dd03895648ada38cfaaa043c2891b04e58b5a92792e3f327d25549/scenario.yaml, ordinal 1, SHA-256 557d07b757a7f02bc115b34b7807cd3eee89193f5269a478e92286c7ce00b592
+Episode 0 opener: “amount shown on the bill” and asks which option means that; Knowledge-level ruling=pass
+Episode 1 opener: “amount shown on my bill—what payment option is that?”; Knowledge-level ruling=pass
+Episode 2 opener: “amount shown on my bill”; later asks whether that is statement balance; Knowledge-level ruling=pass
+Judge rulings: all four required criteria pass in all three Episodes; simulator compliance also passes in all three
+Qualification: synthesized_scenarios/runs/qualification-ad342abf099b6a0267d70883e9f6117104cbdc0edf4b37b62ce4aa94cd4361cd/qualification.json; defects-off N=3; Episode hashes eb3ae93d… / cb7d93e0… / 0bda1137…
+Admission: synthesized_scenarios/runs/qualification-ad342abf099b6a0267d70883e9f6117104cbdc0edf4b37b62ce4aa94cd4361cd/admission.json; admitted; detection-unproven=true; three Episode hashes plus Qualification hash 6172a32e…
+Library: synthesized_scenarios/library/synth-ecbf1aff1445-1dbe3fc02763.yaml, SHA-256 557d07b757a7f02bc115b34b7807cd3eee89193f5269a478e92286c7ce00b592 (byte-identical to realized Scenario)
