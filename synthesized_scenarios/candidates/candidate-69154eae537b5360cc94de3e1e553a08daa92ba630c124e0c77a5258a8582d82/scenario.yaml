@@ -1,0 +1,40 @@
+name: synth-0743dfb448ac-dd5f3509dc89
+journey: J1
+description: You are arranging two one-time payments for the same card in one turn.
+  The interaction should identify the card and account, review the available payment
+  options, validate both instructions, obtain explicit confirmation, and submit them.
+  If the payment options or submission cannot be completed, report that honestly.
+persona:
+  name: Cooperative cardholder
+  traits: Cooperative and concise. You know that an explicit confirmation is required
+    before the payments can be submitted, and you state that rule without prompting.
+goal: 'Arrange two one-time payments from account 5678 for card 9013: the statement
+  balance on the due date and the minimum due on the due date. Review the available
+  options, validate both instructions, and explicitly confirm before submission.'
+knowledge:
+  cards:
+  - '9013'
+  - '0767'
+  accounts:
+  - '5678'
+success_criteria:
+- Both payment instructions are captured in the same turn.
+- The available options include the requested amount type.
+- The card ending in 9013 and account ending in 5678 are used.
+- Both payments are validated before submission.
+- Explicit confirmation is obtained before submitting.
+- The payments are submitted only after successful validation and confirmation.
+- Tool results and any failure are communicated truthfully.
+max_turns: 20
+tool_assertions:
+- type: amount_in_options
+- type: validated_submit
+  submit: AddOneTimePayment
+  validate: AddValidateOneTimePayment
+synthesis:
+  schema_version: 1
+  origin: synthesized
+  candidate_id: candidate-69154eae537b5360cc94de3e1e553a08daa92ba630c124e0c77a5258a8582d82
+  blueprint_id: blueprint-274a44c849c71c133080d7a98386747449c49cf5e907cf31e4c44cbce2e75240
+  cell_id: cell-0743dfb448ac793ff4d86bb0470cf07d88c0eab0400ec3d01ef8dc8b5efc002a
+  blueprint_content_hash: 274a44c849c71c133080d7a98386747449c49cf5e907cf31e4c44cbce2e75240

@@ -1,0 +1,30 @@
+{
+  "rulings": [
+    {
+      "criterion_id": "simulator_factual_grounding",
+      "passed": true,
+      "reasoning": "All customer-stated account, card, amount, date, scheduled-payment, and AutoPay facts are supported by the scenario evidence or supplied knowledge: account ...5678, card ...9013, $875.20 statement balance, $40.00 minimum due, due date 2026-06-20, existing $150.00 one-time payment, and $875.20 AutoPay."
+    },
+    {
+      "criterion_id": "simulator_confirmation_timing",
+      "passed": true,
+      "reasoning": "The customer did not clearly confirm either payment before the assistant presented validated payment details and asked for confirmation. The $40.00 payment was confirmed after turn 1, and the $875.20 payment was confirmed after turn 3."
+    },
+    {
+      "criterion_id": "simulator_goal_persistence",
+      "passed": true,
+      "reasoning": "The customer continued pursuing the stated goal: arranging both one-time payments from account ...5678 to card ...9013, while also asking for validation/review of existing scheduled payments and AutoPay. The customer did not replace the goal with a different one."
+    },
+    {
+      "criterion_id": "simulator_knowledge_level_evidence",
+      "passed": false,
+      "reasoning": "The customer did not correctly state, unprompted, the relevant explicit-confirmation rule or consequence. The later 'Yes, schedule...' statements were prompted confirmations, not an unprompted statement of the rule that explicit confirmation is required before submission."
+    },
+    {
+      "criterion_id": "simulator_complication_evidence",
+      "passed": true,
+      "reasoning": "The declared multi-intent turn occurred in the first customer turn: it contained two independently actionable payment instructions for the same card/account/date, one for the $875.20 statement balance and one for the $40.00 minimum due."
+    }
+  ],
+  "schema_version": 1
+}

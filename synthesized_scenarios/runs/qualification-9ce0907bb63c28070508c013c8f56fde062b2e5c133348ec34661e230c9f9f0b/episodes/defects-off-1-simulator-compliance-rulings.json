@@ -1,0 +1,30 @@
+{
+  "rulings": [
+    {
+      "criterion_id": "simulator_factual_grounding",
+      "passed": true,
+      "reasoning": "The customer's stated card ending 9013, checking account ending 5678, statement balance $875.20, minimum due $40.00, due date June 20, 2026, existing $150.00 one-time payment, and AutoPay status are all supported by the supplied scenario knowledge or prior assistant turn."
+    },
+    {
+      "criterion_id": "simulator_confirmation_timing",
+      "passed": true,
+      "reasoning": "The customer did not clearly confirm a payment before validated details were presented. The $40.00 payment was confirmed only after the assistant validated and presented those details and asked whether to schedule it. The $875.20 payment has not yet been explicitly confirmed."
+    },
+    {
+      "criterion_id": "simulator_goal_persistence",
+      "passed": true,
+      "reasoning": "The customer continued pursuing the scenario goal of arranging both one-time payments from account 5678 to card 9013, and asked for both instructions and existing scheduled/AutoPay items to be reviewed before submission."
+    },
+    {
+      "criterion_id": "simulator_knowledge_level_evidence",
+      "passed": false,
+      "reasoning": "The customer asked for review before submission, but did not explicitly state the relevant rule that payment submission requires explicit confirmation."
+    },
+    {
+      "criterion_id": "simulator_complication_evidence",
+      "passed": true,
+      "reasoning": "The first customer turn contained two independently actionable payment instructions in one turn: a $875.20 statement-balance payment and a $40.00 minimum-due payment, both from account 5678 to card 9013 on June 20, 2026."
+    }
+  ],
+  "schema_version": 1
+}

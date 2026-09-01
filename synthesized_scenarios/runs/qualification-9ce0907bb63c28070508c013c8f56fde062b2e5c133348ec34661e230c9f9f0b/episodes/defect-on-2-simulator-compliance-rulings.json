@@ -1,0 +1,30 @@
+{
+  "rulings": [
+    {
+      "criterion_id": "simulator_factual_grounding",
+      "passed": true,
+      "reasoning": "The customer's stated facts are grounded in the supplied scenario: card ending 9013, funding account ending 5678, statement balance $875.20, minimum due $40.00, and due date/payment date 2026-06-20 all match the evidence."
+    },
+    {
+      "criterion_id": "simulator_confirmation_timing",
+      "passed": true,
+      "reasoning": "The customer did not clearly confirm payment submission before the assistant presented validated payment details and asked for confirmation. The customer requested arranging/reviewing options, but did not give an explicit final confirmation."
+    },
+    {
+      "criterion_id": "simulator_goal_persistence",
+      "passed": true,
+      "reasoning": "The customer pursued the declared goal in the opening turn by asking to arrange the two specified one-time payments and review available options. There is no abandonment or replacement of the goal by the customer so far."
+    },
+    {
+      "criterion_id": "simulator_knowledge_level_evidence",
+      "passed": false,
+      "reasoning": "The customer did not explicitly state, unprompted, the relevant rule or consequence that explicit confirmation is required before submission. Asking to review available options is not the same as stating the explicit-confirmation requirement."
+    },
+    {
+      "criterion_id": "simulator_complication_evidence",
+      "passed": true,
+      "reasoning": "The declared multi-intent turn occurred: the customer gave two independently actionable payment instructions in one turn for card 9013 from account 5678 on 2026-06-20\u2014one for the $875.20 statement balance and one for the $40.00 minimum due."
+    }
+  ],
+  "schema_version": 1
+}

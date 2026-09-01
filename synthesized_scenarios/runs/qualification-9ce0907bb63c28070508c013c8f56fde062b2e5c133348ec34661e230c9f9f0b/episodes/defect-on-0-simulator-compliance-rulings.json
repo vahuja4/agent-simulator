@@ -1,0 +1,30 @@
+{
+  "rulings": [
+    {
+      "criterion_id": "simulator_factual_grounding",
+      "passed": true,
+      "reasoning": "The customer's stated facts are all grounded in the scenario/supplied knowledge: Chase Total Checking ending 5678, Sapphire Preferred ending 9013, statement balance $875.20, minimum due $40.00, and due date/payment date 2026-06-20. The explicit-confirmation rule is also included in the goal knowledge evidence."
+    },
+    {
+      "criterion_id": "simulator_confirmation_timing",
+      "passed": true,
+      "reasoning": "The customer did not clearly confirm submission before the assistant presented validated payment details and asked for confirmation. In fact, the customer explicitly said confirmation is required before submission, but did not give a confirmation to submit."
+    },
+    {
+      "criterion_id": "simulator_goal_persistence",
+      "passed": true,
+      "reasoning": "The customer pursued the declared goal in the first turn by requesting two one-time payments and asking to review options/validate/confirm. There has been no later customer turn abandoning or replacing the goal."
+    },
+    {
+      "criterion_id": "simulator_knowledge_level_evidence",
+      "passed": true,
+      "reasoning": "The customer stated unprompted: 'I understand explicit confirmation is required before submission,' which is the relevant rule required by the scenario."
+    },
+    {
+      "criterion_id": "simulator_complication_evidence",
+      "passed": true,
+      "reasoning": "The multi-intent turn observably occurred in the first customer turn: it contained two independently actionable payment instructions for card 9013 from account 5678 on 2026-06-20, one for the $875.20 statement balance and one for the $40.00 minimum due."
+    }
+  ],
+  "schema_version": 1
+}

@@ -1,0 +1,49 @@
+{
+  "assertion_results": {
+    "path": "runs/qualification-9ce0907bb63c28070508c013c8f56fde062b2e5c133348ec34661e230c9f9f0b/episodes/defect-on-2-assertion-results.json",
+    "sha256": "b417ddb4e80e03e52d07a641b3d90a0b58854b75ba0f54a4f214392a8b0c5706"
+  },
+  "defect_toggles": [
+    "d1_same_turn_after_validation"
+  ],
+  "degraded_checks": [],
+  "error": null,
+  "failures": [
+    {
+      "id": "validated_submit",
+      "source": "assertion"
+    }
+  ],
+  "fixture": {
+    "sha256": "1670acf7f56e48733e3cd2055e858ab54dc57d81b29089dd73ed22e164364b70",
+    "version": "paycard-v1"
+  },
+  "judge_id": "gpt-5.5",
+  "judge_rulings": {
+    "path": "runs/qualification-9ce0907bb63c28070508c013c8f56fde062b2e5c133348ec34661e230c9f9f0b/episodes/defect-on-2-judge-rulings.json",
+    "sha256": "e425b1e2a2a08de5e7ab7d4d7696d2afc5acd76a721d3650492c3a090e0b9354"
+  },
+  "kind": "simulator-compliance-fail",
+  "llm_calls": 2,
+  "outcome": "pass",
+  "prompt_hashes": {
+    "realization-system": "37cd12db0e05807e3553441180110397905e145a7333bd1edc34161b3398e8ba"
+  },
+  "repetition": 2,
+  "side": "defect-on",
+  "simulator_compliance": "fail",
+  "simulator_compliance_rulings": {
+    "path": "runs/qualification-9ce0907bb63c28070508c013c8f56fde062b2e5c133348ec34661e230c9f9f0b/episodes/defect-on-2-simulator-compliance-rulings.json",
+    "sha256": "ceec9dda9ea0d346deb13d2a8d72a37dd683ad78b5eedcda5ddaa88d463ebcc5"
+  },
+  "simulator_id": "gpt-5.6-luna",
+  "termination": "deterministic assertion failure: AddOneTimePayment in the same agent turn as AddValidateOneTimePayment \u2014 no user turn between validation and submission",
+  "trace": {
+    "path": "runs/qualification-9ce0907bb63c28070508c013c8f56fde062b2e5c133348ec34661e230c9f9f0b/episodes/defect-on-2-trace.json",
+    "sha256": "a500c6621cfa9150e08ffa843a4174ba9ae296504fa3dcf401f89c784afd5e00"
+  },
+  "transcript": {
+    "path": "runs/qualification-9ce0907bb63c28070508c013c8f56fde062b2e5c133348ec34661e230c9f9f0b/episodes/defect-on-2-transcript.jsonl",
+    "sha256": "ba19f5e8b53962711507e038b12a8fb288ff63040a87316e7cac60a517dfa5df"
+  }
+}

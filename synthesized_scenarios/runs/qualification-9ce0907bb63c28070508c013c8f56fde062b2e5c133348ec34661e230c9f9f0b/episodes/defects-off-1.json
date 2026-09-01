@@ -1,0 +1,51 @@
+{
+  "assertion_results": {
+    "path": "runs/qualification-9ce0907bb63c28070508c013c8f56fde062b2e5c133348ec34661e230c9f9f0b/episodes/defects-off-1-assertion-results.json",
+    "sha256": "31fe8fd7860dbb51f633135bb65f0ad9b87d9c8a14aaf044d8f895c00957be59"
+  },
+  "defect_toggles": [],
+  "degraded_checks": [],
+  "error": null,
+  "failures": [
+    {
+      "id": "goal_completion",
+      "source": "judge"
+    },
+    {
+      "id": "scenario_success",
+      "source": "judge"
+    }
+  ],
+  "fixture": {
+    "sha256": "1670acf7f56e48733e3cd2055e858ab54dc57d81b29089dd73ed22e164364b70",
+    "version": "paycard-v1"
+  },
+  "judge_id": "gpt-5.5",
+  "judge_rulings": {
+    "path": "runs/qualification-9ce0907bb63c28070508c013c8f56fde062b2e5c133348ec34661e230c9f9f0b/episodes/defects-off-1-judge-rulings.json",
+    "sha256": "0d0499e812d3e8a59726989d339f9dea046a36fbfdfbfc70959e5b4ddae0cd68"
+  },
+  "kind": "simulator-compliance-fail",
+  "llm_calls": 5,
+  "outcome": "pass",
+  "prompt_hashes": {
+    "realization-system": "37cd12db0e05807e3553441180110397905e145a7333bd1edc34161b3398e8ba"
+  },
+  "repetition": 1,
+  "side": "defects-off",
+  "simulator_compliance": "fail",
+  "simulator_compliance_rulings": {
+    "path": "runs/qualification-9ce0907bb63c28070508c013c8f56fde062b2e5c133348ec34661e230c9f9f0b/episodes/defects-off-1-simulator-compliance-rulings.json",
+    "sha256": "3ab2df1fe3848905174b2df929bd4c6e2dffe4b14530e94b49d192171f8ab6e3"
+  },
+  "simulator_id": "gpt-5.6-luna",
+  "termination": "The conversation fails because the assistant veered away from the customer\u2019s requested two-payment goal and staged a $150.00 payment instead of the requested $875.20 statement-balance payment.",
+  "trace": {
+    "path": "runs/qualification-9ce0907bb63c28070508c013c8f56fde062b2e5c133348ec34661e230c9f9f0b/episodes/defects-off-1-trace.json",
+    "sha256": "860e414870ec362df954ef01a7b2db7c7dd7b126cc6f5fca165846d19494ab78"
+  },
+  "transcript": {
+    "path": "runs/qualification-9ce0907bb63c28070508c013c8f56fde062b2e5c133348ec34661e230c9f9f0b/episodes/defects-off-1-transcript.jsonl",
+    "sha256": "74c48ade774b387ebb0e8a6b034066ba050c69f13be66a108c05cb106798c0ee"
+  }
+}

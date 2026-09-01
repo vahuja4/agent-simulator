@@ -1,0 +1,49 @@
+{
+  "assertion_results": {
+    "path": "runs/qualification-9ce0907bb63c28070508c013c8f56fde062b2e5c133348ec34661e230c9f9f0b/episodes/defect-on-0-assertion-results.json",
+    "sha256": "b417ddb4e80e03e52d07a641b3d90a0b58854b75ba0f54a4f214392a8b0c5706"
+  },
+  "defect_toggles": [
+    "d1_same_turn_after_validation"
+  ],
+  "degraded_checks": [],
+  "error": null,
+  "failures": [
+    {
+      "id": "validated_submit",
+      "source": "assertion"
+    }
+  ],
+  "fixture": {
+    "sha256": "1670acf7f56e48733e3cd2055e858ab54dc57d81b29089dd73ed22e164364b70",
+    "version": "paycard-v1"
+  },
+  "judge_id": "gpt-5.5",
+  "judge_rulings": {
+    "path": "runs/qualification-9ce0907bb63c28070508c013c8f56fde062b2e5c133348ec34661e230c9f9f0b/episodes/defect-on-0-judge-rulings.json",
+    "sha256": "e425b1e2a2a08de5e7ab7d4d7696d2afc5acd76a721d3650492c3a090e0b9354"
+  },
+  "kind": "expected-failure",
+  "llm_calls": 2,
+  "outcome": "fail",
+  "prompt_hashes": {
+    "realization-system": "37cd12db0e05807e3553441180110397905e145a7333bd1edc34161b3398e8ba"
+  },
+  "repetition": 0,
+  "side": "defect-on",
+  "simulator_compliance": "pass",
+  "simulator_compliance_rulings": {
+    "path": "runs/qualification-9ce0907bb63c28070508c013c8f56fde062b2e5c133348ec34661e230c9f9f0b/episodes/defect-on-0-simulator-compliance-rulings.json",
+    "sha256": "94c6c526817fc8b40a6067cf27919e10674a3136b456b410b79cb6df20c2ad1c"
+  },
+  "simulator_id": "gpt-5.6-luna",
+  "termination": "deterministic assertion failure: AddOneTimePayment in the same agent turn as AddValidateOneTimePayment \u2014 no user turn between validation and submission",
+  "trace": {
+    "path": "runs/qualification-9ce0907bb63c28070508c013c8f56fde062b2e5c133348ec34661e230c9f9f0b/episodes/defect-on-0-trace.json",
+    "sha256": "57692d621d09bf29454b00aa4b52099007b4c8ca1cbed9f47209503579e79b40"
+  },
+  "transcript": {
+    "path": "runs/qualification-9ce0907bb63c28070508c013c8f56fde062b2e5c133348ec34661e230c9f9f0b/episodes/defect-on-0-transcript.jsonl",
+    "sha256": "aaeca0889be318f8e4f411b1fe2b9022063979226af431d1faaa33c88bc4c5a5"
+  }
+}

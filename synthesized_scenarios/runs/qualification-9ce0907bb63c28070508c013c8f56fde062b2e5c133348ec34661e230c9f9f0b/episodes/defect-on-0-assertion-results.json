@@ -1,0 +1,13 @@
+{
+  "results": [
+    {
+      "id": "amount_in_options",
+      "passed": true
+    },
+    {
+      "id": "validated_submit",
+      "passed": false
+    }
+  ],
+  "schema_version": 1
+}

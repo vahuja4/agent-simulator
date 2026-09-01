@@ -1,0 +1,23 @@
+{
+  "cell_id": "cell-0743dfb448ac793ff4d86bb0470cf07d88c0eab0400ec3d01ef8dc8b5efc002a",
+  "cell_number": 1,
+  "configured_credit_floor_usd": "30",
+  "credit_floor_verified_on": "2026-09-01",
+  "maximum_cost_per_llm_call_usd": "0.02",
+  "maximum_llm_calls_per_episode": 41,
+  "maximum_planned_cost_usd": "4.96",
+  "maximum_planned_episodes": 6,
+  "maximum_planned_llm_calls": 248,
+  "maximum_planned_realization_calls": 2,
+  "selection": {
+    "complication": "multi-intent-turn",
+    "fitness_target_id": "d1",
+    "fixture_state_class_id": "j1-multiple-unambiguous-cards",
+    "journey_path_id": "j1-path-72d5d5d63df95b4e",
+    "knowledge_level": "high",
+    "max_turns": 20,
+    "persona_archetype": "cooperative"
+  },
+  "snapshot_hash": "db319d1cdde09e2c056fbdee7e2425d0b0b3b805fee228c964145e9b035b41da",
+  "status": "live-cost-ceiling"
+}

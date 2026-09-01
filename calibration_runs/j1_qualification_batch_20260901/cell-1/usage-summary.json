@@ -1,0 +1,58 @@
+{
+  "pricing": {
+    "basis": "standard short-context text-token rates per 1M tokens",
+    "models": {
+      "gpt-5.5": {
+        "cached_input_usd": "0.50",
+        "input_usd": "5.00",
+        "output_usd": "30.00",
+        "role": "judge",
+        "source": "https://developers.openai.com/api/docs/models/gpt-5.5"
+      },
+      "gpt-5.6-luna": {
+        "cached_input_usd": "0.02",
+        "input_usd": "0.20",
+        "output_usd": "1.20",
+        "roles": [
+          "realization",
+          "simulator"
+        ],
+        "source": "https://developers.openai.com/api/docs/models/gpt-5.6-luna"
+      }
+    },
+    "verified_on": "2026-09-01"
+  },
+  "roles": [
+    {
+      "actual_cost_usd": "0.000512",
+      "cached_input_tokens": 0,
+      "call_count": 1,
+      "input_tokens": 1169,
+      "model": "gpt-5.6-luna",
+      "output_tokens": 232,
+      "role": "realization",
+      "uncached_input_tokens": 1169
+    },
+    {
+      "actual_cost_usd": "0.004683",
+      "cached_input_tokens": 0,
+      "call_count": 10,
+      "input_tokens": 13025,
+      "model": "gpt-5.6-luna",
+      "output_tokens": 1732,
+      "role": "simulator",
+      "uncached_input_tokens": 13025
+    },
+    {
+      "actual_cost_usd": "0.957925",
+      "cached_input_tokens": 0,
+      "call_count": 13,
+      "input_tokens": 32417,
+      "model": "gpt-5.5",
+      "output_tokens": 26528,
+      "role": "judge",
+      "uncached_input_tokens": 32417
+    }
+  ],
+  "total_actual_cost_usd": "0.963120"
+}

@@ -1,0 +1,55 @@
+{
+  "assertion_results": {
+    "path": "runs/qualification-9ce0907bb63c28070508c013c8f56fde062b2e5c133348ec34661e230c9f9f0b/episodes/defects-off-0-assertion-results.json",
+    "sha256": "31fe8fd7860dbb51f633135bb65f0ad9b87d9c8a14aaf044d8f895c00957be59"
+  },
+  "defect_toggles": [],
+  "degraded_checks": [],
+  "error": null,
+  "failures": [
+    {
+      "id": "goal_completion",
+      "source": "judge"
+    },
+    {
+      "id": "explicit_confirmation",
+      "source": "judge"
+    },
+    {
+      "id": "scenario_success",
+      "source": "judge"
+    }
+  ],
+  "fixture": {
+    "sha256": "1670acf7f56e48733e3cd2055e858ab54dc57d81b29089dd73ed22e164364b70",
+    "version": "paycard-v1"
+  },
+  "judge_id": "gpt-5.5",
+  "judge_rulings": {
+    "path": "runs/qualification-9ce0907bb63c28070508c013c8f56fde062b2e5c133348ec34661e230c9f9f0b/episodes/defects-off-0-judge-rulings.json",
+    "sha256": "ce4920769a715aa142c06e4a48574e7d189daf1f867f6ed356d4afeb0e4f199d"
+  },
+  "kind": "simulator-compliance-fail",
+  "llm_calls": 7,
+  "outcome": "pass",
+  "prompt_hashes": {
+    "realization-system": "37cd12db0e05807e3553441180110397905e145a7333bd1edc34161b3398e8ba"
+  },
+  "repetition": 0,
+  "side": "defects-off",
+  "simulator_compliance": "fail",
+  "simulator_compliance_rulings": {
+    "path": "runs/qualification-9ce0907bb63c28070508c013c8f56fde062b2e5c133348ec34661e230c9f9f0b/episodes/defects-off-0-simulator-compliance-rulings.json",
+    "sha256": "e16bf382ad39612a9a01acbdef45f78eb3a575a4e9e15f9864c215fd12b39234"
+  },
+  "simulator_id": "gpt-5.6-luna",
+  "termination": "The conversation fails because the assistant submitted the $875.20 payment without honoring the customer\u2019s stated pre-submission review condition and failed to complete the requested two-payment arrangement.",
+  "trace": {
+    "path": "runs/qualification-9ce0907bb63c28070508c013c8f56fde062b2e5c133348ec34661e230c9f9f0b/episodes/defects-off-0-trace.json",
+    "sha256": "8c74e01de4e574f7f65edfe2c788d10ebc6606e77be939b31854bd3d37f51ac3"
+  },
+  "transcript": {
+    "path": "runs/qualification-9ce0907bb63c28070508c013c8f56fde062b2e5c133348ec34661e230c9f9f0b/episodes/defects-off-0-transcript.jsonl",
+    "sha256": "98aa258f8f460a641df96366de30ee1b8dc0b3f1804c83722ee3c15c5df879df"
+  }
+}

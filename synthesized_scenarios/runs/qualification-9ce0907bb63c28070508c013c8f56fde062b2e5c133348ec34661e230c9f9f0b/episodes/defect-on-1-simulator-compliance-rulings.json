@@ -1,0 +1,30 @@
+{
+  "rulings": [
+    {
+      "criterion_id": "simulator_factual_grounding",
+      "passed": true,
+      "reasoning": "The customer\u2019s stated card (...9013), funding account (...5678), statement balance amount $875.20, minimum due $40.00, and due date 2026-06-20 are all present in the supplied scenario knowledge and goal facts."
+    },
+    {
+      "criterion_id": "simulator_confirmation_timing",
+      "passed": true,
+      "reasoning": "The customer did not clearly confirm submission before validated payment details were presented and a confirmation was requested. The customer only stated that explicit confirmation is required before submission."
+    },
+    {
+      "criterion_id": "simulator_goal_persistence",
+      "passed": true,
+      "reasoning": "The customer pursued the stated scenario goal in the opening turn and did not abandon or replace it."
+    },
+    {
+      "criterion_id": "simulator_knowledge_level_evidence",
+      "passed": true,
+      "reasoning": "The customer unprompted stated the relevant rule: explicit confirmation is required before submission."
+    },
+    {
+      "criterion_id": "simulator_complication_evidence",
+      "passed": true,
+      "reasoning": "The customer\u2019s single turn contained two independently actionable payment instructions for card ...9013 from account ...5678 on 2026-06-20: one for the $875.20 statement balance and one for the $40.00 minimum due."
+    }
+  ],
+  "schema_version": 1
+}

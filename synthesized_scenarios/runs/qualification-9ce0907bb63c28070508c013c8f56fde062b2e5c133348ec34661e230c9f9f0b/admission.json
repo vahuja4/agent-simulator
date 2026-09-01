@@ -1,0 +1,61 @@
+{
+  "attribution": [
+    {
+      "check": "simulator-compliance",
+      "repetition": 0,
+      "side": "defects-off"
+    }
+  ],
+  "candidate_id": "candidate-69154eae537b5360cc94de3e1e553a08daa92ba630c124e0c77a5258a8582d82",
+  "candidate_ordinal": 0,
+  "cell_id": "cell-0743dfb448ac793ff4d86bb0470cf07d88c0eab0400ec3d01ef8dc8b5efc002a",
+  "config_snapshot_hash": "c7def0a1081a1c494d2d33bd44997e2d9c024119da346cdccf93f00dd0caa834",
+  "contract_hashes": {
+    "complication-applicability": "d5eed26d686c9de2054496ef961e6395a5da854c1df9f65db3b58c7bc007651d",
+    "fitness-targets": "b5cc687f593379d626d27293dcd4d3aa1ea8902a3e866d83b27cf24f3e06efd1",
+    "fixture-state-classes": "e05aa23560d818a840e762ec7970f67adbe995514fefad837bf2b5bb09ba7db8",
+    "pair-exclusions": "d9bb6c87c53302d4351b4837086b83615af1a9d27b8ab49350585654fe07b6ad",
+    "persona-archetypes": "ed1daef6913eb36263efbdf0f14565ba2416a4e9778dc535e0456d15f810e5d0"
+  },
+  "decided_at": "2026-09-01T14:36:37.591190Z",
+  "detection_unproven": false,
+  "evidence": [
+    {
+      "path": "runs/qualification-9ce0907bb63c28070508c013c8f56fde062b2e5c133348ec34661e230c9f9f0b/episodes/defects-off-0.json",
+      "sha256": "9fff169b97587976d44d6ece3804bbd639e410124231a1c958364cb95f358b5e"
+    },
+    {
+      "path": "runs/qualification-9ce0907bb63c28070508c013c8f56fde062b2e5c133348ec34661e230c9f9f0b/episodes/defects-off-1.json",
+      "sha256": "3ae1d51b97d20bf020f4656bf50f62bec4110c5dc2fb8271f2c53b731a7dbaac"
+    },
+    {
+      "path": "runs/qualification-9ce0907bb63c28070508c013c8f56fde062b2e5c133348ec34661e230c9f9f0b/episodes/defects-off-2.json",
+      "sha256": "fce4499789f707e9d2f75e8c0d6c6b05fe209e63c7112cb32c557142a6adba9a"
+    },
+    {
+      "path": "runs/qualification-9ce0907bb63c28070508c013c8f56fde062b2e5c133348ec34661e230c9f9f0b/episodes/defect-on-0.json",
+      "sha256": "53f090f80080d1487d06b032e4673f923e0702efca97a2ed7858618bae3ea7ef"
+    },
+    {
+      "path": "runs/qualification-9ce0907bb63c28070508c013c8f56fde062b2e5c133348ec34661e230c9f9f0b/episodes/defect-on-1.json",
+      "sha256": "ebde1a6eb7e32a40bad53116bab3aef1f145b0c01cdd7665574485f252691335"
+    },
+    {
+      "path": "runs/qualification-9ce0907bb63c28070508c013c8f56fde062b2e5c133348ec34661e230c9f9f0b/episodes/defect-on-2.json",
+      "sha256": "4c8e69a6eb33f713f1305fd7024c5b695eaac928031602f0d9f5da49ca674503"
+    },
+    {
+      "path": "runs/qualification-9ce0907bb63c28070508c013c8f56fde062b2e5c133348ec34661e230c9f9f0b/qualification.json",
+      "sha256": "ddaa16708604a5c37bb1283af29ad2186f6bebfd856f6ada16456ee08eb7ed22"
+    }
+  ],
+  "n_split": {
+    "defect_on": 3,
+    "defects_off": 3
+  },
+  "qualification_id": "qualification-9ce0907bb63c28070508c013c8f56fde062b2e5c133348ec34661e230c9f9f0b",
+  "reason_code": "simulator-noncompliance",
+  "regeneration_exhausted": false,
+  "schema_version": 1,
+  "status": "rejected"
+}
