@@ -23,6 +23,7 @@ from .contracts import (
     canonical_sha256,
     load_reviewed_contracts,
 )
+from .simulator_compliance import SIMULATOR_COMPLIANCE_CRITERION_IDS
 
 DEFAULT_CONFIG = Path(__file__).with_name("config.yaml")
 
@@ -158,6 +159,9 @@ def create_config_snapshot(
             "sha256": hashlib.sha256(fixture_path.read_bytes()).hexdigest(),
         },
         "contract_hashes": contracts.hashes,
+        "simulator_compliance_criterion_ids": list(
+            SIMULATOR_COMPLIANCE_CRITERION_IDS
+        ),
     }
     snapshot_hash = canonical_sha256(material)
     content = {**material, "snapshot_hash": snapshot_hash}

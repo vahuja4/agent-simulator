@@ -38,7 +38,10 @@ from .ledger import (
     qualification_admission_is_invalidated,
 )
 from .realization_provider import RealizationProvider
-from .simulator_compliance import simulator_compliance_criteria
+from .simulator_compliance import (
+    LEGACY_SIMULATOR_COMPLIANCE_CRITERION_IDS,
+    simulator_compliance_criteria,
+)
 from .validator import CoverageBlueprintValidator
 
 
@@ -93,6 +96,8 @@ class QualificationRunner(Protocol):
         expected_failure: Mapping[str, str] | None,
         knowledge_level: str,
         knowledge_evidence: Mapping[str, Any],
+        complication: str,
+        complication_evidence: Mapping[str, Any],
     ) -> EpisodeResult: ...
 
 
@@ -112,6 +117,8 @@ class StubQualificationRunner:
         expected_failure: Mapping[str, str] | None,
         knowledge_level: str,
         knowledge_evidence: Mapping[str, Any],
+        complication: str,
+        complication_evidence: Mapping[str, Any],
     ) -> EpisodeResult:
         del scenario, defect_toggles
         compliance_rulings = tuple(
@@ -121,7 +128,10 @@ class StubQualificationRunner:
                 "reasoning": "offline stub compliance",
             }
             for criterion in simulator_compliance_criteria(
-                knowledge_level, knowledge_evidence
+                knowledge_level,
+                knowledge_evidence,
+                complication,
+                complication_evidence,
             )
         )
         injected = self.outcomes.get(
@@ -223,6 +233,8 @@ class LiveQualificationRunner:
         expected_failure: Mapping[str, str] | None,
         knowledge_level: str,
         knowledge_evidence: Mapping[str, Any],
+        complication: str,
+        complication_evidence: Mapping[str, Any],
     ) -> EpisodeResult:
         del side, repetition
         config = MockConfig(**{toggle: True for toggle in defect_toggles})
@@ -240,6 +252,8 @@ class LiveQualificationRunner:
                 expected_failure=expected_failure,
                 knowledge_level=knowledge_level,
                 knowledge_evidence=knowledge_evidence,
+                complication=complication,
+                complication_evidence=complication_evidence,
             )
         )
 
@@ -251,6 +265,8 @@ class LiveQualificationRunner:
         expected_failure: Mapping[str, str] | None,
         knowledge_level: str,
         knowledge_evidence: Mapping[str, Any],
+        complication: str,
+        complication_evidence: Mapping[str, Any],
     ) -> EpisodeResult:
         from agentsim.scenario import run_scenario
 
@@ -276,7 +292,10 @@ class LiveQualificationRunner:
             compliance = await GeneralJudge(
                 self.judge_llm,
                 criteria=simulator_compliance_criteria(
-                    knowledge_level, knowledge_evidence
+                    knowledge_level,
+                    knowledge_evidence,
+                    complication,
+                    complication_evidence,
                 ),
             ).judge(result.trace)
         except Exception as exc:
@@ -536,6 +555,8 @@ def qualify_candidate(
                         knowledge_evidence=candidate.blueprint.goal_facts[
                             "knowledge_evidence"
                         ],
+                        complication=candidate.blueprint.complication,
+                        complication_evidence=candidate.blueprint.goal_facts,
                     )
                 except Exception as exc:
                     result = EpisodeResult(
@@ -1225,13 +1246,19 @@ def _validate_qualification_evidence(
             or not isinstance(compliance_artifact["rulings"], list)
         ):
             raise CandidateError("simulator-compliance ruling evidence has an incomplete schema")
-        expected_compliance_ids = {
-            criterion.id
-            for criterion in simulator_compliance_criteria(
-                candidate.blueprint.knowledge_level,
-                candidate.blueprint.goal_facts["knowledge_evidence"],
+        snapshot_criterion_ids = snapshot.get(
+            "simulator_compliance_criterion_ids",
+            list(LEGACY_SIMULATOR_COMPLIANCE_CRITERION_IDS),
+        )
+        if (
+            not isinstance(snapshot_criterion_ids, list)
+            or not all(isinstance(item, str) for item in snapshot_criterion_ids)
+            or len(snapshot_criterion_ids) != len(set(snapshot_criterion_ids))
+        ):
+            raise CandidateError(
+                "qualification config snapshot has an invalid simulator compliance criterion set"
             )
-        }
+        expected_compliance_ids = set(snapshot_criterion_ids)
         compliance_rulings = compliance_artifact["rulings"]
         if any(
             not isinstance(ruling, Mapping)

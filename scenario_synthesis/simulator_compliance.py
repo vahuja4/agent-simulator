@@ -33,12 +33,25 @@ BASE_SIMULATOR_COMPLIANCE_CRITERIA: tuple[Criterion, ...] = (
     ),
 )
 
+LEGACY_SIMULATOR_COMPLIANCE_CRITERION_IDS: tuple[str, ...] = (
+    "simulator_factual_grounding",
+    "simulator_confirmation_timing",
+    "simulator_goal_persistence",
+    "simulator_knowledge_level_evidence",
+)
+SIMULATOR_COMPLIANCE_CRITERION_IDS: tuple[str, ...] = (
+    *LEGACY_SIMULATOR_COMPLIANCE_CRITERION_IDS,
+    "simulator_complication_evidence",
+)
+
 
 def simulator_compliance_criteria(
     knowledge_level: str,
     knowledge_evidence: Mapping[str, Any],
+    complication: str,
+    complication_evidence: Mapping[str, Any],
 ) -> tuple[Criterion, ...]:
-    """Bind the symmetric Knowledge-level contract to one Blueprint."""
+    """Bind the Knowledge-level and Complication contracts to one Blueprint."""
     if knowledge_level == "low":
         expected_kind = "material_fluency_gap"
         detail = (
@@ -65,7 +78,95 @@ def simulator_compliance_criteria(
         raise ValueError(
             f"Knowledge evidence kind does not match {knowledge_level!r} level"
         )
+
+    if complication == "goal-shift":
+        persistence = (
+            "After explicitly abandoning the in-progress Goal, the customer simulator "
+            "consistently pursued the Scenario's complete replacement Goal. It did not "
+            "resume or submit the abandoned Goal. Sharing parameters with the abandoned "
+            "Goal, such as the same funding account, is not resumption. A stop after "
+            "completing the replacement Goal or after the assistant made completion "
+            "impossible is compliant."
+        )
+    elif complication == "out-of-scope-drift":
+        persistence = (
+            "After the transient request beyond the Journey, the customer simulator "
+            "returned to the original Scenario Goal and continued pursuing it to "
+            "completion. A stop after completion or after the assistant made completion "
+            "impossible is compliant."
+        )
+    else:
+        persistence = BASE_SIMULATOR_COMPLIANCE_CRITERIA[2].description
+
+    if complication == "none":
+        complication_detail = (
+            "The Scenario declares no Complication. This criterion passes vacuously; "
+            "no complication behavior is required."
+        )
+    elif complication == "underspecification":
+        complication_detail = (
+            "The declared underspecification observably occurred: the customer initially "
+            "withheld at least one required Goal fact, or supplied it only when asked. "
+            "Merely restating already-complete instructions is not evidence."
+        )
+    elif complication == "mid-conversation-correction":
+        complication_detail = (
+            "The declared mid-conversation correction observably occurred: the customer "
+            "changed one or more previously supplied parameters while preserving the "
+            "underlying Goal. The number of changed parameters does not distinguish "
+            f"correction from goal shift. The declared correction is {complication_evidence.get('correction')!r}."
+        )
+    elif complication == "goal-shift":
+        complication_detail = (
+            "The declared goal shift observably occurred: the customer explicitly "
+            "abandoned the in-progress Goal and supplied the complete replacement Goal "
+            "declared by the Scenario. Parameter changes without explicit abandonment "
+            f"are not evidence. The declared transition is {complication_evidence.get('goal_shift')!r}."
+        )
+    elif complication == "multi-intent-turn":
+        complication_detail = (
+            "The declared multi-intent turn observably occurred: one customer turn "
+            "contained the two independently actionable instructions declared by the "
+            "Scenario. Within J1, these are two independently actionable payment "
+            "instructions; missing parameters do not disqualify; each need only identify "
+            "a distinct payment target and intent. The declared instructions are "
+            f"{complication_evidence.get('payment_instructions_in_one_turn')!r}."
+        )
+    elif complication == "false-premise":
+        complication_detail = (
+            "The declared false premise observably occurred: the customer expressed the "
+            "declared incorrect belief about real Fixture state. An invented fact or a "
+            "misunderstanding unrelated to actual Fixture state is not evidence. The "
+            f"declared false premise is {complication_evidence.get('false_premise')!r}."
+        )
+    elif complication == "out-of-scope-drift":
+        complication_detail = (
+            "The declared out-of-scope drift observably occurred: the customer made a "
+            "transient request beyond the Journey and subsequently returned to the "
+            "original Goal, which remained active throughout. Permanent abandonment or "
+            "replacement is not evidence. The declared transient intent is "
+            f"{complication_evidence.get('transient_out_of_scope_intent')!r}."
+        )
+    elif complication == "channel-noise":
+        complication_detail = (
+            "The declared channel noise observably occurred: a customer message materially "
+            "obscured its meaning such that recovery was required. Whether the assistant "
+            "successfully recovered is irrelevant to this criterion. Cosmetic phrasing, "
+            "ordinary informality, or an immediately clear message is not evidence."
+        )
+    elif complication == "ambiguous-reference":
+        complication_detail = (
+            "The declared ambiguous reference observably occurred: the customer supplied "
+            "the declared reference matching multiple real Fixture entities, requiring "
+            "disambiguation rather than elicitation of an omitted fact. The declared "
+            f"reference is {complication_evidence.get('ambiguous_card_reference')!r}."
+        )
+    else:
+        raise ValueError(f"unknown Complication {complication!r}")
+
     return (
-        *BASE_SIMULATOR_COMPLIANCE_CRITERIA,
+        *BASE_SIMULATOR_COMPLIANCE_CRITERIA[:2],
+        Criterion("simulator_goal_persistence", persistence),
         Criterion("simulator_knowledge_level_evidence", detail),
+        Criterion("simulator_complication_evidence", complication_detail),
     )

@@ -22,6 +22,8 @@ filenames, and prose.
   imposes a narrower read boundary.
 - Before an approved live LLM command, export the ignored `.env` into the command
   environment without printing secrets and verify that credentials are available.
+- Live calibration fan-out must persist each Episode's infrastructure error with
+  its identity and must not fail fast by cancelling sibling denominator Episodes.
 
 ## Project invariants
 

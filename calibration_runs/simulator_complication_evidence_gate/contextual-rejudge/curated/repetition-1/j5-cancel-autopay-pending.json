@@ -1,0 +1,30 @@
+{
+  "passed": true,
+  "repetition": 1,
+  "rulings": [
+    {
+      "criterion_id": "simulator_factual_grounding",
+      "passed": true,
+      "reasoning": "The customer\u2019s claimed facts match the scenario context: there is a Chase Sapphire Preferred card ending in 9013 and a $875.20 payment on June 20."
+    },
+    {
+      "criterion_id": "simulator_confirmation_timing",
+      "passed": true,
+      "reasoning": "The customer has not confirmed any payment action before validated payment details were presented and confirmation was requested."
+    },
+    {
+      "criterion_id": "simulator_goal_persistence",
+      "passed": true,
+      "reasoning": "The customer stated the intended goal of cancelling the $875.20 June 20 payment and has not abandoned or replaced it."
+    },
+    {
+      "criterion_id": "simulator_complication_evidence",
+      "passed": true,
+      "reasoning": "The customer asked J5/the assistant to cancel the $875.20 June 20 payment, which is a real pending AutoPay payment in the fixture, thereby expressing the false premise that it is cancellable through J5."
+    }
+  ],
+  "same_transcript_rejudge": true,
+  "scenario": "j5-cancel-autopay-pending",
+  "schema_version": 1,
+  "source": "curated/repetition-1/j5-cancel-autopay-pending.json"
+}

@@ -1,0 +1,30 @@
+{
+  "passed": true,
+  "repetition": 2,
+  "rulings": [
+    {
+      "criterion_id": "simulator_factual_grounding",
+      "passed": true,
+      "reasoning": "All customer-stated account facts are grounded in the scenario/supplied knowledge: Sapphire ending 9013, Freedom Unlimited ending 0767, Chase Total Checking ending 5678, Freedom statement balance $310.45, and the June 25 due date. The customer's challenge that Freedom's remaining statement balance should be $310.45 is consistent with the supplied knowledge that Freedom's statement balance is $310.45 and that there are no AutoPay or scheduled payments for that card."
+    },
+    {
+      "criterion_id": "simulator_confirmation_timing",
+      "passed": true,
+      "reasoning": "The customer did not confirm scheduling until turn 6, after the assistant presented validated payment details at turn 5 and explicitly asked for confirmation. Earlier, the customer only selected the card, amount, funding account, and date."
+    },
+    {
+      "criterion_id": "simulator_goal_persistence",
+      "passed": true,
+      "reasoning": "The customer pursued the declared goal throughout: initially started with the Sapphire card, switched to Freedom Unlimited after Sapphire options were offered, questioned the unexpected Freedom amount, requested the Freedom statement-balance payment on the due date, and confirmed once the details were correct."
+    },
+    {
+      "criterion_id": "simulator_complication_evidence",
+      "passed": true,
+      "reasoning": "The required mid-conversation correction occurred: after starting a payment for Chase Sapphire Preferred ending 9013 and receiving its payment options, the customer changed the selected card to Chase Freedom Unlimited ending 0767 while continuing the same payment goal."
+    }
+  ],
+  "same_transcript_rejudge": true,
+  "scenario": "j1-card-switch-stale-options",
+  "schema_version": 1,
+  "source": "curated/repetition-2/j1-card-switch-stale-options.json"
+}

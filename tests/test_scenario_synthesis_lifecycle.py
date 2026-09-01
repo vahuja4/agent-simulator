@@ -18,6 +18,7 @@ from agentsim.types import CriterionVerdict, TurnVerdict
 from scenario_synthesis import config as synthesis_config
 from scenario_synthesis import cli
 from scenario_synthesis.candidate import CandidateError, load_candidate, produce_candidate
+from scenario_synthesis.contracts import load_reviewed_contracts
 from scenario_synthesis.generator import generate_blueprints
 from scenario_synthesis.evidence import atomic_json, canonical_json, sha256_bytes, sha256_file
 from scenario_synthesis.ledger import LedgerError, RejectionLedger
@@ -25,9 +26,14 @@ from scenario_synthesis.qualification import (
     EpisodeResult,
     LiveQualificationRunner,
     StubQualificationRunner,
+    _validate_qualification_evidence,
     evaluate_admission,
     invalidate_admission,
     qualify_candidate,
+)
+from scenario_synthesis.simulator_compliance import (
+    SIMULATOR_COMPLIANCE_CRITERION_IDS,
+    simulator_compliance_criteria,
 )
 from scenario_synthesis.realization_provider import (
     LiveRealizationProvider,
@@ -45,6 +51,113 @@ def targeted_blueprint():
 @pytest.fixture(scope="module")
 def detection_unproven_blueprint():
     return next(item for item in generate_blueprints() if item.fitness_target_id is None)
+
+
+@pytest.mark.parametrize(
+    ("complication", "evidence_key", "expected_text"),
+    [
+        ("none", None, "passes vacuously"),
+        ("underspecification", "disclosure_style", "withheld at least one required Goal fact"),
+        ("mid-conversation-correction", "correction", "preserving the underlying Goal"),
+        ("goal-shift", "goal_shift", "explicitly abandoned the in-progress Goal"),
+        ("multi-intent-turn", "payment_instructions_in_one_turn", "missing parameters do not disqualify"),
+        ("false-premise", "false_premise", "incorrect belief about real Fixture state"),
+        ("out-of-scope-drift", "transient_out_of_scope_intent", "subsequently returned"),
+        ("channel-noise", "recovery_requirement", "successfully recovered is irrelevant"),
+        ("ambiguous-reference", "ambiguous_card_reference", "requiring disambiguation rather than elicitation"),
+    ],
+)
+def test_simulator_complication_evidence_criterion_loading(
+    complication: str,
+    evidence_key: str | None,
+    expected_text: str,
+) -> None:
+    evidence = {
+        "knowledge_evidence": {
+            "kind": "material_fluency_gap",
+            "referent": "payment_amount_type",
+        }
+    }
+    if evidence_key is not None:
+        evidence[evidence_key] = "declared-evidence"
+
+    criteria = simulator_compliance_criteria(
+        "low",
+        evidence["knowledge_evidence"],
+        complication,
+        evidence,
+    )
+
+    assert tuple(criterion.id for criterion in criteria) == (
+        SIMULATOR_COMPLIANCE_CRITERION_IDS
+    )
+    descriptions = {criterion.id: criterion.description for criterion in criteria}
+    assert expected_text in descriptions["simulator_complication_evidence"]
+
+
+def test_simulator_goal_persistence_is_complication_aware() -> None:
+    knowledge_evidence = {
+        "kind": "material_fluency_gap",
+        "referent": "payment_amount_type",
+    }
+
+    goal_shift = simulator_compliance_criteria(
+        "low", knowledge_evidence, "goal-shift", {"goal_shift": {}}
+    )
+    drift = simulator_compliance_criteria(
+        "low",
+        knowledge_evidence,
+        "out-of-scope-drift",
+        {"transient_out_of_scope_intent": "change_autopay"},
+    )
+    unchanged = simulator_compliance_criteria(
+        "low", knowledge_evidence, "none", {}
+    )
+    persistence = lambda criteria: next(
+        item.description
+        for item in criteria
+        if item.id == "simulator_goal_persistence"
+    )
+
+    assert "Sharing parameters with the abandoned Goal" in persistence(goal_shift)
+    assert "returned to the original Scenario Goal" in persistence(drift)
+    assert "did not abandon or replace it prematurely" in persistence(unchanged)
+
+
+def test_admitted_ordinal_one_bundle_validates_its_snapshot_criterion_set() -> None:
+    output_root = Path("synthesized_scenarios")
+    candidate_id = (
+        "candidate-4a296207b9dd03895648ada38cfaaa043c2891b04e58b5a92792e3f327d25549"
+    )
+    qualification_id = (
+        "qualification-ad342abf099b6a0267d70883e9f6117104cbdc0edf4b37b62ce4aa94cd4361cd"
+    )
+    candidate = load_candidate(output_root, candidate_id)
+    bundle = output_root / "runs" / qualification_id
+    qualification = json.loads(
+        (bundle / "qualification.json").read_text(encoding="utf-8")
+    )
+
+    episodes = _validate_qualification_evidence(
+        candidate,
+        bundle,
+        output_root,
+        qualification["config_snapshot_hash"],
+        load_reviewed_contracts().hashes,
+        repetitions=3,
+        expected_failure=None,
+        defect_toggles=(),
+    )
+
+    assert len(episodes) == 3
+
+
+def test_new_config_snapshot_records_current_compliance_criterion_set() -> None:
+    snapshot = synthesis_config.create_config_snapshot()
+
+    assert tuple(snapshot.content["simulator_compliance_criterion_ids"]) == (
+        SIMULATOR_COMPLIANCE_CRITERION_IDS
+    )
 
 
 def test_realization_retry_is_separate_from_candidate_replacement_budget(
@@ -1437,6 +1550,8 @@ def test_live_qualification_fails_missing_low_knowledge_evidence(
         expected_failure=None,
         knowledge_level=detection_unproven_blueprint.knowledge_level,
         knowledge_evidence=detection_unproven_blueprint.goal_facts["knowledge_evidence"],
+        complication=detection_unproven_blueprint.complication,
+        complication_evidence=detection_unproven_blueprint.goal_facts,
     )
 
     assert result.kind == "simulator-compliance-fail"
@@ -1508,6 +1623,8 @@ def test_live_qualification_runner_uses_run_scenario_and_compliance_judge(
         knowledge_evidence=detection_unproven_blueprint.goal_facts[
             "knowledge_evidence"
         ],
+        complication=detection_unproven_blueprint.complication,
+        complication_evidence=detection_unproven_blueprint.goal_facts,
     )
 
     assert result.kind == "pass"
@@ -1553,6 +1670,8 @@ def test_live_qualification_runner_rejects_pass_without_judge_rulings(
         knowledge_evidence=detection_unproven_blueprint.goal_facts[
             "knowledge_evidence"
         ],
+        complication=detection_unproven_blueprint.complication,
+        complication_evidence=detection_unproven_blueprint.goal_facts,
     )
 
     assert result.kind == "error"

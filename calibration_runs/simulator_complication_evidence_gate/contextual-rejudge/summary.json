@@ -1,0 +1,33 @@
+{
+  "passed": 5,
+  "results": [
+    {
+      "passed": true,
+      "scenario": "j5-cancel-autopay-pending",
+      "source": "curated/repetition-1/j5-cancel-autopay-pending.json"
+    },
+    {
+      "passed": true,
+      "scenario": "j1-card-switch-stale-options",
+      "source": "curated/repetition-2/j1-card-switch-stale-options.json"
+    },
+    {
+      "passed": true,
+      "scenario": "j5-cancel-autopay-pending",
+      "source": "curated/repetition-2/j5-cancel-autopay-pending.json"
+    },
+    {
+      "passed": true,
+      "scenario": "j5-cancel-autopay-pending",
+      "source": "diagnostics/repetition-0/j5-cancel-autopay-pending.json"
+    },
+    {
+      "passed": true,
+      "scenario": "j1-card-switch-stale-options",
+      "source": "diagnostics/repetition-1/j1-card-switch-stale-options.json"
+    }
+  ],
+  "same_transcript_rejudge": true,
+  "schema_version": 1,
+  "total": 5
+}

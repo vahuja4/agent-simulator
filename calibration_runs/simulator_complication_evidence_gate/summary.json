@@ -1,0 +1,67 @@
+{
+  "admitted_cell": {
+    "failures": [],
+    "passed": 3,
+    "repetitions": 3,
+    "total": 3
+  },
+  "curated": {
+    "completed_episode_count": 35,
+    "failures": [
+      {
+        "repetition": 0,
+        "scenario": "j5-cancel-autopay-pending",
+        "shared_cause": "one of these four active identities received OpenAI 429 credit_balance_exhausted; the other three were cancelled by the fail-fast runner, which did not preserve per-task attribution",
+        "status": "infrastructure-interrupted"
+      },
+      {
+        "repetition": 1,
+        "scenario": "j1-ambiguous-freedom-card",
+        "shared_cause": "one of these four active identities received OpenAI 429 credit_balance_exhausted; the other three were cancelled by the fail-fast runner, which did not preserve per-task attribution",
+        "status": "infrastructure-interrupted"
+      },
+      {
+        "repetition": 1,
+        "scenario": "j1-card-switch-stale-options",
+        "shared_cause": "one of these four active identities received OpenAI 429 credit_balance_exhausted; the other three were cancelled by the fail-fast runner, which did not preserve per-task attribution",
+        "status": "infrastructure-interrupted"
+      },
+      {
+        "repetition": 1,
+        "scenario": "j1-happy-path",
+        "shared_cause": "one of these four active identities received OpenAI 429 credit_balance_exhausted; the other three were cancelled by the fail-fast runner, which did not preserve per-task attribution",
+        "status": "infrastructure-interrupted"
+      },
+      {
+        "repetition": 1,
+        "scenario": "j5-cancel-autopay-pending"
+      },
+      {
+        "repetition": 2,
+        "scenario": "j1-card-switch-stale-options"
+      },
+      {
+        "repetition": 2,
+        "scenario": "j5-cancel-autopay-pending"
+      }
+    ],
+    "infrastructure_interruption_count": 4,
+    "passed": 32,
+    "repetitions": 3,
+    "scenario_count": 13,
+    "total": 39
+  },
+  "defect_toggles": [],
+  "diagnostics": {
+    "not_in_first_pass_denominator": true,
+    "passed": 2,
+    "total": 4
+  },
+  "first_pass_only": true,
+  "model_family_separation_enforced": true,
+  "models": {
+    "judge": "gpt-5.5",
+    "simulator": "gpt-5.6-luna"
+  },
+  "schema_version": 1
+}
