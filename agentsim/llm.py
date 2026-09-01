@@ -74,6 +74,7 @@ async def structured(
     model: str | None = None,
     effort: str = "high",
     max_tokens: int = 8192,
+    usage_records: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     """One OpenAI call constrained to a JSON schema. Returns the parsed object.
 
@@ -104,6 +105,14 @@ async def structured(
             "OpenAI authentication failed. Set OPENAI_API_KEY."
         ) from e
 
+    if usage_records is not None and response.usage is not None:
+        usage_records.append(
+            {
+                "model": model or DEFAULT_MODEL,
+                "usage": response.usage.model_dump(),
+            }
+        )
+
     choice = response.choices[0]
     if choice.message.refusal:
         raise LLMError(f"model refused the request: {choice.message.refusal}")
@@ -124,6 +133,7 @@ class OpenAILLM:
 
     def __init__(self, model: str | None = None) -> None:
         self.model = model or DEFAULT_MODEL
+        self.usage_records: list[dict[str, Any]] = []
 
     async def structured(
         self,
@@ -141,4 +151,5 @@ class OpenAILLM:
             model=self.model,
             effort=effort,
             max_tokens=max_tokens,
+            usage_records=self.usage_records,
         )

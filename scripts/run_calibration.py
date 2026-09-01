@@ -42,6 +42,7 @@ import asyncio
 import json
 import os
 import sys
+from decimal import Decimal
 from pathlib import Path
 
 import yaml
@@ -141,6 +142,76 @@ CURATED_COMPLICATION_EVIDENCE = {
         ),
     },
 }
+
+STANDARD_TOKEN_PRICES_PER_MILLION_USD = {
+    "o3": {
+        "input": Decimal("2.00"),
+        "cached_input": Decimal("0.50"),
+        "output": Decimal("8.00"),
+    },
+    "gpt-5.5": {
+        "input": Decimal("5.00"),
+        "cached_input": Decimal("0.50"),
+        "output": Decimal("30.00"),
+    },
+}
+PRICING_VERIFIED_ON = "2026-09-01"
+PRICING_SOURCE = "https://developers.openai.com/api/docs/pricing"
+
+
+def _role_usage_summary(provider: OpenAILLM) -> dict:
+    rates = STANDARD_TOKEN_PRICES_PER_MILLION_USD[provider.model]
+    input_tokens = 0
+    cached_input_tokens = 0
+    output_tokens = 0
+    for record in provider.usage_records:
+        usage = record["usage"]
+        input_tokens += int(usage.get("prompt_tokens") or 0)
+        output_tokens += int(usage.get("completion_tokens") or 0)
+        details = usage.get("prompt_tokens_details") or {}
+        cached_input_tokens += int(details.get("cached_tokens") or 0)
+    uncached_input_tokens = input_tokens - cached_input_tokens
+    if uncached_input_tokens < 0:
+        raise ValueError("cached input tokens exceed total input tokens")
+    million = Decimal(1_000_000)
+    actual_cost = (
+        Decimal(uncached_input_tokens) * rates["input"]
+        + Decimal(cached_input_tokens) * rates["cached_input"]
+        + Decimal(output_tokens) * rates["output"]
+    ) / million
+    cache_hit_rate = (
+        Decimal(cached_input_tokens) / Decimal(input_tokens)
+        if input_tokens
+        else Decimal(0)
+    )
+    return {
+        "model": provider.model,
+        "call_count": len(provider.usage_records),
+        "input_tokens": input_tokens,
+        "cached_input_tokens": cached_input_tokens,
+        "output_tokens": output_tokens,
+        "cache_hit_rate": f"{cache_hit_rate:.6f}",
+        "actual_cost_usd": f"{actual_cost:.6f}",
+        "calls": provider.usage_records,
+    }
+
+
+def _gate_usage_summary(simulator: OpenAILLM, judge: OpenAILLM) -> dict:
+    simulator_summary = _role_usage_summary(simulator)
+    judge_summary = _role_usage_summary(judge)
+    total = Decimal(simulator_summary["actual_cost_usd"]) + Decimal(
+        judge_summary["actual_cost_usd"]
+    )
+    return {
+        "pricing": {
+            "verified_on": PRICING_VERIFIED_ON,
+            "source": PRICING_SOURCE,
+            "basis": "standard short-context token rates per 1M tokens",
+        },
+        "simulator": simulator_summary,
+        "judge": judge_summary,
+        "total_actual_cost_usd": f"{total:.6f}",
+    }
 
 
 def render_run(scenario: Scenario, result: RunResult) -> str:
@@ -470,6 +541,7 @@ async def _run_simulator_compliance_gate(args) -> int:
             "models": {"simulator": args.simulator_model, "judge": args.model},
             "model_family_separation_enforced": True,
             "persona_fidelity_spot_check": spot_summary,
+            "usage": _gate_usage_summary(simulator_llm, judge_llm),
             "failures": [
                 {
                     "kind": "persona-fidelity-spot-check",
@@ -557,6 +629,7 @@ async def _run_simulator_compliance_gate(args) -> int:
         "models": {"simulator": args.simulator_model, "judge": args.model},
         "model_family_separation_enforced": True,
         "persona_fidelity_spot_check": spot_summary,
+        "usage": _gate_usage_summary(simulator_llm, judge_llm),
         "curated": {
             "scenario_count": 13,
             "repetitions": 3,
@@ -588,6 +661,13 @@ async def _run_simulator_compliance_gate(args) -> int:
         "Knowledge-level criterion is not applicable because curated Scenarios do "
         "not declare a Knowledge level. The synthesized cell was judged on all five.\n\n"
         "No rejudging or replacement Episodes entered either denominator.\n"
+        "\n## Usage and actual cost\n\n"
+        f"Simulator: **${summary['usage']['simulator']['actual_cost_usd']}** "
+        f"across {summary['usage']['simulator']['call_count']} calls.  \n"
+        f"Judge: **${summary['usage']['judge']['actual_cost_usd']}** across "
+        f"{summary['usage']['judge']['call_count']} calls; cached-input token "
+        f"rate **{summary['usage']['judge']['cache_hit_rate']}**.  \n"
+        f"Total: **${summary['usage']['total_actual_cost_usd']}**.\n"
     )
     if failures:
         report += "\n## Failure attribution\n\n" + "\n".join(

@@ -6,7 +6,9 @@ from types import SimpleNamespace
 
 import pytest
 
+from agentsim import llm as llm_module
 from agentsim.live_credit import LiveCreditError, live_credit_preflight
+from agentsim.llm import OpenAILLM
 from agentsim.orchestrator import RunResult
 from agentsim.scenario import ModelFamilySeparationError, load_library
 from agentsim.trace import Trace
@@ -15,6 +17,100 @@ from scenario_synthesis.simulator_compliance import (
     judge_simulator_compliance,
 )
 from scripts import run_calibration
+
+
+async def test_openai_llm_records_successful_call_usage(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    usage = SimpleNamespace(
+        model_dump=lambda: {
+            "prompt_tokens": 1_000,
+            "completion_tokens": 500,
+            "prompt_tokens_details": {"cached_tokens": 400},
+        }
+    )
+    response = SimpleNamespace(
+        usage=usage,
+        choices=[
+            SimpleNamespace(
+                finish_reason="stop",
+                message=SimpleNamespace(
+                    refusal=None,
+                    content='{"answer":"ok"}',
+                ),
+            )
+        ],
+    )
+
+    class Completions:
+        async def create(self, **kwargs):
+            del kwargs
+            return response
+
+    client = SimpleNamespace(
+        chat=SimpleNamespace(completions=Completions()),
+    )
+    monkeypatch.setattr(llm_module, "_get_client", lambda: client)
+    provider = OpenAILLM("o3")
+
+    result = await provider.structured(
+        system="system",
+        messages=[],
+        schema={
+            "type": "object",
+            "properties": {"answer": {"type": "string"}},
+            "required": ["answer"],
+            "additionalProperties": False,
+        },
+    )
+
+    assert result == {"answer": "ok"}
+    assert provider.usage_records == [
+        {
+            "model": "o3",
+            "usage": {
+                "prompt_tokens": 1_000,
+                "completion_tokens": 500,
+                "prompt_tokens_details": {"cached_tokens": 400},
+            },
+        }
+    ]
+
+
+def test_gate_role_usage_reports_actual_cost_and_judge_cache_hit_rate() -> None:
+    simulator = SimpleNamespace(
+        model="o3",
+        usage_records=[
+            {
+                "model": "o3",
+                "usage": {
+                    "prompt_tokens": 1_000,
+                    "completion_tokens": 500,
+                    "prompt_tokens_details": {"cached_tokens": 400},
+                },
+            }
+        ],
+    )
+    judge = SimpleNamespace(
+        model="gpt-5.5",
+        usage_records=[
+            {
+                "model": "gpt-5.5",
+                "usage": {
+                    "prompt_tokens": 2_000,
+                    "completion_tokens": 100,
+                    "prompt_tokens_details": {"cached_tokens": 500},
+                },
+            }
+        ],
+    )
+
+    usage = run_calibration._gate_usage_summary(simulator, judge)
+
+    assert usage["simulator"]["actual_cost_usd"] == "0.005400"
+    assert usage["judge"]["actual_cost_usd"] == "0.010750"
+    assert usage["judge"]["cache_hit_rate"] == "0.250000"
+    assert usage["total_actual_cost_usd"] == "0.016150"
 
 
 def test_live_credit_floor_must_strictly_exceed_usd_cost_ceiling() -> None:
