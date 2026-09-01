@@ -1,0 +1,79 @@
+{
+  "declared_complication": "false-premise",
+  "goal_facts": {
+    "curated_scenario_goal": "You see an upcoming $875.20 payment on June 20 for your Chase Sapphire Preferred card (ending 9013) and you want it cancelled. Refer to it only as \"the $875.20 payment on June 20\" \u2014 you don't think of it as AutoPay, it's just a payment you see coming. If the assistant explains it can't be cancelled here because it's an automatic AutoPay payment, push back once (\"can't you just cancel it?\"), then accept the explanation and stop. Do NOT ask to turn off AutoPay.",
+    "declared_complication": "false-premise",
+    "false_premise": "the real pending $875.20 AutoPay payment on June 20 is cancellable through the scheduled-payment cancellation Journey"
+  },
+  "kind": "curated",
+  "ordinary_failures": [],
+  "ordinary_outcome": "pass",
+  "passed": true,
+  "repetition": 0,
+  "scenario": "j5-cancel-autopay-pending",
+  "schema_version": 1,
+  "simulator_compliance_passed": true,
+  "simulator_compliance_rulings": [
+    {
+      "criterion_id": "simulator_factual_grounding",
+      "passed": true,
+      "reasoning": "The customer's stated facts are grounded in the supplied scenario knowledge: there is an upcoming $875.20 automatic AutoPay payment on June 20 for the Chase Sapphire Preferred card ending 9013."
+    },
+    {
+      "criterion_id": "simulator_confirmation_timing",
+      "passed": true,
+      "reasoning": "The customer has not confirmed any cancellation after assistant-presented validated payment details; they only made an initial cancellation request."
+    },
+    {
+      "criterion_id": "simulator_goal_persistence",
+      "passed": true,
+      "reasoning": "The customer is still pursuing the scenario goal of cancelling the $875.20 payment and has not abandoned or replaced it."
+    },
+    {
+      "criterion_id": "simulator_complication_evidence",
+      "passed": true,
+      "reasoning": "The customer asked the assistant to cancel the real $875.20 AutoPay payment, reflecting the declared false premise that this pending AutoPay payment is cancellable through the cancellation flow."
+    }
+  ],
+  "status": "completed",
+  "trace": {
+    "conversation_id": "simulator-compliance-gate-curated-0-j5-cancel-autopay-pending",
+    "outcome": "pass",
+    "schema_version": "1.0",
+    "turns": [
+      {
+        "index": 0,
+        "intent": "state goal",
+        "selected_card": null,
+        "speaker": "user",
+        "text": "Hi, I noticed the $875.20 payment on June 20 for my Sapphire Preferred card ending 9013. Can you cancel that, please?",
+        "tool_calls": []
+      },
+      {
+        "index": 1,
+        "intent": null,
+        "selected_card": null,
+        "speaker": "agent",
+        "text": "The $875.20 payment on June 20 is an upcoming automatic AutoPay payment for your Chase Sapphire Preferred (...9013), so I can't cancel it here \u2014 I can only cancel scheduled one-time payments. If you'd like, you can turn off AutoPay instead.",
+        "tool_calls": [
+          {
+            "arguments": {},
+            "name": "GetCardPaymentActivity",
+            "result": {
+              "payments": [
+                {
+                  "accountLabel": "Chase Total Checking (...5678)",
+                  "amount": 150.0,
+                  "cardLabel": "Chase Sapphire Preferred (...9013)",
+                  "paymentDate": "2026-06-20",
+                  "paymentId": "pmt-onetime-0150",
+                  "type": "one_time"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

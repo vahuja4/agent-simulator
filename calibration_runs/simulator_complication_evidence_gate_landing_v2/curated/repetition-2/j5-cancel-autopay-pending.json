@@ -1,0 +1,9 @@
+{
+  "error": "CancelledError: ",
+  "kind": "curated",
+  "passed": false,
+  "repetition": 2,
+  "scenario": "j5-cancel-autopay-pending",
+  "schema_version": 1,
+  "status": "infrastructure-interrupted"
+}

@@ -1,0 +1,253 @@
+{
+  "declared_complication": "none",
+  "goal_facts": {
+    "curated_scenario_goal": "Change the AutoPay on your Chase Sapphire Preferred card (ending 9013) to a fixed amount of $25.00 each month, keeping payments from your Chase Total Checking account. You know $25.00 is less than the minimum due; if the assistant warns you about that, acknowledge it and continue anyway. Confirm the update when the details match, then stop.",
+    "declared_complication": "none"
+  },
+  "kind": "curated",
+  "ordinary_failures": [],
+  "ordinary_outcome": "pass",
+  "passed": true,
+  "repetition": 0,
+  "scenario": "j3-below-minimum-fixed-autopay",
+  "schema_version": 1,
+  "simulator_compliance_passed": true,
+  "simulator_compliance_rulings": [
+    {
+      "criterion_id": "simulator_factual_grounding",
+      "passed": true,
+      "reasoning": "All customer-stated facts are grounded in the scenario evidence: the Chase Sapphire Preferred card ending 9013, Chase Total Checking ending 5678, the requested fixed AutoPay amount of $25.00, and the below-minimum warning context are all present in the goal/supplied knowledge or confirmed by tool history."
+    },
+    {
+      "criterion_id": "simulator_confirmation_timing",
+      "passed": true,
+      "reasoning": "The customer did not give final confirmation until turn 8, after the assistant presented the validated AutoPay details in turn 7 and explicitly asked for confirmation. The earlier turn 6 response was an acknowledgment of the warning and instruction to continue, as required by the scenario, not premature final confirmation."
+    },
+    {
+      "criterion_id": "simulator_goal_persistence",
+      "passed": true,
+      "reasoning": "The customer consistently pursued the declared goal: changing AutoPay on the Chase Sapphire Preferred ending 9013 to a fixed $25.00 monthly payment from Chase Total Checking. The customer did not abandon or replace the goal."
+    },
+    {
+      "criterion_id": "simulator_complication_evidence",
+      "passed": true,
+      "reasoning": "The scenario declares no complication, so this criterion passes vacuously."
+    }
+  ],
+  "status": "completed",
+  "trace": {
+    "conversation_id": "simulator-compliance-gate-curated-0-j3-below-minimum-fixed-autopay",
+    "outcome": "pass",
+    "schema_version": "1.0",
+    "turns": [
+      {
+        "index": 0,
+        "intent": "state goal",
+        "selected_card": null,
+        "speaker": "user",
+        "text": "Hi there! I want to change the AutoPay on my Sapphire Preferred (ending 9013) to a fixed $25 every month, and still have it come from my Chase Total Checking. Can you help me with that?",
+        "tool_calls": []
+      },
+      {
+        "index": 1,
+        "intent": null,
+        "selected_card": "Chase Sapphire Preferred (...9013)",
+        "speaker": "agent",
+        "text": "Here's your current AutoPay for your Chase Sapphire Preferred (...9013): it pays the statement balance from your Chase Total Checking (...5678) on your statement due date \u2014 the next payment is June 20, 2026. If your due date falls on a Saturday, we'll make the payment on the Friday before. Would you like to edit your automatic payments?",
+        "tool_calls": [
+          {
+            "arguments": {},
+            "name": "ModifyAutoPayPayeeList",
+            "result": {
+              "payees": [
+                {
+                  "mask": "9013",
+                  "name": "Chase Sapphire Preferred",
+                  "payeeId": "card-sapphire-9013",
+                  "repeatingModelId": "rpm-sapphire-0001"
+                }
+              ]
+            }
+          },
+          {
+            "arguments": {
+              "payeeId": "card-sapphire-9013"
+            },
+            "name": "GetAutoPayStatus",
+            "result": {
+              "accountLabel": "Chase Total Checking (...5678)",
+              "fixedAmount": null,
+              "nextPaymentDate": "2026-06-20",
+              "paymentType": "statement_balance",
+              "paymentTypeLabel": "Statement balance",
+              "repeatingModelId": "rpm-sapphire-0001"
+            }
+          }
+        ]
+      },
+      {
+        "index": 2,
+        "intent": "answer question",
+        "selected_card": "Chase Sapphire Preferred (...9013)",
+        "speaker": "user",
+        "text": "Yes, I\u2019d like to switch it to a fixed $25 payment each month.",
+        "tool_calls": []
+      },
+      {
+        "index": 3,
+        "intent": null,
+        "selected_card": "Chase Sapphire Preferred (...9013)",
+        "speaker": "agent",
+        "text": "Should the payments keep coming from your Chase Total Checking (...5678), or a different account?",
+        "tool_calls": [
+          {
+            "arguments": {
+              "payeeId": "card-sapphire-9013",
+              "repeatingModelId": "rpm-sapphire-0001"
+            },
+            "name": "UpdateAutoPayOptions",
+            "result": {
+              "dueDate": "2026-06-20",
+              "options": [
+                {
+                  "amount": 40.0,
+                  "label": "Minimum payment due",
+                  "optionId": "minimum_due"
+                },
+                {
+                  "amount": 875.2,
+                  "label": "Statement balance",
+                  "optionId": "statement_balance"
+                },
+                {
+                  "amount": null,
+                  "label": "Fixed amount",
+                  "optionId": "fixed"
+                }
+              ],
+              "token": "aptoken-form-0001"
+            }
+          }
+        ]
+      },
+      {
+        "index": 4,
+        "intent": "answer question",
+        "selected_card": "Chase Sapphire Preferred (...9013)",
+        "speaker": "user",
+        "text": "Yes, please keep using my Chase Total Checking (...5678).",
+        "tool_calls": []
+      },
+      {
+        "index": 5,
+        "intent": null,
+        "selected_card": "Chase Sapphire Preferred (...9013)",
+        "speaker": "agent",
+        "text": "One thing to flag: $25.00 is below your current minimum payment due of $40.00, and your minimum due can change from month to month. Do you want to continue with that fixed amount anyway?",
+        "tool_calls": [
+          {
+            "arguments": {
+              "accountId": "acct-chase-checking-5678",
+              "acknowledgedWarnings": false,
+              "fixedAmount": 25.0,
+              "payeeId": "card-sapphire-9013",
+              "paymentType": "fixed",
+              "repeatingModelId": "rpm-sapphire-0001",
+              "token": "aptoken-form-0001"
+            },
+            "name": "UpdateValidateAutoPay",
+            "result": {
+              "status": "warning",
+              "warnings": [
+                "Fixed amount $25.00 is below the current minimum payment due $40.00."
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "index": 6,
+        "intent": "answer question",
+        "selected_card": "Chase Sapphire Preferred (...9013)",
+        "speaker": "user",
+        "text": "Yes, I understand. Please proceed with the $25 fixed AutoPay.",
+        "tool_calls": []
+      },
+      {
+        "index": 7,
+        "intent": null,
+        "selected_card": "Chase Sapphire Preferred (...9013)",
+        "speaker": "agent",
+        "text": "Here's the update: AutoPay on your Chase Sapphire Preferred (...9013) will pay a fixed amount of $25.00 from your Chase Total Checking (...5678) on your statement due date each month. Remember your minimum payment due can change from month to month. Confirm AutoPay update?",
+        "tool_calls": [
+          {
+            "arguments": {
+              "accountId": "acct-chase-checking-5678",
+              "acknowledgedWarnings": true,
+              "fixedAmount": 25.0,
+              "payeeId": "card-sapphire-9013",
+              "paymentType": "fixed",
+              "repeatingModelId": "rpm-sapphire-0001",
+              "token": "aptoken-form-0001"
+            },
+            "name": "UpdateValidateAutoPay",
+            "result": {
+              "formId": "form-0002",
+              "pendingAutoPayUpdate": {
+                "accountLabel": "Chase Total Checking (...5678)",
+                "cardLabel": "Chase Sapphire Preferred (...9013)",
+                "fixedAmount": 25.0,
+                "formId": "form-0002",
+                "paymentType": "fixed",
+                "paymentTypeLabel": "Fixed amount",
+                "repeatingModelId": "rpm-sapphire-0001",
+                "token": "aptoken-form-0001"
+              },
+              "status": "ready"
+            }
+          }
+        ]
+      },
+      {
+        "index": 8,
+        "intent": "confirm",
+        "selected_card": "Chase Sapphire Preferred (...9013)",
+        "speaker": "user",
+        "text": "Yes, please confirm the update.",
+        "tool_calls": []
+      },
+      {
+        "index": 9,
+        "intent": null,
+        "selected_card": "Chase Sapphire Preferred (...9013)",
+        "speaker": "agent",
+        "text": "Done \u2014 your AutoPay on your Chase Sapphire Preferred (...9013) is updated: it will pay a fixed amount of $25.00 from your Chase Total Checking (...5678) on your statement due date each month. You'll receive a confirmation email.",
+        "tool_calls": [
+          {
+            "arguments": {
+              "formId": "form-0002",
+              "repeatingModelId": "rpm-sapphire-0001",
+              "token": "aptoken-form-0001"
+            },
+            "name": "UpdateAutoPay",
+            "result": {
+              "autoPayUpdate": {
+                "accountLabel": "Chase Total Checking (...5678)",
+                "cardLabel": "Chase Sapphire Preferred (...9013)",
+                "fixedAmount": 25.0,
+                "formId": "form-0002",
+                "paymentType": "fixed",
+                "paymentTypeLabel": "Fixed amount",
+                "repeatingModelId": "rpm-sapphire-0001",
+                "token": "aptoken-form-0001"
+              },
+              "repeatingModelId": "rpm-sapphire-0001",
+              "status": "UPDATED",
+              "success": true
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

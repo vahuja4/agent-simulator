@@ -1,0 +1,3 @@
+# Incomplete complication-compliance gate
+
+This directory preserves the first landing attempt, whose prerequisite Persona-fidelity spot-check ended in a network error before the denominator started. Together with the successor `simulator_complication_evidence_gate_landing_v2` attempt, this gate is incomplete: 16 of 42 denominator Episodes completed and the remainder were interrupted by network errors. The gate was abandoned under the pilot-composition amendment. Its successor surfaced the J3-only `j3-happy-path` `tool_output_truth` finding in which the mock stated current AutoPay status without `GetAutoPayStatus`; that suspected regression from `8097b20` is ledgered as M-017 and is not fixed here.

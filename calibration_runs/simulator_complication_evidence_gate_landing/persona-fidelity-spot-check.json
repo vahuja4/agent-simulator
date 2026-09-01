@@ -1,0 +1,6 @@
+{
+  "model": "o3",
+  "passed": false,
+  "reason": "spot-check Episode or compliance failed",
+  "schema_version": 1
+}

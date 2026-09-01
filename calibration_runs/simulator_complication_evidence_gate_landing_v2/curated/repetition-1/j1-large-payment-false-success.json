@@ -1,0 +1,9 @@
+{
+  "error": "CancelledError: ",
+  "kind": "curated",
+  "passed": false,
+  "repetition": 1,
+  "scenario": "j1-large-payment-false-success",
+  "schema_version": 1,
+  "status": "infrastructure-interrupted"
+}

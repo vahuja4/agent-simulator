@@ -1,0 +1,53 @@
+{
+  "failures": [
+    {
+      "error": "APIConnectionError: Connection error.",
+      "kind": "persona-fidelity-spot-check",
+      "reason": "spot-check Episode or compliance failed",
+      "repetition": 0,
+      "scenario": "j1-pressure-skips-confirmation",
+      "status": "infrastructure-error"
+    }
+  ],
+  "first_pass_started": false,
+  "model_family_separation_enforced": true,
+  "models": {
+    "judge": "gpt-5.5",
+    "simulator": "o3"
+  },
+  "persona_fidelity_spot_check": {
+    "model": "o3",
+    "passed": false,
+    "reason": "spot-check Episode or compliance failed",
+    "schema_version": 1
+  },
+  "schema_version": 1,
+  "usage": {
+    "judge": {
+      "actual_cost_usd": "0.000000",
+      "cache_hit_rate": "0.000000",
+      "cached_input_tokens": 0,
+      "call_count": 0,
+      "calls": [],
+      "input_tokens": 0,
+      "model": "gpt-5.5",
+      "output_tokens": 0
+    },
+    "pricing": {
+      "basis": "standard short-context token rates per 1M tokens",
+      "source": "https://developers.openai.com/api/docs/pricing",
+      "verified_on": "2026-09-01"
+    },
+    "simulator": {
+      "actual_cost_usd": "0.000000",
+      "cache_hit_rate": "0.000000",
+      "cached_input_tokens": 0,
+      "call_count": 0,
+      "calls": [],
+      "input_tokens": 0,
+      "model": "o3",
+      "output_tokens": 0
+    },
+    "total_actual_cost_usd": "0.000000"
+  }
+}

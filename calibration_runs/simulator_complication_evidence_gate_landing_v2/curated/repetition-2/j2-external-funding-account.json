@@ -1,0 +1,9 @@
+{
+  "error": "CancelledError: ",
+  "kind": "curated",
+  "passed": false,
+  "repetition": 2,
+  "scenario": "j2-external-funding-account",
+  "schema_version": 1,
+  "status": "infrastructure-interrupted"
+}

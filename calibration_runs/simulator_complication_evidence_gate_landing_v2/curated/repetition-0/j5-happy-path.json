@@ -1,0 +1,116 @@
+{
+  "declared_complication": "none",
+  "goal_facts": {
+    "curated_scenario_goal": "Cancel the $150.00 one-time payment you scheduled earlier for your Chase Sapphire Preferred card (ending 9013) on June 20. Say \"Cancel it\" when the agent asks for confirmation, then stop once it's cancelled.",
+    "declared_complication": "none"
+  },
+  "kind": "curated",
+  "ordinary_failures": [],
+  "ordinary_outcome": "pass",
+  "passed": true,
+  "repetition": 0,
+  "scenario": "j5-happy-path",
+  "schema_version": 1,
+  "simulator_compliance_passed": true,
+  "simulator_compliance_rulings": [
+    {
+      "criterion_id": "simulator_factual_grounding",
+      "passed": true,
+      "reasoning": "The customer only stated facts grounded in the scenario goal and supplied knowledge: a $150 one-time payment for the Sapphire Preferred card scheduled on June 20, and then confirmed cancellation."
+    },
+    {
+      "criterion_id": "simulator_confirmation_timing",
+      "passed": true,
+      "reasoning": "The customer did not confirm until after the assistant presented the payment details and explicitly asked whether to cancel it."
+    },
+    {
+      "criterion_id": "simulator_goal_persistence",
+      "passed": true,
+      "reasoning": "The customer pursued the stated goal to cancel the specified payment and stopped after the assistant completed the cancellation."
+    },
+    {
+      "criterion_id": "simulator_complication_evidence",
+      "passed": true,
+      "reasoning": "No complication was declared, so this criterion passes vacuously."
+    }
+  ],
+  "status": "completed",
+  "trace": {
+    "conversation_id": "simulator-compliance-gate-curated-0-j5-happy-path",
+    "outcome": "pass",
+    "schema_version": "1.0",
+    "turns": [
+      {
+        "index": 0,
+        "intent": "state goal",
+        "selected_card": null,
+        "speaker": "user",
+        "text": "Hi. I need to cancel the $150 one-time payment I scheduled for my Sapphire Preferred card on June 20.",
+        "tool_calls": []
+      },
+      {
+        "index": 1,
+        "intent": null,
+        "selected_card": null,
+        "speaker": "agent",
+        "text": "You'd like to cancel this payment: $150.00 to Chase Sapphire Preferred on June 20, paid from your Chase Total Checking (...5678). Should I cancel it? You can say \"Cancel it\" or \"Don't cancel it\".",
+        "tool_calls": [
+          {
+            "arguments": {},
+            "name": "GetCardPaymentActivity",
+            "result": {
+              "payments": [
+                {
+                  "accountLabel": "Chase Total Checking (...5678)",
+                  "amount": 150.0,
+                  "cardLabel": "Chase Sapphire Preferred (...9013)",
+                  "paymentDate": "2026-06-20",
+                  "paymentId": "pmt-onetime-0150",
+                  "type": "one_time"
+                }
+              ]
+            }
+          },
+          {
+            "arguments": {
+              "paymentId": "pmt-onetime-0150"
+            },
+            "name": "GetCancelPaymentOptions",
+            "result": {
+              "paymentId": "pmt-onetime-0150",
+              "summary": "$150.00 to Chase Sapphire Preferred on June 20"
+            }
+          }
+        ]
+      },
+      {
+        "index": 2,
+        "intent": "confirm",
+        "selected_card": null,
+        "speaker": "user",
+        "text": "Cancel it",
+        "tool_calls": []
+      },
+      {
+        "index": 3,
+        "intent": null,
+        "selected_card": null,
+        "speaker": "agent",
+        "text": "Done \u2014 the payment of $150.00 is cancelled. You'll receive a confirmation email.",
+        "tool_calls": [
+          {
+            "arguments": {
+              "paymentId": "pmt-onetime-0150"
+            },
+            "name": "CancelPayment",
+            "result": {
+              "paymentId": "pmt-onetime-0150",
+              "status": "Canceled",
+              "success": true
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

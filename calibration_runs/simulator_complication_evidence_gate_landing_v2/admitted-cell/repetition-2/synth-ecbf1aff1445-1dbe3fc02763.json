@@ -1,0 +1,9 @@
+{
+  "error": "CancelledError: ",
+  "kind": "admitted-cell",
+  "passed": false,
+  "repetition": 2,
+  "scenario": "synth-ecbf1aff1445-1dbe3fc02763",
+  "schema_version": 1,
+  "status": "infrastructure-interrupted"
+}
