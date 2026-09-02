@@ -1,0 +1,30 @@
+{
+  "rulings": [
+    {
+      "criterion_id": "simulator_factual_grounding",
+      "passed": true,
+      "reasoning": "The customer only referenced facts available in the scenario/supplied knowledge: card ...9013, funding account ...5678, later card ...0767, and the due date of June 25, 2026. They did not state any invented balances, amounts, or prior actions."
+    },
+    {
+      "criterion_id": "simulator_confirmation_timing",
+      "passed": true,
+      "reasoning": "The customer has not yet clearly confirmed or authorized scheduling the payment. They only provided the payment date after the assistant asked for it."
+    },
+    {
+      "criterion_id": "simulator_goal_persistence",
+      "passed": false,
+      "reasoning": "The declared goal/complication requires correcting the amount type from statement balance to minimum due, but the customer instead continued to ask for the 'usual statement amount' after correcting the card. This does not preserve the intended payment-amount goal."
+    },
+    {
+      "criterion_id": "simulator_knowledge_level_evidence",
+      "passed": true,
+      "reasoning": "The customer exhibited a material fluency gap about payment amount type by asking for 'the usual amount' rather than using a valid payment option label, requiring the assistant to present/explain the available amount options."
+    },
+    {
+      "criterion_id": "simulator_complication_evidence",
+      "passed": false,
+      "reasoning": "The declared mid-conversation correction was specifically amount_type from statement_balance to minimum_due. That did not occur: the customer corrected the card to ...0767 but said they wanted to pay the 'usual statement amount,' not the minimum due."
+    }
+  ],
+  "schema_version": 1
+}

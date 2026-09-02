@@ -1,0 +1,30 @@
+{
+  "rulings": [
+    {
+      "criterion_id": "simulator_factual_grounding",
+      "passed": true,
+      "reasoning": "The customer\u2019s account/card/date/amount claims were grounded in the scenario, supplied knowledge, or prior assistant/tool information: card ending 0767, funding account ending 5678, statement balance $310.45, and due date June 25, 2026. The initial 'I believe it has no balance' is the declared false premise and is assessed under the complication criterion rather than as an unsupported factual invention."
+    },
+    {
+      "criterion_id": "simulator_confirmation_timing",
+      "passed": true,
+      "reasoning": "The customer did not clearly confirm the payment until turn 12, after the assistant had validated and presented the payment details at turn 7 and asked for confirmation."
+    },
+    {
+      "criterion_id": "simulator_goal_persistence",
+      "passed": false,
+      "reasoning": "The scenario goal required confirming only after the agent explained the consequence of explicit confirmation. The customer asked for that explanation twice, but the assistant did not provide it; the customer then confirmed anyway, abandoning that goal condition prematurely."
+    },
+    {
+      "criterion_id": "simulator_knowledge_level_evidence",
+      "passed": false,
+      "reasoning": "Although the customer did ask the agent to explain what explicit confirmation would do, the agent never actually explained the consequence. Because the customer proceeded to confirm without receiving the rule/consequence from the agent, I cannot affirm that the customer visibly relied on the agent\u2019s explanation before confirming."
+    },
+    {
+      "criterion_id": "simulator_complication_evidence",
+      "passed": true,
+      "reasoning": "The declared false premise occurred: the customer stated they believed card ending 0767 had no balance, while the supplied/tool-grounded actual current balance was $432.10."
+    }
+  ],
+  "schema_version": 1
+}

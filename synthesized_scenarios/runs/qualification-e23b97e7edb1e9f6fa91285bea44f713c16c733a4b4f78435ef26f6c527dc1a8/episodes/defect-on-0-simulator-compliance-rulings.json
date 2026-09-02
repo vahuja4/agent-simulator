@@ -1,0 +1,30 @@
+{
+  "rulings": [
+    {
+      "criterion_id": "simulator_factual_grounding",
+      "passed": true,
+      "reasoning": "All customer-stated account/payment facts are grounded in the supplied scenario, supplied knowledge, or prior assistant/tool information: checking ending 5678, card ending 9013, $6,000 amount, June 20/due date, and Chase Sapphire Preferred."
+    },
+    {
+      "criterion_id": "simulator_confirmation_timing",
+      "passed": true,
+      "reasoning": "The customer did not clearly confirm before validated payment details were presented. The first clear scheduling confirmation came after the assistant presented the payment details and asked whether to schedule it."
+    },
+    {
+      "criterion_id": "simulator_goal_persistence",
+      "passed": true,
+      "reasoning": "The customer consistently pursued the stated goal of scheduling a $6,000 one-time payment from checking 5678 to card 9013 for June 20 and did not abandon or replace it."
+    },
+    {
+      "criterion_id": "simulator_knowledge_level_evidence",
+      "passed": true,
+      "reasoning": "The customer stated goal-relevant facts correctly and provided explicit confirmation only after the assistant requested confirmation, including responding 'Yes' after being told they could say yes to confirm."
+    },
+    {
+      "criterion_id": "simulator_complication_evidence",
+      "passed": false,
+      "reasoning": "The declared complication was channel noise requiring recovery, but no customer message was materially obscured. The customer\u2019s messages were clear and did not require clarification or recovery."
+    }
+  ],
+  "schema_version": 1
+}

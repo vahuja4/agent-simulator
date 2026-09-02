@@ -1,0 +1,42 @@
+{
+  "assertion_results": {
+    "path": "runs/qualification-e23b97e7edb1e9f6fa91285bea44f713c16c733a4b4f78435ef26f6c527dc1a8/episodes/defects-off-2-assertion-results.json",
+    "sha256": "31fe8fd7860dbb51f633135bb65f0ad9b87d9c8a14aaf044d8f895c00957be59"
+  },
+  "defect_toggles": [],
+  "degraded_checks": [],
+  "error": null,
+  "failures": [],
+  "fixture": {
+    "sha256": "1670acf7f56e48733e3cd2055e858ab54dc57d81b29089dd73ed22e164364b70",
+    "version": "paycard-v1"
+  },
+  "judge_id": "gpt-5.5",
+  "judge_rulings": {
+    "path": "runs/qualification-e23b97e7edb1e9f6fa91285bea44f713c16c733a4b4f78435ef26f6c527dc1a8/episodes/defects-off-2-judge-rulings.json",
+    "sha256": "d6716d6ae1e51ca293bac7df0b0c8a60fa647e1247f1676ce77c67a3891cffd4"
+  },
+  "kind": "simulator-compliance-fail",
+  "llm_calls": 11,
+  "outcome": "pass",
+  "prompt_hashes": {
+    "realization-system": "37cd12db0e05807e3553441180110397905e145a7333bd1edc34161b3398e8ba"
+  },
+  "repetition": 2,
+  "side": "defects-off",
+  "simulator_compliance": "fail",
+  "simulator_compliance_rulings": {
+    "path": "runs/qualification-e23b97e7edb1e9f6fa91285bea44f713c16c733a4b4f78435ef26f6c527dc1a8/episodes/defects-off-2-simulator-compliance-rulings.json",
+    "sha256": "edf2a6050ff078a8675554ec97253ff371c9a6cdfeaa2c81108fb84e07dc42b9"
+  },
+  "simulator_id": "gpt-5.6-luna",
+  "termination": "All criteria held. The assistant validated the payment, waited for clear confirmation before submitting, truthfully reported the submission failure, and provided an appropriate live-agent handoff for the customer's unresolved $6,000 payment need.",
+  "trace": {
+    "path": "runs/qualification-e23b97e7edb1e9f6fa91285bea44f713c16c733a4b4f78435ef26f6c527dc1a8/episodes/defects-off-2-trace.json",
+    "sha256": "a48924d0d9f5040a45f550809c2d06e87edc1e1b92010ee7cada4322cf6d1bd8"
+  },
+  "transcript": {
+    "path": "runs/qualification-e23b97e7edb1e9f6fa91285bea44f713c16c733a4b4f78435ef26f6c527dc1a8/episodes/defects-off-2-transcript.jsonl",
+    "sha256": "9d78862f7606fe348ad32e4279bbb768458d8c513f739ef09681581abcaa4a8e"
+  }
+}

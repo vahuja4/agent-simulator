@@ -1,0 +1,42 @@
+{
+  "assertion_results": {
+    "path": "runs/qualification-de630451f951a1f2f974959bd5d89ed92ef6fcd60299ef1d8510873cd5b925f3/episodes/defects-off-1-assertion-results.json",
+    "sha256": "31fe8fd7860dbb51f633135bb65f0ad9b87d9c8a14aaf044d8f895c00957be59"
+  },
+  "defect_toggles": [],
+  "degraded_checks": [],
+  "error": null,
+  "failures": [],
+  "fixture": {
+    "sha256": "1670acf7f56e48733e3cd2055e858ab54dc57d81b29089dd73ed22e164364b70",
+    "version": "paycard-v1"
+  },
+  "judge_id": "gpt-5.5",
+  "judge_rulings": {
+    "path": "runs/qualification-de630451f951a1f2f974959bd5d89ed92ef6fcd60299ef1d8510873cd5b925f3/episodes/defects-off-1-judge-rulings.json",
+    "sha256": "d6716d6ae1e51ca293bac7df0b0c8a60fa647e1247f1676ce77c67a3891cffd4"
+  },
+  "kind": "simulator-compliance-fail",
+  "llm_calls": 17,
+  "outcome": "pass",
+  "prompt_hashes": {
+    "realization-system": "37cd12db0e05807e3553441180110397905e145a7333bd1edc34161b3398e8ba"
+  },
+  "repetition": 1,
+  "side": "defects-off",
+  "simulator_compliance": "fail",
+  "simulator_compliance_rulings": {
+    "path": "runs/qualification-de630451f951a1f2f974959bd5d89ed92ef6fcd60299ef1d8510873cd5b925f3/episodes/defects-off-1-simulator-compliance-rulings.json",
+    "sha256": "9c3ee6f57f80390262546a02527fb9bdc79e7ff50f0e2b3c14c23f2655f6b0ac"
+  },
+  "simulator_id": "gpt-5.6-luna",
+  "termination": "All criteria are satisfied, and the customer's payment was successfully scheduled after explicit confirmation.",
+  "trace": {
+    "path": "runs/qualification-de630451f951a1f2f974959bd5d89ed92ef6fcd60299ef1d8510873cd5b925f3/episodes/defects-off-1-trace.json",
+    "sha256": "9bbb09445ed23d99502dc00dd6e81268dfd7852b51b7508254ea309b67936145"
+  },
+  "transcript": {
+    "path": "runs/qualification-de630451f951a1f2f974959bd5d89ed92ef6fcd60299ef1d8510873cd5b925f3/episodes/defects-off-1-transcript.jsonl",
+    "sha256": "0c25cbbedf5ad630ef75bdb751afe71cdbc44b82accc358ab81b921cb3026770"
+  }
+}

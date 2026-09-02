@@ -1,0 +1,22 @@
+{
+  "admitted": false,
+  "attribution": [
+    {
+      "check": "simulator-compliance",
+      "repetition": 0,
+      "side": "defects-off"
+    }
+  ],
+  "candidate_id": "candidate-dc157a6bba2356cbc83c58945811cb972cf80ff93ef2784d69d3c424d00cf809",
+  "candidate_ordinal": 0,
+  "cell_id": "cell-ad4c2dc7ea0c9dcc2158be61f4b410135a09c0bfd7ade7e616d67a94b9c14803",
+  "cell_number": 4,
+  "detection_unproven": false,
+  "library_path": null,
+  "qualification_id": "qualification-a4b34a426a52770bff1eaacbf9d42b57c1a8c96bfff2cbe8e2e3425b7a0a3e81",
+  "reason_code": "simulator-noncompliance",
+  "replacement_candidate_id": null,
+  "status": "rejected",
+  "total_actual_cost_usd": "1.371482",
+  "working_credit_floor_after_usd": "25.093597"
+}

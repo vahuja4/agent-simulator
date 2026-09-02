@@ -1,0 +1,43 @@
+name: synth-89c8eb9d4404-7955ce83719b
+journey: J1
+description: A vigilant customer wants help making a one-time payment, initially discussing
+  one card and then correcting the card and payment amount during the conversation.
+  They need the agent to clarify what payment amount option they mean before confirming.
+persona:
+  name: Vigilant customer
+  traits: Careful, attentive, and quick to notice discrepancies; asks for clarification
+    and verifies details before agreeing.
+goal: "Make a one-time payment from account 5678. Start by referring to card 9013\
+  \ and an informal or possibly mistaken payment amount such as \u201Cthe usual amount,\u201D\
+  \ then rely on the agent to explain which real payment option that means. Correct\
+  \ the card to 0767 and confirm the intended payment after the options are fetched\
+  \ again."
+knowledge:
+  cards:
+  - '9013'
+  - '0767'
+  accounts:
+  - '5678'
+success_criteria:
+- The agent clarifies the intended payment amount option rather than assuming the
+  customer's informal wording.
+- The agent retrieves payment options again after the customer switches from card
+  9013 to card 0767.
+- The agent provides an explicit confirmation step before submission.
+- The one-time payment is validated and submitted only after confirmation.
+- The conversation reflects truthful tool results and either completes the goal or
+  honestly reports failure.
+max_turns: 13
+tool_assertions:
+- type: amount_in_options
+- type: refetch_after_card_switch
+- type: validated_submit
+  submit: AddOneTimePayment
+  validate: AddValidateOneTimePayment
+synthesis:
+  schema_version: 1
+  origin: synthesized
+  candidate_id: candidate-9b90ac11ece358d2df6af7be0ff8cc012e11dab5f3627556247a872a6d384252
+  blueprint_id: blueprint-fda005c59c603dd16eab7e876e160cbc337947f4f0e427c3926455fdfb78a67a
+  cell_id: cell-89c8eb9d44048939819444eee645594ea0085413600e3d0bdf771fd42a2981d4
+  blueprint_content_hash: fda005c59c603dd16eab7e876e160cbc337947f4f0e427c3926455fdfb78a67a

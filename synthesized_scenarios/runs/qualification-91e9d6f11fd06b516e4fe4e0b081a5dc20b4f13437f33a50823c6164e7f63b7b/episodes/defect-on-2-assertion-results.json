@@ -1,0 +1,17 @@
+{
+  "results": [
+    {
+      "id": "amount_in_options",
+      "passed": false
+    },
+    {
+      "id": "refetch_after_card_switch",
+      "passed": false
+    },
+    {
+      "id": "validated_submit",
+      "passed": true
+    }
+  ],
+  "schema_version": 1
+}

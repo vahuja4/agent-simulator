@@ -1,0 +1,42 @@
+{
+  "assertion_results": {
+    "path": "runs/qualification-91e9d6f11fd06b516e4fe4e0b081a5dc20b4f13437f33a50823c6164e7f63b7b/episodes/defects-off-1-assertion-results.json",
+    "sha256": "79c7638478b910a94983e71dbdf041aa0af1bbbc1d45b8a68f6bfa7f81368e4c"
+  },
+  "defect_toggles": [],
+  "degraded_checks": [],
+  "error": null,
+  "failures": [],
+  "fixture": {
+    "sha256": "1670acf7f56e48733e3cd2055e858ab54dc57d81b29089dd73ed22e164364b70",
+    "version": "paycard-v1"
+  },
+  "judge_id": "gpt-5.5",
+  "judge_rulings": {
+    "path": "runs/qualification-91e9d6f11fd06b516e4fe4e0b081a5dc20b4f13437f33a50823c6164e7f63b7b/episodes/defects-off-1-judge-rulings.json",
+    "sha256": "d6716d6ae1e51ca293bac7df0b0c8a60fa647e1247f1676ce77c67a3891cffd4"
+  },
+  "kind": "simulator-compliance-fail",
+  "llm_calls": 11,
+  "outcome": "pass",
+  "prompt_hashes": {
+    "realization-system": "37cd12db0e05807e3553441180110397905e145a7333bd1edc34161b3398e8ba"
+  },
+  "repetition": 1,
+  "side": "defects-off",
+  "simulator_compliance": "fail",
+  "simulator_compliance_rulings": {
+    "path": "runs/qualification-91e9d6f11fd06b516e4fe4e0b081a5dc20b4f13437f33a50823c6164e7f63b7b/episodes/defects-off-1-simulator-compliance-rulings.json",
+    "sha256": "e7a527c7b48202bc31fd008bca4ca83d4f3661c28563e2fc03ffa03c2b4b9234"
+  },
+  "simulator_id": "gpt-5.6-luna",
+  "termination": "The customer's payment goal was fully completed, the assistant used the correct tools and truthful values, handled the card switch properly, obtained explicit confirmation before submission, and the submission succeeded.",
+  "trace": {
+    "path": "runs/qualification-91e9d6f11fd06b516e4fe4e0b081a5dc20b4f13437f33a50823c6164e7f63b7b/episodes/defects-off-1-trace.json",
+    "sha256": "75a850da487ca6d793ca767a57277101b3fa9a961047f1eae03b77b26c0c0efd"
+  },
+  "transcript": {
+    "path": "runs/qualification-91e9d6f11fd06b516e4fe4e0b081a5dc20b4f13437f33a50823c6164e7f63b7b/episodes/defects-off-1-transcript.jsonl",
+    "sha256": "6db43ea3f0bca5daa552d6f77721dd14fc3ec8a683440b8b2ec6d5745f69c1ff"
+  }
+}

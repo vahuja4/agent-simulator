@@ -1,0 +1,57 @@
+{
+  "assertion_results": {
+    "path": "runs/qualification-91e9d6f11fd06b516e4fe4e0b081a5dc20b4f13437f33a50823c6164e7f63b7b/episodes/defect-on-0-assertion-results.json",
+    "sha256": "79c7638478b910a94983e71dbdf041aa0af1bbbc1d45b8a68f6bfa7f81368e4c"
+  },
+  "defect_toggles": [
+    "d2_stale_options_after_card_switch"
+  ],
+  "degraded_checks": [],
+  "error": null,
+  "failures": [
+    {
+      "id": "tool_output_truth",
+      "source": "judge"
+    },
+    {
+      "id": "scenario_success",
+      "source": "judge"
+    },
+    {
+      "id": "card_switch_reset",
+      "source": "judge"
+    }
+  ],
+  "fixture": {
+    "sha256": "1670acf7f56e48733e3cd2055e858ab54dc57d81b29089dd73ed22e164364b70",
+    "version": "paycard-v1"
+  },
+  "judge_id": "gpt-5.5",
+  "judge_rulings": {
+    "path": "runs/qualification-91e9d6f11fd06b516e4fe4e0b081a5dc20b4f13437f33a50823c6164e7f63b7b/episodes/defect-on-0-judge-rulings.json",
+    "sha256": "7ff8c3b0f82bdd7dd2238ea549c4339ded05f5a4517ee88fce948d320aa97f4a"
+  },
+  "kind": "simulator-compliance-fail",
+  "llm_calls": 5,
+  "outcome": "pass",
+  "prompt_hashes": {
+    "realization-system": "37cd12db0e05807e3553441180110397905e145a7333bd1edc34161b3398e8ba"
+  },
+  "repetition": 0,
+  "side": "defect-on",
+  "simulator_compliance": "fail",
+  "simulator_compliance_rulings": {
+    "path": "runs/qualification-91e9d6f11fd06b516e4fe4e0b081a5dc20b4f13437f33a50823c6164e7f63b7b/episodes/defect-on-0-simulator-compliance-rulings.json",
+    "sha256": "04f5e044e9ea96245b341c6ece039c8831ae11f66b9b2dc62a22846ec70660a7"
+  },
+  "simulator_id": "gpt-5.6-luna",
+  "termination": "The conversation must fail because the assistant carried over and offered payment amounts from card 9013 after the customer switched to card 0767, without fetching the new card\u2019s payment options.",
+  "trace": {
+    "path": "runs/qualification-91e9d6f11fd06b516e4fe4e0b081a5dc20b4f13437f33a50823c6164e7f63b7b/episodes/defect-on-0-trace.json",
+    "sha256": "3d525edf03c47b750b5ab64175d8894659139ec843ce04de1d0864503c4eea99"
+  },
+  "transcript": {
+    "path": "runs/qualification-91e9d6f11fd06b516e4fe4e0b081a5dc20b4f13437f33a50823c6164e7f63b7b/episodes/defect-on-0-transcript.jsonl",
+    "sha256": "ece57deabdb2be9e76b2a43e616962d27993f3dc6d10b47f22b03f743258cdce"
+  }
+}

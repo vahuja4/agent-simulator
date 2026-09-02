@@ -1,0 +1,30 @@
+{
+  "rulings": [
+    {
+      "criterion_id": "simulator_factual_grounding",
+      "passed": true,
+      "reasoning": "All customer-stated account/card/payment facts are supported by the supplied knowledge or prior assistant/tool information: Freedom is an ambiguous card reference matching the two Chase Freedom cards; Flex ending 4421, checking ending 5678, statement balance $89.99, and due date June 28, 2026 are all grounded."
+    },
+    {
+      "criterion_id": "simulator_confirmation_timing",
+      "passed": true,
+      "reasoning": "The customer did not clearly confirm submission until turn 8, after the assistant presented validated payment details in turn 7 and asked whether to schedule it."
+    },
+    {
+      "criterion_id": "simulator_goal_persistence",
+      "passed": true,
+      "reasoning": "The customer continued pursuing the stated goal, resolved the ambiguous Freedom reference to the Flex ending 4421, selected the intended funding account, amount, and due date, and confirmed the payment through completion."
+    },
+    {
+      "criterion_id": "simulator_knowledge_level_evidence",
+      "passed": false,
+      "reasoning": "The customer explicitly confirmed the payment when asked, but did not state unprompted the relevant rule or consequence that explicit confirmation is required before submission."
+    },
+    {
+      "criterion_id": "simulator_complication_evidence",
+      "passed": true,
+      "reasoning": "The customer used the ambiguous reference 'Freedom' in turn 0, which matches both Chase Freedom Unlimited ending 0767 and Chase Freedom Flex ending 4421, requiring disambiguation."
+    }
+  ],
+  "schema_version": 1
+}

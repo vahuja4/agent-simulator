@@ -1,0 +1,39 @@
+name: synth-54c4af4e7845-2f0c853e78d5
+journey: J1
+description: The customer wants help making a one-time payment on card ending in 0767
+  from account ending in 5678. They are persistent and may begin with the mistaken
+  belief that the card has no balance. They rely on the agent to explain the consequence
+  of explicitly confirming the payment details before submission.
+persona:
+  name: Persistent customer
+  traits: Persistent; initially believes card 0767 has no balance; relies on the agent
+    to explain the need for explicit confirmation before the payment is submitted.
+goal: Make a one-time payment of the statement balance for card ending in 0767 from
+  account ending in 5678, with the payment due date used as the date, after the agent
+  explains the consequence of explicit confirmation and the customer confirms.
+knowledge:
+  cards:
+  - '0767'
+  - '4421'
+  accounts:
+  - '5678'
+success_criteria:
+- The agent addresses the customer's mistaken belief about the balance using truthful
+  tool output.
+- The payment options include the statement-balance amount.
+- The agent obtains explicit confirmation before submission.
+- The validated one-time payment is submitted successfully.
+- The interaction ends with goal completion or an honest failure.
+max_turns: 10
+tool_assertions:
+- type: amount_in_options
+- type: validated_submit
+  submit: AddOneTimePayment
+  validate: AddValidateOneTimePayment
+synthesis:
+  schema_version: 1
+  origin: synthesized
+  candidate_id: candidate-ac8c49ede6004c54c025f93c25d45178ffbd1ae5c99a2e08da9d9392b4ece4d8
+  blueprint_id: blueprint-6d01c6f2b82eeb0b761aa249c933476beea5b18e1ba1d153e54f3a5c62e718af
+  cell_id: cell-54c4af4e7845a188f54126f9fec2df192be13adcf26232a073b80b2cae53c557
+  blueprint_content_hash: 6d01c6f2b82eeb0b761aa249c933476beea5b18e1ba1d153e54f3a5c62e718af

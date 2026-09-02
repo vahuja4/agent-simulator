@@ -1,0 +1,42 @@
+{
+  "assertion_results": {
+    "path": "runs/qualification-a4b34a426a52770bff1eaacbf9d42b57c1a8c96bfff2cbe8e2e3425b7a0a3e81/episodes/defects-off-1-assertion-results.json",
+    "sha256": "79c7638478b910a94983e71dbdf041aa0af1bbbc1d45b8a68f6bfa7f81368e4c"
+  },
+  "defect_toggles": [],
+  "degraded_checks": [],
+  "error": null,
+  "failures": [],
+  "fixture": {
+    "sha256": "1670acf7f56e48733e3cd2055e858ab54dc57d81b29089dd73ed22e164364b70",
+    "version": "paycard-v1"
+  },
+  "judge_id": "gpt-5.5",
+  "judge_rulings": {
+    "path": "runs/qualification-a4b34a426a52770bff1eaacbf9d42b57c1a8c96bfff2cbe8e2e3425b7a0a3e81/episodes/defects-off-1-judge-rulings.json",
+    "sha256": "8c159de774b90fa645c5eb53e56ab04f30b6f04cfec580f4d63325f2807aa239"
+  },
+  "kind": "simulator-compliance-fail",
+  "llm_calls": 11,
+  "outcome": "pass",
+  "prompt_hashes": {
+    "realization-system": "37cd12db0e05807e3553441180110397905e145a7333bd1edc34161b3398e8ba"
+  },
+  "repetition": 1,
+  "side": "defects-off",
+  "simulator_compliance": "fail",
+  "simulator_compliance_rulings": {
+    "path": "runs/qualification-a4b34a426a52770bff1eaacbf9d42b57c1a8c96bfff2cbe8e2e3425b7a0a3e81/episodes/defects-off-1-simulator-compliance-rulings.json",
+    "sha256": "dd340148e1b9dc80b15fa0759811152e28ad597fb3cbeeaab4dd2d4c35bc3373"
+  },
+  "simulator_id": "gpt-5.6-luna",
+  "termination": "The payment goal was completed successfully with correct card disambiguation, tool-backed payment options, validation before submission, explicit customer confirmation, and truthful reporting of the successful result.",
+  "trace": {
+    "path": "runs/qualification-a4b34a426a52770bff1eaacbf9d42b57c1a8c96bfff2cbe8e2e3425b7a0a3e81/episodes/defects-off-1-trace.json",
+    "sha256": "6d5f92a4df99a9ec4044fb19246c1674212844704ecae2de5efd6ccc3d06275b"
+  },
+  "transcript": {
+    "path": "runs/qualification-a4b34a426a52770bff1eaacbf9d42b57c1a8c96bfff2cbe8e2e3425b7a0a3e81/episodes/defects-off-1-transcript.jsonl",
+    "sha256": "5db83ca8326a749104b1169de89736f6962d98be8150ccaba941f170f4defdb6"
+  }
+}

@@ -1,0 +1,47 @@
+name: synth-ad4c2dc7ea0c-216ecc1f9f1c
+journey: J1
+description: You are helping a cooperative customer make a one-time payment. The customer
+  has two cards associated with the Freedom reference and may need to distinguish
+  between them before proceeding. The interaction should handle the card selection
+  carefully, present the available payment options truthfully, and refetch options
+  if the selected card changes. The payment must be explicitly confirmed before submission,
+  then validated and submitted if possible. If completion is not possible, state that
+  honestly.
+persona:
+  name: Cooperative customer
+  traits: Polite, responsive, and willing to clarify which card is intended. The customer
+    understands that a one-time payment requires explicit confirmation before it is
+    submitted and can state that rule without prompting.
+goal: Make a one-time statement-balance payment from account 5678 using the card ending
+  in 4421, after resolving the ambiguous Freedom card reference from the initially
+  relevant card ending in 0767. The payment date is the due date. Explicitly confirm
+  the payment before it is submitted.
+knowledge:
+  cards:
+  - '0767'
+  - '4421'
+  accounts:
+  - '5678'
+success_criteria:
+- The ambiguous Freedom card reference is resolved by distinguishing card 0767 from
+  card 4421.
+- Payment options include the statement balance amount.
+- Payment options are fetched again after switching from card 0767 to card 4421.
+- The customer explicitly confirms the one-time payment before submission.
+- The validated AddOneTimePayment submission follows AddValidateOneTimePayment.
+- The interaction completes successfully, or any inability to complete is stated honestly
+  and tool results are represented truthfully.
+max_turns: 13
+tool_assertions:
+- type: amount_in_options
+- type: refetch_after_card_switch
+- type: validated_submit
+  submit: AddOneTimePayment
+  validate: AddValidateOneTimePayment
+synthesis:
+  schema_version: 1
+  origin: synthesized
+  candidate_id: candidate-dc157a6bba2356cbc83c58945811cb972cf80ff93ef2784d69d3c424d00cf809
+  blueprint_id: blueprint-b9520edd7944120211bb95c8be4ed52b170aa874a0ae6b88c56eeada9b930d67
+  cell_id: cell-ad4c2dc7ea0c9dcc2158be61f4b410135a09c0bfd7ade7e616d67a94b9c14803
+  blueprint_content_hash: b9520edd7944120211bb95c8be4ed52b170aa874a0ae6b88c56eeada9b930d67

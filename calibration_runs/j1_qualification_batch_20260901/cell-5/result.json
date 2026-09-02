@@ -1,0 +1,24 @@
+{
+  "admitted": null,
+  "attribution": [
+    {
+      "check": "simulator-compliance-provider-call",
+      "repetition": 2,
+      "side": "defects-off"
+    }
+  ],
+  "candidate_id": "candidate-ac8c49ede6004c54c025f93c25d45178ffbd1ae5c99a2e08da9d9392b4ece4d8",
+  "candidate_ordinal": 0,
+  "cell_id": "cell-54c4af4e7845a188f54126f9fec2df192be13adcf26232a073b80b2cae53c557",
+  "cell_number": 5,
+  "completed_episodes": 2,
+  "detection_unproven": null,
+  "library_path": null,
+  "planned_episodes": 6,
+  "qualification_id": "qualification-de630451f951a1f2f974959bd5d89ed92ef6fcd60299ef1d8510873cd5b925f3",
+  "reason_code": "operator-stop-after-stalled-provider-call",
+  "replacement_candidate_id": null,
+  "status": "interrupted",
+  "total_actual_cost_usd": "0.965007",
+  "working_credit_floor_after_usd": "24.128590"
+}

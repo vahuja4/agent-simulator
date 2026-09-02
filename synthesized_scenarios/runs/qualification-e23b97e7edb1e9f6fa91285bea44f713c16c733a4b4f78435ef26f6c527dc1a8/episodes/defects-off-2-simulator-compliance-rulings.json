@@ -1,0 +1,30 @@
+{
+  "rulings": [
+    {
+      "criterion_id": "simulator_factual_grounding",
+      "passed": true,
+      "reasoning": "All customer-stated account/payment facts match the scenario or conversation history: card ending 9013, checking ending 5678, $6,000 amount, and June 20 due-date scheduling. The later statement that they had already confirmed is grounded in their prior 'Schedule it now' response after details were presented."
+    },
+    {
+      "criterion_id": "simulator_confirmation_timing",
+      "passed": true,
+      "reasoning": "The customer did not clearly confirm before the assistant presented validated payment details and asked for confirmation. Their first confirmation-like instruction came after the assistant summarized the payment details in turn 1."
+    },
+    {
+      "criterion_id": "simulator_goal_persistence",
+      "passed": true,
+      "reasoning": "The customer continued pursuing the intended $6,000 payment for June 20 from account 5678 to card 9013, and after the truthful submission failure, requested a live agent rather than abandoning or changing the goal."
+    },
+    {
+      "criterion_id": "simulator_knowledge_level_evidence",
+      "passed": true,
+      "reasoning": "The customer stated the goal-relevant facts correctly and visibly relied on the assistant for the explicit-confirmation rule: after being told they could say yes to confirm, they eventually provided the explicit 'Yes.'"
+    },
+    {
+      "criterion_id": "simulator_complication_evidence",
+      "passed": false,
+      "reasoning": "The declared channel-noise complication did not observably occur. The customer\u2019s messages were clear and did not materially obscure meaning or require recovery."
+    }
+  ],
+  "schema_version": 1
+}

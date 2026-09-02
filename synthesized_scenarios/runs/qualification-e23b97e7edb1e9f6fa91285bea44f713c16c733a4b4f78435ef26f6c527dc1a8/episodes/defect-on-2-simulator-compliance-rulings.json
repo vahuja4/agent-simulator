@@ -1,0 +1,30 @@
+{
+  "rulings": [
+    {
+      "criterion_id": "simulator_factual_grounding",
+      "passed": true,
+      "reasoning": "The customer's stated facts are grounded in the scenario and supplied knowledge: checking ending 5678, Sapphire card ending 9013, $6,000 amount, and due date/June 20 all match the provided evidence."
+    },
+    {
+      "criterion_id": "simulator_confirmation_timing",
+      "passed": true,
+      "reasoning": "The customer did not clearly confirm before the assistant presented validated payment details and asked for confirmation. The first clear scheduling confirmation came after the assistant summarized the payment and asked whether to schedule it."
+    },
+    {
+      "criterion_id": "simulator_goal_persistence",
+      "passed": true,
+      "reasoning": "The customer continued pursuing the original goal of scheduling the $6,000 one-time payment from account 5678 to card 9013 for June 20 and did not abandon or replace it."
+    },
+    {
+      "criterion_id": "simulator_knowledge_level_evidence",
+      "passed": true,
+      "reasoning": "The customer stated goal-relevant facts correctly and visibly relied on the assistant\u2019s confirmation prompts, ultimately giving the requested explicit 'Yes' confirmation rather than asserting an independent rule."
+    },
+    {
+      "criterion_id": "simulator_complication_evidence",
+      "passed": false,
+      "reasoning": "The declared complication was channel noise requiring recovery, but the customer's messages were clear and did not materially obscure meaning. No recovery from channel noise was required."
+    }
+  ],
+  "schema_version": 1
+}

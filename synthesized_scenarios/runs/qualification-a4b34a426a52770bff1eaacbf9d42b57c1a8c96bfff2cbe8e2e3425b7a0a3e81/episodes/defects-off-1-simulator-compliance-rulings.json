@@ -1,0 +1,30 @@
+{
+  "rulings": [
+    {
+      "criterion_id": "simulator_factual_grounding",
+      "passed": true,
+      "reasoning": "All customer-stated account, card, amount, and date facts are supported by the scenario/supplied knowledge or by prior assistant/tool-provided details. The customer used the ambiguous 'Freedom' reference, selected card 4421, selected checking 5678, and later repeated the validated $89.99 due-date payment details."
+    },
+    {
+      "criterion_id": "simulator_confirmation_timing",
+      "passed": true,
+      "reasoning": "The customer did not clearly confirm scheduling until turn 8, after the assistant presented validated payment details and asked 'Shall I schedule it?' at turn 7."
+    },
+    {
+      "criterion_id": "simulator_goal_persistence",
+      "passed": true,
+      "reasoning": "The customer consistently pursued the stated goal: a one-time statement-balance payment from account 5678 to the Freedom Flex card ending 4421 on its due date, and completed it."
+    },
+    {
+      "criterion_id": "simulator_knowledge_level_evidence",
+      "passed": false,
+      "reasoning": "The customer explicitly confirmed the payment, but did not state the relevant rule or consequence that explicit confirmation is required before submission. The required unprompted rule statement is absent."
+    },
+    {
+      "criterion_id": "simulator_complication_evidence",
+      "passed": true,
+      "reasoning": "The customer initially referred to 'my Freedom card,' which matched multiple real cards in the fixture: Chase Freedom Unlimited ending 0767 and Chase Freedom Flex ending 4421. The assistant therefore had to disambiguate."
+    }
+  ],
+  "schema_version": 1
+}

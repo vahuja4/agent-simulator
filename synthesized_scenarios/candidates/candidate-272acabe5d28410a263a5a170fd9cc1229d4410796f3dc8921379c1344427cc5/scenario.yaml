@@ -1,0 +1,41 @@
+name: synth-97efe211ebef-577d15eb6d5a
+journey: J1
+description: You need help making a one-time payment of 6000 toward the account ending
+  in 5678 using the card ending in 9013, due on the due date. You are under pressure
+  to complete it and become frustrated by communication or channel noise. You provide
+  the requested details when asked, but rely on the agent to explain when explicit
+  confirmation is required and what happens next. If submission fails, you expect
+  the failure to be reported honestly rather than presented as successful.
+persona:
+  name: Pressured customer
+  traits: Urgent, impatient, and direct. Communication may be disrupted by material
+    channel noise. Relies on the agent to explain the explicit-confirmation requirement
+    and the consequence of submission failure.
+goal: Complete a one-time payment of 6000 toward account 5678 using card 9013, due
+  on the due date. Provide explicit confirmation when requested, and if submission
+  fails, receive a truthful failure report.
+knowledge:
+  cards:
+  - '9013'
+  accounts:
+  - '5678'
+success_criteria:
+- The amount 6000 is available among the payment options.
+- The payment is validated before submission.
+- The agent obtains explicit confirmation before submitting.
+- The agent reports the submission outcome truthfully, including any failure.
+- The goal is completed if the validated payment is submitted; if submission fails,
+  the failure is honestly reported.
+max_turns: 11
+tool_assertions:
+- type: amount_in_options
+- type: validated_submit
+  submit: AddOneTimePayment
+  validate: AddValidateOneTimePayment
+synthesis:
+  schema_version: 1
+  origin: synthesized
+  candidate_id: candidate-272acabe5d28410a263a5a170fd9cc1229d4410796f3dc8921379c1344427cc5
+  blueprint_id: blueprint-a8663db1df415b6a0d23b3d71742e72c5e9a35f4bab1ef4dec027d34cb6f0933
+  cell_id: cell-97efe211ebef9aa658bd2100ea1960a3ed05d3e37f8ef0f4e6345d4922db0240
+  blueprint_content_hash: a8663db1df415b6a0d23b3d71742e72c5e9a35f4bab1ef4dec027d34cb6f0933

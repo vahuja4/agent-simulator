@@ -1,0 +1,30 @@
+{
+  "rulings": [
+    {
+      "criterion_id": "simulator_factual_grounding",
+      "passed": true,
+      "reasoning": "The customer's stated account/card facts, statement balance amount, and due date are all supported by the supplied scenario/knowledge or by validated assistant/tool outputs."
+    },
+    {
+      "criterion_id": "simulator_confirmation_timing",
+      "passed": true,
+      "reasoning": "The customer did not clearly confirm the payment until after the assistant presented the validated details and asked, 'Shall I schedule it?'"
+    },
+    {
+      "criterion_id": "simulator_goal_persistence",
+      "passed": true,
+      "reasoning": "The customer continued pursuing the stated goal: paying the statement balance from account ending 5678 to the Freedom Flex card ending 4421 on the due date, and then explicitly confirmed scheduling."
+    },
+    {
+      "criterion_id": "simulator_knowledge_level_evidence",
+      "passed": false,
+      "reasoning": "The customer did explicitly confirm the payment, but did not unpromptedly state the relevant rule or consequence that explicit confirmation is required before submission."
+    },
+    {
+      "criterion_id": "simulator_complication_evidence",
+      "passed": true,
+      "reasoning": "The customer used the ambiguous reference 'Freedom card,' which matches both Chase Freedom Unlimited ending 0767 and Chase Freedom Flex ending 4421, requiring disambiguation."
+    }
+  ],
+  "schema_version": 1
+}

@@ -1,0 +1,30 @@
+{
+  "rulings": [
+    {
+      "criterion_id": "simulator_factual_grounding",
+      "passed": true,
+      "reasoning": "The customer\u2019s stated facts are grounded in the supplied scenario: there are Freedom cards, a Chase Total Checking account ending in 5678, statement-balance payment options, and due dates."
+    },
+    {
+      "criterion_id": "simulator_confirmation_timing",
+      "passed": true,
+      "reasoning": "The customer has not clearly confirmed submission of the payment before validated details were presented and confirmation was requested."
+    },
+    {
+      "criterion_id": "simulator_goal_persistence",
+      "passed": true,
+      "reasoning": "The customer is pursuing the scenario goal of making a one-time statement-balance payment from account 5678 on the due date."
+    },
+    {
+      "criterion_id": "simulator_knowledge_level_evidence",
+      "passed": false,
+      "reasoning": "The customer did not state unprompted the relevant explicit-confirmation rule or consequence, despite the scenario requiring this knowledge evidence."
+    },
+    {
+      "criterion_id": "simulator_complication_evidence",
+      "passed": true,
+      "reasoning": "The customer used the ambiguous reference \u201cFreedom,\u201d which matches multiple real cards in the fixture: Chase Freedom Unlimited ending 0767 and Chase Freedom Flex ending 4421."
+    }
+  ],
+  "schema_version": 1
+}

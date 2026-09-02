@@ -1,0 +1,30 @@
+{
+  "rulings": [
+    {
+      "criterion_id": "simulator_factual_grounding",
+      "passed": true,
+      "reasoning": "The customer's stated facts are supported: there are Freedom-branded Chase cards, a Chase checking account ending 5678, statement-balance payment options, and due dates. The customer did not invent a specific unsupported amount, date, card, or account detail."
+    },
+    {
+      "criterion_id": "simulator_confirmation_timing",
+      "passed": true,
+      "reasoning": "The customer requested a payment but did not clearly confirm or authorize submission before the assistant presented payment details and asked for confirmation."
+    },
+    {
+      "criterion_id": "simulator_goal_persistence",
+      "passed": true,
+      "reasoning": "So far the customer is pursuing the stated payment goal and has not abandoned or replaced it."
+    },
+    {
+      "criterion_id": "simulator_knowledge_level_evidence",
+      "passed": false,
+      "reasoning": "The customer has not yet stated, unprompted, the relevant explicit-confirmation rule or consequence."
+    },
+    {
+      "criterion_id": "simulator_complication_evidence",
+      "passed": true,
+      "reasoning": "The customer used the ambiguous reference 'Freedom,' which matches both Chase Freedom Unlimited ending 0767 and Chase Freedom Flex ending 4421, so disambiguation was required."
+    }
+  ],
+  "schema_version": 1
+}

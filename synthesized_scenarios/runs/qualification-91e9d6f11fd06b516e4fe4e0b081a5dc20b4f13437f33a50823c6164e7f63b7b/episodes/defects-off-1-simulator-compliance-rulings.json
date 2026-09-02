@@ -1,0 +1,30 @@
+{
+  "rulings": [
+    {
+      "criterion_id": "simulator_factual_grounding",
+      "passed": true,
+      "reasoning": "The customer's factual claims are grounded in the scenario evidence, supplied knowledge, or tool history: account ...5678, cards ...9013 and ...0767, the Chase Freedom Unlimited statement balance of $310.45, and the due date June 25, 2026 are all available from the supplied knowledge or fetched options."
+    },
+    {
+      "criterion_id": "simulator_confirmation_timing",
+      "passed": true,
+      "reasoning": "The customer did not confirm scheduling until turn 8, after the assistant validated and presented the payment details at turn 7 and asked for confirmation."
+    },
+    {
+      "criterion_id": "simulator_goal_persistence",
+      "passed": false,
+      "reasoning": "The customer completed a one-time payment, but did not persist with the full declared scenario involving an amount-type correction to minimum_due. Instead, the customer selected and confirmed the statement balance."
+    },
+    {
+      "criterion_id": "simulator_knowledge_level_evidence",
+      "passed": true,
+      "reasoning": "The initial request used the informal and ambiguous phrase \u201cthe usual amount, I think\u201d for the payment amount type, which demonstrates a material fluency gap about the available payment amount options."
+    },
+    {
+      "criterion_id": "simulator_complication_evidence",
+      "passed": false,
+      "reasoning": "The declared complication was an amount_type correction from statement_balance to minimum_due. This did not occur. The observable correction was from card ...9013 to card ...0767, and the customer ultimately chose the statement balance of $310.45, not the minimum due of $35.00."
+    }
+  ],
+  "schema_version": 1
+}

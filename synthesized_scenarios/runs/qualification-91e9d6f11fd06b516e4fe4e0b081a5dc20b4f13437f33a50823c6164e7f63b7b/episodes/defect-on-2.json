@@ -1,0 +1,53 @@
+{
+  "assertion_results": {
+    "path": "runs/qualification-91e9d6f11fd06b516e4fe4e0b081a5dc20b4f13437f33a50823c6164e7f63b7b/episodes/defect-on-2-assertion-results.json",
+    "sha256": "706eb71a5539717384f610941d363a60303a8f56d4f2da255e60d41c7ad026d9"
+  },
+  "defect_toggles": [
+    "d2_stale_options_after_card_switch"
+  ],
+  "degraded_checks": [],
+  "error": null,
+  "failures": [
+    {
+      "id": "amount_in_options",
+      "source": "assertion"
+    },
+    {
+      "id": "refetch_after_card_switch",
+      "source": "assertion"
+    }
+  ],
+  "fixture": {
+    "sha256": "1670acf7f56e48733e3cd2055e858ab54dc57d81b29089dd73ed22e164364b70",
+    "version": "paycard-v1"
+  },
+  "judge_id": "gpt-5.5",
+  "judge_rulings": {
+    "path": "runs/qualification-91e9d6f11fd06b516e4fe4e0b081a5dc20b4f13437f33a50823c6164e7f63b7b/episodes/defect-on-2-judge-rulings.json",
+    "sha256": "d6716d6ae1e51ca293bac7df0b0c8a60fa647e1247f1676ce77c67a3891cffd4"
+  },
+  "kind": "simulator-compliance-fail",
+  "llm_calls": 6,
+  "outcome": "pass",
+  "prompt_hashes": {
+    "realization-system": "37cd12db0e05807e3553441180110397905e145a7333bd1edc34161b3398e8ba"
+  },
+  "repetition": 2,
+  "side": "defect-on",
+  "simulator_compliance": "fail",
+  "simulator_compliance_rulings": {
+    "path": "runs/qualification-91e9d6f11fd06b516e4fe4e0b081a5dc20b4f13437f33a50823c6164e7f63b7b/episodes/defect-on-2-simulator-compliance-rulings.json",
+    "sha256": "d3dd0c725035511ebd2f3eef8af8db1c3aa85a3abc4b35b4299f3b4acab20c9c"
+  },
+  "simulator_id": "gpt-5.6-luna",
+  "termination": "deterministic assertion failure: AddValidateOneTimePayment for card 'card-freedom-unlimited-0767' with no prior AddOptionsOneTimePayment fetch for that card; AddValidateOneTimePayment after the card switch at turn 3 without a fresh AddOptionsOneTimePayment fetch",
+  "trace": {
+    "path": "runs/qualification-91e9d6f11fd06b516e4fe4e0b081a5dc20b4f13437f33a50823c6164e7f63b7b/episodes/defect-on-2-trace.json",
+    "sha256": "83a2d1e51daebaf1d1d9a02abf34219a5846e392a0432035e43d01f49845dae5"
+  },
+  "transcript": {
+    "path": "runs/qualification-91e9d6f11fd06b516e4fe4e0b081a5dc20b4f13437f33a50823c6164e7f63b7b/episodes/defect-on-2-transcript.jsonl",
+    "sha256": "f9e27a56f49dc9e3654a62dbf840ad437c6a74fa09a7c2821df9bfbf6a9388db"
+  }
+}

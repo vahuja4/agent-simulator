@@ -1,0 +1,9 @@
+{
+  "admission_sha256": "816bec7836607f28516cfd87ff61f0dd876cdb776fc98ed0c5967a8c494e09eb",
+  "candidate_id": "candidate-272acabe5d28410a263a5a170fd9cc1229d4410796f3dc8921379c1344427cc5",
+  "qualification_id": "qualification-e23b97e7edb1e9f6fa91285bea44f713c16c733a4b4f78435ef26f6c527dc1a8",
+  "regeneration_exhausted": false,
+  "schema_version": 1,
+  "status": "rejected",
+  "terminal_at": "2026-09-01T15:10:50.548851Z"
+}

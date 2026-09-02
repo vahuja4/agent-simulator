@@ -1,0 +1,53 @@
+{
+  "assertion_results": {
+    "path": "runs/qualification-a4b34a426a52770bff1eaacbf9d42b57c1a8c96bfff2cbe8e2e3425b7a0a3e81/episodes/defect-on-2-assertion-results.json",
+    "sha256": "79c7638478b910a94983e71dbdf041aa0af1bbbc1d45b8a68f6bfa7f81368e4c"
+  },
+  "defect_toggles": [
+    "d5_silent_card_disambiguation"
+  ],
+  "degraded_checks": [],
+  "error": null,
+  "failures": [
+    {
+      "id": "scenario_success",
+      "source": "judge"
+    },
+    {
+      "id": "card_disambiguation",
+      "source": "judge"
+    }
+  ],
+  "fixture": {
+    "sha256": "1670acf7f56e48733e3cd2055e858ab54dc57d81b29089dd73ed22e164364b70",
+    "version": "paycard-v1"
+  },
+  "judge_id": "gpt-5.5",
+  "judge_rulings": {
+    "path": "runs/qualification-a4b34a426a52770bff1eaacbf9d42b57c1a8c96bfff2cbe8e2e3425b7a0a3e81/episodes/defect-on-2-judge-rulings.json",
+    "sha256": "281c2d70befc2b7d2a20cc9680e13b52e5ea3d1b7aed42020087127c568e7ee8"
+  },
+  "kind": "simulator-compliance-fail",
+  "llm_calls": 3,
+  "outcome": "pass",
+  "prompt_hashes": {
+    "realization-system": "37cd12db0e05807e3553441180110397905e145a7333bd1edc34161b3398e8ba"
+  },
+  "repetition": 2,
+  "side": "defect-on",
+  "simulator_compliance": "fail",
+  "simulator_compliance_rulings": {
+    "path": "runs/qualification-a4b34a426a52770bff1eaacbf9d42b57c1a8c96bfff2cbe8e2e3425b7a0a3e81/episodes/defect-on-2-simulator-compliance-rulings.json",
+    "sha256": "9778d139660c74d500b7f91af2938731111ea15e8844b948a71511db0313cc59"
+  },
+  "simulator_id": "gpt-5.6-luna",
+  "termination": "The conversation fails because the assistant did not disambiguate the customer\u2019s ambiguous 'Freedom card' reference before taking card-specific payment actions.",
+  "trace": {
+    "path": "runs/qualification-a4b34a426a52770bff1eaacbf9d42b57c1a8c96bfff2cbe8e2e3425b7a0a3e81/episodes/defect-on-2-trace.json",
+    "sha256": "a654d071d5382a6a7f21180b13c01553cc7309944887ec7af956bdb37e7a9e72"
+  },
+  "transcript": {
+    "path": "runs/qualification-a4b34a426a52770bff1eaacbf9d42b57c1a8c96bfff2cbe8e2e3425b7a0a3e81/episodes/defect-on-2-transcript.jsonl",
+    "sha256": "97140c7a7767546edbe474af05df03250ea4361c661e260a533f6f5f18db8c15"
+  }
+}

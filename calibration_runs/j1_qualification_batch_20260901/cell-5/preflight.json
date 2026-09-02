@@ -1,0 +1,23 @@
+{
+  "cell_id": "cell-54c4af4e7845a188f54126f9fec2df192be13adcf26232a073b80b2cae53c557",
+  "cell_number": 5,
+  "configured_credit_floor_usd": "25.093597",
+  "credit_floor_verified_on": "2026-09-01",
+  "maximum_cost_per_llm_call_usd": "0.02",
+  "maximum_planned_cost_usd": "2.56",
+  "maximum_planned_episodes": 6,
+  "maximum_planned_llm_calls": 128,
+  "maximum_planned_realization_calls": 2,
+  "selection": {
+    "complication": "false-premise",
+    "fitness_target_id": "d1",
+    "fitness_shape_id": "at-the-gate",
+    "fixture_state_class_id": "j1-ambiguous-freedom-cards",
+    "journey_path_id": "j1-path-72d5d5d63df95b4e",
+    "knowledge_level": "medium",
+    "max_turns": 10,
+    "persona_archetype": "persistent"
+  },
+  "snapshot_hash": "04209980e4afe1262d0bfc6a5740603668281308bc67b7f494dddf54da280f3e",
+  "status": "live-cost-ceiling"
+}

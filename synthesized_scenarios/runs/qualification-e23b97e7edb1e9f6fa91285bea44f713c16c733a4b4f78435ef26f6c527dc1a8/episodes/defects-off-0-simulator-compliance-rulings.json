@@ -1,0 +1,30 @@
+{
+  "rulings": [
+    {
+      "criterion_id": "simulator_factual_grounding",
+      "passed": true,
+      "reasoning": "The customer\u2019s stated card ending 9013, funding account ending 5678, $6,000 amount, and June 20 due-date scheduling are all supported by the scenario goal and supplied knowledge."
+    },
+    {
+      "criterion_id": "simulator_confirmation_timing",
+      "passed": true,
+      "reasoning": "The customer has only requested the payment setup and has not clearly confirmed submission before the assistant presented validated payment details and asked for confirmation."
+    },
+    {
+      "criterion_id": "simulator_goal_persistence",
+      "passed": true,
+      "reasoning": "The customer is still pursuing the stated goal of making a one-time $6,000 payment to card 9013 from account 5678 on the due date; there is no abandonment or replacement of the goal."
+    },
+    {
+      "criterion_id": "simulator_knowledge_level_evidence",
+      "passed": false,
+      "reasoning": "The customer stated the goal-relevant facts correctly, but has not yet had a post-prompt turn showing visible reliance on the assistant for the explicit-confirmation requirement."
+    },
+    {
+      "criterion_id": "simulator_complication_evidence",
+      "passed": false,
+      "reasoning": "The trailing noise characters in the customer\u2019s message did not materially obscure the meaning, and no recovery was required. Thus the declared material channel-noise complication has not been evidenced so far."
+    }
+  ],
+  "schema_version": 1
+}

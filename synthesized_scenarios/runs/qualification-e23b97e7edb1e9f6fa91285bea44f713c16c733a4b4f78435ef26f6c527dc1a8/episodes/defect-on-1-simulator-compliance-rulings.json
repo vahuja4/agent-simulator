@@ -1,0 +1,30 @@
+{
+  "rulings": [
+    {
+      "criterion_id": "simulator_factual_grounding",
+      "passed": true,
+      "reasoning": "The customer\u2019s stated facts\u2014$6,000 payment, checking/account ending 5678, card ending 9013, due date June 20\u2014are all present in the scenario goal or supplied knowledge. No unsupported account/payment-history facts were introduced by the customer."
+    },
+    {
+      "criterion_id": "simulator_confirmation_timing",
+      "passed": true,
+      "reasoning": "The customer did not clearly confirm before the assistant presented validated payment details and asked for confirmation. The first confirmation-like response came after the assistant summarized the payment details and asked whether to schedule it."
+    },
+    {
+      "criterion_id": "simulator_goal_persistence",
+      "passed": true,
+      "reasoning": "The customer continued pursuing the original goal: scheduling a one-time $6,000 payment from checking 5678 to card 9013 for June 20. They did not abandon or replace the goal."
+    },
+    {
+      "criterion_id": "simulator_knowledge_level_evidence",
+      "passed": true,
+      "reasoning": "The customer stated the goal-relevant facts correctly and relied on the assistant\u2019s explicit-confirmation prompt by giving a clear 'Yes' confirmation after the assistant requested it."
+    },
+    {
+      "criterion_id": "simulator_complication_evidence",
+      "passed": false,
+      "reasoning": "The declared complication was channel noise requiring recovery, but the customer\u2019s messages were clear and unobscured throughout. There was no materially noisy or ambiguous customer message requiring recovery."
+    }
+  ],
+  "schema_version": 1
+}

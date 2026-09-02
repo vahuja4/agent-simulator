@@ -1,0 +1,30 @@
+{
+  "rulings": [
+    {
+      "criterion_id": "simulator_factual_grounding",
+      "passed": true,
+      "reasoning": "The customer's factual claims are grounded in the scenario/knowledge: checking account ending 5678 exists, card 9013 exists, Freedom Unlimited ending 0767 exists, and June 25, 2026 is the due date for card 0767. The informal phrase \u201cthe usual amount\u201d is allowed by the scenario goal as a fluency gap rather than an unsupported account fact."
+    },
+    {
+      "criterion_id": "simulator_confirmation_timing",
+      "passed": true,
+      "reasoning": "The customer has not clearly confirmed scheduling the payment. They only provided the payment date after the assistant asked, so there has been no premature confirmation before validated payment details were presented."
+    },
+    {
+      "criterion_id": "simulator_goal_persistence",
+      "passed": true,
+      "reasoning": "The customer continued pursuing a one-time payment from account 5678, corrected the card to 0767 as contemplated by the scenario, and provided the due date when asked. The goal has not been completed yet, but it has not been abandoned."
+    },
+    {
+      "criterion_id": "simulator_knowledge_level_evidence",
+      "passed": true,
+      "reasoning": "The customer showed a material fluency gap about payment amount type by referring to \u201cthe usual amount\u201d instead of a valid option such as minimum due, statement balance, current balance, or another amount, requiring the assistant to explain the available payment options."
+    },
+    {
+      "criterion_id": "simulator_complication_evidence",
+      "passed": false,
+      "reasoning": "The declared correction was an amount-type correction from statement_balance to minimum_due. That did not occur. The customer instead clarified statement_balance and corrected the card from 9013 to 0767."
+    }
+  ],
+  "schema_version": 1
+}

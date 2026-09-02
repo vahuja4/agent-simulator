@@ -1,0 +1,30 @@
+{
+  "rulings": [
+    {
+      "criterion_id": "simulator_factual_grounding",
+      "passed": true,
+      "reasoning": "All customer-stated account, card, amount, and date facts are supported by the scenario/supplied knowledge or by the assistant\u2019s validated details: card ending 9013, checking ending 5678, $6,000, and June 20/due date."
+    },
+    {
+      "criterion_id": "simulator_confirmation_timing",
+      "passed": true,
+      "reasoning": "The customer did not clearly confirm before the assistant presented validated payment details and asked for confirmation. The explicit 'Yes' occurred only after the assistant presented the payment details and requested confirmation."
+    },
+    {
+      "criterion_id": "simulator_goal_persistence",
+      "passed": true,
+      "reasoning": "The customer continued pursuing the original $6,000 payment goal. After the assistant reported the submission failure, the customer still sought the full payment by requesting a live agent, which is consistent with persistence after completion through this channel became impossible."
+    },
+    {
+      "criterion_id": "simulator_knowledge_level_evidence",
+      "passed": true,
+      "reasoning": "The customer stated the goal-relevant facts correctly and visibly relied on the assistant\u2019s prompting for the explicit-confirmation requirement: they initially pressed to schedule the payment, then provided 'Yes' only after the assistant specifically requested confirmation."
+    },
+    {
+      "criterion_id": "simulator_complication_evidence",
+      "passed": false,
+      "reasoning": "The declared complication was channel noise requiring recovery, but no customer message was materially obscured. The customer\u2019s messages were clear and did not require noise-related clarification or recovery."
+    }
+  ],
+  "schema_version": 1
+}

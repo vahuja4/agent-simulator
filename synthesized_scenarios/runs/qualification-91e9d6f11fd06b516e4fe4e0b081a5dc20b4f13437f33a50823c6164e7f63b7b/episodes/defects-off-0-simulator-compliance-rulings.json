@@ -1,0 +1,30 @@
+{
+  "rulings": [
+    {
+      "criterion_id": "simulator_factual_grounding",
+      "passed": true,
+      "reasoning": "The customer's stated cards ending 9013 and 0767, funding account ending 5678, and desire to make a one-time payment are all supported by the scenario goal and supplied knowledge. The correction from 9013 to 0767 is also explicitly supported."
+    },
+    {
+      "criterion_id": "simulator_confirmation_timing",
+      "passed": true,
+      "reasoning": "The customer has not confirmed a payment yet, so there has been no premature confirmation before validated payment details were presented."
+    },
+    {
+      "criterion_id": "simulator_goal_persistence",
+      "passed": true,
+      "reasoning": "The customer is still pursuing a one-time payment from account 5678, now correctly focused on card 0767, consistent with the scenario goal."
+    },
+    {
+      "criterion_id": "simulator_knowledge_level_evidence",
+      "passed": true,
+      "reasoning": "The customer's use of the informal phrase 'the usual amount' instead of a valid payment amount type shows a material fluency gap about payment_amount_type and requires clarification/explanation."
+    },
+    {
+      "criterion_id": "simulator_complication_evidence",
+      "passed": false,
+      "reasoning": "The declared correction was supposed to be a change in amount_type from statement_balance to minimum_due. The observable correction so far is a card change from 9013 to 0767, while the customer continues to refer to 'the usual amount' and has not changed the amount type to minimum_due."
+    }
+  ],
+  "schema_version": 1
+}

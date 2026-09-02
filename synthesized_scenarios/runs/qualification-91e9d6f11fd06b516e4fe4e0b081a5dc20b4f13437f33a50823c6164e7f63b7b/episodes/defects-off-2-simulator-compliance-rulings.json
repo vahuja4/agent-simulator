@@ -1,0 +1,30 @@
+{
+  "rulings": [
+    {
+      "criterion_id": "simulator_factual_grounding",
+      "passed": true,
+      "reasoning": "The customer's claims are grounded in the scenario evidence: funding account ending 5678 exists, card 9013 exists, card 0767 exists, and the scenario goal includes initially referring to 9013 and then correcting to 0767."
+    },
+    {
+      "criterion_id": "simulator_confirmation_timing",
+      "passed": true,
+      "reasoning": "The customer has not yet confirmed a payment, so they have not confirmed before validated payment details were presented and confirmation requested."
+    },
+    {
+      "criterion_id": "simulator_goal_persistence",
+      "passed": true,
+      "reasoning": "The customer continued pursuing a one-time payment from account 5678 and corrected the card to 0767 as described in the scenario, rather than abandoning or replacing the goal."
+    },
+    {
+      "criterion_id": "simulator_knowledge_level_evidence",
+      "passed": true,
+      "reasoning": "The customer's phrase 'the usual amount, I think' is a material fluency gap about payment amount type: it is an informal/unclear payment amount label that required the assistant to explain or map to real payment options."
+    },
+    {
+      "criterion_id": "simulator_complication_evidence",
+      "passed": false,
+      "reasoning": "The declared correction to be evidenced is amount_type from statement_balance to minimum_due. So far, the customer corrected the card from 9013 to 0767, but has not observably corrected the payment amount type from statement_balance to minimum_due."
+    }
+  ],
+  "schema_version": 1
+}

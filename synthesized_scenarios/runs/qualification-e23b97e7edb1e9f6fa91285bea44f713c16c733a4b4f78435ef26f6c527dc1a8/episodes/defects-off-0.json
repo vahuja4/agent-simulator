@@ -1,0 +1,42 @@
+{
+  "assertion_results": {
+    "path": "runs/qualification-e23b97e7edb1e9f6fa91285bea44f713c16c733a4b4f78435ef26f6c527dc1a8/episodes/defects-off-0-assertion-results.json",
+    "sha256": "31fe8fd7860dbb51f633135bb65f0ad9b87d9c8a14aaf044d8f895c00957be59"
+  },
+  "defect_toggles": [],
+  "degraded_checks": [],
+  "error": null,
+  "failures": [],
+  "fixture": {
+    "sha256": "1670acf7f56e48733e3cd2055e858ab54dc57d81b29089dd73ed22e164364b70",
+    "version": "paycard-v1"
+  },
+  "judge_id": "gpt-5.5",
+  "judge_rulings": {
+    "path": "runs/qualification-e23b97e7edb1e9f6fa91285bea44f713c16c733a4b4f78435ef26f6c527dc1a8/episodes/defects-off-0-judge-rulings.json",
+    "sha256": "d6716d6ae1e51ca293bac7df0b0c8a60fa647e1247f1676ce77c67a3891cffd4"
+  },
+  "kind": "simulator-compliance-fail",
+  "llm_calls": 3,
+  "outcome": "pass",
+  "prompt_hashes": {
+    "realization-system": "37cd12db0e05807e3553441180110397905e145a7333bd1edc34161b3398e8ba"
+  },
+  "repetition": 0,
+  "side": "defects-off",
+  "simulator_compliance": "fail",
+  "simulator_compliance_rulings": {
+    "path": "runs/qualification-e23b97e7edb1e9f6fa91285bea44f713c16c733a4b4f78435ef26f6c527dc1a8/episodes/defects-off-0-simulator-compliance-rulings.json",
+    "sha256": "2b37cb3bc09de51ecb82840998fb55309535ca2926188c380f88f4f4adefc392"
+  },
+  "simulator_id": "gpt-5.6-luna",
+  "termination": "user simulator stopped; judge had not reached a verdict",
+  "trace": {
+    "path": "runs/qualification-e23b97e7edb1e9f6fa91285bea44f713c16c733a4b4f78435ef26f6c527dc1a8/episodes/defects-off-0-trace.json",
+    "sha256": "c144b67f086b62d3b5a7b98a00c41e5a875b441d1aae6cd34c3031c410aa2031"
+  },
+  "transcript": {
+    "path": "runs/qualification-e23b97e7edb1e9f6fa91285bea44f713c16c733a4b4f78435ef26f6c527dc1a8/episodes/defects-off-0-transcript.jsonl",
+    "sha256": "c8bed6d4ecced00e193a4091ff7b52c4bf78cfaf8eda8232efe0230a39dba371"
+  }
+}

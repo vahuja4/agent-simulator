@@ -1,0 +1,30 @@
+{
+  "rulings": [
+    {
+      "criterion_id": "simulator_factual_grounding",
+      "passed": true,
+      "reasoning": "The customer only referenced account/card identifiers and intentions that are present in the governing scenario or supplied knowledge: card 9013, card 0767, checking account 5678, and a one-time payment. They did not assert any unsupported balances, dates, or prior actions."
+    },
+    {
+      "criterion_id": "simulator_confirmation_timing",
+      "passed": true,
+      "reasoning": "The customer has not clearly confirmed a payment yet. They asked for options and then corrected the card, so they did not confirm before validated payment details were presented and confirmation was requested."
+    },
+    {
+      "criterion_id": "simulator_goal_persistence",
+      "passed": true,
+      "reasoning": "The customer continued pursuing a one-time payment from checking account 5678 and corrected the target card to 0767 rather than abandoning or replacing the goal."
+    },
+    {
+      "criterion_id": "simulator_knowledge_level_evidence",
+      "passed": true,
+      "reasoning": "The customer used the informal phrase \u201cthe usual amount\u201d as the payment amount type, which is not a real listed payment option and required the assistant to explain available payment amount choices. This is material evidence of a fluency gap about payment_amount_type."
+    },
+    {
+      "criterion_id": "simulator_complication_evidence",
+      "passed": false,
+      "reasoning": "The declared correction was supposed to be an amount_type change from statement_balance to minimum_due. The observed correction was instead a card change from 9013 to 0767, and no amount_type correction to minimum_due has occurred."
+    }
+  ],
+  "schema_version": 1
+}

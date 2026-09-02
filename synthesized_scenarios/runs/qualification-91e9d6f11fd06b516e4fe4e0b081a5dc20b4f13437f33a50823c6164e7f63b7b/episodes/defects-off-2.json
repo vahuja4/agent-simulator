@@ -1,0 +1,51 @@
+{
+  "assertion_results": {
+    "path": "runs/qualification-91e9d6f11fd06b516e4fe4e0b081a5dc20b4f13437f33a50823c6164e7f63b7b/episodes/defects-off-2-assertion-results.json",
+    "sha256": "79c7638478b910a94983e71dbdf041aa0af1bbbc1d45b8a68f6bfa7f81368e4c"
+  },
+  "defect_toggles": [],
+  "degraded_checks": [],
+  "error": null,
+  "failures": [
+    {
+      "id": "goal_completion",
+      "source": "judge"
+    },
+    {
+      "id": "scenario_success",
+      "source": "judge"
+    }
+  ],
+  "fixture": {
+    "sha256": "1670acf7f56e48733e3cd2055e858ab54dc57d81b29089dd73ed22e164364b70",
+    "version": "paycard-v1"
+  },
+  "judge_id": "gpt-5.5",
+  "judge_rulings": {
+    "path": "runs/qualification-91e9d6f11fd06b516e4fe4e0b081a5dc20b4f13437f33a50823c6164e7f63b7b/episodes/defects-off-2-judge-rulings.json",
+    "sha256": "0d0499e812d3e8a59726989d339f9dea046a36fbfdfbfc70959e5b4ddae0cd68"
+  },
+  "kind": "simulator-compliance-fail",
+  "llm_calls": 5,
+  "outcome": "pass",
+  "prompt_hashes": {
+    "realization-system": "37cd12db0e05807e3553441180110397905e145a7333bd1edc34161b3398e8ba"
+  },
+  "repetition": 2,
+  "side": "defects-off",
+  "simulator_compliance": "fail",
+  "simulator_compliance_rulings": {
+    "path": "runs/qualification-91e9d6f11fd06b516e4fe4e0b081a5dc20b4f13437f33a50823c6164e7f63b7b/episodes/defects-off-2-simulator-compliance-rulings.json",
+    "sha256": "87f9c086b352547d8b2539ec938e3d57a95d403cfc88de57e714aef04089f719"
+  },
+  "simulator_id": "gpt-5.6-luna",
+  "termination": "The assistant failed to follow the customer\u2019s corrected card selection and did not retrieve payment options for card 0767 as requested, so the conversation has gone off track and violates the scenario requirements.",
+  "trace": {
+    "path": "runs/qualification-91e9d6f11fd06b516e4fe4e0b081a5dc20b4f13437f33a50823c6164e7f63b7b/episodes/defects-off-2-trace.json",
+    "sha256": "15253f095e135efe4c82797305b311186673def4d8f97538342f87f1004abfe5"
+  },
+  "transcript": {
+    "path": "runs/qualification-91e9d6f11fd06b516e4fe4e0b081a5dc20b4f13437f33a50823c6164e7f63b7b/episodes/defects-off-2-transcript.jsonl",
+    "sha256": "f1415a50ac6c204b88c5ed63c467c4422b3d0a3b53526256d8d0fef314000300"
+  }
+}
