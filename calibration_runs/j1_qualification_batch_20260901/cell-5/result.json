@@ -19,6 +19,5 @@
   "reason_code": "operator-stop-after-stalled-provider-call",
   "replacement_candidate_id": null,
   "status": "interrupted",
-  "total_actual_cost_usd": "0.965007",
-  "working_credit_floor_after_usd": "24.128590"
+  "total_actual_cost_usd": "0.965007"
 }

@@ -4,13 +4,10 @@ from __future__ import annotations
 
 import argparse
 import json
-import sys
 from collections.abc import Sequence
 from pathlib import Path
 
-from agentsim.live_credit import LiveCreditError, live_credit_preflight
-
-from .candidate import load_candidate, produce_candidate
+from .candidate import produce_candidate
 from .completion import check_completion
 from .config import validate_all
 from .generator import generate_blueprints
@@ -104,16 +101,6 @@ def main(argv: Sequence[str] | None = None) -> int:
             except ValueError:
                 parser.error("--stub-failure must be ATTEMPT:MODE")
         if args.live:
-            config, _contracts, snapshot = validate_all()
-            planned_llm_calls = int(config.content["limits"]["realization_retry_bound"]) + 1
-            _print_live_cost_ceiling(
-                parser=parser,
-                command="produce",
-                snapshot_hash=snapshot.sha256,
-                realization_calls=int(config.content["limits"]["realization_retry_bound"]) + 1,
-                episodes=0,
-                llm_calls=planned_llm_calls,
-            )
             provider = LiveRealizationProvider.from_config()
         else:
             provider = StubRealizationProvider(failure_modes=failures)
@@ -145,27 +132,6 @@ def main(argv: Sequence[str] | None = None) -> int:
             except ValueError:
                 parser.error("--stub-outcome must be SIDE:REPETITION:KIND")
         if args.live:
-            candidate = load_candidate(args.output_root, args.candidate_id)
-            config, _contracts, snapshot = validate_all()
-            repetitions = int(config.content["limits"]["admission_repetitions"])
-            sides = 1 if candidate.blueprint.fitness_target_id is None else 2
-            replacement_calls = (
-                int(config.content["limits"]["realization_retry_bound"]) + 1
-                if candidate.ordinal < int(config.content["limits"]["replacement_bound"])
-                else 0
-            )
-            planned_llm_calls = (
-                replacement_calls
-                + repetitions * sides * (candidate.blueprint.max_turns * 2 + 1)
-            )
-            _print_live_cost_ceiling(
-                parser=parser,
-                command="qualify",
-                snapshot_hash=snapshot.sha256,
-                realization_calls=replacement_calls,
-                episodes=repetitions * sides,
-                llm_calls=planned_llm_calls,
-            )
             runner = LiveQualificationRunner.from_config()
             replacement_provider = LiveRealizationProvider.from_config()
         else:
@@ -251,30 +217,3 @@ def _require_execution_mode(
 
 def _print(**value: object) -> None:
     print(json.dumps(value, sort_keys=True))
-
-
-def _print_live_cost_ceiling(
-    *,
-    parser: argparse.ArgumentParser,
-    command: str,
-    snapshot_hash: str,
-    realization_calls: int,
-    episodes: int,
-    llm_calls: int,
-) -> None:
-    try:
-        credit_floor, per_call_ceiling, cost_ceiling = live_credit_preflight(llm_calls)
-    except LiveCreditError as exc:
-        parser.error(str(exc))
-    _print(
-        status="live-cost-ceiling",
-        command=command,
-        snapshot_hash=snapshot_hash,
-        maximum_planned_realization_calls=realization_calls,
-        maximum_planned_episodes=episodes,
-        maximum_planned_llm_calls=llm_calls,
-        maximum_cost_per_llm_call_usd=str(per_call_ceiling),
-        maximum_planned_cost_usd=str(cost_ceiling),
-        configured_credit_floor_usd=str(credit_floor),
-    )
-    sys.stdout.flush()

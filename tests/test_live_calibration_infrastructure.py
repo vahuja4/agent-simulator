@@ -7,7 +7,6 @@ from types import SimpleNamespace
 import pytest
 
 from agentsim import llm as llm_module
-from agentsim.live_credit import LiveCreditError, live_credit_preflight
 from agentsim.llm import OpenAILLM
 from agentsim.orchestrator import RunResult
 from agentsim.scenario import ModelFamilySeparationError, load_library
@@ -116,26 +115,6 @@ def test_gate_role_usage_reports_actual_cost_and_judge_cache_hit_rate() -> None:
     assert usage["judge"]["actual_cost_usd"] == "0.010750"
     assert usage["judge"]["cache_hit_rate"] == "0.250000"
     assert usage["total_actual_cost_usd"] == "0.016150"
-
-
-def test_live_credit_floor_must_strictly_exceed_usd_cost_ceiling() -> None:
-    with pytest.raises(LiveCreditError, match="must exceed"):
-        live_credit_preflight(
-            10,
-            environ={
-                "AGENTSIM_LIVE_CREDIT_FLOOR_USD": "5.00",
-                "AGENTSIM_MAX_COST_PER_LLM_CALL_USD": "0.50",
-            },
-        )
-
-    floor, per_call, ceiling = live_credit_preflight(
-        10,
-        environ={
-            "AGENTSIM_LIVE_CREDIT_FLOOR_USD": "5.01",
-            "AGENTSIM_MAX_COST_PER_LLM_CALL_USD": "0.50",
-        },
-    )
-    assert tuple(map(str, (floor, per_call, ceiling))) == ("5.01", "0.50", "5.00")
 
 
 async def test_curated_and_production_paths_build_identical_compliance_judge_input() -> None:
@@ -388,6 +367,43 @@ async def test_compliance_gate_rejects_same_gpt_family_before_live_calls(
     )
     with pytest.raises(ModelFamilySeparationError, match="same model family"):
         await run_calibration.main()
+
+
+async def test_calibration_reaches_episode_with_only_provider_credentials(
+    tmp_path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    scenario = load_library("scenarios")[0]
+    calls = []
+
+    async def recording_run_one(item, *args, **kwargs):
+        del args, kwargs
+        calls.append(item.name)
+        return {
+            "scenario": item.name,
+            "journey": item.journey,
+            "outcome": "pass",
+            "user_turns": 0,
+            "max_turns": item.max_turns,
+            "failures": [],
+        }
+
+    monkeypatch.setattr(
+        run_calibration.os, "environ", {"OPENAI_API_KEY": "test-key"}
+    )
+    monkeypatch.setattr(run_calibration, "run_one", recording_run_one)
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "run_calibration.py",
+            "--out",
+            str(tmp_path),
+            "--only",
+            scenario.name,
+        ],
+    )
+
+    assert await run_calibration.main() == 0
+    assert calls == [scenario.name]
 
 
 async def test_compliance_gate_runs_one_fixed_39_plus_3_denominator(

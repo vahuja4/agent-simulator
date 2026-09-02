@@ -12,7 +12,6 @@ import json
 import os
 
 from agentsim.llm import OpenAILLM
-from agentsim.live_credit import live_credit_preflight
 from agentsim.scenario import load_scenario
 from scenario_synthesis.compatibility import load_legacy_blueprint
 from scenario_synthesis.dryrun import (
@@ -45,24 +44,6 @@ async def _main(batch_label: str) -> None:
         )
     if not os.environ.get("OPENAI_API_KEY"):
         raise SystemExit("OPENAI_API_KEY not set (environment or .env)")
-    maximum_planned_llm_calls = sum(
-        2 * (candidate.scenario.max_turns * 2 + 1) for candidate in candidates
-    )
-    credit_floor, per_call, cost_ceiling = live_credit_preflight(
-        maximum_planned_llm_calls
-    )
-    print(
-        json.dumps(
-            {
-                "status": "live-cost-ceiling",
-                "maximum_planned_llm_calls": maximum_planned_llm_calls,
-                "maximum_cost_per_llm_call_usd": str(per_call),
-                "maximum_planned_cost_usd": str(cost_ceiling),
-                "configured_credit_floor_usd": str(credit_floor),
-            },
-            sort_keys=True,
-        )
-    )
     await run_dryrun_batch(
         candidates,
         lambda _blueprint, _configuration: OpenAILLM(),

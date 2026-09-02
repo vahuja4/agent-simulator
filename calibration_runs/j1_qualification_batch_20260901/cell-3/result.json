@@ -17,6 +17,5 @@
   "reason_code": "simulator-noncompliance",
   "replacement_candidate_id": null,
   "status": "rejected",
-  "total_actual_cost_usd": "1.044391",
-  "working_credit_floor_after_usd": "26.465079"
+  "total_actual_cost_usd": "1.044391"
 }

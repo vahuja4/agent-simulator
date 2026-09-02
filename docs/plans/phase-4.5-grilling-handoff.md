@@ -24,7 +24,7 @@ The committed `scenario_synthesis/` package and its August 17–18 phase notes a
 
 Grow coverage beyond hand-authored YAML by synthesizing candidates that use the same Scenario schema and batch machinery as curated Scenarios. The intended starting paradigm is reviewed, code-defined combination sampling; an LLM may realize surface text but may not invent combination structure or fixture facts. Every admitted synthesized Scenario must prove defect sensitivity against the deterministic mock and avoid false alarms with defects disabled. Synthesized provenance and results remain distinguishable from the curated library. The harness adds no dependency.
 
-Research alternatives remain context rather than decisions: IntellAgent-style policy/combination sampling, FLARE-style coverage guidance, and staged candidate QC. Luna's low episode cost makes per-candidate live QC affordable, while its migration demonstrated that simulator diversity itself can expose latent bugs.
+Research alternatives remain context rather than decisions: IntellAgent-style policy/combination sampling, FLARE-style coverage guidance, and staged candidate QC. Luna's migration demonstrated that simulator diversity itself can expose latent bugs.
 
 ## Settled decisions
 

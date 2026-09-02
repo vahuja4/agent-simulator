@@ -26,10 +26,6 @@ Simulator-compliance landing gate (fixed first-pass denominator):
         --candidate-id CANDIDATE --simulator-model DISTINCT_FAMILY_MODEL \
         --model gpt-5.5 --out NEW_DIR
 
-All modes require ``AGENTSIM_LIVE_CREDIT_FLOOR_USD`` and
-``AGENTSIM_MAX_COST_PER_LLM_CALL_USD``. The first is an operator-verified lower
-bound on current credit; the second is a conservative per-call cost ceiling.
-
 Acceptance writes a manifest, per-run trace/transcript/replay artifacts,
 clusters.json, acceptance.json, and report.md. Earlier calibration mode writes
 per-scenario transcript/JSON files plus summary.json.
@@ -72,7 +68,6 @@ from agentsim.acceptance import evaluate_batch_acceptance  # noqa: E402
 from agentsim.batch import BatchRunSpec, BatchRunner  # noqa: E402
 from agentsim.clustering import cluster_failures, label_clusters  # noqa: E402
 from agentsim.llm import DEFAULT_MODEL, OpenAILLM  # noqa: E402
-from agentsim.live_credit import LiveCreditError, live_credit_preflight  # noqa: E402
 from agentsim.orchestrator import RunResult, run_conversation  # noqa: E402
 from agentsim.persona_variation import (  # noqa: E402
     apply_persona_overlay,
@@ -923,61 +918,6 @@ async def main() -> int:
     if not os.environ.get("OPENAI_API_KEY"):
         print("OPENAI_API_KEY not set (env or .env); aborting.", file=sys.stderr)
         return 2
-
-    scenarios_for_ceiling = load_library(REPO / "scenarios")
-    if args.simulator_compliance_gate:
-        candidate_for_ceiling = load_candidate(
-            args.candidate_output_root, args.candidate_id
-        )
-        synthesized_for_ceiling = load_synthesized_scenario(
-            candidate_for_ceiling.scenario_path
-        )
-        pressure_for_ceiling = next(
-            scenario
-            for scenario in scenarios_for_ceiling
-            if scenario.name == "j1-pressure-skips-confirmation"
-        )
-        maximum_planned_llm_calls = (
-            sum((scenario.max_turns * 2 + 1) * 3 for scenario in scenarios_for_ceiling)
-            + (synthesized_for_ceiling.max_turns * 2 + 1) * 3
-            + pressure_for_ceiling.max_turns * 2
-            + 1
-        )
-    elif args.acceptance:
-        matrix = yaml.safe_load(Path(args.acceptance_config).read_text())
-        specs_for_ceiling = _acceptance_specs(args, matrix, scenarios_for_ceiling)
-        maximum_planned_llm_calls = sum(
-            spec.scenario.max_turns * 2 for spec in specs_for_ceiling
-        ) + (len(specs_for_ceiling) if args.label_clusters else 0)
-    else:
-        if args.only:
-            scenarios_for_ceiling = [
-                scenario
-                for scenario in scenarios_for_ceiling
-                if scenario.name in set(args.only)
-            ]
-        maximum_planned_llm_calls = sum(
-            scenario.max_turns * 2 for scenario in scenarios_for_ceiling
-        )
-    try:
-        credit_floor, per_call_ceiling, cost_ceiling = live_credit_preflight(
-            maximum_planned_llm_calls
-        )
-    except LiveCreditError as exc:
-        parser.error(str(exc))
-    print(
-        json.dumps(
-            {
-                "status": "live-cost-ceiling",
-                "maximum_planned_llm_calls": maximum_planned_llm_calls,
-                "maximum_cost_per_llm_call_usd": str(per_call_ceiling),
-                "maximum_planned_cost_usd": str(cost_ceiling),
-                "configured_credit_floor_usd": str(credit_floor),
-            },
-            sort_keys=True,
-        ),
-        flush=True,
-    )
 
     if args.simulator_compliance_gate:
         return await _run_simulator_compliance_gate(args)

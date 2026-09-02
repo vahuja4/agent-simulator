@@ -1326,14 +1326,12 @@ def test_live_produce_requires_explicit_cell_before_client_construction(
     assert "requires an explicit --cell-id" in capsys.readouterr().err
 
 
-def test_live_commands_print_cost_ceiling_before_offline_injected_execution(
+def test_live_commands_run_with_offline_injected_providers(
     tmp_path: Path,
     targeted_blueprint,
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    monkeypatch.setenv("AGENTSIM_LIVE_CREDIT_FLOOR_USD", "1000")
-    monkeypatch.setenv("AGENTSIM_MAX_COST_PER_LLM_CALL_USD", "0.01")
     monkeypatch.setattr(
         cli.LiveRealizationProvider,
         "from_config",
@@ -1350,10 +1348,7 @@ def test_live_commands_print_cost_ceiling_before_offline_injected_execution(
         ]
     ) == 0
     produced_lines = [json.loads(line) for line in capsys.readouterr().out.splitlines()]
-    assert produced_lines[0]["status"] == "live-cost-ceiling"
-    assert produced_lines[0]["maximum_planned_realization_calls"] == 2
-    assert produced_lines[0]["maximum_planned_episodes"] == 0
-    candidate_id = produced_lines[1]["candidate_id"]
+    candidate_id = produced_lines[0]["candidate_id"]
 
     runner = StubQualificationRunner()
     runner.runner_id = "injected-live-run-scenario-v1"
@@ -1374,40 +1369,10 @@ def test_live_commands_print_cost_ceiling_before_offline_injected_execution(
         ]
     ) == 0
     qualified_lines = [json.loads(line) for line in capsys.readouterr().out.splitlines()]
-    assert qualified_lines[0]["status"] == "live-cost-ceiling"
-    assert qualified_lines[0]["maximum_planned_realization_calls"] == 2
-    assert qualified_lines[0]["maximum_planned_episodes"] == 6
     qualification = json.loads(
-        (tmp_path / "runs" / qualified_lines[1]["qualification_id"] / "qualification.json").read_text()
+        (tmp_path / "runs" / qualified_lines[0]["qualification_id"] / "qualification.json").read_text()
     )
     assert qualification["provider_mode"] == "live"
-
-
-def test_live_command_refuses_without_credit_floor_before_provider_construction(
-    targeted_blueprint,
-    monkeypatch: pytest.MonkeyPatch,
-    capsys: pytest.CaptureFixture[str],
-) -> None:
-    monkeypatch.delenv("AGENTSIM_LIVE_CREDIT_FLOOR_USD", raising=False)
-    monkeypatch.delenv("AGENTSIM_MAX_COST_PER_LLM_CALL_USD", raising=False)
-    monkeypatch.setattr(
-        cli.LiveRealizationProvider,
-        "from_config",
-        lambda: pytest.fail("constructed live realization provider before credit pre-flight"),
-    )
-
-    with pytest.raises(SystemExit) as exc:
-        cli.main(
-            [
-                "produce",
-                "--live",
-                "--cell-id",
-                targeted_blueprint.cell_id,
-            ]
-        )
-
-    assert exc.value.code == 2
-    assert "AGENTSIM_LIVE_CREDIT_FLOOR_USD" in capsys.readouterr().err
 
 
 def test_live_providers_pin_current_configured_models_without_calling_them(
