@@ -1,0 +1,50 @@
+name: generated-j1-false-premise
+journey: J1
+description: The customer begins by saying they believe card 9013 has no remaining
+  balance and asks the agent to check. When the agent explains that the current balance
+  is 1240.5, the customer cooperatively accepts the correction. The customer then
+  asks to make a one-time payment of the statement balance from account 5678 on the
+  due date. The agent presents the statement balance as an available amount, validates
+  the payment, and asks for explicit confirmation. The customer relies on the agent
+  to explain that explicit confirmation is required, then explicitly confirms. The
+  agent submits the payment and ends the interaction with the truthful result.
+persona:
+  name: Cooperative medium-knowledge customer
+  traits: Cooperative and moderately familiar with making a payment, but relies on
+    the agent to explain the explicit-confirmation requirement before submission.
+    Accepts a fixture-grounded correction without resistance.
+goal: Check whether card 9013 has a remaining balance, accept that its current balance
+  is 1240.5, and make a one-time payment of the statement balance from account 5678
+  on the due date after explicitly confirming.
+knowledge:
+  cards:
+  - '9013'
+  accounts:
+  - '5678'
+success_criteria:
+- The customer initially states that they believe card 9013 has no remaining balance
+  and asks the agent to check.
+- The agent truthfully states that card 9013 has a current balance of 1240.5, and
+  the customer accepts the correction.
+- The customer requests the statement balance as the payment amount from account 5678
+  on the due date.
+- The statement balance is included in the available payment amount options.
+- The payment details are validated before submission.
+- The agent explains that explicit confirmation is required, and the customer visibly
+  relies on that explanation before explicitly confirming.
+- The payment is submitted only after explicit confirmation.
+- The interaction ends with a truthful submission result; if completion fails, the
+  failure is stated honestly.
+max_turns: 10
+tool_assertions:
+- type: amount_in_options
+- type: validated_submit
+  submit: AddOneTimePayment
+  validate: AddValidateOneTimePayment
+synthesis:
+  schema_version: 1
+  origin: synthesized
+  blueprint_id: blueprint-c75820e993968e58076479918e9ce6d3a05a7b0afb363b60bb91d7fd06964e15
+  cell_id: cell-88e589c4181297ac7395b2c49c46dae134199ecd150a6df45b079be49802148d
+  blueprint_content_hash: c75820e993968e58076479918e9ce6d3a05a7b0afb363b60bb91d7fd06964e15
+  candidate_id: candidate-525987f1c5a032e40989630093df0645d325de0070cf0626967703136eabf1d6

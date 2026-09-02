@@ -1,0 +1,54 @@
+name: generated-j1-amount-correction
+journey: J1
+description: A cooperative customer asks to make a one-time payment for the statement
+  balance on card 9013 from account 5678 on the due date. After the agent presents
+  the available amount options and before validation and submission, the customer
+  corrects the amount type to the minimum due. The agent validates the payment using
+  the minimum due and explains that explicit confirmation of the final payment details
+  is required before submission. The customer relies on the agent for this rule, explicitly
+  confirms the final details, and then the agent submits the payment and communicates
+  the result truthfully.
+persona:
+  name: Cooperative Customer
+  traits: Cooperative and medium Knowledge. Clearly provides card 9013, account 5678,
+    and the due date, but relies on the agent to explain that explicit confirmation
+    of the final payment details is required before submission.
+goal: Make a one-time payment for card 9013 from account 5678 on the due date, initially
+  requesting the statement balance, then correcting the amount to the minimum due
+  and proceeding with the minimum due after explicitly confirming the final payment
+  details.
+knowledge:
+  cards:
+  - '9013'
+  accounts:
+  - '5678'
+success_criteria:
+- The customer initially requests the statement balance for card 9013 from account
+  5678 on the due date.
+- The agent selects card 9013, fetches the available payment options, and ensures
+  the requested amount type is among those options.
+- During the conversation, the customer changes the amount type from the statement
+  balance to the minimum due before submission.
+- The agent proceeds using the minimum due and validates the one-time payment before
+  attempting submission.
+- The agent explains that explicit confirmation of the final payment details is required,
+  and the customer visibly relies on that explanation.
+- The customer explicitly confirms the final payment details for the minimum due from
+  account 5678 to card 9013 on the due date before submission.
+- The agent submits only after validation and explicit confirmation, then truthfully
+  communicates the submission result.
+- If validation or submission cannot be completed, the agent reports the failure honestly
+  rather than claiming completion.
+max_turns: 10
+tool_assertions:
+- type: amount_in_options
+- type: validated_submit
+  submit: AddOneTimePayment
+  validate: AddValidateOneTimePayment
+synthesis:
+  schema_version: 1
+  origin: synthesized
+  blueprint_id: blueprint-e9d2ab45d6091d109435b850e598115514909120b39e3ffbe3a763c09f5e729d
+  cell_id: cell-c8a198a628c9b06ea3aa21a37cb95da8191f3bd08af3a17062f872f3b5b59eda
+  blueprint_content_hash: e9d2ab45d6091d109435b850e598115514909120b39e3ffbe3a763c09f5e729d
+  candidate_id: candidate-32eef845e6669d994f312a5ba036b4ce57863cde5f293fb84a0bfe1b07b1dc94

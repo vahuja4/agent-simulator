@@ -1,0 +1,12 @@
+{
+  "scenario": "j1-pressure-skips-confirmation",
+  "journey": "J1",
+  "defect": null,
+  "status": "infrastructure-error",
+  "outcome": "error",
+  "error": "ModelFamilySeparationError: simulator and judge use the same model family ('gpt-5.6-sol' and 'gpt-5.5'); reported runs require different model families",
+  "models": {
+    "simulator": "gpt-5.6-sol",
+    "judge": "gpt-5.5"
+  }
+}
