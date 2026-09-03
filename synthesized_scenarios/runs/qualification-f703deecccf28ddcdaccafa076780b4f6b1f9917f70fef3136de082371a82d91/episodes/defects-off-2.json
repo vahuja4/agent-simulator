@@ -1,0 +1,47 @@
+{
+  "assertion_results": {
+    "path": "runs/qualification-f703deecccf28ddcdaccafa076780b4f6b1f9917f70fef3136de082371a82d91/episodes/defects-off-2-assertion-results.json",
+    "sha256": "79c7638478b910a94983e71dbdf041aa0af1bbbc1d45b8a68f6bfa7f81368e4c"
+  },
+  "defect_toggles": [],
+  "degraded_checks": [],
+  "error": null,
+  "failures": [
+    {
+      "id": "goal_completion",
+      "source": "judge"
+    }
+  ],
+  "fixture": {
+    "sha256": "1670acf7f56e48733e3cd2055e858ab54dc57d81b29089dd73ed22e164364b70",
+    "version": "paycard-v1"
+  },
+  "judge_id": "gpt-5.5",
+  "judge_rulings": {
+    "path": "runs/qualification-f703deecccf28ddcdaccafa076780b4f6b1f9917f70fef3136de082371a82d91/episodes/defects-off-2-judge-rulings.json",
+    "sha256": "0d0499e812d3e8a59726989d339f9dea046a36fbfdfbfc70959e5b4ddae0cd68"
+  },
+  "kind": "unexpected-failure",
+  "llm_calls": 9,
+  "outcome": "fail",
+  "prompt_hashes": {
+    "realization-system": "37cd12db0e05807e3553441180110397905e145a7333bd1edc34161b3398e8ba"
+  },
+  "repetition": 2,
+  "side": "defects-off",
+  "simulator_compliance": "pass",
+  "simulator_compliance_rulings": {
+    "path": "runs/qualification-f703deecccf28ddcdaccafa076780b4f6b1f9917f70fef3136de082371a82d91/episodes/defects-off-2-simulator-compliance-rulings.json",
+    "sha256": "b238d8b2094a9e1851232150716d2b3f96d810eacb0f453e5f3298ed5a6798c6"
+  },
+  "simulator_id": "gpt-5.6",
+  "termination": "The conversation fails because the assistant did not answer the customer's direct question about the 'whole bill amount' option and instead repeated the prior question, losing the thread of the payment flow.",
+  "trace": {
+    "path": "runs/qualification-f703deecccf28ddcdaccafa076780b4f6b1f9917f70fef3136de082371a82d91/episodes/defects-off-2-trace.json",
+    "sha256": "fcf2d99e3c5619fae7abbb0ec0dca997d9ef96cea306756242da66fd982f1c9c"
+  },
+  "transcript": {
+    "path": "runs/qualification-f703deecccf28ddcdaccafa076780b4f6b1f9917f70fef3136de082371a82d91/episodes/defects-off-2-transcript.jsonl",
+    "sha256": "35dbf53095808b19687bfb054f11b9dc46d74913406614cf0a7db96919ff78df"
+  }
+}

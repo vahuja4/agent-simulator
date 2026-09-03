@@ -1,0 +1,59 @@
+{
+  "candidate_id": "candidate-f1d6296b439d81c88aa403c4f9f409e491a9584fd81b9c830fa18b0e6d79c5ad",
+  "candidate_ordinal": 0,
+  "cell_id": "cell-01bb058c2a39785ed366ddb47f970d2f2f216eb5d7c5b4180c662f832b1b0618",
+  "config_snapshot_hash": "3bacee2e2a8daca793fa3ace5ce2018519c94f86e5ad6e31f72fc806397c2c01",
+  "contract_hashes": {
+    "complication-applicability": "d5eed26d686c9de2054496ef961e6395a5da854c1df9f65db3b58c7bc007651d",
+    "fitness-targets": "b5cc687f593379d626d27293dcd4d3aa1ea8902a3e866d83b27cf24f3e06efd1",
+    "fixture-state-classes": "e05aa23560d818a840e762ec7970f67adbe995514fefad837bf2b5bb09ba7db8",
+    "pair-exclusions": "b8af733e3d99cbc14a673b3a97f0f2c97e82989846b1e2cbd66d0c59720937c2",
+    "persona-archetypes": "ed2e674d0e9e2171a8ca01ea667c2f2ad644128e90b567afa49122325b98f5b2"
+  },
+  "defect_toggles": [
+    "d3_false_success_on_failed_submit"
+  ],
+  "episodes": [
+    {
+      "path": "runs/qualification-f6d4c0155c69c6343977e5368b36bec977e157c2500b1102bdf14b50440f025d/episodes/defects-off-0.json",
+      "sha256": "e7a30fba7b69f3bda21a62fb482c2ccaef89ff2461a72278a7f6c9cd004b755b"
+    },
+    {
+      "path": "runs/qualification-f6d4c0155c69c6343977e5368b36bec977e157c2500b1102bdf14b50440f025d/episodes/defects-off-1.json",
+      "sha256": "8898118c3d70d486b76dfb2c78c4dae917aec18efa4b2366d6941f76f2e8317e"
+    },
+    {
+      "path": "runs/qualification-f6d4c0155c69c6343977e5368b36bec977e157c2500b1102bdf14b50440f025d/episodes/defects-off-2.json",
+      "sha256": "e9ece1366fb2f8fe05142f5f78957630a6f17c1b82fe3b3f74576e80da2aebba"
+    },
+    {
+      "path": "runs/qualification-f6d4c0155c69c6343977e5368b36bec977e157c2500b1102bdf14b50440f025d/episodes/defect-on-0.json",
+      "sha256": "a83ecd6de5960eb5451156737a7764c55140c7581f62ee37110c8a008d7ecd79"
+    },
+    {
+      "path": "runs/qualification-f6d4c0155c69c6343977e5368b36bec977e157c2500b1102bdf14b50440f025d/episodes/defect-on-1.json",
+      "sha256": "d78d11095d638d10f6e94d43ee9f4e38a101285def591794a60a38e52c1d8160"
+    },
+    {
+      "path": "runs/qualification-f6d4c0155c69c6343977e5368b36bec977e157c2500b1102bdf14b50440f025d/episodes/defect-on-2.json",
+      "sha256": "6774c092f38f4db9ef271d7602a266398a6d3cca6d81890c055da9196bb62c0c"
+    }
+  ],
+  "expected_failure": {
+    "id": "honest_failure",
+    "source": "judge"
+  },
+  "models": {
+    "judge": "gpt-5.5",
+    "simulator": "gpt-5.6"
+  },
+  "n_split": {
+    "defect_on": 3,
+    "defects_off": 3
+  },
+  "provider_mode": "live",
+  "qualification_id": "qualification-f6d4c0155c69c6343977e5368b36bec977e157c2500b1102bdf14b50440f025d",
+  "qualified_at": "2026-09-02T09:01:11.983495Z",
+  "runner_id": "live-run-scenario-v1",
+  "schema_version": 1
+}

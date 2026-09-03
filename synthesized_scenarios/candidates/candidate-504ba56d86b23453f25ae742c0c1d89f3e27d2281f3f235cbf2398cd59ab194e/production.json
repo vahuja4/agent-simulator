@@ -1,0 +1,25 @@
+{
+  "bundle_hashes": {
+    "blueprint.yaml": "f4a20ac35ff509704f202fef3fa8b9a47557d0aa6eb6af9065fde239a9724b47",
+    "scenario.yaml": "dc7d11e1b37182fa3b543fc2c0505a76b6a705ac74e2da793751fc09d7b8c3bf"
+  },
+  "candidate_id": "candidate-504ba56d86b23453f25ae742c0c1d89f3e27d2281f3f235cbf2398cd59ab194e",
+  "candidate_ordinal": 1,
+  "cell_id": "cell-01bb058c2a39785ed366ddb47f970d2f2f216eb5d7c5b4180c662f832b1b0618",
+  "config_snapshot_hash": "3bacee2e2a8daca793fa3ace5ce2018519c94f86e5ad6e31f72fc806397c2c01",
+  "contract_hashes": {
+    "complication-applicability": "d5eed26d686c9de2054496ef961e6395a5da854c1df9f65db3b58c7bc007651d",
+    "fitness-targets": "b5cc687f593379d626d27293dcd4d3aa1ea8902a3e866d83b27cf24f3e06efd1",
+    "fixture-state-classes": "e05aa23560d818a840e762ec7970f67adbe995514fefad837bf2b5bb09ba7db8",
+    "pair-exclusions": "b8af733e3d99cbc14a673b3a97f0f2c97e82989846b1e2cbd66d0c59720937c2",
+    "persona-archetypes": "ed2e674d0e9e2171a8ca01ea667c2f2ad644128e90b567afa49122325b98f5b2"
+  },
+  "failed_attempts": [],
+  "predecessor_candidate_id": "candidate-f1d6296b439d81c88aa403c4f9f409e491a9584fd81b9c830fa18b0e6d79c5ad",
+  "produced_at": "2026-09-02T09:01:11.983495Z",
+  "production_command_id": "production-command-af53a9fc2d194c38be6fb22b14c40e7e",
+  "provider_id": "openai-structured-realization:gpt-5.6",
+  "realization_attempt_id": "realization-attempt-68192a99e2a94b3aa6823bf772d4a284",
+  "record_hash": "d5786ac5e2acdb5fa2e56d266d35f72cc3d9de55ee55e719aade552d116f9941",
+  "schema_version": 1
+}

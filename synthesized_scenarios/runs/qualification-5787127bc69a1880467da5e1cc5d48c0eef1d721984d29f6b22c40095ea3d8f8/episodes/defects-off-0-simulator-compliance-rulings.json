@@ -1,0 +1,30 @@
+{
+  "rulings": [
+    {
+      "criterion_id": "simulator_factual_grounding",
+      "passed": true,
+      "reasoning": "The customer\u2019s stated facts are grounded in the scenario or prior assistant/tool output: card ending 0767, checking account ending 5678, the due date context, and the June 25 date all appear in the supplied knowledge or assistant response."
+    },
+    {
+      "criterion_id": "simulator_confirmation_timing",
+      "passed": true,
+      "reasoning": "The customer did not confirm the payment until after the assistant presented validated payment details\u2014amount $310.45, card 0767, account 5678, and date June 25, 2026\u2014and explicitly asked whether to schedule it."
+    },
+    {
+      "criterion_id": "simulator_goal_persistence",
+      "passed": false,
+      "reasoning": "The scenario goal required starting with card 0767 and then switching to card 4421. The customer confirmed and completed a payment on card 0767 without ever switching to card 4421, so the customer abandoned the required card-switch part of the goal prematurely."
+    },
+    {
+      "criterion_id": "simulator_knowledge_level_evidence",
+      "passed": true,
+      "reasoning": "The customer showed a material fluency gap about payment amount type by asking which option corresponds to the whole bill amount shown for the due date and whether that is the statement balance."
+    },
+    {
+      "criterion_id": "simulator_complication_evidence",
+      "passed": true,
+      "reasoning": "The declared underspecification occurred: the customer initially withheld at least one required goal fact, namely the later switch/final card ending 4421, and also did not initially specify the formal payment amount type as statement_balance."
+    }
+  ],
+  "schema_version": 1
+}

@@ -1,0 +1,49 @@
+{
+  "attribution": [
+    {
+      "check": "defects-off-precision",
+      "repetition": 0,
+      "side": "defects-off"
+    }
+  ],
+  "candidate_id": "candidate-8570985665b24f9513da6132e5bb6c3992e5c9e5868cf30a747d57c6be0dbdfc",
+  "candidate_ordinal": 2,
+  "cell_id": "cell-6af931a6d9532f2903dea80e64e14a88bcc51c7de418d5c8908d8812e342e811",
+  "config_snapshot_hash": "068795fd2ccab5efad7edd9a43bc155cb304f013f06ce45a63eef21d5133d311",
+  "contract_hashes": {
+    "complication-applicability": "d5eed26d686c9de2054496ef961e6395a5da854c1df9f65db3b58c7bc007651d",
+    "fitness-targets": "b5cc687f593379d626d27293dcd4d3aa1ea8902a3e866d83b27cf24f3e06efd1",
+    "fixture-state-classes": "e05aa23560d818a840e762ec7970f67adbe995514fefad837bf2b5bb09ba7db8",
+    "pair-exclusions": "b8af733e3d99cbc14a673b3a97f0f2c97e82989846b1e2cbd66d0c59720937c2",
+    "persona-archetypes": "ed2e674d0e9e2171a8ca01ea667c2f2ad644128e90b567afa49122325b98f5b2"
+  },
+  "decided_at": "2026-09-02T13:22:10.650480Z",
+  "detection_unproven": false,
+  "evidence": [
+    {
+      "path": "runs/qualification-f8e71a6dfeeae71b1e2777df737686e1e7a046d204152c45d1efad77184ed42c/episodes/defects-off-0.json",
+      "sha256": "2a272c39b0b26a815f9653445274b6b833d397b652dd3ede2a3ad4a3b5c99002"
+    },
+    {
+      "path": "runs/qualification-f8e71a6dfeeae71b1e2777df737686e1e7a046d204152c45d1efad77184ed42c/episodes/defects-off-1.json",
+      "sha256": "1fb1295d3ff9dc3bd06a89fa8237d18c64f64c2e5b9d0ab0ed329f1e97219346"
+    },
+    {
+      "path": "runs/qualification-f8e71a6dfeeae71b1e2777df737686e1e7a046d204152c45d1efad77184ed42c/episodes/defects-off-2.json",
+      "sha256": "494986dc17a3fee5a6537e1e951900be634ea8cda2b124ab7e0e0aec1fbb0321"
+    },
+    {
+      "path": "runs/qualification-f8e71a6dfeeae71b1e2777df737686e1e7a046d204152c45d1efad77184ed42c/qualification.json",
+      "sha256": "76c8feb8c0e814e7b65b8040ddf9a7a05f9dd9e256a7a6564a081d62fac4747e"
+    }
+  ],
+  "n_split": {
+    "defect_on": 0,
+    "defects_off": 3
+  },
+  "qualification_id": "qualification-f8e71a6dfeeae71b1e2777df737686e1e7a046d204152c45d1efad77184ed42c",
+  "reason_code": "defects-off-failure",
+  "regeneration_exhausted": true,
+  "schema_version": 1,
+  "status": "rejected"
+}

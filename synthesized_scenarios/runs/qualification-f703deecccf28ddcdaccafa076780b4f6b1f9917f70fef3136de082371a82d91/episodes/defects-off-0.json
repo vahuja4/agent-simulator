@@ -1,0 +1,47 @@
+{
+  "assertion_results": {
+    "path": "runs/qualification-f703deecccf28ddcdaccafa076780b4f6b1f9917f70fef3136de082371a82d91/episodes/defects-off-0-assertion-results.json",
+    "sha256": "79c7638478b910a94983e71dbdf041aa0af1bbbc1d45b8a68f6bfa7f81368e4c"
+  },
+  "defect_toggles": [],
+  "degraded_checks": [],
+  "error": null,
+  "failures": [
+    {
+      "id": "scenario_success",
+      "source": "judge"
+    }
+  ],
+  "fixture": {
+    "sha256": "1670acf7f56e48733e3cd2055e858ab54dc57d81b29089dd73ed22e164364b70",
+    "version": "paycard-v1"
+  },
+  "judge_id": "gpt-5.5",
+  "judge_rulings": {
+    "path": "runs/qualification-f703deecccf28ddcdaccafa076780b4f6b1f9917f70fef3136de082371a82d91/episodes/defects-off-0-judge-rulings.json",
+    "sha256": "d6716d6ae1e51ca293bac7df0b0c8a60fa647e1247f1676ce77c67a3891cffd4"
+  },
+  "kind": "simulator-compliance-fail",
+  "llm_calls": 5,
+  "outcome": "pass",
+  "prompt_hashes": {
+    "realization-system": "37cd12db0e05807e3553441180110397905e145a7333bd1edc34161b3398e8ba"
+  },
+  "repetition": 0,
+  "side": "defects-off",
+  "simulator_compliance": "fail",
+  "simulator_compliance_rulings": {
+    "path": "runs/qualification-f703deecccf28ddcdaccafa076780b4f6b1f9917f70fef3136de082371a82d91/episodes/defects-off-0-simulator-compliance-rulings.json",
+    "sha256": "17b4d3fc4fa4acf620b917e5f3db79f0fc0e1c597e8413914d2e9d21b267f061"
+  },
+  "simulator_id": "gpt-5.6",
+  "termination": "The conversation is progressing and the card switch was handled with fresh options for card 4421, but the scenario-specific requirement to fetch available payment options for the original card 0767 before the switch was missed.",
+  "trace": {
+    "path": "runs/qualification-f703deecccf28ddcdaccafa076780b4f6b1f9917f70fef3136de082371a82d91/episodes/defects-off-0-trace.json",
+    "sha256": "12490d812e1a9fd5d93cb71537e213c329f1d7733ac51e97662290157d21971a"
+  },
+  "transcript": {
+    "path": "runs/qualification-f703deecccf28ddcdaccafa076780b4f6b1f9917f70fef3136de082371a82d91/episodes/defects-off-0-transcript.jsonl",
+    "sha256": "081ea1f5cb707b270993ac02a9b1718b5dabbede7a6d7f0e93fc6fd14762d1f8"
+  }
+}

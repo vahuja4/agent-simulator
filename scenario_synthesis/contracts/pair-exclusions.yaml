@@ -4,7 +4,7 @@ dependencies:
   persona-taxonomy:
     path: scenario_synthesis/contracts/persona-archetypes.yaml
     hash_mode: canonical-yaml
-    sha256: ed1daef6913eb36263efbdf0f14565ba2416a4e9778dc535e0456d15f810e5d0
+    sha256: ed2e674d0e9e2171a8ca01ea667c2f2ad644128e90b567afa49122325b98f5b2
   complication-taxonomy:
     path: scenario_synthesis/contracts/complication-applicability.yaml
     hash_mode: canonical-yaml

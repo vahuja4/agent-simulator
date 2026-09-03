@@ -1,0 +1,47 @@
+{
+  "assertion_results": {
+    "path": "runs/qualification-f8e71a6dfeeae71b1e2777df737686e1e7a046d204152c45d1efad77184ed42c/episodes/defects-off-0-assertion-results.json",
+    "sha256": "79c7638478b910a94983e71dbdf041aa0af1bbbc1d45b8a68f6bfa7f81368e4c"
+  },
+  "defect_toggles": [],
+  "degraded_checks": [],
+  "error": null,
+  "failures": [
+    {
+      "id": "goal_completion",
+      "source": "judge"
+    }
+  ],
+  "fixture": {
+    "sha256": "1670acf7f56e48733e3cd2055e858ab54dc57d81b29089dd73ed22e164364b70",
+    "version": "paycard-v1"
+  },
+  "judge_id": "gpt-5.5",
+  "judge_rulings": {
+    "path": "runs/qualification-f8e71a6dfeeae71b1e2777df737686e1e7a046d204152c45d1efad77184ed42c/episodes/defects-off-0-judge-rulings.json",
+    "sha256": "0d0499e812d3e8a59726989d339f9dea046a36fbfdfbfc70959e5b4ddae0cd68"
+  },
+  "kind": "unexpected-failure",
+  "llm_calls": 19,
+  "outcome": "fail",
+  "prompt_hashes": {
+    "realization-system": "892ee45bbca9edb079491b2a60e57c31c6e1256e1312d44f8e945666df6a3442"
+  },
+  "repetition": 0,
+  "side": "defects-off",
+  "simulator_compliance": "pass",
+  "simulator_compliance_rulings": {
+    "path": "runs/qualification-f8e71a6dfeeae71b1e2777df737686e1e7a046d204152c45d1efad77184ed42c/episodes/defects-off-0-simulator-compliance-rulings.json",
+    "sha256": "aaf2602acc0538755d3f5d30814a2da647a012f7517b1de1225cc50625dc8eb1"
+  },
+  "simulator_id": "gpt-5.6",
+  "termination": "The conversation fails because the assistant lost the thread: it did not answer the customer\u2019s repeated clarification request about the correct named amount option and instead disengaged with an \u201canything else\u201d question. Other compliance criteria are still satisfied so far.",
+  "trace": {
+    "path": "runs/qualification-f8e71a6dfeeae71b1e2777df737686e1e7a046d204152c45d1efad77184ed42c/episodes/defects-off-0-trace.json",
+    "sha256": "38ebe01e1c7284abe789dd3b053eeb1e0c7f498b0a256fe17aac0b00063fd286"
+  },
+  "transcript": {
+    "path": "runs/qualification-f8e71a6dfeeae71b1e2777df737686e1e7a046d204152c45d1efad77184ed42c/episodes/defects-off-0-transcript.jsonl",
+    "sha256": "aec50916b99757f098352de794b57ca41c23c81c8187e166b85903cc73c04137"
+  }
+}

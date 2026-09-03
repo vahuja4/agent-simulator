@@ -1,0 +1,42 @@
+{
+  "candidate_id": "candidate-08ed6f694287aa303bc28c995047bc0569bf1f1caadae8bd3feea2622fe96038",
+  "candidate_ordinal": 1,
+  "cell_id": "cell-6af931a6d9532f2903dea80e64e14a88bcc51c7de418d5c8908d8812e342e811",
+  "config_snapshot_hash": "3bacee2e2a8daca793fa3ace5ce2018519c94f86e5ad6e31f72fc806397c2c01",
+  "contract_hashes": {
+    "complication-applicability": "d5eed26d686c9de2054496ef961e6395a5da854c1df9f65db3b58c7bc007651d",
+    "fitness-targets": "b5cc687f593379d626d27293dcd4d3aa1ea8902a3e866d83b27cf24f3e06efd1",
+    "fixture-state-classes": "e05aa23560d818a840e762ec7970f67adbe995514fefad837bf2b5bb09ba7db8",
+    "pair-exclusions": "b8af733e3d99cbc14a673b3a97f0f2c97e82989846b1e2cbd66d0c59720937c2",
+    "persona-archetypes": "ed2e674d0e9e2171a8ca01ea667c2f2ad644128e90b567afa49122325b98f5b2"
+  },
+  "defect_toggles": [],
+  "episodes": [
+    {
+      "path": "runs/qualification-f703deecccf28ddcdaccafa076780b4f6b1f9917f70fef3136de082371a82d91/episodes/defects-off-0.json",
+      "sha256": "dbc88a822d5bdd9d30b4fc5c12242a4046247e7fe2ab4a25116bf88d07350759"
+    },
+    {
+      "path": "runs/qualification-f703deecccf28ddcdaccafa076780b4f6b1f9917f70fef3136de082371a82d91/episodes/defects-off-1.json",
+      "sha256": "c9689070ad95eef11499a456d14df321320f8b2a7c51713e16c4fd12a8667625"
+    },
+    {
+      "path": "runs/qualification-f703deecccf28ddcdaccafa076780b4f6b1f9917f70fef3136de082371a82d91/episodes/defects-off-2.json",
+      "sha256": "ee4db4289039652749011f78504509c9e3670477200187699962eb7470109107"
+    }
+  ],
+  "expected_failure": null,
+  "models": {
+    "judge": "gpt-5.5",
+    "simulator": "gpt-5.6"
+  },
+  "n_split": {
+    "defect_on": 0,
+    "defects_off": 3
+  },
+  "provider_mode": "live",
+  "qualification_id": "qualification-f703deecccf28ddcdaccafa076780b4f6b1f9917f70fef3136de082371a82d91",
+  "qualified_at": "2026-09-02T12:14:35.547159Z",
+  "runner_id": "live-run-scenario-v1",
+  "schema_version": 1
+}

@@ -4,7 +4,7 @@ dependencies:
   curated-persona-mapping:
     path: docs/reports/persona-archetype-mapping.md
     hash_mode: bytes
-    sha256: 27a8f534f87ad5f8f82eb17777766c07bc81b942bd320a708320615e9a7c999a
+    sha256: cb652aa81386128844c2a3dfc8025cdd63fca23a6cf6b472bd428ff76eb3ecda
 archetypes:
   - id: cooperative
     decision_ref: docs/adrs/0003-use-reviewed-behavioral-taxonomies-for-synthesis.md
@@ -19,6 +19,12 @@ archetypes:
     decision_ref: docs/adrs/0003-use-reviewed-behavioral-taxonomies-for-synthesis.md
     behavior_contract_ref: null
 mappings:
+  - scenario_id: generated-j1-amount-correction
+    archetype_id: cooperative
+    evidence_ref: docs/reports/persona-archetype-mapping.md
+  - scenario_id: generated-j1-false-premise
+    archetype_id: cooperative
+    evidence_ref: docs/reports/persona-archetype-mapping.md
   - scenario_id: j1-ambiguous-freedom-card
     archetype_id: cooperative
     evidence_ref: docs/reports/persona-archetype-mapping.md

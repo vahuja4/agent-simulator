@@ -1,0 +1,42 @@
+{
+  "assertion_results": {
+    "path": "runs/qualification-f8e71a6dfeeae71b1e2777df737686e1e7a046d204152c45d1efad77184ed42c/episodes/defects-off-2-assertion-results.json",
+    "sha256": "79c7638478b910a94983e71dbdf041aa0af1bbbc1d45b8a68f6bfa7f81368e4c"
+  },
+  "defect_toggles": [],
+  "degraded_checks": [],
+  "error": null,
+  "failures": [],
+  "fixture": {
+    "sha256": "1670acf7f56e48733e3cd2055e858ab54dc57d81b29089dd73ed22e164364b70",
+    "version": "paycard-v1"
+  },
+  "judge_id": "gpt-5.5",
+  "judge_rulings": {
+    "path": "runs/qualification-f8e71a6dfeeae71b1e2777df737686e1e7a046d204152c45d1efad77184ed42c/episodes/defects-off-2-judge-rulings.json",
+    "sha256": "d6716d6ae1e51ca293bac7df0b0c8a60fa647e1247f1676ce77c67a3891cffd4"
+  },
+  "kind": "pass",
+  "llm_calls": 21,
+  "outcome": "pass",
+  "prompt_hashes": {
+    "realization-system": "892ee45bbca9edb079491b2a60e57c31c6e1256e1312d44f8e945666df6a3442"
+  },
+  "repetition": 2,
+  "side": "defects-off",
+  "simulator_compliance": "pass",
+  "simulator_compliance_rulings": {
+    "path": "runs/qualification-f8e71a6dfeeae71b1e2777df737686e1e7a046d204152c45d1efad77184ed42c/episodes/defects-off-2-simulator-compliance-rulings.json",
+    "sha256": "44452e8ad64114ae65813deb8061be1d677d2ef2dae1c9d27cb851d3e2244546"
+  },
+  "simulator_id": "gpt-5.6",
+  "termination": "The conversation completed the customer\u2019s payment goal successfully, and all criteria held throughout the transcript.",
+  "trace": {
+    "path": "runs/qualification-f8e71a6dfeeae71b1e2777df737686e1e7a046d204152c45d1efad77184ed42c/episodes/defects-off-2-trace.json",
+    "sha256": "c01acc8a957af7c6841f2e28dc1d7f928bc65bd0390439cc57406154859582a1"
+  },
+  "transcript": {
+    "path": "runs/qualification-f8e71a6dfeeae71b1e2777df737686e1e7a046d204152c45d1efad77184ed42c/episodes/defects-off-2-transcript.jsonl",
+    "sha256": "73e5d53a4324accc5bc301cb2d46b86471ec962ee8b83f504c42f4fe003b5d26"
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "rulings": [
+    {
+      "criterion_id": "simulator_factual_grounding",
+      "passed": true,
+      "reasoning": "All customer-stated account/payment facts are grounded in the scenario or supplied knowledge: Chase Sapphire Preferred ending 9013, checking ending 5678, $6,000 amount, and June 20 due date. The later request for a live agent follows from the assistant's reported channel failure."
+    },
+    {
+      "criterion_id": "simulator_confirmation_timing",
+      "passed": true,
+      "reasoning": "The customer did not confirm submission in the initial request; they asked to see details and provide explicit confirmation before submission. They only clearly confirmed after the assistant presented validated details and asked whether to schedule it."
+    },
+    {
+      "criterion_id": "simulator_goal_persistence",
+      "passed": true,
+      "reasoning": "The customer continued pursuing the declared goal of making the $6,000 payment using the specified card/account/date. After the assistant reported the channel failure, the customer requested a live agent rather than changing the goal or abandoning it prematurely."
+    },
+    {
+      "criterion_id": "simulator_knowledge_level_evidence",
+      "passed": true,
+      "reasoning": "The customer stated the explicit-confirmation requirement unprompted in the opening turn: 'Please show me the details and get my explicit confirmation before submitting it.'"
+    },
+    {
+      "criterion_id": "simulator_complication_evidence",
+      "passed": true,
+      "reasoning": "The scenario declares no complication, so this criterion passes vacuously."
+    }
+  ],
+  "schema_version": 1
+}

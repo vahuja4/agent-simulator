@@ -1,0 +1,30 @@
+{
+  "rulings": [
+    {
+      "criterion_id": "simulator_factual_grounding",
+      "passed": true,
+      "reasoning": "The customer's stated facts are grounded in the scenario evidence and/or tool history: card 0767, funding account Chase Total Checking ending 5678, switch to card 4421, and due date June 28 for card 4421 are all supported. The customer did not assert unsupported amounts or account history."
+    },
+    {
+      "criterion_id": "simulator_confirmation_timing",
+      "passed": true,
+      "reasoning": "The customer has not clearly confirmed the payment for submission. They stated an intent to pay the \u201cwhole bill amount\u201d on the due date and explicitly asked which option that corresponds to, so this is not a final confirmation before validated payment details."
+    },
+    {
+      "criterion_id": "simulator_goal_persistence",
+      "passed": true,
+      "reasoning": "The customer is still pursuing the declared goal: start with card 0767, switch to 4421, use account 5678, request the whole bill amount on the due date, and ask for clarification before confirming. They have not abandoned or replaced the goal."
+    },
+    {
+      "criterion_id": "simulator_knowledge_level_evidence",
+      "passed": true,
+      "reasoning": "The customer exhibited the required material fluency gap about payment amount type by using the non-standard phrase \u201cwhole bill amount\u201d and asking which available payment option that means."
+    },
+    {
+      "criterion_id": "simulator_complication_evidence",
+      "passed": true,
+      "reasoning": "The underspecification occurred observably: the customer initially only specified card 0767, withholding at least the funding account, final card 4421, amount type, and payment date until later turns or prompts."
+    }
+  ],
+  "schema_version": 1
+}

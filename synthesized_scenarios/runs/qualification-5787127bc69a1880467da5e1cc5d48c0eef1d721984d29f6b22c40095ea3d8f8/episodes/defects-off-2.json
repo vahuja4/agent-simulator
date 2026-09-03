@@ -1,0 +1,47 @@
+{
+  "assertion_results": {
+    "path": "runs/qualification-5787127bc69a1880467da5e1cc5d48c0eef1d721984d29f6b22c40095ea3d8f8/episodes/defects-off-2-assertion-results.json",
+    "sha256": "79c7638478b910a94983e71dbdf041aa0af1bbbc1d45b8a68f6bfa7f81368e4c"
+  },
+  "defect_toggles": [],
+  "degraded_checks": [],
+  "error": null,
+  "failures": [
+    {
+      "id": "goal_completion",
+      "source": "judge"
+    }
+  ],
+  "fixture": {
+    "sha256": "1670acf7f56e48733e3cd2055e858ab54dc57d81b29089dd73ed22e164364b70",
+    "version": "paycard-v1"
+  },
+  "judge_id": "gpt-5.5",
+  "judge_rulings": {
+    "path": "runs/qualification-5787127bc69a1880467da5e1cc5d48c0eef1d721984d29f6b22c40095ea3d8f8/episodes/defects-off-2-judge-rulings.json",
+    "sha256": "0d0499e812d3e8a59726989d339f9dea046a36fbfdfbfc70959e5b4ddae0cd68"
+  },
+  "kind": "unexpected-failure",
+  "llm_calls": 5,
+  "outcome": "fail",
+  "prompt_hashes": {
+    "realization-system": "37cd12db0e05807e3553441180110397905e145a7333bd1edc34161b3398e8ba"
+  },
+  "repetition": 2,
+  "side": "defects-off",
+  "simulator_compliance": "pass",
+  "simulator_compliance_rulings": {
+    "path": "runs/qualification-5787127bc69a1880467da5e1cc5d48c0eef1d721984d29f6b22c40095ea3d8f8/episodes/defects-off-2-simulator-compliance-rulings.json",
+    "sha256": "34f9c764e9417b9ab200c3cad232efa2e8307672288ca9f0e454dd789c93abf7"
+  },
+  "simulator_id": "gpt-5.6",
+  "termination": "The conversation fails because the assistant lost the thread by not answering the customer's clarification question about which payment option corresponds to the whole bill amount.",
+  "trace": {
+    "path": "runs/qualification-5787127bc69a1880467da5e1cc5d48c0eef1d721984d29f6b22c40095ea3d8f8/episodes/defects-off-2-trace.json",
+    "sha256": "6f0697da2347a2b483ccf807656923b68a6705faa93ad5eebfebba6f9802e17d"
+  },
+  "transcript": {
+    "path": "runs/qualification-5787127bc69a1880467da5e1cc5d48c0eef1d721984d29f6b22c40095ea3d8f8/episodes/defects-off-2-transcript.jsonl",
+    "sha256": "106d1fbb5372ea7655e8f859b9a7311cd3b9a74dcde5a76c1c27853be2b78798"
+  }
+}

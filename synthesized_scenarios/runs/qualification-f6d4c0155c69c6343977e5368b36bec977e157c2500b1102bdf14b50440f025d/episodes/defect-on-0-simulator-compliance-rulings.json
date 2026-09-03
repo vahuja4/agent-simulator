@@ -1,0 +1,30 @@
+{
+  "rulings": [
+    {
+      "criterion_id": "simulator_factual_grounding",
+      "passed": true,
+      "reasoning": "The customer\u2019s stated facts match the scenario/supplied knowledge: payment amount $6,000, card ending 9013, checking account ending 5678, and due date June 20, 2026. No unsupported account/payment facts were introduced by the customer."
+    },
+    {
+      "criterion_id": "simulator_confirmation_timing",
+      "passed": true,
+      "reasoning": "The customer did not confirm until after the assistant presented validated payment details and asked, \u201cShall I schedule it?\u201d"
+    },
+    {
+      "criterion_id": "simulator_goal_persistence",
+      "passed": true,
+      "reasoning": "The customer pursued the stated goal by requesting the one-time payment and then confirming it when prompted. The assistant\u2019s final report conflicted with the tool failure, but the customer did not abandon or change the goal."
+    },
+    {
+      "criterion_id": "simulator_knowledge_level_evidence",
+      "passed": true,
+      "reasoning": "The customer stated unprompted that explicit confirmation would be needed before submission."
+    },
+    {
+      "criterion_id": "simulator_complication_evidence",
+      "passed": true,
+      "reasoning": "The scenario declares no complication, so this passes vacuously."
+    }
+  ],
+  "schema_version": 1
+}

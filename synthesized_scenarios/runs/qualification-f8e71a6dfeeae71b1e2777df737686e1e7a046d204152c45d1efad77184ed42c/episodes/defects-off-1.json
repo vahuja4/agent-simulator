@@ -1,0 +1,47 @@
+{
+  "assertion_results": {
+    "path": "runs/qualification-f8e71a6dfeeae71b1e2777df737686e1e7a046d204152c45d1efad77184ed42c/episodes/defects-off-1-assertion-results.json",
+    "sha256": "79c7638478b910a94983e71dbdf041aa0af1bbbc1d45b8a68f6bfa7f81368e4c"
+  },
+  "defect_toggles": [],
+  "degraded_checks": [],
+  "error": null,
+  "failures": [
+    {
+      "id": "goal_completion",
+      "source": "judge"
+    }
+  ],
+  "fixture": {
+    "sha256": "1670acf7f56e48733e3cd2055e858ab54dc57d81b29089dd73ed22e164364b70",
+    "version": "paycard-v1"
+  },
+  "judge_id": "gpt-5.5",
+  "judge_rulings": {
+    "path": "runs/qualification-f8e71a6dfeeae71b1e2777df737686e1e7a046d204152c45d1efad77184ed42c/episodes/defects-off-1-judge-rulings.json",
+    "sha256": "0d0499e812d3e8a59726989d339f9dea046a36fbfdfbfc70959e5b4ddae0cd68"
+  },
+  "kind": "unexpected-failure",
+  "llm_calls": 9,
+  "outcome": "fail",
+  "prompt_hashes": {
+    "realization-system": "892ee45bbca9edb079491b2a60e57c31c6e1256e1312d44f8e945666df6a3442"
+  },
+  "repetition": 1,
+  "side": "defects-off",
+  "simulator_compliance": "pass",
+  "simulator_compliance_rulings": {
+    "path": "runs/qualification-f8e71a6dfeeae71b1e2777df737686e1e7a046d204152c45d1efad77184ed42c/episodes/defects-off-1-simulator-compliance-rulings.json",
+    "sha256": "7d879148d5dae14df399079a580ae415e9726f8b7622185f81b4ddfdb4d51d10"
+  },
+  "simulator_id": "gpt-5.6",
+  "termination": "The assistant failed to answer the customer's clarification about which option represents the full statement bill and moved on without resolving the amount, so the conversation is no longer properly progressing toward the payment goal.",
+  "trace": {
+    "path": "runs/qualification-f8e71a6dfeeae71b1e2777df737686e1e7a046d204152c45d1efad77184ed42c/episodes/defects-off-1-trace.json",
+    "sha256": "b98d09d2ce8c0c389138e1f63ccf6d61457e13cfd20128695298f920154f80af"
+  },
+  "transcript": {
+    "path": "runs/qualification-f8e71a6dfeeae71b1e2777df737686e1e7a046d204152c45d1efad77184ed42c/episodes/defects-off-1-transcript.jsonl",
+    "sha256": "0a63c1f4a7656bb0c70800f27971853870e03ab597670d0bb6514b7bca1bb1e3"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "outcome": "error",
+  "provider": "live-run-scenario-v1",
+  "repetition": 1,
+  "schema_version": 1,
+  "side": "defects-off",
+  "turns": []
+}

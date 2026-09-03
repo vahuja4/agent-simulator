@@ -1,0 +1,44 @@
+name: synth-6af931a6d953-0eb9260bec06
+journey: J1
+description: A cooperative customer wants to make a one-time card payment but initially
+  identifies the wrong card and is unsure which available payment amount corresponds
+  to everything currently shown as owed. The customer provides details one fact at
+  a time, switches cards, and proceeds only after validation and explicit confirmation.
+persona:
+  name: Customer
+  traits: Cooperative and forthcoming one fact at a time, but unfamiliar with the
+    available payment-amount terminology.
+goal: "Start with card 0767, then switch to card 4421 for account 5678. Ask to pay\
+  \ the \u201Cwhole bill amount\u201D on the due date and need the agent to explain\
+  \ which real available option that means before confirming and submitting the one-time\
+  \ payment."
+knowledge:
+  cards:
+  - '0767'
+  - '4421'
+  accounts:
+  - '5678'
+success_criteria:
+- The agent selects card 0767 and fetches the available payment options.
+- After the customer switches to card 4421, the agent selects it and fetches the available
+  payment options again.
+- The chosen amount is one of the options returned for card 4421.
+- "The agent explains which available payment option corresponds to the customer\u2019\
+  s informal \u201Cwhole bill amount\u201D request."
+- The agent validates the one-time payment before requesting explicit confirmation.
+- The agent submits the one-time payment only after explicit confirmation.
+- The agent reports completion or failure truthfully according to the tool output.
+max_turns: 13
+tool_assertions:
+- type: amount_in_options
+- type: refetch_after_card_switch
+- type: validated_submit
+  submit: AddOneTimePayment
+  validate: AddValidateOneTimePayment
+synthesis:
+  schema_version: 1
+  origin: synthesized
+  candidate_id: candidate-08ed6f694287aa303bc28c995047bc0569bf1f1caadae8bd3feea2622fe96038
+  blueprint_id: blueprint-4657165042f5964faedfc7631861b834844ad7ea032d7690ed76c722013c07d4
+  cell_id: cell-6af931a6d9532f2903dea80e64e14a88bcc51c7de418d5c8908d8812e342e811
+  blueprint_content_hash: 4657165042f5964faedfc7631861b834844ad7ea032d7690ed76c722013c07d4

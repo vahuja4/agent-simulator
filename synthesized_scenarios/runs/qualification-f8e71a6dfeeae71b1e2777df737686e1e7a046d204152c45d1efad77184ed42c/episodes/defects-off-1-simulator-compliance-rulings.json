@@ -1,0 +1,30 @@
+{
+  "rulings": [
+    {
+      "criterion_id": "simulator_factual_grounding",
+      "passed": true,
+      "reasoning": "All customer-stated account/payment facts are grounded in the scenario or supplied knowledge: card ending 0767, Chase Total Checking ending 5678, wanting the full bill amount, and using the due date are all part of the goal facts or supplied knowledge."
+    },
+    {
+      "criterion_id": "simulator_confirmation_timing",
+      "passed": true,
+      "reasoning": "The customer has not confirmed or authorized a payment yet. They only selected a funding account and asked for clarification about the correct payment amount option."
+    },
+    {
+      "criterion_id": "simulator_goal_persistence",
+      "passed": true,
+      "reasoning": "The customer is still pursuing the stated goal of making a one-time payment and is seeking the required clarification about which payment amount option corresponds to the full statement bill. They have not abandoned or replaced the goal."
+    },
+    {
+      "criterion_id": "simulator_knowledge_level_evidence",
+      "passed": true,
+      "reasoning": "The customer demonstrated a material fluency gap about payment_amount_type by saying they were not sure what the amount is called and asking which option means the full bill amount due for the statement."
+    },
+    {
+      "criterion_id": "simulator_complication_evidence",
+      "passed": true,
+      "reasoning": "The underspecification occurred: the customer initially requested a payment for card 0767 without providing all required details such as funding account, amount type, and date, and only supplied the funding account when asked."
+    }
+  ],
+  "schema_version": 1
+}

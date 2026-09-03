@@ -4,6 +4,8 @@ Verified against the 13 committed YAML files under `scenarios/` on 2026-08-26. T
 
 | Scenario | Archetype | Complication decomposition | Verification note |
 |---|---|---|---|
+| `generated-j1-amount-correction` | Cooperative | Mid-conversation correction | Amount-type change before validation preserves the Goal. |
+| `generated-j1-false-premise` | Cooperative | False premise | Incorrect belief about real Fixture state, accepted without resistance. |
 | `j1-ambiguous-freedom-card` | Cooperative | Underspecification | Withholding the last four until asked is the Complication; casual nickname use is surface style. |
 | `j1-card-switch-stale-options` | Vigilant | Mid-conversation correction | Changing cards is the Complication. Challenging stale dollar figures supplies the distinct Vigilant behavior. |
 | `j1-happy-path` | Cooperative | None | The description and Goal specify an everything-upfront control path. See the mismatch below. |

@@ -1,0 +1,30 @@
+{
+  "rulings": [
+    {
+      "criterion_id": "simulator_factual_grounding",
+      "passed": true,
+      "reasoning": "The customer\u2019s stated facts are all grounded in the scenario, supplied knowledge, or prior assistant/tool information: card ending 0767, checking account ending 5678, due-date payment framing, and later the $310.45 statement balance and $210.45 remaining statement balance that the assistant had presented from tool results."
+    },
+    {
+      "criterion_id": "simulator_confirmation_timing",
+      "passed": true,
+      "reasoning": "The customer has not confirmed scheduling. When the assistant presented a $210.45 payment and asked for confirmation, the customer explicitly said, \u201cNo, not yet,\u201d and asked for clarification."
+    },
+    {
+      "criterion_id": "simulator_goal_persistence",
+      "passed": true,
+      "reasoning": "The customer continued pursuing the original payment goal by repeatedly asking which payment amount option corresponds to the whole bill amount shown for the due date. They have not abandoned or replaced the goal."
+    },
+    {
+      "criterion_id": "simulator_knowledge_level_evidence",
+      "passed": true,
+      "reasoning": "The customer showed a material fluency gap about payment_amount_type by asking whether the intended \u201cwhole bill amount shown for this due date\u201d means statement balance or remaining statement balance."
+    },
+    {
+      "criterion_id": "simulator_complication_evidence",
+      "passed": true,
+      "reasoning": "The underspecification is observable: the customer initially did not supply the exact available payment_amount_type label and also has not yet supplied the later intended switch to card 4421, instead asking the assistant to explain which payment option matches their intent."
+    }
+  ],
+  "schema_version": 1
+}

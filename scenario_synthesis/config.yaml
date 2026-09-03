@@ -13,7 +13,7 @@ versions:
   generator: phase-4.5-v1
   realization: phase-4.5-v1
 models:
-  simulator: gpt-5.6-luna
+  simulator: gpt-5.6
   judge: gpt-5.5
 limits:
   realization_token_budget: 8192

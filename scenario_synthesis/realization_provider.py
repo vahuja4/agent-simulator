@@ -238,6 +238,16 @@ def _realization_instruction(blueprint: CoverageBlueprint) -> str:
             f"{canonical_label!r}; use a plausible informal or wrong label and make the "
             "customer visibly need the agent to explain which real option it means."
         )
+    if (
+        blueprint.complication == "underspecification"
+        and blueprint.goal_facts.get("disclosure_style") == "one_fact_at_a_time"
+    ):
+        instruction += (
+            " The goal field must direct the customer to open with only their broad intent, "
+            "reveal exactly one payment detail per turn, and withhold every remaining detail "
+            "until the agent asks for it. The persona traits must not contradict this "
+            "disclosure behavior."
+        )
     return instruction
 
 

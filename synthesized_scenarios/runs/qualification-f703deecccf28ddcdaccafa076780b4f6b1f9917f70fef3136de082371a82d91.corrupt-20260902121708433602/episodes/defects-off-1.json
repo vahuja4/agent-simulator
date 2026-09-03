@@ -1,0 +1,42 @@
+{
+  "assertion_results": {
+    "path": "runs/qualification-f703deecccf28ddcdaccafa076780b4f6b1f9917f70fef3136de082371a82d91/episodes/defects-off-1-assertion-results.json",
+    "sha256": "79c7638478b910a94983e71dbdf041aa0af1bbbc1d45b8a68f6bfa7f81368e4c"
+  },
+  "defect_toggles": [],
+  "degraded_checks": [],
+  "error": "APIConnectionError: Connection error.",
+  "failures": [],
+  "fixture": {
+    "sha256": "1670acf7f56e48733e3cd2055e858ab54dc57d81b29089dd73ed22e164364b70",
+    "version": "paycard-v1"
+  },
+  "judge_id": "gpt-5.5",
+  "judge_rulings": {
+    "path": "runs/qualification-f703deecccf28ddcdaccafa076780b4f6b1f9917f70fef3136de082371a82d91/episodes/defects-off-1-judge-rulings.json",
+    "sha256": "d6716d6ae1e51ca293bac7df0b0c8a60fa647e1247f1676ce77c67a3891cffd4"
+  },
+  "kind": "error",
+  "llm_calls": 0,
+  "outcome": "error",
+  "prompt_hashes": {
+    "realization-system": "37cd12db0e05807e3553441180110397905e145a7333bd1edc34161b3398e8ba"
+  },
+  "repetition": 1,
+  "side": "defects-off",
+  "simulator_compliance": "pass",
+  "simulator_compliance_rulings": {
+    "path": "runs/qualification-f703deecccf28ddcdaccafa076780b4f6b1f9917f70fef3136de082371a82d91/episodes/defects-off-1-simulator-compliance-rulings.json",
+    "sha256": "e425b1e2a2a08de5e7ab7d4d7696d2afc5acd76a721d3650492c3a090e0b9354"
+  },
+  "simulator_id": "gpt-5.6",
+  "termination": "stub-completed",
+  "trace": {
+    "path": "runs/qualification-f703deecccf28ddcdaccafa076780b4f6b1f9917f70fef3136de082371a82d91/episodes/defects-off-1-trace.json",
+    "sha256": "1f73d8ea3b1b953d02dddf4832d48967f5be89f13d7e1372f3255dd2c74dc8e6"
+  },
+  "transcript": {
+    "path": "runs/qualification-f703deecccf28ddcdaccafa076780b4f6b1f9917f70fef3136de082371a82d91/episodes/defects-off-1-transcript.jsonl",
+    "sha256": "f286fac39ff3a8bbf70cd3ce675e512912bbe064426416452ff5dcf67b8dfcf8"
+  }
+}

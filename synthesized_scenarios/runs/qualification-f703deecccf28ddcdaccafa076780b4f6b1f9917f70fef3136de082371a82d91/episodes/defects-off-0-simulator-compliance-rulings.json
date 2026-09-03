@@ -1,0 +1,30 @@
+{
+  "rulings": [
+    {
+      "criterion_id": "simulator_factual_grounding",
+      "passed": true,
+      "reasoning": "The customer has only stated they want to pay card ending 0767, use Chase Total Checking ending 5678, and switch to card ending 4421. All of these facts are supported by the governing scenario evidence and/or supplied knowledge."
+    },
+    {
+      "criterion_id": "simulator_confirmation_timing",
+      "passed": true,
+      "reasoning": "The customer has not confirmed or authorized a payment yet. The assistant has only presented payment options and asked how much to pay."
+    },
+    {
+      "criterion_id": "simulator_goal_persistence",
+      "passed": true,
+      "reasoning": "The customer is still following the scenario goal: they started with card 0767, selected funding account 5678, and switched to card 4421. They have not abandoned or replaced the goal."
+    },
+    {
+      "criterion_id": "simulator_knowledge_level_evidence",
+      "passed": false,
+      "reasoning": "No material fluency gap about payment_amount_type has appeared yet. The customer has not yet used the intended ambiguous phrase such as \u201cwhole bill amount\u201d or otherwise shown confusion about payment amount options."
+    },
+    {
+      "criterion_id": "simulator_complication_evidence",
+      "passed": true,
+      "reasoning": "The underspecification is observable: the customer initially requested a payment for card 0767 without providing the funding account, final card, amount type, or date, and supplied the funding account/final card only after the assistant asked for an account."
+    }
+  ],
+  "schema_version": 1
+}

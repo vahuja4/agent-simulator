@@ -1451,6 +1451,44 @@ def test_live_realization_provider_uses_structured_blueprint_surface(
     assert "must not contain the canonical label 'statement balance'" in request["instruction"]
 
 
+def test_live_realization_provider_directs_one_fact_at_a_time_underspecification() -> None:
+    blueprint = next(
+        item
+        for item in generate_blueprints()
+        if item.complication == "underspecification"
+        and item.goal_facts.get("disclosure_style") == "one_fact_at_a_time"
+    )
+    calls: list[dict[str, object]] = []
+
+    class RecordingLLM:
+        async def structured(self, **kwargs):
+            calls.append(kwargs)
+            return StubRealizationProvider().realize(
+                blueprint,
+                candidate_ordinal=0,
+                attempt=0,
+            )
+
+    provider = LiveRealizationProvider(
+        llm=RecordingLLM(),
+        system_prompt="configured realization prompt",
+        token_budget=8192,
+        provider_id="test-live-realization",
+    )
+
+    provider.realize(blueprint, candidate_ordinal=0, attempt=0)
+
+    request = json.loads(calls[0]["messages"][0]["content"])
+    assert (
+        "open with only their broad intent, reveal exactly one payment detail per turn, "
+        "and withhold every remaining detail until the agent asks for it"
+        in request["instruction"]
+    )
+    assert "persona traits must not contradict this disclosure behavior" in request[
+        "instruction"
+    ]
+
+
 def test_low_knowledge_surface_rejects_fluent_goal_fact_recital(
     detection_unproven_blueprint,
 ) -> None:

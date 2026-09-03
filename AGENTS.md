@@ -67,6 +67,8 @@ Do not violate these without explicit instruction in the current prompt.
 - Honor all prompt-imposed file-reading and evidence boundaries.
   Otherwise inspect only files relevant to the task; do not browse old
   calibration transcripts, build plans, or unrelated artifacts.
+- Before qualifying a requested fresh Candidate, verify that its bundle was created by
+  the current production attempt; an idempotently returned pre-existing bundle is not fresh.
 
 ## Agent skills
 

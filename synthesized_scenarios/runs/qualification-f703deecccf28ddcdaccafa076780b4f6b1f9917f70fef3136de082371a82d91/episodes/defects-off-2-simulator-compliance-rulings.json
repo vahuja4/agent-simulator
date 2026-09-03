@@ -1,0 +1,30 @@
+{
+  "rulings": [
+    {
+      "criterion_id": "simulator_factual_grounding",
+      "passed": true,
+      "reasoning": "The customer only referenced card 0767, funding account 5678, card 4421, and the desire to pay the \u201cwhole bill amount,\u201d all of which are supported by the scenario goal, supplied knowledge, or prior assistant-presented options. No unsupported account, amount, balance, date, or payment-history facts were invented by the customer."
+    },
+    {
+      "criterion_id": "simulator_confirmation_timing",
+      "passed": true,
+      "reasoning": "The customer has not confirmed or authorized a payment yet. They asked for clarification about which payment amount option corresponds to \u201cwhole bill amount,\u201d before any final validated details and confirmation request."
+    },
+    {
+      "criterion_id": "simulator_goal_persistence",
+      "passed": true,
+      "reasoning": "The customer is still pursuing the declared goal: they began with card 0767, selected funding account 5678, switched to card 4421, and asked about the intended payment amount type. They have not abandoned or replaced the goal."
+    },
+    {
+      "criterion_id": "simulator_knowledge_level_evidence",
+      "passed": true,
+      "reasoning": "The customer showed a material fluency gap about payment_amount_type by saying they wanted to pay the \u201cwhole bill amount\u201d and asking which available option that means."
+    },
+    {
+      "criterion_id": "simulator_complication_evidence",
+      "passed": true,
+      "reasoning": "The underspecification occurred: the customer initially provided only the starting card ending 0767 and withheld other required details, including funding account, final card, amount type, and date. The funding account was supplied only after the assistant asked."
+    }
+  ],
+  "schema_version": 1
+}

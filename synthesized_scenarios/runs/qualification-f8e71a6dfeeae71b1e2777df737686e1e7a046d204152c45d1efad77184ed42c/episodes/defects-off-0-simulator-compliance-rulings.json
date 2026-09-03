@@ -1,0 +1,30 @@
+{
+  "rulings": [
+    {
+      "criterion_id": "simulator_factual_grounding",
+      "passed": true,
+      "reasoning": "All customer-stated facts are grounded in the scenario, supplied knowledge, assistant-provided options, or tool history: card 0767, funding account 5678, switch to card 4421, due dates June 25 and June 28, and the $89.99 equality across statement/remaining/current balances for card 4421."
+    },
+    {
+      "criterion_id": "simulator_confirmation_timing",
+      "passed": true,
+      "reasoning": "The customer never clearly confirmed scheduling a payment. When the assistant presented validated details and asked for confirmation, the customer explicitly declined or withheld confirmation."
+    },
+    {
+      "criterion_id": "simulator_goal_persistence",
+      "passed": true,
+      "reasoning": "The customer continued pursuing the intended goal: starting with card 0767, switching to card 4421, requesting the due-date payment, and repeatedly seeking the required explanation of which amount option corresponds to the full bill owed. The customer did not abandon the goal; the assistant ended without resolving the explanation or submitting the payment."
+    },
+    {
+      "criterion_id": "simulator_knowledge_level_evidence",
+      "passed": true,
+      "reasoning": "The customer displayed a material fluency gap about payment amount type by asking what \u201cthe full bill says I owe\u201d means and whether it corresponds to statement balance, remaining statement balance, or current balance."
+    },
+    {
+      "criterion_id": "simulator_complication_evidence",
+      "passed": true,
+      "reasoning": "The underspecification occurred: the customer initially provided only the card 0767 and funding account 5678, while withholding the payment amount type, payment date, and later card switch until prompted or later in the conversation."
+    }
+  ],
+  "schema_version": 1
+}

@@ -1,0 +1,43 @@
+name: synth-6af931a6d953-d7b953603ad4
+journey: J1
+description: A cooperative customer wants to make a one-time card payment. They disclose
+  details one fact at a time, initially identify card 0767, then switch to card 4421,
+  requiring the available payment options to be fetched again before validation, confirmation,
+  and submission.
+persona:
+  name: Customer
+  traits: Cooperative and forthcoming one fact at a time, but unsure of the proper
+    name for the payment amount option and needs the agent to identify it.
+goal: Make a one-time payment from account 5678 for card 0767, then switch to card
+  4421. The customer asks to pay the whole bill amount shown for the due date and
+  needs the agent to explain which available payment option that means.
+knowledge:
+  cards:
+  - '0767'
+  - '4421'
+  accounts:
+  - '5678'
+success_criteria:
+- The available payment amounts include the option matching the customer's informal
+  request.
+- After the customer switches from card 0767 to card 4421, payment options are fetched
+  again for card 4421.
+- The payment is validated with AddValidateOneTimePayment before submission.
+- The agent obtains explicit confirmation before submitting the payment.
+- The confirmed payment is submitted with AddOneTimePayment and the interaction terminates
+  successfully.
+- Any failure is reported honestly, and all claims remain consistent with tool output.
+max_turns: 13
+tool_assertions:
+- type: amount_in_options
+- type: refetch_after_card_switch
+- type: validated_submit
+  submit: AddOneTimePayment
+  validate: AddValidateOneTimePayment
+synthesis:
+  schema_version: 1
+  origin: synthesized
+  candidate_id: candidate-a96bdf337d3f217fd8e50098fca13af66ebe9cefeb3a045aefc1031324529587
+  blueprint_id: blueprint-4657165042f5964faedfc7631861b834844ad7ea032d7690ed76c722013c07d4
+  cell_id: cell-6af931a6d9532f2903dea80e64e14a88bcc51c7de418d5c8908d8812e342e811
+  blueprint_content_hash: 4657165042f5964faedfc7631861b834844ad7ea032d7690ed76c722013c07d4

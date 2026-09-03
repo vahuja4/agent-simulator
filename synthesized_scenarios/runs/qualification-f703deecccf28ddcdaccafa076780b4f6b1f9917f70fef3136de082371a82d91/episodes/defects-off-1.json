@@ -1,0 +1,47 @@
+{
+  "assertion_results": {
+    "path": "runs/qualification-f703deecccf28ddcdaccafa076780b4f6b1f9917f70fef3136de082371a82d91/episodes/defects-off-1-assertion-results.json",
+    "sha256": "79c7638478b910a94983e71dbdf041aa0af1bbbc1d45b8a68f6bfa7f81368e4c"
+  },
+  "defect_toggles": [],
+  "degraded_checks": [],
+  "error": null,
+  "failures": [
+    {
+      "id": "goal_completion",
+      "source": "judge"
+    }
+  ],
+  "fixture": {
+    "sha256": "1670acf7f56e48733e3cd2055e858ab54dc57d81b29089dd73ed22e164364b70",
+    "version": "paycard-v1"
+  },
+  "judge_id": "gpt-5.5",
+  "judge_rulings": {
+    "path": "runs/qualification-f703deecccf28ddcdaccafa076780b4f6b1f9917f70fef3136de082371a82d91/episodes/defects-off-1-judge-rulings.json",
+    "sha256": "0d0499e812d3e8a59726989d339f9dea046a36fbfdfbfc70959e5b4ddae0cd68"
+  },
+  "kind": "unexpected-failure",
+  "llm_calls": 9,
+  "outcome": "fail",
+  "prompt_hashes": {
+    "realization-system": "37cd12db0e05807e3553441180110397905e145a7333bd1edc34161b3398e8ba"
+  },
+  "repetition": 1,
+  "side": "defects-off",
+  "simulator_compliance": "pass",
+  "simulator_compliance_rulings": {
+    "path": "runs/qualification-f703deecccf28ddcdaccafa076780b4f6b1f9917f70fef3136de082371a82d91/episodes/defects-off-1-simulator-compliance-rulings.json",
+    "sha256": "9effce5d72304a78c503544940b25e8b53a1b42ba0f714cb2179679409f63015"
+  },
+  "simulator_id": "gpt-5.6",
+  "termination": "The assistant lost the thread by ignoring the customer\u2019s direct clarification question about what \u201cwhole bill amount\u201d means among the available options and merely re-asking for an amount.",
+  "trace": {
+    "path": "runs/qualification-f703deecccf28ddcdaccafa076780b4f6b1f9917f70fef3136de082371a82d91/episodes/defects-off-1-trace.json",
+    "sha256": "95cbc5782cae7bdd65d15beaa158f9fb53e8e5ca0a50b4d576465f0b6ff07bdf"
+  },
+  "transcript": {
+    "path": "runs/qualification-f703deecccf28ddcdaccafa076780b4f6b1f9917f70fef3136de082371a82d91/episodes/defects-off-1-transcript.jsonl",
+    "sha256": "302ec06243c5152e64b9712ffa5fb0dd83753771482c03dd213721b362019006"
+  }
+}

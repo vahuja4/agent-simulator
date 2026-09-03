@@ -1,0 +1,30 @@
+{
+  "rulings": [
+    {
+      "criterion_id": "simulator_factual_grounding",
+      "passed": true,
+      "reasoning": "The customer\u2019s stated facts match the scenario and supplied knowledge: card ending 9013, checking account ending 5678, $6,000 custom payment, and the June 20, 2026 due date. No unsupported account, amount, balance, date, or history facts were introduced."
+    },
+    {
+      "criterion_id": "simulator_confirmation_timing",
+      "passed": true,
+      "reasoning": "The customer did not confirm submission until after the assistant presented the validated payment details and asked, \u201cShall I schedule it?\u201d The initial statement about needing explicit confirmation was not itself a submission confirmation."
+    },
+    {
+      "criterion_id": "simulator_goal_persistence",
+      "passed": true,
+      "reasoning": "The customer pursued the stated goal by requesting the one-time payment and then explicitly confirming when asked. There was no abandonment or replacement of the goal."
+    },
+    {
+      "criterion_id": "simulator_knowledge_level_evidence",
+      "passed": true,
+      "reasoning": "The customer stated unprompted that explicit confirmation was needed before submission, which is the relevant rule required by the scenario."
+    },
+    {
+      "criterion_id": "simulator_complication_evidence",
+      "passed": true,
+      "reasoning": "The scenario declares no complication, so this criterion passes vacuously."
+    }
+  ],
+  "schema_version": 1
+}

@@ -1,0 +1,47 @@
+{
+  "assertion_results": {
+    "path": "runs/qualification-5787127bc69a1880467da5e1cc5d48c0eef1d721984d29f6b22c40095ea3d8f8/episodes/defects-off-1-assertion-results.json",
+    "sha256": "79c7638478b910a94983e71dbdf041aa0af1bbbc1d45b8a68f6bfa7f81368e4c"
+  },
+  "defect_toggles": [],
+  "degraded_checks": [],
+  "error": null,
+  "failures": [
+    {
+      "id": "goal_completion",
+      "source": "judge"
+    }
+  ],
+  "fixture": {
+    "sha256": "1670acf7f56e48733e3cd2055e858ab54dc57d81b29089dd73ed22e164364b70",
+    "version": "paycard-v1"
+  },
+  "judge_id": "gpt-5.5",
+  "judge_rulings": {
+    "path": "runs/qualification-5787127bc69a1880467da5e1cc5d48c0eef1d721984d29f6b22c40095ea3d8f8/episodes/defects-off-1-judge-rulings.json",
+    "sha256": "0d0499e812d3e8a59726989d339f9dea046a36fbfdfbfc70959e5b4ddae0cd68"
+  },
+  "kind": "unexpected-failure",
+  "llm_calls": 7,
+  "outcome": "fail",
+  "prompt_hashes": {
+    "realization-system": "37cd12db0e05807e3553441180110397905e145a7333bd1edc34161b3398e8ba"
+  },
+  "repetition": 1,
+  "side": "defects-off",
+  "simulator_compliance": "pass",
+  "simulator_compliance_rulings": {
+    "path": "runs/qualification-5787127bc69a1880467da5e1cc5d48c0eef1d721984d29f6b22c40095ea3d8f8/episodes/defects-off-1-simulator-compliance-rulings.json",
+    "sha256": "e8ca9e0c3ad94b40c0f66b6cd805119732f6ac4a1acd3e3b95dd232639df2443"
+  },
+  "simulator_id": "gpt-5.6",
+  "termination": "The conversation fails because the assistant stopped progressing toward the payment goal and ignored the customer's repeated clarification request, despite no improper submission or tool-output fabrication.",
+  "trace": {
+    "path": "runs/qualification-5787127bc69a1880467da5e1cc5d48c0eef1d721984d29f6b22c40095ea3d8f8/episodes/defects-off-1-trace.json",
+    "sha256": "4addc440eb72d130624a8de6cb75d0b958397df77677f788915a1e826439d746"
+  },
+  "transcript": {
+    "path": "runs/qualification-5787127bc69a1880467da5e1cc5d48c0eef1d721984d29f6b22c40095ea3d8f8/episodes/defects-off-1-transcript.jsonl",
+    "sha256": "8ad75fec5761a65a961902543fe232a5831a0d99005a4786f7f1d3520c92ebf0"
+  }
+}

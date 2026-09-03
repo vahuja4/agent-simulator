@@ -1,0 +1,30 @@
+{
+  "rulings": [
+    {
+      "criterion_id": "simulator_factual_grounding",
+      "passed": true,
+      "reasoning": "All customer-stated account facts are grounded in the scenario or prior conversation: card ending 9013, Chase Sapphire Preferred, checking ending 5678, $6,000 amount, and June 20 due date are provided in the scenario/supplied knowledge. The later request not to change the amount and to connect with a live agent follows from the assistant\u2019s reported failure and offer."
+    },
+    {
+      "criterion_id": "simulator_confirmation_timing",
+      "passed": true,
+      "reasoning": "The customer did not confirm submission until after the assistant presented validated payment details and asked, 'Shall I schedule it?' The initial turn requested details for explicit confirmation before submission rather than confirming."
+    },
+    {
+      "criterion_id": "simulator_goal_persistence",
+      "passed": true,
+      "reasoning": "The customer consistently pursued the stated goal of a $6,000 one-time payment from checking ending 5678 to card ending 9013 on the due date, and after submission failed, declined to change the amount and requested a live agent."
+    },
+    {
+      "criterion_id": "simulator_knowledge_level_evidence",
+      "passed": true,
+      "reasoning": "The customer unpromptedly stated the relevant explicit-confirmation requirement in the first message: 'Please show me the details for explicit confirmation before submitting it.'"
+    },
+    {
+      "criterion_id": "simulator_complication_evidence",
+      "passed": true,
+      "reasoning": "The scenario declares no complication, so this criterion passes vacuously."
+    }
+  ],
+  "schema_version": 1
+}

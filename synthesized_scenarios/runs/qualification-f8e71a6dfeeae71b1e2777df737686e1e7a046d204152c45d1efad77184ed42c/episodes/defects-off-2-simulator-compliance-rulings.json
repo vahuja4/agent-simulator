@@ -1,0 +1,30 @@
+{
+  "rulings": [
+    {
+      "criterion_id": "simulator_factual_grounding",
+      "passed": true,
+      "reasoning": "All customer-stated facts about cards, account, dates, and desired payment are grounded in the scenario/supplied knowledge or prior assistant/tool outputs: card ...0767, account ...5678, due dates June 25 and June 28, and switch to card ...4421 are all available."
+    },
+    {
+      "criterion_id": "simulator_confirmation_timing",
+      "passed": true,
+      "reasoning": "The customer did not confirm scheduling until turn 18, after the assistant presented validated payment details and asked for confirmation at turn 17. The customer explicitly rejected the earlier proposed payment at turn 10 rather than confirming it."
+    },
+    {
+      "criterion_id": "simulator_goal_persistence",
+      "passed": true,
+      "reasoning": "The customer pursued the scenario goal throughout: began with card ...0767, provided funding account, sought clarification on the amount option, then switched to card ...4421 as required, provided the due date, and confirmed the final validated payment."
+    },
+    {
+      "criterion_id": "simulator_knowledge_level_evidence",
+      "passed": true,
+      "reasoning": "The customer showed a material fluency gap about payment amount type by asking what 'whatever the full bill says I owe' corresponds to and whether that means statement balance or remaining statement balance."
+    },
+    {
+      "criterion_id": "simulator_complication_evidence",
+      "passed": true,
+      "reasoning": "The underspecification occurred: the customer initially stated only the card ending ...0767 and withheld required details such as funding account, amount option, date, and later switch target until prompted or later in the conversation."
+    }
+  ],
+  "schema_version": 1
+}

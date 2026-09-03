@@ -1,0 +1,30 @@
+{
+  "rulings": [
+    {
+      "criterion_id": "simulator_factual_grounding",
+      "passed": true,
+      "reasoning": "The customer's stated card ending 0767, funding account ending 5678, and June 25 due date are all supported by the scenario/supplied knowledge and tool results. The phrasing about paying the whole bill amount is part of the scenario goal and does not introduce unsupported account facts."
+    },
+    {
+      "criterion_id": "simulator_confirmation_timing",
+      "passed": true,
+      "reasoning": "The customer has not confirmed or authorized a payment yet. They only stated the desired setup and then asked which payment option corresponds to the bill amount."
+    },
+    {
+      "criterion_id": "simulator_goal_persistence",
+      "passed": true,
+      "reasoning": "The customer is still pursuing the intended payment flow for card 0767 from account 5678 and has not abandoned or replaced the goal."
+    },
+    {
+      "criterion_id": "simulator_knowledge_level_evidence",
+      "passed": true,
+      "reasoning": "The customer showed a material fluency gap about payment_amount_type by asking which available option matches 'the whole bill amount shown for the June 25 due date.'"
+    },
+    {
+      "criterion_id": "simulator_complication_evidence",
+      "passed": true,
+      "reasoning": "The declared underspecification occurred: the customer initially provided the card and funding account but withheld required details such as the payment amount type/date until later clarification."
+    }
+  ],
+  "schema_version": 1
+}
