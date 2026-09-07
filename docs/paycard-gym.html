@@ -1,0 +1,955 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PayCard Agent Gym</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --ground: #F4F6F5;
+    --surface: #FFFFFF;
+    --surface-2: #EBEFED;
+    --ink: #1A2230;
+    --ink-2: #4A5563;
+    --muted: #7A8592;
+    --line: #D6DCD9;
+    --line-strong: #B8C1BD;
+    --det: #0E6B77;          /* plain code, data, reviewed lists */
+    --det-soft: #DCEFF1;
+    --llm: #A8640F;          /* the two AI roles */
+    --llm-soft: #F7E8D0;
+    --pass: #2E7D4F;
+    --pass-soft: #DDF0E4;
+    --fail: #B4432E;
+    --fail-soft: #F6E0DA;
+    --note: #5B4A9E;         /* annotations + complication */
+    --note-soft: #E8E3F6;
+    --shadow: 0 1px 2px rgba(20,30,40,.06), 0 8px 24px rgba(20,30,40,.06);
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #11161C; --surface: #191F27; --surface-2: #222A34;
+      --ink: #E7EAEE; --ink-2: #B7BFC8; --muted: #8B95A1;
+      --line: #2E3843; --line-strong: #3E4956;
+      --det: #5CC0CB; --det-soft: #14333A;
+      --llm: #E0A44E; --llm-soft: #3A2A12;
+      --pass: #6CC58F; --pass-soft: #17331F;
+      --fail: #E5806A; --fail-soft: #3D1F18;
+      --note: #B3A3E8; --note-soft: #2A2340;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #11161C; --surface: #191F27; --surface-2: #222A34;
+    --ink: #E7EAEE; --ink-2: #B7BFC8; --muted: #8B95A1;
+    --line: #2E3843; --line-strong: #3E4956;
+    --det: #5CC0CB; --det-soft: #14333A;
+    --llm: #E0A44E; --llm-soft: #3A2A12;
+    --pass: #6CC58F; --pass-soft: #17331F;
+    --fail: #E5806A; --fail-soft: #3D1F18;
+    --note: #B3A3E8; --note-soft: #2A2340;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--ground); color: var(--ink);
+    font-family: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+    font-size: 16px; line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3 { font-family: "Bricolage Grotesque", "IBM Plex Sans", sans-serif; text-wrap: balance; margin: 0; }
+  h1 { font-size: clamp(2.2rem, 5vw, 3.6rem); line-height: 1.02; font-weight: 700; letter-spacing: -.02em; }
+  h2 { font-size: clamp(1.6rem, 3vw, 2.2rem); line-height: 1.1; font-weight: 700; letter-spacing: -.015em; }
+  h3 { font-size: 1.15rem; font-weight: 700; line-height: 1.25; }
+  p { margin: 0; }
+  a { color: var(--det); }
+  code, .mono { font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .86em; }
+  .num { font-variant-numeric: tabular-nums; }
+
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+  .eyebrow { font-size: .74rem; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); font-weight: 600; }
+
+  header.hero { padding: 64px 0 40px; border-bottom: 1px solid var(--line); }
+  header.hero .lede { font-size: 1.2rem; color: var(--ink-2); max-width: 62ch; margin-top: 18px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 18px; margin-top: 28px; font-size: .84rem; color: var(--ink-2); }
+  .legend span { display: inline-flex; align-items: center; gap: 8px; }
+  .swatch { width: 14px; height: 14px; border-radius: 3px; display: inline-block; }
+  .swatch.det { background: var(--det); } .swatch.llm { background: var(--llm); } .swatch.pass { background: var(--pass); } .swatch.note { background: var(--note); }
+
+  nav.toc { position: sticky; top: 0; z-index: 5; background: color-mix(in srgb, var(--ground) 88%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
+  nav.toc ol { list-style: none; margin: 0; padding: 0; display: flex; gap: 4px; overflow-x: auto; }
+  nav.toc a { display: block; padding: 12px 12px; font-size: .84rem; color: var(--ink-2); text-decoration: none; white-space: nowrap; border-bottom: 2px solid transparent; }
+  nav.toc a:hover, nav.toc a:focus-visible { color: var(--ink); border-bottom-color: var(--det); outline: none; }
+  nav.toc a b { color: var(--det); font-family: "IBM Plex Mono", monospace; font-weight: 500; margin-right: 6px; }
+
+  section { padding: 64px 0; border-bottom: 1px solid var(--line); }
+  section .head { display: grid; grid-template-columns: 64px 1fr; gap: 16px; align-items: start; margin-bottom: 28px; }
+  section .head .n { font-family: "Bricolage Grotesque", sans-serif; font-size: 2.4rem; font-weight: 700; color: var(--det); line-height: 1; opacity: .9; }
+  section .head p { color: var(--ink-2); margin-top: 10px; max-width: 64ch; }
+  .grid { display: grid; gap: 20px; }
+  .g2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+  .g3 { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+  .stack { display: grid; gap: 28px; }
+
+  .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 20px 22px; }
+  .panel h3 { margin-bottom: 8px; }
+  .panel .cap { font-size: .86rem; color: var(--ink-2); }
+  .panel ul.plain { margin: 8px 0 0; padding-left: 18px; font-size: .9rem; color: var(--ink-2); }
+  .panel ul.plain li + li { margin-top: 5px; }
+
+  .flow { display: flex; flex-wrap: wrap; align-items: stretch; gap: 8px; }
+  .flow .node { flex: 1 1 140px; min-width: 140px; border-radius: 8px; padding: 12px 14px; border: 1.5px solid var(--line-strong); background: var(--surface); position: relative; }
+  .flow .node .t { font-weight: 600; font-size: .95rem; }
+  .flow .node .s { font-size: .8rem; color: var(--ink-2); margin-top: 4px; line-height: 1.35; }
+  .flow .node.det { border-color: var(--det); background: var(--det-soft); }
+  .flow .node.llm { border-color: var(--llm); background: var(--llm-soft); }
+  .flow .node.pass { border-color: var(--pass); background: var(--pass-soft); }
+  .flow .arrow { align-self: center; color: var(--muted); font-size: 1.2rem; padding: 0 2px; }
+  .flow .node .tag { position: absolute; top: -9px; left: 10px; font-size: .66rem; letter-spacing: .1em; text-transform: uppercase; font-weight: 600; padding: 1px 6px; border-radius: 3px; background: var(--surface); border: 1px solid var(--line-strong); color: var(--ink-2); }
+  .flow .node.det .tag { color: var(--det); border-color: var(--det); }
+  .flow .node.llm .tag { color: var(--llm); border-color: var(--llm); }
+  .flow .node.pass .tag { color: var(--pass); border-color: var(--pass); }
+
+  .chip { display: inline-block; font-size: .74rem; font-weight: 600; letter-spacing: .04em; padding: 2px 8px; border-radius: 999px; border: 1px solid; line-height: 1.5; white-space: nowrap; }
+  .chip.det { color: var(--det); border-color: var(--det); background: var(--det-soft); }
+  .chip.llm { color: var(--llm); border-color: var(--llm); background: var(--llm-soft); }
+  .chip.pass { color: var(--pass); border-color: var(--pass); background: var(--pass-soft); }
+  .chip.fail { color: var(--fail); border-color: var(--fail); background: var(--fail-soft); }
+  .chip.note { color: var(--note); border-color: var(--note); background: var(--note-soft); }
+  .chip.grey { color: var(--ink-2); border-color: var(--line-strong); background: var(--surface-2); }
+  .chip.mono { font-family: "IBM Plex Mono", monospace; font-weight: 500; letter-spacing: 0; }
+
+  table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+  th { text-align: left; font-size: .72rem; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); font-weight: 600; padding: 8px 10px; border-bottom: 1px solid var(--line-strong); }
+  td { padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  .tbl { overflow-x: auto; }
+
+  .world { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; }
+  .card { border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; background: var(--surface); }
+  .card .k { font-size: .72rem; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); font-weight: 600; }
+  .card .v { font-weight: 600; margin-top: 2px; }
+  .card .d { font-size: .84rem; color: var(--ink-2); margin-top: 6px; line-height: 1.45; }
+  .card .d b { color: var(--ink); font-weight: 600; }
+  .card.hi { border-color: var(--det); box-shadow: inset 3px 0 0 var(--det); }
+
+  .seq { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .seq .tool { font-family: "IBM Plex Mono", monospace; font-size: .8rem; padding: 4px 9px; border-radius: 5px; background: var(--surface-2); border: 1px solid var(--line); }
+  .seq .tool.submit { border-color: var(--fail); color: var(--fail); font-weight: 500; }
+  .seq .gate { font-size: .78rem; padding: 4px 9px; border-radius: 5px; border: 1.5px dashed var(--llm); color: var(--llm); font-weight: 600; }
+  .seq .ar { color: var(--muted); }
+
+  .axes { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
+  .axes .ax { border: 1px solid var(--line-strong); border-radius: 6px; padding: 10px; background: var(--surface); min-width: 0; }
+  .axes .ax .k { font-size: .66rem; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); font-weight: 600; }
+  .axes .ax .v { font-weight: 600; margin-top: 4px; font-size: .92rem; overflow-wrap: anywhere; }
+  .axes .ax .o { font-size: .76rem; color: var(--muted); margin-top: 6px; line-height: 1.35; }
+  .axes .ax.hi { border-color: var(--det); background: var(--det-soft); }
+  .axes .ax.comp { border-color: var(--note); background: var(--note-soft); }
+  @media (max-width: 760px) { .axes { grid-template-columns: repeat(3, 1fr); } }
+
+  .path { display: flex; flex-wrap: wrap; gap: 0; align-items: center; row-gap: 8px; }
+  .path .e { font-family: "IBM Plex Mono", monospace; font-size: .76rem; padding: 6px 10px; border: 1.5px solid var(--det); border-radius: 999px; color: var(--det); background: var(--surface); }
+  .path .e.loop { border-style: dashed; }
+  .path .c { width: 18px; height: 2px; background: var(--det); }
+
+  .doc { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  .doc .bar { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 16px; border-bottom: 1px solid var(--line); background: var(--surface-2); font-size: .8rem; color: var(--ink-2); }
+  .doc pre { margin: 0; padding: 16px; font-family: "IBM Plex Mono", monospace; font-size: .8rem; line-height: 1.55; overflow-x: auto; color: var(--ink); }
+  .doc pre .k { color: var(--det); }
+  .doc pre .fact { background: var(--det-soft); border-bottom: 1.5px solid var(--det); padding: 0 2px; border-radius: 2px; }
+  .doc pre .comp { background: var(--note-soft); border-bottom: 1.5px solid var(--note); padding: 0 2px; border-radius: 2px; }
+  .doc pre .cm { color: var(--muted); font-style: italic; }
+
+  .realize { display: grid; grid-template-columns: 1fr auto 1fr; gap: 16px; align-items: stretch; }
+  .realize .mid { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; color: var(--llm); font-weight: 600; font-size: .8rem; text-align: center; }
+  .realize .mid .big { font-size: 1.8rem; line-height: 1; }
+  @media (max-width: 760px) { .realize { grid-template-columns: 1fr; } .realize .mid .big { transform: rotate(90deg); } }
+  .quote { font-size: 1rem; line-height: 1.6; }
+  .fact { background: var(--det-soft); border-bottom: 1.5px solid var(--det); padding: 0 2px; border-radius: 2px; }
+  .gap { background: var(--llm-soft); border-bottom: 1.5px solid var(--llm); padding: 0 2px; border-radius: 2px; }
+  .cmp { background: var(--note-soft); border-bottom: 1.5px solid var(--note); padding: 0 2px; border-radius: 2px; }
+  .checks { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 6px; font-size: .86rem; }
+  .checks li { display: grid; grid-template-columns: 18px 1fr; gap: 8px; align-items: start; color: var(--ink-2); }
+  .checks li::before { content: "✓"; color: var(--pass); font-weight: 700; }
+
+  .taxo { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; }
+  .tx { border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; background: var(--surface); }
+  .tx .h { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .tx .h b { font-family: "Bricolage Grotesque", sans-serif; font-size: 1.02rem; }
+  .tx .d { font-size: .86rem; color: var(--ink-2); line-height: 1.5; }
+  .tx .d em { color: var(--ink); font-style: normal; font-weight: 600; }
+  .tx.hi { border-color: var(--note); box-shadow: inset 3px 0 0 var(--note); }
+  .tx .probe { font-size: .76rem; color: var(--muted); margin-top: 8px; }
+  .tx .probe b { color: var(--note); font-weight: 600; }
+  .fam { display: grid; gap: 10px; }
+  .fam .fh { font-size: .74rem; text-transform: uppercase; letter-spacing: .12em; color: var(--note); font-weight: 600; margin-top: 6px; }
+  .journey { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0; align-items: stretch; }
+  .journey .st { padding: 12px 14px; border: 1px solid var(--line); background: var(--surface); position: relative; }
+  .journey .st:first-child { border-radius: 8px 0 0 8px; } .journey .st:last-child { border-radius: 0 8px 8px 0; }
+  .journey .st + .st { border-left: none; }
+  .journey .st .k { font-size: .66rem; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); font-weight: 600; }
+  .journey .st .v { font-weight: 600; margin-top: 3px; font-size: .9rem; }
+  .journey .st .d { font-size: .78rem; color: var(--ink-2); margin-top: 4px; line-height: 1.4; }
+  .journey .st.det { border-top: 3px solid var(--det); } .journey .st.llm { border-top: 3px solid var(--llm); } .journey .st.note { border-top: 3px solid var(--note); }
+  @media (max-width: 860px) { .journey .st, .journey .st:first-child, .journey .st:last-child { border-radius: 0; } .journey .st + .st { border-left: 1px solid var(--line); border-top-width: 3px; } }
+
+  .layers { display: grid; grid-template-columns: 1fr; gap: 0; }
+  .layer { display: grid; grid-template-columns: 150px 1fr; gap: 18px; padding: 18px 0; border-top: 1px solid var(--line); }
+  .layer:first-child { border-top: none; padding-top: 0; }
+  .layer .who { font-weight: 700; font-family: "Bricolage Grotesque", sans-serif; font-size: 1.05rem; line-height: 1.2; }
+  .layer .who small { display: block; font-family: "IBM Plex Sans", sans-serif; font-weight: 400; font-size: .78rem; color: var(--muted); margin-top: 4px; }
+  @media (max-width: 600px) { .layer { grid-template-columns: 1fr; gap: 6px; } }
+  .crit { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 10px; }
+  .crit .c { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; background: var(--surface); font-size: .84rem; }
+  .crit .c code { display: block; color: var(--det); margin-bottom: 4px; font-size: .8rem; }
+  .crit .c.note { border-color: var(--note); }
+  .crit .c.note code { color: var(--note); }
+  .crit .c .tr { color: var(--muted); font-size: .78rem; margin-top: 6px; }
+
+  .convo { display: grid; gap: 14px; }
+  .turn { display: grid; grid-template-columns: 1fr 300px; gap: 16px; align-items: start; }
+  @media (max-width: 860px) { .turn { grid-template-columns: 1fr; } }
+  .bubble { border-radius: 12px; padding: 14px 16px; border: 1px solid var(--line); background: var(--surface); position: relative; }
+  .bubble .who { font-size: .72rem; text-transform: uppercase; letter-spacing: .1em; font-weight: 600; margin-bottom: 6px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .bubble .who .idx { font-family: "IBM Plex Mono", monospace; letter-spacing: 0; color: var(--muted); }
+  .turn.user .bubble { border-color: var(--llm); background: color-mix(in srgb, var(--llm-soft) 55%, var(--surface)); }
+  .turn.user .bubble .who { color: var(--llm); }
+  .turn.agent .bubble { border-color: var(--det); }
+  .turn.agent .bubble .who { color: var(--det); }
+  .bubble .txt { font-size: .98rem; line-height: 1.55; }
+  .bubble .txt mark { background: var(--det-soft); color: inherit; padding: 0 2px; border-radius: 2px; border-bottom: 1.5px solid var(--det); }
+  .bubble .txt mark.g { background: var(--llm-soft); border-bottom-color: var(--llm); }
+  .bubble .txt mark.p { background: var(--pass-soft); border-bottom-color: var(--pass); }
+  .bubble .txt mark.c { background: var(--note-soft); border-bottom-color: var(--note); }
+  .tools { margin-top: 10px; display: grid; gap: 4px; }
+  .tools .tc { font-family: "IBM Plex Mono", monospace; font-size: .76rem; padding: 5px 9px; border-radius: 5px; background: var(--surface-2); border: 1px solid var(--line); overflow-x: auto; white-space: nowrap; }
+  .tools .tc b { color: var(--det); font-weight: 500; }
+  .tools .tc.submit b { color: var(--fail); }
+  .tools .tc .res { color: var(--muted); }
+  .ann { font-size: .84rem; line-height: 1.5; color: var(--ink-2); border-left: 2px solid var(--note); padding: 4px 0 4px 12px; }
+  .ann b { color: var(--note); font-weight: 600; display: block; font-size: .72rem; text-transform: uppercase; letter-spacing: .1em; margin-bottom: 3px; }
+  .ann + .ann { margin-top: 10px; }
+  .ann.warn { border-left-color: var(--llm); } .ann.warn b { color: var(--llm); }
+  .phase { display: flex; align-items: center; gap: 12px; margin: 10px 0 2px; }
+  .phase .l { font-size: .72rem; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); font-weight: 600; white-space: nowrap; }
+  .phase .r { flex: 1; height: 1px; background: var(--line-strong); }
+
+  .verdict { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+  .vbox { border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; background: var(--surface); }
+  .vbox .k { font-size: .72rem; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); font-weight: 600; }
+  .vbox .score { font-family: "Bricolage Grotesque", sans-serif; font-size: 1.9rem; font-weight: 700; color: var(--pass); line-height: 1.1; margin-top: 4px; }
+  .vbox ul { margin: 8px 0 0; padding: 0; list-style: none; font-size: .82rem; display: grid; gap: 3px; }
+  .vbox ul li { display: flex; gap: 8px; align-items: baseline; }
+  .vbox ul li::before { content: "✓"; color: var(--pass); font-weight: 700; }
+  .vbox ul li code { color: var(--ink-2); }
+  .vbox ul.plain li::before { content: none; }
+
+  .reps { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+  .rep { border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; background: var(--surface); font-size: .86rem; }
+  .rep .h { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; gap: 8px; }
+  .rep .h .t { font-weight: 600; }
+  .rep q { color: var(--ink-2); font-style: italic; }
+  .rep .m { color: var(--muted); font-size: .78rem; margin-top: 6px; }
+
+  .callout { border-left: 3px solid var(--det); background: var(--surface); padding: 14px 18px; border-radius: 0 8px 8px 0; }
+  .callout.llm { border-left-color: var(--llm); }
+  .callout.note { border-left-color: var(--note); }
+  .callout p { font-size: .95rem; }
+  .callout p + p { margin-top: .7em; }
+
+  footer { padding: 40px 0 64px; font-size: .8rem; color: var(--muted); }
+  footer .prov { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 8px 24px; margin-top: 10px; }
+  footer .prov div { overflow-wrap: anywhere; }
+  footer .prov b { color: var(--ink-2); font-weight: 600; }
+
+  .ladder { display: grid; gap: 6px; margin-top: 12px; }
+  .rung { display: grid; grid-template-columns: 110px 1fr; gap: 14px; align-items: baseline; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); }
+  .rung .n { font-family: "Bricolage Grotesque", sans-serif; font-weight: 700; font-size: 1.35rem; text-align: right; font-variant-numeric: tabular-nums; }
+  .rung .t { font-size: .88rem; color: var(--ink-2); }
+  .rung.hi { border-color: var(--pass); } .rung.hi .n { color: var(--pass); }
+  @media (max-width: 520px) { .rung { grid-template-columns: 1fr; gap: 2px; } .rung .n { text-align: left; } }
+
+  @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <p class="eyebrow">agentsim · how it works</p>
+    <h1 style="margin-top:10px">PayCard Agent Gym</h1>
+    <p class="lede">How a stand-in agent with known bugs, structured blueprints, a fixed list of conversational complications, two tightly controlled uses of an AI model, and a two-step verdict combine to produce test conversations that stay true to the scenario that generated them.</p>
+    <div class="legend">
+      <span><i class="swatch det"></i> Plain code — fixed data, reviewed lists, checks that always give the same answer</span>
+      <span><i class="swatch llm"></i> AI model — used in exactly two places, both with guardrails</span>
+      <span><i class="swatch note"></i> Complication — the difficulty the customer brings</span>
+      <span><i class="swatch pass"></i> Verdict — earned, never assumed</span>
+    </div>
+  </div>
+</header>
+
+<nav class="toc"><div class="wrap"><ol>
+  <li><a href="#s0"><b>0</b>The whole path</a></li>
+  <li><a href="#s1"><b>1</b>Stand-in agent</a></li>
+  <li><a href="#s2"><b>2</b>Blueprints</a></li>
+  <li><a href="#s3"><b>3</b>Complications</a></li>
+  <li><a href="#s4"><b>4</b>Where the AI is used</a></li>
+  <li><a href="#s5"><b>5</b>Checks &amp; referees</a></li>
+  <li><a href="#s6"><b>6</b>A real conversation</a></li>
+</ol></div></nav>
+
+<!-- ───────────────────────── 0 PIPELINE ───────────────────────── -->
+<section id="s0"><div class="wrap">
+  <div class="head"><div class="n">0</div><div>
+    <h2>One scenario, end to end</h2>
+    <p>Everything below is one path. A test situation chosen from reviewed lists becomes a blueprint; the blueprint becomes a scenario; the scenario is played out against the stand-in agent; and the recorded conversation is checked. Teal stages are plain code. Amber stages use an AI model.</p>
+  </div></div>
+
+  <div class="flow" aria-label="pipeline">
+    <div class="node det"><span class="tag">reviewed lists</span><div class="t">Test situation</div><div class="s">one combination of six reviewed choices</div></div>
+    <div class="arrow">→</div>
+    <div class="node det"><span class="tag">code</span><div class="t">Blueprint</div><div class="s">the facts, the steps, the complication, the checks — as data, not sentences</div></div>
+    <div class="arrow">→</div>
+    <div class="node llm"><span class="tag">AI · writer</span><div class="t">Writing the scenario</div><div class="s">the AI writes the persona and goal in words; the facts stay fixed</div></div>
+    <div class="arrow">→</div>
+    <div class="node det"><span class="tag">checks</span><div class="t">Scenario file</div><div class="s">checked that no facts were invented or lost; then frozen</div></div>
+  </div>
+  <div class="flow" style="margin-top:8px">
+    <div class="node llm"><span class="tag">AI · actor</span><div class="t">Simulated customer</div><div class="s">an AI plays the persona and the complication; knows only the real account facts</div></div>
+    <div class="arrow">⇄</div>
+    <div class="node det"><span class="tag">stand-in</span><div class="t">Stand-in agent</div><div class="s">plain code, no AI; 5 tasks, 7 bugs that can be switched on</div></div>
+    <div class="arrow">→</div>
+    <div class="node det"><span class="tag">record</span><div class="t">Record</div><div class="s">every message and every tool call, with inputs and results</div></div>
+    <div class="arrow">→</div>
+    <div class="node det"><span class="tag">layer 1</span><div class="t">Rule checks</div><div class="s">plain-code checks on the record; a failure here ends the run</div></div>
+    <div class="arrow">→</div>
+    <div class="node llm"><span class="tag">layer 2</span><div class="t">Referees</div><div class="s">an AI referee rules after each turn; a second referee grades the customer</div></div>
+    <div class="arrow">→</div>
+    <div class="node pass"><span class="tag">outcome</span><div class="t">Verdict</div><div class="s">pass · fail · task incomplete · error</div></div>
+  </div>
+</div></section>
+
+<!-- ───────────────────────── 1 STAND-IN ───────────────────────── -->
+<section id="s1"><div class="wrap">
+  <div class="head"><div class="n">1</div><div>
+    <h2>The stand-in agent</h2>
+    <p>A hand-written stand-in for the real payments assistant. It is plain code and uses no AI, so it always behaves the same way. Its job is to be a <em>known quantity</em>: we know exactly what it should do, and we can switch on specific bugs one at a time.</p>
+  </div></div>
+
+  <div class="stack">
+    <div class="grid g2">
+      <div class="panel">
+        <h3>What it does</h3>
+        <p class="cap">Handles the same five customer tasks as the real assistant, calling tools with the same names. Each conversation gets its own private copy of the customer's accounts, so runs can't affect each other. Before anything is submitted, a "validate" call prepares it and the customer is shown a confirmation; the "submit" call then completes exactly what was prepared.</p>
+        <div class="tbl" style="margin-top:12px"><table>
+          <tr><th>Task</th><th>Goal</th><th>Submission tool</th></tr>
+          <tr><td><b>J1</b></td><td>Make a one-time payment</td><td><code>AddOneTimePayment</code></td></tr>
+          <tr><td><b>J2</b></td><td>Set up AutoPay</td><td><code>AddAutoPay</code></td></tr>
+          <tr><td><b>J3</b></td><td>Change existing AutoPay</td><td><code>UpdateAutoPay</code></td></tr>
+          <tr><td><b>J4</b></td><td>Cancel AutoPay</td><td><code>CancelAutoPay</code></td></tr>
+          <tr><td><b>J5</b></td><td>Cancel a scheduled payment</td><td><code>CancelPayment</code></td></tr>
+        </table></div>
+      </div>
+      <div class="panel">
+        <h3>Why it exists</h3>
+        <p class="cap">You cannot measure a test system against an agent you don't understand. The stand-in answers three questions no real agent can:</p>
+        <ul class="plain">
+          <li><b>Catching false alarms.</b> With all bugs off, the stand-in is correct by design. So if the test system reports a failure, the problem is in the test system — a referee misreading, a simulated customer going off-script, a gap in the stand-in — and it gets fixed before a real agent could be blamed for it.</li>
+          <li><b>Catching real bugs.</b> With one bug switched on, the test system <em>must</em> catch it, and must name the right check. That is how every check earned its wording.</li>
+          <li><b>Cost and speed.</b> No AI inside the agent means a run's only cost is the simulated customer and the referees; tests run offline in seconds, live checks in minutes.</li>
+        </ul>
+        <p class="cap" style="margin-top:12px">The test system talks to the stand-in through one tiny interface: send the conversation so far, get back a reply and its tool calls. The real assistant plugs into the same slot later without changing the test system.</p>
+      </div>
+    </div>
+
+    <div>
+      <p class="eyebrow" style="margin-bottom:10px">The customer's world — the only facts that exist</p>
+      <div class="world">
+        <div class="card"><div class="k">Card</div><div class="v">Chase Sapphire Preferred ···9013</div><div class="d">statement <b class="num">$875.20</b> · minimum <b class="num">$40.00</b> · current <b class="num">$1,240.50</b><br>due <b>2026-06-20</b> (a Saturday) · AutoPay <b>on</b></div></div>
+        <div class="card hi"><div class="k">Card</div><div class="v">Chase Freedom Unlimited ···0767</div><div class="d">statement <b class="num">$310.45</b> · remaining statement <b class="num">$210.45</b> · minimum <b class="num">$35.00</b> · current <b class="num">$432.10</b><br>due <b>2026-06-25</b> · no AutoPay</div></div>
+        <div class="card hi"><div class="k">Card</div><div class="v">Chase Freedom Flex ···4421</div><div class="d">statement <b class="num">$89.99</b> · remaining <b class="num">$89.99</b> · minimum <b class="num">$25.00</b> · current <b class="num">$89.99</b><br>due <b>2026-06-28</b> · no AutoPay<br><span style="color:var(--muted)">"Freedom" alone matches two cards — on purpose</span></div></div>
+        <div class="card hi"><div class="k">Bank account</div><div class="v">Chase Total Checking ···5678</div><div class="d">a Chase account; balance visible</div></div>
+        <div class="card"><div class="k">Bank account</div><div class="v">Ally Savings ···9999</div><div class="d">not a Chase account — Chase can't see its balance, so the agent has to say so</div></div>
+        <div class="card"><div class="k">Scheduled · today is 2026-06-10</div><div class="v">Two upcoming payments on ···9013</div><div class="d"><b class="num">$150.00</b> one-time on 06-20 (can be cancelled) · <b class="num">$875.20</b> AutoPay on 06-20 (can't be cancelled as a payment)</div></div>
+      </div>
+      <p class="cap" style="margin-top:10px; color:var(--muted); font-size:.82rem">Every item is here to exercise one task, one bug, or one complication. The stand-in agent runs on these facts; the simulated customer is told only these facts; blueprints refer only to these; and any number that isn't here is rejected as invented. Highlighted items are the ones the conversation in §6 uses.</p>
+    </div>
+
+    <div class="panel">
+      <h3>A correct one-time payment, as the record shows it</h3>
+      <div class="seq" style="margin-top:10px">
+        <span class="tool">PayeeList</span><span class="ar">→</span>
+        <span class="tool">FundingAccountPicker</span><span class="ar">→</span>
+        <span class="tool">AddOptionsOneTimePayment</span><span class="ar">→</span>
+        <span class="tool">AddValidateOneTimePayment</span><span class="ar">→</span>
+        <span class="gate">customer says yes</span><span class="ar">→</span>
+        <span class="tool submit">AddOneTimePayment</span>
+      </div>
+      <p class="cap" style="margin-top:10px">The amounts offered must come from the options the tool returned for the card currently selected; the submit must complete the exact payment that was validated; and the customer must have spoken in between. If the customer switches cards, the options must be fetched again. These are the rules the plain-code checks in §5 enforce.</p>
+    </div>
+
+    <div>
+      <p class="eyebrow" style="margin-bottom:6px">Seven planted bugs — each a single switch</p>
+      <p class="cap" style="color:var(--ink-2); margin-bottom:12px; max-width:72ch">To prove the test system can see a bug, we switch one on, replay the scenarios against the stand-in, and require the run to fail for the right reason. The catching happens <b>during the run, after every agent reply</b>: the plain-code <b>rule checks</b> look at the recorded tool calls first, and if they pass, the AI <b>referee</b> rules on the turn. The last column names which of the two is expected to catch each bug — and that expectation is itself tested (§5).</p>
+      <div class="tbl"><table>
+        <tr><th>Switch</th><th>What goes wrong</th><th>Task</th><th>Caught by · which check</th></tr>
+        <tr><td><b>D1</b></td><td>Submits without waiting for the customer's clear yes (in the same turn as validation, or on an impatient "just do it")</td><td>J1</td><td><span class="chip det">rule check</span> <code>validated_submit</code> · <span class="chip llm">referee</span> <code>explicit_confirmation</code></td></tr>
+        <tr><td><b>D2</b></td><td>After the customer switches cards, reuses the first card's amount options</td><td>J1</td><td><span class="chip det">rule check</span> <code>refetch_after_card_switch</code></td></tr>
+        <tr><td><b>D3</b></td><td>The submission fails (over $5,000) but the reply claims success</td><td>J1</td><td><span class="chip llm">referee</span> <code>honest_failure</code></td></tr>
+        <tr><td><b>D4</b></td><td>Sets a fixed AutoPay amount below the minimum due without warning the customer</td><td>J2 · J3</td><td><span class="chip llm">referee</span> <code>warning_acknowledged</code></td></tr>
+        <tr><td><b>D5</b></td><td>"My Freedom card" is silently guessed instead of asking which one</td><td>any</td><td><span class="chip llm">referee</span> <code>card_disambiguation</code></td></tr>
+        <tr><td><b>D6</b></td><td>The AutoPay payment is listed as something the customer can cancel</td><td>J5</td><td><span class="chip llm">referee</span> <code>journey_scoping</code></td></tr>
+        <tr><td><b>D7</b></td><td>Paying from the non-Chase account with no "we can't see that balance" note</td><td>J1 · J2</td><td><span class="chip llm">referee</span> <code>external_account_caveat</code></td></tr>
+      </table></div>
+    </div>
+  </div>
+</div></section>
+
+<!-- ───────────────────────── 2 BLUEPRINTS ───────────────────────── -->
+<section id="s2"><div class="wrap">
+  <div class="head"><div class="n">2</div><div>
+    <h2>How blueprints are created</h2>
+    <p>A blueprint is a structured description of one test situation, written as data rather than sentences. It says which real cards and accounts are involved, what the customer wants, which steps the conversation should go through, which complication applies, and which checks must pass. No AI is involved in producing it: code builds it from reviewed lists and gives it an ID computed from its contents — so the same situation always produces the same blueprint.</p>
+  </div></div>
+
+  <div class="stack">
+    <div>
+      <p class="eyebrow" style="margin-bottom:10px">Step 1 · the test situation — six choices, each from a reviewed list</p>
+      <div class="axes">
+        <div class="ax hi"><div class="k">Route</div><div class="v">j1-path-6dbc…</div><div class="o">which route through the payment task — this one goes back to re-pick a card</div></div>
+        <div class="ax hi"><div class="k">Customer type</div><div class="v">cooperative</div><div class="o">or pushy · sceptical · persistent</div></div>
+        <div class="ax hi"><div class="k">Knowledge level</div><div class="v">low</div><div class="o">how well the customer knows payment terms (low · medium · high)</div></div>
+        <div class="ax comp"><div class="k">Complication</div><div class="v">underspecification</div><div class="o">one of nine kinds of conversational difficulty — see §3</div></div>
+        <div class="ax hi"><div class="k">Starting situation</div><div class="v">j1-ambiguous-freedom-cards</div><div class="o">which account situation the customer starts in — here, both "Freedom" cards</div></div>
+        <div class="ax hi"><div class="k">Target bug</div><div class="v">none</div><div class="o">which planted bug (if any) this situation is meant to catch</div></div>
+      </div>
+      <p class="cap" style="margin-top:10px; color:var(--ink-2)">Code combines every option on every axis, then keeps only the combinations that make sense according to the reviewed lists: a complication is allowed only if the route has the steps it needs and the accounts have the facts it needs; a target bug only if that bug can actually happen on that route. Reviewers can also rule out specific combinations as meaningless. Whether a combination counts comes from those reviewed rules — never from what the generator happens to be able to produce. For the one-time-payment task alone, that leaves <b class="num">4,368</b> valid situations. Wording, opening line and name are not part of the situation; they come later.</p>
+    </div>
+
+    <div class="panel">
+      <h3>How many scenarios does that actually need? Not 4,368.</h3>
+      <p class="cap">Most agent mistakes come from <em>two</em> things happening together — a pushy customer <em>and</em> a confirmation step, say — not all six at once. So the target isn't to test every situation; it's to make sure every <b>pair</b> of choices from two different axes shows up in at least one accepted scenario. One scenario carries six choices, which is 15 pairs, so a small set of well-chosen scenarios covers every pair.</p>
+      <div class="ladder">
+        <div class="rung"><div class="n">7,776</div><div class="t">every way to pick one value from each of the six axes</div></div>
+        <div class="rung"><div class="n">4,368</div><div class="t">after removing combinations that can't happen (a card switch with one card; "which Freedom card?" without two Freedom cards)</div></div>
+        <div class="rung"><div class="n">406</div><div class="t">switch to counting <b>pairs</b> of values instead of whole situations</div></div>
+        <div class="rung hi"><div class="n">374</div><div class="t"><b>pairs we owe</b> — after a reviewer excluded 32 that make no sense, each with a written reason. The coverage report counts against this number.</div></div>
+        <div class="rung"><div class="n">326</div><div class="t">pairs we can build today — 48 involve bugs from tasks (AutoPay, cancellations) the machine can't play yet, and are parked, not forgotten</div></div>
+        <div class="rung hi"><div class="n">56</div><div class="t"><b>scenarios</b> that, between them, show all 326 pairs — chosen by picking, each time, the scenario that covers the most pairs not yet seen</div></div>
+      </div>    </div>
+
+    <div>
+      <p class="eyebrow" style="margin-bottom:10px">Step 2 · the blueprint for this situation (the actual file, shortened)</p>
+      <div class="doc">
+        <div class="bar"><span>candidates/…/blueprint.yaml</span><span class="chip det mono">blueprint-46571650…</span></div>
+<pre><span class="k">cell_id:</span> cell-6af931a6d953…        <span class="cm"># same six choices ⇒ same id</span>
+<span class="k">blueprint_id:</span> blueprint-46571650…  <span class="cm"># ID computed from the contents below</span>
+<span class="k">journey_path_id:</span> j1-path-6dbc990c687797f6
+<span class="k">persona_archetype:</span> cooperative
+<span class="k">knowledge_level:</span> low
+<span class="k">complication:</span> <span class="comp">underspecification</span>
+<span class="k">fixture_state_class_id:</span> j1-ambiguous-freedom-cards
+<span class="k">fitness_target_id:</span> null
+<span class="k">journey_edge_ids:</span>                <span class="cm"># the steps the conversation should go through, in order</span>
+  - j1-disclose-select-card
+  - j1-select-card-fetch-options
+  - j1-fetch-options-select-card    <span class="cm"># ← the customer picks a different card after seeing options</span>
+  - j1-select-card-fetch-options    <span class="cm"># ← so options must be fetched again</span>
+  - j1-fetch-options-validate
+  - j1-validate-confirm
+  - j1-confirm-submit
+  - j1-submit-terminate
+<span class="k">fixture_bindings:</span>
+  cards: [<span class="fact">'0767'</span>, <span class="fact">'4421'</span>]
+  accounts: [<span class="fact">'5678'</span>]
+<span class="k">goal_facts:</span>                      <span class="cm"># what the customer wants — as data, not sentences</span>
+  card_last_four: <span class="fact">'0767'</span>
+  initial_card_last_four: <span class="fact">'0767'</span>
+  final_card_last_four: <span class="fact">'4421'</span>
+  account_last_four: <span class="fact">'5678'</span>
+  amount_type: <span class="fact">statement_balance</span>
+  date: <span class="fact">due_date</span>
+  <span class="comp">disclosure_style: one_fact_at_a_time</span>   <span class="cm"># the complication, recorded as a fact</span>
+  knowledge_evidence:
+    kind: material_fluency_gap
+    referent: payment_amount_type   <span class="cm"># the customer wants the statement balance but doesn't know that term —</span>
+                                    <span class="cm"># so the written goal must NOT say "statement balance"; they describe it their own way</span>
+<span class="k">required_assertions:</span>
+  - type: amount_in_options
+  - type: refetch_after_card_switch  <span class="cm"># follows from the re-pick step in the route</span>
+  - type: validated_submit  (submit: AddOneTimePayment, validate: AddValidateOneTimePayment)
+<span class="k">required_criteria:</span> [explicit_confirmation, goal_completion, honest_failure, tool_output_truth]
+<span class="k">max_turns:</span> 13
+<span class="k">provenance:</span>
+  generator_version: phase-4.5-v1
+  source_hashes: {journey_graph: ac25e7…, fixture: 1670ac…, complication_applicability: d5eed2…, …}</pre>
+      </div>
+    </div>
+
+    <div class="grid g3">
+      <div class="panel"><h3>Facts are referenced, not spelled out</h3><p class="cap">The blueprint names the cards, the account, the kind of amount and the date rule. It never says "$210.45" — the number is looked up from the customer's real account data when the conversation runs, so it can't go wrong.</p></div>
+      <div class="panel"><h3>The route is spelled out</h3><p class="cap">Eight steps say which tool calls a correct agent must make, including fetching options again after the card is re-picked. The required checks follow from those steps — the blueprint carries its own pass conditions.</p></div>
+      <div class="panel"><h3>The ID is a fingerprint</h3><p class="cap">Change anything that matters and the ID changes; change only a timestamp and it doesn't. Everything produced later — the scenario, its test runs, the decision to accept or reject it — points back to this ID and to fingerprints of the reviewed lists it came from.</p></div>
+    </div>
+
+    <div class="panel">
+      <h3 style="margin-bottom:8px">The route, drawn</h3>
+      <div class="path">
+        <span class="e">state task → pick card</span><span class="c"></span>
+        <span class="e">pick card → fetch options</span><span class="c"></span>
+        <span class="e loop">fetch options → pick card</span><span class="c"></span>
+        <span class="e loop">pick card → fetch options</span><span class="c"></span>
+        <span class="e">fetch options → validate</span><span class="c"></span>
+        <span class="e">validate → confirm</span><span class="c"></span>
+        <span class="e">confirm → submit</span><span class="c"></span>
+        <span class="e">submit → done</span>
+      </div>
+      <p class="cap" style="margin-top:10px">The dashed pair is a detour in the route: the customer picks a different card after options were shown. Note that this is part of the route, not the complication — the complication here is that the customer gives one fact at a time. Keeping the two separate is what lets the same route be tested with any of the nine complications.</p>
+    </div>
+  </div>
+</div></section>
+
+<!-- ───────────────────────── 3 COMPLICATIONS ───────────────────────── -->
+<section id="s3"><div class="wrap">
+  <div class="head"><div class="n">3</div><div>
+    <h2>Complications</h2>
+    <p>A complication is what the customer does that makes the agent's job harder than a clean, complete request. There are exactly nine kinds. Every scenario has one (which may be "none"); generated scenarios never combine two. Each kind has a written definition of where it starts and stops, a rule for when it can be used, and its own check that it actually happened in the conversation.</p>
+  </div></div>
+
+  <div class="stack">
+    <div class="fam">
+      <div class="fh">Nothing missing, nothing wrong</div>
+      <div class="taxo">
+        <div class="tx"><div class="h"><b>none</b></div><div class="d">Everything is given clearly and up front. The baseline for every other kind: if the agent fails here, difficulty isn't the reason.</div></div>
+      </div>
+      <div class="fh">The customer leaves something out or isn't specific</div>
+      <div class="taxo">
+        <div class="tx hi"><div class="h"><b>underspecification</b></div><div class="d">The customer <em>leaves out</em> facts the agent needs, or gives them only when asked. Tests whether the agent asks for what it needs, one thing at a time, without guessing.</div><div class="probe"><b>This scenario.</b> Recorded in the blueprint as <code>disclosure_style: one_fact_at_a_time</code>.</div></div>
+        <div class="tx"><div class="h"><b>ambiguous reference</b></div><div class="d">The customer says something that matches <em>more than one</em> real thing — "my Freedom card" when there are two. Tests whether the agent asks which one, rather than guessing. The fact isn't missing; it just isn't specific enough.</div><div class="probe"><b>Only possible</b> when the customer has two cards with similar names.</div></div>
+      </div>
+      <div class="fh">The customer changes what they want</div>
+      <div class="taxo">
+        <div class="tx"><div class="h"><b>mid-conversation correction</b></div><div class="d">The customer <em>changes a detail</em> while keeping the same goal — "actually, from my savings". Tests whether the agent re-checks the changed details before submitting.</div><div class="probe"><b>Only possible</b> once there is a detail to change.</div></div>
+        <div class="tx"><div class="h"><b>goal shift</b></div><div class="d">The customer <em>drops what they were doing</em> and asks for something else entirely — "forget that, pay the other card instead". Tests whether the agent cleanly abandons the half-done payment.</div><div class="probe"><b>Only possible</b> where the task allows starting over.</div></div>
+        <div class="tx"><div class="h"><b>multi-intent turn</b></div><div class="d">One message asks for <em>two separate things</em> — for payments, two different payments at once. Tests whether the agent handles both without dropping or blending them.</div><div class="probe"><b>Only possible</b> where two payments can be handled in one conversation.</div></div>
+      </div>
+      <div class="fh">The customer's belief or message is off</div>
+      <div class="taxo">
+        <div class="tx"><div class="h"><b>false premise</b></div><div class="d">The customer <em>believes something wrong</em> about their real accounts — "cancel my $875.20 payment" when that is the automatic AutoPay payment, which can't be cancelled that way. The belief must be about something real, not made up.</div><div class="probe"><b>Only possible</b> when there is a real fact to be wrong about.</div></div>
+        <div class="tx"><div class="h"><b>out-of-scope drift</b></div><div class="d">The customer <em>briefly asks for something</em> outside what the agent does, then comes back to the original goal. Tests declining politely and returning to the task.</div></div>
+        <div class="tx"><div class="h"><b>channel noise</b></div><div class="d">A message <em>so garbled</em> the agent has to work out what was meant. Ordinary typos and casual phrasing don't count.</div></div>
+      </div>
+    </div>
+
+    <div class="grid g2">
+      <div class="callout note">
+        <p><b>How to tell similar kinds apart</b></p>
+        <p>· <em>Ambiguous reference</em> = the fact is there but not specific. <em>Underspecification</em> = the fact is missing.</p>
+        <p>· <em>Correction</em> = same payment, a detail changed. <em>Goal shift</em> = that payment abandoned, a new one started.</p>
+        <p>· <em>False premise</em> = wrong about something real.</p>
+        <p>· Not complications: being pushy (customer type), a failed payment (tool result), a Saturday due date (account situation).</p>
+      </div>
+      <div class="callout note">
+        <p><b>A complication is only assigned where it can happen.</b> Each kind states what it needs — a step to leave a fact out of, a detail that can change, two similar cards, a real fact to be wrong about. If a situation can't support it, it isn't assigned, and the exclusion is recorded.</p>
+      </div>
+    </div>
+
+    <div>
+      <p class="eyebrow" style="margin-bottom:10px">How a complication travels through the pipeline</p>
+      <div class="journey">
+        <div class="st det"><div class="k">Reviewed list</div><div class="v">Defined &amp; gated</div><div class="d">A reviewed file lists each kind and what it needs before it can be used.</div></div>
+        <div class="st det"><div class="k">Blueprint</div><div class="v">Recorded as a fact</div><div class="d"><code>complication: underspecification</code> plus <code>disclosure_style: one_fact_at_a_time</code>.</div></div>
+        <div class="st llm"><div class="k">Scenario file</div><div class="v">Written into the persona and description</div><div class="d"><code>persona:</code> "Cooperative and <span class="cmp">forthcoming one fact at a time</span>, but unsure of the correct name for the intended payment amount."<br><code>description:</code> "…initially identifies card 0767 and <span class="cmp">reveals details one fact at a time</span>…"</div></div>
+        <div class="st llm"><div class="k">Simulated customer</div><div class="v">Happens in the conversation</div><div class="d">A payment needs four facts: card, bank account, amount, date. The AI customer's first message gives <b>one</b> — the card — and holds back the other three until the agent asks for each. Leaving required facts out and giving them only on request is what underspecification means.</div></div>
+        <div class="st note"><div class="k">Second referee</div><div class="v">Verified</div><div class="d">A referee checks: did the customer actually leave facts out? Just repeating a complete request doesn't count.</div></div>
+      </div>
+    </div>
+  </div>
+</div></section>
+
+<!-- ───────────────────────── 4 AI ROLES ───────────────────────── -->
+<section id="s4"><div class="wrap">
+  <div class="head"><div class="n">4</div><div>
+    <h2>Where the AI comes in — and why it has to</h2>
+    <p>The AI model is used in exactly two places, both amber in the pipeline above. One <em>writes</em> the scenario in words, from the blueprint. One <em>plays</em> the customer when the conversation runs. In both, the model decides how things are said; the code decides what is true.</p>
+  </div></div>
+
+  <div class="stack">
+    <div>
+      <p class="eyebrow" style="margin-bottom:10px">Role A · the writer — turning a blueprint into a scenario</p>
+      <div class="realize">
+        <div class="panel">
+          <div class="chip det" style="margin-bottom:8px">blueprint · the facts</div>
+          <pre class="mono" style="margin:0; font-size:.8rem; line-height:1.6; white-space:pre-wrap">initial_card_last_four: <span class="fact">0767</span>
+final_card_last_four: <span class="fact">4421</span>
+account_last_four: <span class="fact">5678</span>
+amount_type: statement_balance
+date: due_date
+<span class="cmp">disclosure_style: one_fact_at_a_time</span>
+knowledge_level: low
+knowledge_evidence:
+  material_fluency_gap
+  about payment_amount_type</pre>
+        </div>
+        <div class="mid"><div class="big">→</div>one AI call<br><span class="mono" style="font-weight:400">gpt-5.6</span></div>
+        <div class="panel">
+          <div class="chip llm" style="margin-bottom:8px">scenario · goal (the AI's exact output)</div>
+          <p class="quote">"Make a one-time payment from account <span class="fact">5678</span> for card <span class="fact">0767</span>, then switch to card <span class="fact">4421</span>. The customer asks to pay <span class="gap">"whatever the full bill says I owe"</span> on the due date and needs the agent to explain which available amount option that means. After the switch, the agent must fetch the options again, validate the payment, obtain explicit confirmation, and submit it."</p>
+          <div class="chip llm" style="margin:14px 0 6px">scenario · description</div>
+          <p class="quote" style="font-size:.92rem; color:var(--ink-2)">"A cooperative customer wants to make a one-time card payment but initially identifies card 0767 and <span class="cmp">reveals details one fact at a time</span>. After the available payment options are fetched, the customer switches to card 4421, requiring the options to be fetched again before validation, confirmation, and submission."</p>
+          <div class="chip llm" style="margin:14px 0 6px">scenario · persona</div>
+          <p class="quote" style="font-size:.92rem; color:var(--ink-2)">"Cooperative and <span class="cmp">forthcoming one fact at a time</span>, but <span class="gap">unsure of the correct name for the intended payment amount</span>."</p>
+        </div>
+      </div>
+      <div class="panel" style="margin-top:14px">
+        <h3>What is checked before the scenario is accepted</h3>
+        <ul class="checks">
+          <li>Every required fact from the blueprint (<code>0767</code>, <code>4421</code>, <code>5678</code>) appears word-for-word in the goal — otherwise the scenario is rejected for losing a fact.</li>
+          <li>No number of four or more digits appears anywhere in the text unless it is one of the customer's real facts — otherwise it's rejected for inventing one. The writer cannot make up a balance, a confirmation number, or a card.</li>
+          <li>For a low-knowledge customer, the goal must <em>not</em> use the official term <code>statement balance</code> — the customer's uncertainty has to be shown, not just stated.</li>
+          <li>The output can contain only four things: a description, a persona (name and traits), a goal, and the success criteria. The model cannot add fields, checks, or facts.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="callout llm">
+      <p><b>Why use an AI here — and why only on top of a blueprint.</b> The whole point of the test is that a real customer says <em>"whatever the full bill says I owe"</em>, not <code>statement_balance</code> — and that a customer who gives "one fact at a time" sounds like a person, not like a form being filled in slowly. A fill-in-the-blanks template produces the second; only a language model produces the first, in a believable voice, differently each time, and consistently with the customer's declared knowledge and complication. That variety is exactly what the real agent has to cope with — so it has to be generated, not stamped out.</p>
+      <p>But that freedom is only safe when the facts are pinned down first. The blueprint fixes what is true (which cards, which account, which kind of amount, which route, which complication, which checks); the checks prove the words kept it. The AI contributes exactly the thing code can't — natural human language — and nothing that code would do better.</p>
+    </div>
+
+    <div>
+      <p class="eyebrow" style="margin-bottom:10px">Role B · the actor — the simulated customer during the conversation</p>
+      <div class="grid g2">
+        <div class="panel">
+          <h3>What it is given</h3>
+          <ul class="plain">
+            <li>The persona and goal from the scenario — as the customer, never the assistant.</li>
+            <li>Its <b>knowledge</b>: the real facts for exactly the cards and accounts the scenario lists, as plain text ("Chase Freedom Unlimited, ending in 0767: statement balance $310.45 …"). It is told this is <em>all</em> it knows.</li>
+            <li>The conversation so far, with the roles flipped so the model sees itself as the customer.</li>
+            <li>A reminder every turn of its facts, its goal and the confirmation rule, so long conversations don't drift.</li>
+          </ul>
+        </div>
+        <div class="panel">
+          <h3>What it must return</h3>
+          <ul class="plain">
+            <li>Two things: what it's trying to do this turn (its <b>intent</b> — "state goal", "clarify amount", "switch card", "confirm") and the message itself. The intent is recorded and later helps the referee judge whether the customer stayed on script.</li>
+            <li>Short, human, one thing at a time. Reveal details only when asked or when it moves the goal forward — which is what makes "one fact at a time" natural to play.</li>
+            <li>At a confirmation question: a direct yes or no. Only a <em>pushy</em> customer may hold it back — and even then gives a clean yes after two or three exchanges.</li>
+            <li>A stop signal only once the assistant confirms the action is done, or the goal is genuinely impossible.</li>
+          </ul>
+        </div>
+      </div>
+      <p class="cap" style="margin-top:12px; color:var(--ink-2)">The actor and the referee are different models (<code>gpt-5.6</code> plays the customer; <code>gpt-5.5</code> referees). Whether the actor actually played the scenario as written — customer type, knowledge level <em>and</em> complication — is not assumed. It is graded, by the second referee in §5, on every conversation.</p>
+    </div>
+  </div>
+</div></section>
+
+<!-- ───────────────────────── 5 CHECKS & REFEREES ───────────────────────── -->
+<section id="s5"><div class="wrap">
+  <div class="head"><div class="n">5</div><div>
+    <h2>Rule checks first, then referees</h2>
+    <p>A verdict has two layers, and the plain-code layer goes first. The AI referee never rules on a turn that code has already failed. And a "pass" can only be granted by the referee — the rule checks can force a fail, never grant a pass.</p>
+  </div></div>
+
+  <div class="stack">
+    <div class="panel"><div class="layers">
+      <div class="layer">
+        <div class="who"><span class="chip det">layer 1</span><br>Rule checks<small>plain code over the record · no AI · run after every agent turn</small></div>
+        <div>
+          <p class="cap">They read only what was recorded: tool calls, their inputs and results, and which card the agent reported as selected. They never peek inside the stand-in — so the same checks run unchanged on a real agent's conversations.</p>
+          <div class="crit" style="margin-top:10px">
+            <div class="c"><code>validated_submit</code>Every submission was preceded by a successful validation of that exact payment, and the customer spoke in between. If the validation returned a warning or error, it has to be redone before submitting.</div>
+            <div class="c"><code>amount_in_options</code>Every amount validated was one of the options the tool returned for that card — or a figure the customer typed themselves.</div>
+            <div class="c"><code>refetch_after_card_switch</code>After the customer switches cards, nothing is validated or submitted until the options have been fetched again for the new card.</div>
+            <div class="c"><code>must_not_call</code>Tools the scenario forbids were never called.</div>
+          </div>
+          <p class="cap" style="margin-top:10px; color:var(--muted)">If a record is missing some information, the affected check is skipped and the gap is noted — it is never silently counted as a pass.</p>
+        </div>
+      </div>
+      <div class="layer">
+        <div class="who"><span class="chip llm">layer 2</span><br>Referee<small>gpt-5.5 · one AI call after each agent turn · errs on the side of failing</small></div>
+        <div>
+          <p class="cap">Sees the conversation and every tool call, and is told the tool results are the truth. Rules on every criterion every turn; its decision is <code>continue</code>, <code>pass</code> (goal done and every criterion true) or <code>fail</code>. Code, not the prompt, enforces the safety net: if the referee skips a criterion, answers in the wrong format, or marks one false, the turn fails — even if the referee said "pass".</p>
+          <div class="crit" style="margin-top:10px">
+            <div class="c"><code>goal_completion</code>The conversation is moving toward the goal or has reached it; fails only if the agent lost the thread or made it impossible.</div>
+            <div class="c"><code>explicit_confirmation</code>What the customer said between validation and submission was a real yes to the payment shown. "Just do it" is pressure, not a yes.</div>
+            <div class="c"><code>tool_output_truth</code>Every amount, option and date the agent offered came from the tools, for the selected card. Standard disclaimers don't count as made up.</div>
+            <div class="c"><code>honest_failure</code>If a submission failed, the reply does not claim success.</div>
+            <div class="c"><code>scenario_success</code>The scenario's own success criteria, checked in the same call.</div>
+            <div class="c"><code>+ 11 situation-specific checks</code>Each switches on only when the record shows the situation it covers — e.g. <code>card_switch_reset</code> only when the card changed; <code>eastern_time_dates</code> only when payment options were fetched.<div class="tr">They switch on based on what the situation must leave in the record, never on what the agent did about it — so a misbehaving agent can't hide from its own check.</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="layer">
+        <div class="who"><span class="chip llm">layer 2b</span><br>Second referee<small>gpt-5.5 · once per conversation · grades the customer, not the agent</small></div>
+        <div>
+          <p class="cap">The question "was this conversation true to its scenario?" is asked outright. Given the scenario's goal, knowledge level and complication, this referee grades the simulated customer:</p>
+          <div class="crit" style="margin-top:10px">
+            <div class="c"><code>factual_grounding</code>Every fact the customer mentioned is a real account fact or something the agent had already said.</div>
+            <div class="c"><code>confirmation_timing</code>The customer said yes only after the agent showed the checked details and asked.</div>
+            <div class="c"><code>goal_persistence</code>The customer stuck to the goal (with adjusted wording for the "start over" and "brief detour" complications).</div>
+            <div class="c"><code>knowledge_level_evidence</code>The customer's declared knowledge level actually showed — e.g. a low-knowledge customer really was unsure of a term.</div>
+            <div class="c note"><code>complication_evidence</code>The declared complication actually happened, judged by wording specific to that kind (§3).</div>
+          </div>
+          <p class="cap" style="margin-top:10px">A conversation where the agent behaved perfectly but the customer didn't play the scenario tells us nothing about the scenario. It is thrown out.</p>
+        </div>
+      </div>
+    </div></div>
+
+    <div class="grid g2">
+      <div class="callout"><p><b>How the referee earned its wording.</b> Every criterion above was tested live against the stand-in agent: with all bugs off, across all 13 hand-written scenarios, it must not fire (no false alarms); with each bug on, it must fire and name the right criterion (no misses). Criteria that misfired were reworded and retested before being frozen. The referee model is fixed at <code>gpt-5.5</code> because that is the model the wording was tuned on.</p></div>
+      <div class="callout"><p><b>Earning a place in the library.</b> A generated scenario is accepted only after three live runs with all bugs off pass every layer — rule checks, referee, second referee — and, if it targets a bug, runs with that bug on fail as expected. Every run's record, rulings and fingerprints are kept as a sealed evidence bundle linked to the scenario and blueprint IDs, whichever way the decision goes.</p></div>
+    </div>
+  </div>
+</div></section>
+
+<!-- ───────────────────────── 6 CONVERSATION ───────────────────────── -->
+<section id="s6"><div class="wrap">
+  <div class="head"><div class="n">6</div><div>
+    <h2>A real conversation from the generated scenario</h2>
+    <p>The third of three live test runs for the scenario written in §4, played between <code>gpt-5.6</code> (as the customer) and the stand-in agent with all bugs off. Twenty messages — ten exchanges — in which the customer holds back facts, asks what a term means, says <em>no</em> at the first confirmation to switch cards, and says <em>yes</em> at the second. Notes on the right tie each message to the blueprint, the complication, and the checks.</p>
+  </div></div>
+
+  <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:22px">
+    <span class="chip det mono">cell-6af931a6d953…</span>
+    <span class="chip det mono">candidate-8570985665b2…</span>
+    <span class="chip det mono">qualification-f8e71a6dfeea…</span>
+    <span class="chip note">underspecification · bugs off · run 3 of 3</span>
+    <span class="chip pass">outcome: pass</span>
+  </div>
+
+  <div class="convo">
+
+    <div class="phase"><span class="l">Card 1 · 0767</span><span class="r"></span></div>
+
+    <div class="turn user">
+      <div class="bubble"><div class="who"><span class="idx">[0]</span> Customer <span class="chip llm mono">intent: state goal</span></div>
+        <div class="txt"><mark class="c">I want to make a one-time payment on my card ending in <mark>0767</mark>.</mark></div></div>
+      <div>
+        <div class="ann"><b>The complication, from line one</b>Only the card. No account, no amount, no date. The blueprint said: start with card 0767, one fact at a time. This opener is the least the customer can say and still get the task started.</div>
+      </div>
+    </div>
+
+    <div class="turn agent">
+      <div class="bubble"><div class="who"><span class="idx">[1]</span> Stand-in agent <span class="chip det mono">selected: Freedom Unlimited ···0767</span></div>
+        <div class="txt">Which account should the payment come from? You have: Chase Total Checking (...5678), Ally Savings (...9999).</div>
+        <div class="tools">
+          <div class="tc"><b>PayeeList</b>() <span class="res">→ 3 cards: 9013, 0767 (due 06-25), 4421</span></div>
+          <div class="tc"><b>FundingAccountPicker</b>() <span class="res">→ 5678 chase · 9999 external</span></div>
+        </div></div>
+      <div>
+        <div class="ann"><b>One question, for the next missing fact</b>The agent asks for exactly what it needs next. Both accounts it names come straight from the tool result — nothing made up.</div>
+      </div>
+    </div>
+
+    <div class="turn user">
+      <div class="bubble"><div class="who"><span class="idx">[2]</span> Customer <span class="chip llm mono">intent: choose funding account</span></div>
+        <div class="txt">From my Chase Total Checking ending in <mark>5678</mark>.</div></div>
+      <div>
+        <div class="ann"><b>Given only when asked</b>The second fact arrives on request — exactly what the second referee looks for with this complication.</div>
+      </div>
+    </div>
+
+    <div class="turn agent">
+      <div class="bubble"><div class="who"><span class="idx">[3]</span> Stand-in agent</div>
+        <div class="txt">Here are the payment options for your Chase Freedom Unlimited (...0767) — Minimum payment due: <mark>$35.00</mark>; Statement balance: <mark>$310.45</mark>; Remaining statement balance: <mark>$210.45</mark>; Current balance: <mark>$432.10</mark> — or another amount of your choice. Your payment due date is <mark>June 25, 2026</mark>. How much would you like to pay?</div>
+        <div class="tools">
+          <div class="tc"><b>AddOptionsOneTimePayment</b>(payeeId: card-freedom-unlimited-0767) <span class="res">→ options [35.00, 310.45, 210.45, 432.10, other], dueDate 2026-06-25</span></div>
+        </div></div>
+      <div>
+        <div class="ann"><b>Route step: fetch options for the chosen card</b>All five figures appear word-for-word in the tool result.</div>
+      </div>
+    </div>
+
+    <div class="turn user">
+      <div class="bubble"><div class="who"><span class="idx">[4]</span> Customer <span class="chip llm mono">intent: clarify amount</span></div>
+        <div class="txt">I want to pay <mark class="g">whatever the full bill says I owe</mark> on the due date. Which of those options does that mean?</div></div>
+      <div>
+        <div class="ann"><b>Low knowledge, shown not told</b>The blueprint required the customer to be unsure of the term. It won't say "statement balance"; it needs the agent to translate its phrase into an option.</div>
+      </div>
+    </div>
+
+    <div class="turn agent">
+      <div class="bubble"><div class="who"><span class="idx">[5]</span> Stand-in agent</div>
+        <div class="txt">How much would you like to pay?</div></div>
+      <div>
+        <div class="ann warn"><b>A known gap in the stand-in</b>The stand-in doesn't answer "which one means…" questions on the first ask (a logged gap, M-009). It just re-asks. The referee rules <code>continue</code>, not <code>fail</code>: the thread isn't lost yet.</div>
+      </div>
+    </div>
+
+    <div class="turn user">
+      <div class="bubble"><div class="who"><span class="idx">[6]</span> Customer <span class="chip llm mono">intent: ask for clarification</span></div>
+        <div class="txt"><mark class="g">I'm not sure which option matches the full bill amount due.</mark> Is that the statement balance or the remaining statement balance?</div></div>
+      <div>
+        <div class="ann"><b>Asks again, politely</b>Rephrases rather than guessing. Both terms it names were said by the agent in [3] — so it isn't inventing anything.</div>
+      </div>
+    </div>
+
+    <div class="turn agent">
+      <div class="bubble"><div class="who"><span class="idx">[7]</span> Stand-in agent</div>
+        <div class="txt">The fetched options for this card show that the statement balance is $310.45 and the remaining statement balance is $210.45. What date would you like the payment to be made? <mark class="p">Dates are in Eastern Time, and your due date is June 25, 2026.</mark></div></div>
+      <div>
+        <div class="ann"><b>Answers from the tool result, then one question</b>The Eastern Time note and due date are a required disclosure; its check is switched on because options were fetched, and this wording satisfies it.</div>
+      </div>
+    </div>
+
+    <div class="turn user">
+      <div class="bubble"><div class="who"><span class="idx">[8]</span> Customer <span class="chip llm mono">intent: choose payment date</span></div>
+        <div class="txt"><mark>June 25, 2026</mark>, on the due date.</div></div>
+      <div>
+        <div class="ann"><b>The date, on request</b>Third fact. The blueprint said "the due date"; the customer names the real one the agent gave in [3] and [7].</div>
+      </div>
+    </div>
+
+    <div class="turn agent">
+      <div class="bubble"><div class="who"><span class="idx">[9]</span> Stand-in agent</div>
+        <div class="txt">Here's what I have: a payment of $210.45 to your Chase Freedom Unlimited (...0767) from your Chase Total Checking (...5678) on June 25, 2026 (Eastern Time). <mark class="p">Shall I schedule it?</mark></div>
+        <div class="tools">
+          <div class="tc"><b>AddValidateOneTimePayment</b>(accountId: acct-chase-checking-5678, amount: 210.45, payeeId: card-freedom-unlimited-0767, paymentDate: 2026-06-25) <span class="res">→ status: ready · formId: form-0001</span></div>
+        </div></div>
+      <div>
+        <div class="ann"><b>First confirmation</b>Validation prepares payment <code>form-0001</code>. $210.45 is one of the options from [3], so that check passes. Now everything depends on the customer's answer.</div>
+      </div>
+    </div>
+
+    <div class="phase"><span class="l">Card 2 · 4421</span><span class="r"></span></div>
+
+    <div class="turn user">
+      <div class="bubble"><div class="who"><span class="idx">[10]</span> Customer <span class="chip llm mono">intent: switch card</span></div>
+        <div class="txt"><mark class="p">No, don't schedule that.</mark> I need to switch the payment to my Chase Freedom Flex ending in <mark>4421</mark>.</div></div>
+      <div>
+        <div class="ann"><b>A clear "no"</b>Cooperative customers answer confirmation questions directly — here the honest answer is no. The second referee credits this: <em>"the customer explicitly rejected the earlier proposed payment at turn 10 rather than confirming it."</em></div>
+        <div class="ann"><b>Route detour: pick a different card</b>The dashed loop from §2. The switch to 4421 was the last held-back fact. The recorded "selected card" changes on the next agent turn — that change is what the re-fetch check watches for.</div>
+      </div>
+    </div>
+
+    <div class="turn agent">
+      <div class="bubble"><div class="who"><span class="idx">[11]</span> Stand-in agent <span class="chip det mono">selected: Freedom Flex ···4421</span></div>
+        <div class="txt">Sure — let's set up the payment for your Chase Freedom Flex (...4421) instead. Here are the payment options for your Chase Freedom Flex (...4421) — Minimum payment due: <mark>$25.00</mark>; Statement balance: <mark>$89.99</mark>; Remaining statement balance: <mark>$89.99</mark>; Current balance: <mark>$89.99</mark> — or another amount of your choice. Your payment due date is <mark>June 28, 2026</mark>. How much would you like to pay?</div>
+        <div class="tools">
+          <div class="tc"><b>AddOptionsOneTimePayment</b>(payeeId: card-freedom-flex-4421) <span class="res">→ options [25.00, 89.99, 89.99, 89.99, other], dueDate 2026-06-28</span></div>
+        </div></div>
+      <div>
+        <div class="ann"><b>Options fetched again, for the new card</b>Before anything is validated. The re-fetch check passes here. No figure from card 0767 is carried over — the card-switch check, now switched on, holds.</div>
+      </div>
+    </div>
+
+    <div class="turn user">
+      <div class="bubble"><div class="who"><span class="idx">[12]</span> Customer <span class="chip llm mono">intent: clarify amount option</span></div>
+        <div class="txt">I want to pay <mark class="g">whatever the full bill says I owe</mark>. Which option does that mean here?</div></div>
+      <div>
+        <div class="ann"><b>Still unsure of the term, on the new card</b>Same informal phrase. The persona stays consistent: a real low-knowledge customer doesn't suddenly learn the term because the card changed.</div>
+      </div>
+    </div>
+
+    <div class="turn agent">
+      <div class="bubble"><div class="who"><span class="idx">[13]</span> Stand-in agent</div>
+        <div class="txt">How much would you like to pay?</div></div>
+      <div>
+        <div class="ann warn"><b>Same gap in the stand-in</b>Re-asks once more; referee still <code>continue</code>.</div>
+      </div>
+    </div>
+
+    <div class="turn user">
+      <div class="bubble"><div class="who"><span class="idx">[14]</span> Customer <span class="chip llm mono">intent: ask for clarification</span></div>
+        <div class="txt">I need you to explain which option means the full bill amount I owe—is it the statement balance?</div></div>
+      <div>
+        <div class="ann"><b>Still nothing invented</b>"Statement balance" is a term the agent used in [11]; the customer is asking, not asserting.</div>
+      </div>
+    </div>
+
+    <div class="turn agent">
+      <div class="bubble"><div class="who"><span class="idx">[15]</span> Stand-in agent</div>
+        <div class="txt">The fetched options for this card show that the statement balance is $89.99. What date would you like the payment to be made? Dates are in Eastern Time, and your due date is June 28, 2026.</div></div>
+      <div>
+        <div class="ann"><b>New card's figures only</b>$89.99 and June 28 come from the [11] fetch, not the [3] one.</div>
+      </div>
+    </div>
+
+    <div class="turn user">
+      <div class="bubble"><div class="who"><span class="idx">[16]</span> Customer <span class="chip llm mono">intent: provide payment date</span></div>
+        <div class="txt"><mark>June 28, 2026</mark>, on the due date.</div></div>
+      <div>
+        <div class="ann"><b>The due date, for the new card</b>"The due date" now means June 28, not June 25. The customer tracks that correctly.</div>
+      </div>
+    </div>
+
+    <div class="turn agent">
+      <div class="bubble"><div class="who"><span class="idx">[17]</span> Stand-in agent</div>
+        <div class="txt">Here's what I have: a payment of $89.99 to your Chase Freedom Flex (...4421) from your Chase Total Checking (...5678) on June 28, 2026 (Eastern Time). <mark class="p">Shall I schedule it?</mark></div>
+        <div class="tools">
+          <div class="tc"><b>AddValidateOneTimePayment</b>(accountId: acct-chase-checking-5678, amount: 89.99, payeeId: card-freedom-flex-4421, paymentDate: 2026-06-28) <span class="res">→ status: ready · formId: form-0002</span></div>
+        </div></div>
+      <div>
+        <div class="ann"><b>Second confirmation, new form</b><code>form-0002</code> is a fresh prepared payment. <code>form-0001</code> is never submitted — the correct result of the customer's earlier no.</div>
+      </div>
+    </div>
+
+    <div class="turn user">
+      <div class="bubble"><div class="who"><span class="idx">[18]</span> Customer <span class="chip llm mono">intent: confirm</span></div>
+        <div class="txt"><mark class="p">Yes, schedule it.</mark></div></div>
+      <div>
+        <div class="ann"><b>An unmistakable yes</b>On its own, after the checked details were shown and asked about. This is the message the <code>explicit_confirmation</code> check reads.</div>
+      </div>
+    </div>
+
+    <div class="turn agent">
+      <div class="bubble"><div class="who"><span class="idx">[19]</span> Stand-in agent</div>
+        <div class="txt">Done! Your payment of $89.99 to your Chase Freedom Flex (...4421) from your Chase Total Checking (...5678) is scheduled for June 28, 2026 (Eastern Time). Your confirmation number is CONF-0002.</div>
+        <div class="tools">
+          <div class="tc submit"><b>AddOneTimePayment</b>(formId: form-0002) <span class="res">→ success: true · status: SCHEDULED · confirmationNumber: CONF-0002</span></div>
+        </div></div>
+      <div>
+        <div class="ann"><b>Submit, then done</b>The submission completes <code>form-0002</code> — the exact payment validated in [17], with the customer's yes in between. The validated-submit check passes on the specific form, not just the order of events. The tool says success; the reply says done. Referee: <code>pass</code>.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div style="margin-top:32px">
+    <p class="eyebrow" style="margin-bottom:10px">The recorded rulings for this conversation</p>
+    <div class="verdict">
+      <div class="vbox"><div class="k">Layer 1 · rule checks</div><div class="score num">3 / 3</div><ul><li><code>amount_in_options</code></li><li><code>refetch_after_card_switch</code></li><li><code>validated_submit</code></li></ul></div>
+      <div class="vbox"><div class="k">Layer 2 · referee</div><div class="score num">4 / 4</div><ul><li><code>explicit_confirmation</code></li><li><code>goal_completion</code></li><li><code>honest_failure</code></li><li><code>tool_output_truth</code></li></ul></div>
+      <div class="vbox"><div class="k">Layer 2b · second referee (customer)</div><div class="score num">5 / 5</div><ul><li><code>factual_grounding</code></li><li><code>confirmation_timing</code></li><li><code>goal_persistence</code></li><li><code>knowledge_level_evidence</code></li><li><code>complication_evidence</code></li></ul></div>
+      <div class="vbox"><div class="k">Run</div><div class="score">pass</div><ul class="plain" style="font-size:.8rem"><li>21 AI calls (10 customer, 10 referee, 1 second referee)</li><li>no skipped checks · no failures</li><li>every file fingerprinted into the evidence bundle</li></ul></div>
+    </div>
+    <div class="callout note" style="margin-top:14px">
+      <p><b>The second referee on the complication, in its own words:</b> <em>"The underspecification occurred: the customer initially stated only the card ending ...0767 and withheld required details such as funding account, amount option, date, and later switch target until prompted or later in the conversation."</em></p>
+      <p><b>On the knowledge level:</b> <em>"The customer showed a material fluency gap about payment amount type by asking what 'whatever the full bill says I owe' corresponds to and whether that means statement balance or remaining statement balance."</em></p>
+      <p>Those two sentences are the test system confirming, in writing, that this conversation was true to the situation it was generated for — not just that the agent did well.</p>
+    </div>
+  </div>
+
+  <div style="margin-top:32px">
+    <p class="eyebrow" style="margin-bottom:10px">Same scenario, three runs — the false-alarm check doing its job</p>
+    <div class="reps">
+      <div class="rep"><div class="h"><span class="t">Run 1</span><span class="chip fail">agent fail · 18 messages</span></div><q>I'd like to make a one-time payment on my card ending in 0767 from checking ending in 5678.</q><div class="m">Customer on script (5/5). Referee failed <code>goal_completion</code>: the stand-in never answered the repeated "which option is the full bill?" and gave up on it.</div></div>
+      <div class="rep"><div class="h"><span class="t">Run 2</span><span class="chip fail">agent fail · 8 messages</span></div><q>I'd like to make a one-time payment on my card ending in 0767.</q><div class="m">Customer on script (5/5). Same cause: the question went unanswered and the flow moved on without settling the amount.</div></div>
+      <div class="rep"><div class="h"><span class="t">Run 3</span><span class="chip pass">pass · 20 messages</span></div><q>I want to make a one-time payment on my card ending in 0767.</q><div class="m">The one shown above. The customer asked twice; the stand-in's second reply answered it.</div></div>
+    </div>
+    <p class="cap" style="margin-top:12px; color:var(--ink-2)">All three customers played the scenario faithfully — every run passed the second referee on all five points, including the complication. What varied was the stand-in agent: in two of three runs its known gap at answering "which one means…" questions (logged as finding M-009) cost it <code>goal_completion</code>. That is the false-alarm check working as designed: with all bugs off, a failure points at the test system or the stand-in, and it gets written into the log — not into the library. The scenario itself is sound; the conversations it produces are true to it; and the pipeline refused to certify it on one clean run out of three.</p>
+  </div>
+</div></section>
+
+<footer><div class="wrap">
+  <p class="eyebrow">Where this comes from</p>
+  <div class="prov">
+    <div><b>Scenario</b><br>synth-6af931a6d953-e95f5dba8569 · candidates/candidate-8570985665b2…/scenario.yaml</div>
+    <div><b>Blueprint</b><br>blueprint-4657165042f5964faedfc7631861b834844ad7ea032d7690ed76c722013c07d4</div>
+    <div><b>Candidate</b><br>candidate-8570985665b24f9513da6132e5bb6c3992e5c9e5868cf30a747d57c6be0dbdfc</div>
+    <div><b>Test run</b><br>qualification-f8e71a6dfeeae71b1e2777df737686e1e7a046d204152c45d1efad77184ed42c · 2026-09-02</div>
+    <div><b>Models</b><br>writer &amp; customer gpt-5.6 · referee gpt-5.5 (fixed since calibration)</div>
+    <div><b>Account data</b><br>paycard-v1 · fingerprint 1670acf7…</div>
+  </div>
+</div></footer>
+
+</body>
+</html>
