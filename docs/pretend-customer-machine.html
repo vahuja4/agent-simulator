@@ -1,0 +1,272 @@
+<title>The Pretend Customer Machine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:ital,wght@0,500;0,700;1,500&display=swap">
+<style>
+  :root {
+    --ground: #FFFDF7;
+    --paper: #FFFFFF;
+    --ink: #23303B;
+    --ink-2: #4E5B68;
+    --muted: #8A95A0;
+    --line: #E6E1D6;
+    --b1: #E5484D; --b1s: #FDE3E4;   /* route */
+    --b2: #F08C2E; --b2s: #FEECDA;   /* customer type */
+    --b3: #D9A400; --b3s: #FBF1C7;   /* knowledge */
+    --b4: #3FA46A; --b4s: #DDF3E5;   /* complication */
+    --b5: #3B82C4; --b5s: #DCEBF9;   /* starting situation */
+    --b6: #8B5CF6; --b6s: #EAE2FD;   /* target bug */
+    --no: #B9B3A8; --no-s: #F1EEE7;
+    --yes: #2E7D4F;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #171A1F; --paper: #1F242B; --ink: #F1EEE7; --ink-2: #C4C9CF; --muted: #8A95A0; --line: #323A44;
+      --b1s: #3B1F22; --b2s: #3B2A16; --b3s: #3A3214; --b4s: #163024; --b5s: #172B3E; --b6s: #2A2242;
+      --no: #6B6F76; --no-s: #2A2E35; --yes: #6CC58F;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #171A1F; --paper: #1F242B; --ink: #F1EEE7; --ink-2: #C4C9CF; --muted: #8A95A0; --line: #323A44;
+    --b1s: #3B1F22; --b2s: #3B2A16; --b3s: #3A3214; --b4s: #163024; --b5s: #172B3E; --b6s: #2A2242;
+    --no: #6B6F76; --no-s: #2A2E35; --yes: #6CC58F;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--ground); color: var(--ink); font-family: "Nunito", "Segoe UI", Arial, sans-serif; font-size: 19px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  h1, h2, .big { font-family: "Fredoka", "Nunito", sans-serif; margin: 0; text-wrap: balance; }
+  h1 { font-size: clamp(2.4rem, 6vw, 4rem); font-weight: 700; line-height: 1.05; }
+  h2 { font-size: clamp(1.7rem, 4vw, 2.4rem); font-weight: 600; line-height: 1.15; }
+  p { margin: 0; }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 0 22px; }
+  .num { font-variant-numeric: tabular-nums; }
+
+  header { padding: 56px 0 28px; }
+  header p.sub { font-size: 1.25rem; color: var(--ink-2); margin-top: 14px; max-width: 34ch; }
+
+  .step { padding: 44px 0; border-top: 3px dashed var(--line); }
+  .step .label { font-family: "Fredoka", sans-serif; font-weight: 600; font-size: 1rem; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); margin-bottom: 8px; }
+  .step h2 { margin-bottom: 16px; }
+  .step p + p { margin-top: 14px; }
+  .say { max-width: 58ch; }
+  .big { font-size: clamp(2.4rem, 7vw, 4.4rem); font-weight: 700; line-height: 1; }
+
+  /* the six boxes */
+  .boxes { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; margin: 22px 0; }
+  .box { border: 3px solid; border-radius: 16px; padding: 14px; background: var(--paper); }
+  .box .name { font-family: "Fredoka", sans-serif; font-weight: 600; font-size: 1.15rem; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: baseline; }
+  .box .name .n { font-size: 1.6rem; }
+  .tiles { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tile { font-size: .88rem; font-weight: 700; padding: 5px 10px; border-radius: 999px; line-height: 1.3; }
+  .b1 { border-color: var(--b1); } .b1 .name, .b1 .tile { color: var(--b1); } .b1 .tile { background: var(--b1s); }
+  .b2 { border-color: var(--b2); } .b2 .name, .b2 .tile { color: var(--b2); } .b2 .tile { background: var(--b2s); }
+  .b3 { border-color: var(--b3); } .b3 .name, .b3 .tile { color: var(--b3); } .b3 .tile { background: var(--b3s); }
+  .b4 { border-color: var(--b4); } .b4 .name, .b4 .tile { color: var(--b4); } .b4 .tile { background: var(--b4s); }
+  .b5 { border-color: var(--b5); } .b5 .name, .b5 .tile { color: var(--b5); } .b5 .tile { background: var(--b5s); }
+  .b6 { border-color: var(--b6); } .b6 .name, .b6 .tile { color: var(--b6); } .b6 .tile { background: var(--b6s); }
+
+  /* one pretend customer = one tile from each box */
+  .customer { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 18px 0; padding: 14px 16px; border-radius: 16px; background: var(--paper); border: 2px solid var(--line); }
+  .customer .who { font-family: "Fredoka", sans-serif; font-weight: 600; margin-right: 6px; }
+  .c1 { background: var(--b1s); color: var(--b1); } .c2 { background: var(--b2s); color: var(--b2); } .c3 { background: var(--b3s); color: var(--b3); }
+  .c4 { background: var(--b4s); color: var(--b4); } .c5 { background: var(--b5s); color: var(--b5); } .c6 { background: var(--b6s); color: var(--b6); }
+  .customer .tile { font-size: .95rem; }
+
+  /* multiply strip */
+  .mult { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 22px 0; font-family: "Fredoka", sans-serif; font-weight: 700; font-size: clamp(1.6rem, 4.5vw, 2.6rem); }
+  .mult .f { padding: 6px 16px; border-radius: 14px; }
+  .mult .f.c1 { color: var(--b1); } .mult .f.c2 { color: var(--b2); } .mult .f.c3 { color: var(--b3); } .mult .f.c4 { color: var(--b4); } .mult .f.c5 { color: var(--b5); } .mult .f.c6 { color: var(--b6); }
+  .mult .op { color: var(--muted); }
+  .mult .eq { color: var(--ink); }
+
+  /* silly examples */
+  .silly { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin: 22px 0; }
+  .silly .s { border: 2px solid var(--line); border-radius: 16px; padding: 14px 16px; background: var(--paper); position: relative; }
+  .silly .s .pair { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+  .silly .s .why { font-size: .98rem; color: var(--ink-2); }
+  .silly .s::after { content: "✗"; position: absolute; top: 8px; right: 14px; font-family: "Fredoka", sans-serif; font-size: 2rem; color: var(--b1); font-weight: 700; }
+
+  /* number ladder */
+  .ladder { display: grid; gap: 10px; margin: 22px 0; }
+  .rung { display: grid; grid-template-columns: 150px 1fr; gap: 16px; align-items: center; padding: 12px 16px; border-radius: 16px; background: var(--paper); border: 2px solid var(--line); }
+  .rung .n { font-family: "Fredoka", sans-serif; font-weight: 700; font-size: clamp(1.6rem, 4vw, 2.2rem); text-align: right; }
+  .rung .t { font-size: 1.02rem; color: var(--ink-2); }
+  .rung.hi { border-color: var(--yes); }
+  .rung.hi .n { color: var(--yes); }
+  @media (max-width: 520px) { .rung { grid-template-columns: 1fr; gap: 4px; } .rung .n { text-align: left; } }
+
+  /* pairs demo */
+  .pairs-demo { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 18px; margin: 22px 0; align-items: start; }
+  .pd { border: 2px solid var(--line); border-radius: 16px; padding: 14px 16px; background: var(--paper); }
+  .pd .t { font-family: "Fredoka", sans-serif; font-weight: 600; font-size: 1.1rem; margin-bottom: 10px; }
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .cell { border-radius: 10px; padding: 8px 6px; text-align: center; font-size: .82rem; font-weight: 700; border: 2px solid var(--line); background: var(--ground); color: var(--muted); }
+  .cell.on { border-color: var(--yes); color: var(--yes); background: var(--paper); }
+  .cell.on::before { content: "✓ "; }
+  .friends { display: grid; gap: 8px; }
+  .friend { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: .9rem; }
+  .friend .who { font-family: "Fredoka", sans-serif; font-weight: 600; color: var(--muted); width: 84px; }
+
+  .note { margin-top: 18px; padding: 14px 18px; border-radius: 16px; background: var(--paper); border: 2px solid var(--line); font-size: 1.02rem; color: var(--ink-2); }
+  .note b { color: var(--ink); }
+
+  footer { padding: 30px 0 60px; color: var(--muted); font-size: .92rem; }
+  footer a { color: var(--b5); }
+</style>
+
+<header><div class="wrap">
+  <h1>The Pretend Customer Machine</h1>
+  <p class="sub">How we count all the pretend customers we could make — and why we don't have to make them all.</p>
+</div></header>
+
+<!-- STEP 1 -->
+<section class="step"><div class="wrap">
+  <div class="label">Step 1</div>
+  <h2>Six boxes of cards</h2>
+  <div class="say">
+    <p>We want to test a robot that helps people pay their credit card bill.</p>
+    <p>To test it, we make up pretend customers. Each pretend customer is made by picking <b>one card from each of six boxes</b>.</p>
+  </div>
+
+  <div class="boxes">
+    <div class="box b1"><div class="name"><span>Which way through</span><span class="n">4</span></div><div class="tiles"><span class="tile">straight through</span><span class="tile">straight, big amount</span><span class="tile">swap cards</span><span class="tile">swap cards, big amount</span></div></div>
+    <div class="box b2"><div class="name"><span>What kind of person</span><span class="n">4</span></div><div class="tiles"><span class="tile">friendly</span><span class="tile">in a hurry</span><span class="tile">asks lots of questions</span><span class="tile">won't take no</span></div></div>
+    <div class="box b3"><div class="name"><span>How much they know</span><span class="n">3</span></div><div class="tiles"><span class="tile">not much</span><span class="tile">some</span><span class="tile">a lot</span></div></div>
+    <div class="box b4"><div class="name"><span>What makes it tricky</span><span class="n">9</span></div><div class="tiles"><span class="tile">nothing</span><span class="tile">leaves things out</span><span class="tile">"my Freedom card" (which one?)</span><span class="tile">changes a detail</span><span class="tile">changes their mind completely</span><span class="tile">asks two things at once</span><span class="tile">believes something wrong</span><span class="tile">wanders off topic</span><span class="tile">garbled message</span></div></div>
+    <div class="box b5"><div class="name"><span>What's in their wallet</span><span class="n">3</span></div><div class="tiles"><span class="tile">one card</span><span class="tile">a few different cards</span><span class="tile">two "Freedom" cards</span></div></div>
+    <div class="box b6"><div class="name"><span>Which robot mistake to catch</span><span class="n">6</span></div><div class="tiles"><span class="tile">none</span><span class="tile">pays without asking (way 1)</span><span class="tile">pays without asking (way 2)</span><span class="tile">forgets to look again after a swap</span><span class="tile">says "done" when it wasn't</span><span class="tile">guesses which Freedom card</span></div></div>
+  </div>
+
+  <p class="say">Here is one pretend customer. One card from each box:</p>
+  <div class="customer">
+    <span class="who">Customer:</span>
+    <span class="tile c1">swap cards</span><span class="tile c2">friendly</span><span class="tile c3">not much</span><span class="tile c4">leaves things out</span><span class="tile c5">two "Freedom" cards</span><span class="tile c6">none</span>
+  </div>
+  <p class="say">That's a friendly person who doesn't know much about bills, has two cards with the same name, leaves things out when they talk, and changes which card they want halfway through. A real conversation with them is in the other page.</p>
+</div></section>
+
+<!-- STEP 2 -->
+<section class="step"><div class="wrap">
+  <div class="label">Step 2</div>
+  <h2>How many pretend customers could we make?</h2>
+  <div class="say">
+    <p>If you have 2 hats and 3 shirts, you can make 2 × 3 = 6 outfits. Same trick here, with six boxes:</p>
+  </div>
+  <div class="mult">
+    <span class="f c1">4</span><span class="op">×</span><span class="f c2">4</span><span class="op">×</span><span class="f c3">3</span><span class="op">×</span><span class="f c4">9</span><span class="op">×</span><span class="f c5">3</span><span class="op">×</span><span class="f c6">6</span><span class="op">=</span><span class="eq num">7,776</span>
+  </div>
+  <p class="say">Seven thousand, seven hundred and seventy-six different pretend customers. That's a lot.</p>
+</div></section>
+
+<!-- STEP 3 -->
+<section class="step"><div class="wrap">
+  <div class="label">Step 3</div>
+  <h2>Some of them are silly. Cross those out.</h2>
+  <div class="say">
+    <p>Some picks don't go together. You can't swap cards if you only have one card! So we cross out the silly ones.</p>
+  </div>
+  <div class="silly">
+    <div class="s"><div class="pair"><span class="tile c1">swap cards</span><span class="tile c5">one card</span></div><div class="why">You can't swap to another card when you only have one.</div></div>
+    <div class="s"><div class="pair"><span class="tile c4">"my Freedom card" (which one?)</span><span class="tile c5">a few different cards</span></div><div class="why">"Which one?" only makes sense if two cards have the same name.</div></div>
+    <div class="s"><div class="pair"><span class="tile c6">forgets to look again after a swap</span><span class="tile c1">straight through</span></div><div class="why">The robot can't make a swapping mistake if nobody swaps.</div></div>
+    <div class="s"><div class="pair"><span class="tile c6">guesses which Freedom card</span><span class="tile c5">one card</span></div><div class="why">Nothing to guess between.</div></div>
+  </div>
+  <p class="say">The rules for what's silly are written down in a list that a person checked — the machine doesn't decide on its own. After crossing out:</p>
+  <div class="mult"><span class="eq num">7,776</span><span class="op">→</span><span class="eq num">4,368</span></div>
+  <p class="say">Four thousand, three hundred and sixty-eight pretend customers that all make sense. Still a LOT.</p>
+</div></section>
+
+<!-- STEP 4 -->
+<section class="step"><div class="wrap">
+  <div class="label">Step 4</div>
+  <h2>A trick: we don't need every customer. We need every <em>pair</em>.</h2>
+  <div class="say">
+    <p>Imagine a class of kids. You want every kid to sit next to every other kid at least once. You do <b>not</b> need to try every possible seating plan for the whole class — that would take forever. You just need each <b>pair</b> of kids to be next to each other once.</p>
+    <p>Same with our boxes. Most robot mistakes happen because of <b>two</b> things together — like "in a hurry" <b>and</b> "pays without asking". Not all six at once. So we make sure every two cards from different boxes get to be in the same pretend customer at least once.</p>
+  </div>
+
+  <div class="pairs-demo">
+    <div class="pd">
+      <div class="t">Tiny example: 3 hats × 3 shirts = 9 pairs</div>
+      <div class="grid3">
+        <div class="cell on">red + stripes</div><div class="cell on">red + dots</div><div class="cell on">red + plain</div>
+        <div class="cell on">blue + stripes</div><div class="cell on">blue + dots</div><div class="cell on">blue + plain</div>
+        <div class="cell on">green + stripes</div><div class="cell on">green + dots</div><div class="cell on">green + plain</div>
+      </div>
+      <p style="font-size:.95rem; color:var(--ink-2); margin-top:10px">Every hat has been seen with every shirt. ✓</p>
+    </div>
+  </div>
+
+  <div class="pd" style="margin:22px 0">
+    <div class="t">How many pairs are inside one pretend customer?</div>
+    <p style="font-size:1rem; color:var(--ink-2); margin-bottom:12px">Take the customer from Step 1. It has six cards. A "pair" is any two of those cards together. Let's count them:</p>
+    <div class="customer" style="margin:0 0 14px">
+      <span class="tile c1">swap cards</span><span class="tile c2">friendly</span><span class="tile c3">not much</span><span class="tile c4">leaves things out</span><span class="tile c5">two "Freedom" cards</span><span class="tile c6">none</span>
+    </div>
+    <div class="friends">
+      <div class="friend"><span class="who" style="width:auto"><span class="tile c1">swap cards</span> goes with</span><span class="tile c2">friendly</span><span class="tile c3">not much</span><span class="tile c4">leaves things out</span><span class="tile c5">two "Freedom" cards</span><span class="tile c6">none</span><b style="margin-left:6px">= 5 pairs</b></div>
+      <div class="friend"><span class="who" style="width:auto"><span class="tile c2">friendly</span> goes with</span><span class="tile c3">not much</span><span class="tile c4">leaves things out</span><span class="tile c5">two "Freedom" cards</span><span class="tile c6">none</span><b style="margin-left:6px">= 4 new pairs</b></div>
+      <div class="friend"><span class="who" style="width:auto"><span class="tile c3">not much</span> goes with</span><span class="tile c4">leaves things out</span><span class="tile c5">two "Freedom" cards</span><span class="tile c6">none</span><b style="margin-left:6px">= 3 new pairs</b></div>
+      <div class="friend"><span class="who" style="width:auto"><span class="tile c4">leaves things out</span> goes with</span><span class="tile c5">two "Freedom" cards</span><span class="tile c6">none</span><b style="margin-left:6px">= 2 new pairs</b></div>
+      <div class="friend"><span class="who" style="width:auto"><span class="tile c5">two "Freedom" cards</span> goes with</span><span class="tile c6">none</span><b style="margin-left:6px">= 1 new pair</b></div>
+    </div>
+    <div class="mult" style="margin:14px 0 6px"><span class="eq num">5 + 4 + 3 + 2 + 1 = 15</span></div>
+    <p style="font-size:1rem; color:var(--ink-2)">So every time we run <b>one</b> pretend customer, we tick off <b>15 pairs</b> from the big list in one go. That's why we need far fewer customers than there are pairs.</p>
+  </div>
+
+  <p class="say">How many pairs are there across all six boxes? Count every card-with-card from different boxes:</p>
+  <div class="mult"><span class="eq num">406</span><span class="op" style="font-size:1.1rem; font-family:Nunito; font-weight:700">pairs in total</span></div>
+  <div class="note">Why 406 and not fewer? The "robot mistake" box really has <b>9</b> cards, not 6 — three more mistakes belong to other jobs the robot does (like setting up automatic payments) that the machine can't play yet. They still count as pairs we <em>owe</em>, just not ones we can build today.</div>
+</div></section>
+
+<!-- STEP 5 -->
+<section class="step"><div class="wrap">
+  <div class="label">Step 5</div>
+  <h2>Cross out silly pairs, and set aside ones we can't build yet</h2>
+  <div class="say">
+    <p>Just like Step 3, some pairs are silly — "swap cards" with "one card" is silly as a pair, too. A person went through the list and crossed out <b>32</b> of them, writing down why each time.</p>
+    <p>And <b>48</b> pairs use those three "other job" mistakes. They're not silly — we just can't build them until the machine learns those other jobs. We put them in a "not yet" pile so nobody forgets.</p>
+  </div>
+  <div class="ladder">
+    <div class="rung"><div class="n num">406</div><div class="t">pairs in total</div></div>
+    <div class="rung"><div class="n num">− 32</div><div class="t">silly pairs, crossed out by a person (with a reason written next to each)</div></div>
+    <div class="rung hi"><div class="n num">374</div><div class="t"><b>pairs we owe.</b> This is the number the report counts against: "how many of the 374 have we shown?"</div></div>
+    <div class="rung"><div class="n num">− 48</div><div class="t">"not yet" pairs — need parts of the robot's job the machine can't play yet</div></div>
+    <div class="rung hi"><div class="n num">326</div><div class="t"><b>pairs we can build today.</b></div></div>
+  </div>
+</div></section>
+
+<!-- STEP 6 -->
+<section class="step"><div class="wrap">
+  <div class="label">Step 6</div>
+  <h2>Pick the fewest customers that show every pair</h2>
+  <div class="say">
+    <p>Now the machine plays a puzzle. It picks one pretend customer that shows lots of pairs. Then another that shows lots of pairs <em>we haven't seen yet</em>. Then another. It keeps going until every one of the 326 pairs has been shown at least once.</p>
+    <p>Because each customer shows 15 pairs at once, it doesn't take many:</p>
+  </div>
+  <div class="mult"><span class="eq num">326</span><span class="op" style="font-size:1.1rem; font-family:Nunito; font-weight:700">pairs, all shown by just</span><span class="eq num" style="color:var(--yes)">56</span><span class="op" style="font-size:1.1rem; font-family:Nunito; font-weight:700">pretend customers</span></div>
+  <p class="say">Fifty-six. Not four thousand. That's the whole trick.</p>
+</div></section>
+
+<!-- THE END -->
+<section class="step"><div class="wrap">
+  <div class="label">The end</div>
+  <h2>The whole story in numbers</h2>
+  <div class="ladder">
+    <div class="rung"><div class="n num">7,776</div><div class="t">every way to pick one card from each of six boxes</div></div>
+    <div class="rung"><div class="n num">4,368</div><div class="t">after crossing out the silly ones (using a list a person checked)</div></div>
+    <div class="rung"><div class="n num">406</div><div class="t">switch to counting <b>pairs</b> instead of whole customers</div></div>
+    <div class="rung hi"><div class="n num">374</div><div class="t">pairs we owe, after a person crossed out 32 silly pairs</div></div>
+    <div class="rung"><div class="n num">326</div><div class="t">pairs we can build today (48 are waiting for the machine to learn more jobs)</div></div>
+    <div class="rung hi"><div class="n num">56</div><div class="t">pretend customers that, between them, show all 326 pairs</div></div>
+  </div>
+  <div class="note">
+    <b>So far:</b> 13 customers were written by hand, and 1 was made by the machine. Between them they've shown <b>15 of the 374</b> pairs. Every time a new machine-made customer is accepted, the report says how many more pairs got shown.
+  </div>
+</div></section>
+
+<footer><div class="wrap">
+  Numbers are from the plan report <code>synthesized_scenarios/reports/demo-2026-09-01-coverage</code>. The grown-up version of this story is in <a href="https://claude.ai/code/artifact/54903e37-03ea-4fbe-97f9-72ae6a58b7e0">PayCard Agent Gym</a>, §2.
+</div></footer>
