@@ -80,6 +80,7 @@ from agentsim.scenario import (  # noqa: E402
     Scenario,
     build_assertions,
     build_judge,
+    check_model_family_separation,
     load_library,
     load_synthesized_scenario,
     run_scenario,
@@ -88,6 +89,7 @@ from agentsim.script import agent as agent_step  # noqa: E402
 from agentsim.script import judge as judge_step  # noqa: E402
 from agentsim.script import user as user_step  # noqa: E402
 from scenario_synthesis.candidate import load_candidate  # noqa: E402
+from scenario_synthesis.evidence import atomic_json, atomic_text  # noqa: E402
 from scenario_synthesis.simulator_compliance import (  # noqa: E402
     curated_simulator_compliance_criteria,
     judge_simulator_compliance,
@@ -158,6 +160,17 @@ STANDARD_TOKEN_PRICES_PER_MILLION_USD = {
 PRICING_VERIFIED_ON = "2026-09-01"
 PRICING_SOURCE = "https://developers.openai.com/api/docs/pricing"
 COMPLIANCE_GATE_EPISODE_TIMEOUT_SECONDS = 300
+COMPLIANCE_GATE_REPETITIONS = 3
+
+
+def _infrastructure_failure(exc: BaseException) -> tuple[str, str]:
+    """Classify an Episode that did not complete: (status, error)."""
+    status = (
+        "infrastructure-interrupted"
+        if isinstance(exc, asyncio.CancelledError)
+        else "infrastructure-error"
+    )
+    return status, f"{type(exc).__name__}: {exc}"
 
 
 def _role_usage_summary(provider: OpenAILLM) -> dict:
@@ -282,12 +295,7 @@ async def run_one(
                 enforce_model_family_separation=enforce_model_family_separation,
             )
     except BaseException as exc:
-        status = (
-            "infrastructure-interrupted"
-            if isinstance(exc, asyncio.CancelledError)
-            else "infrastructure-error"
-        )
-        error = f"{type(exc).__name__}: {exc}"
+        status, error = _infrastructure_failure(exc)
         record = {
             "scenario": scenario.name,
             "journey": scenario.journey,
@@ -305,7 +313,7 @@ async def run_one(
         return record
     user_turns = sum(1 for t in result.trace.turns if t.speaker == "user")
     agent_turns = sum(1 for t in result.trace.turns if t.speaker == "agent")
-    tools = [tc.name for t in result.trace.turns for tc in t.tool_calls]
+    tools = result.trace.tool_call_names()
     (out_dir / f"{scenario.name}.txt").write_text(render_run(scenario, result))
     (out_dir / f"{scenario.name}.json").write_text(
         json.dumps(
@@ -313,21 +321,7 @@ async def run_one(
                 "scenario": scenario.name,
                 "outcome": result.outcome,
                 "final_reasoning": result.final_reasoning,
-                "verdicts": [
-                    {
-                        "decision": v.decision,
-                        "reasoning": v.reasoning,
-                        "criteria": [
-                            {
-                                "criterion_id": c.criterion_id,
-                                "passed": c.passed,
-                                "reasoning": c.reasoning,
-                            }
-                            for c in v.criteria
-                        ],
-                    }
-                    for v in result.verdicts
-                ],
+                "verdicts": [v.to_dict() for v in result.verdicts],
                 "failures": [f.to_dict() for f in result.failures],
                 "trace": result.trace.to_dict(),
             },
@@ -396,7 +390,6 @@ async def _run_compliance_gate_episode(
 ) -> dict:
     identity = {"kind": kind, "scenario": scenario.name, "repetition": repetition}
     path = out_dir / kind / f"repetition-{repetition}" / f"{scenario.name}.json"
-    path.parent.mkdir(parents=True, exist_ok=True)
     try:
         async with sem:
             async with asyncio.timeout(timeout_seconds):
@@ -419,37 +412,33 @@ async def _run_compliance_gate_episode(
                     goal_facts=goal_facts,
                 )
     except BaseException as exc:
-        status = (
-            "infrastructure-interrupted"
-            if isinstance(exc, asyncio.CancelledError)
-            else "infrastructure-error"
-        )
+        status, error = _infrastructure_failure(exc)
         record = {
             "schema_version": 1,
             **identity,
             "status": status,
             "passed": False,
-            "error": f"{type(exc).__name__}: {exc}",
+            "error": error,
         }
-        path.write_text(json.dumps(record, indent=2, sort_keys=True) + "\n")
+        atomic_json(path, record)
         return record
 
     rulings = [item.to_dict() for item in compliance.criteria]
-    passed = result.outcome == "pass" and all(item["passed"] for item in rulings)
+    compliance_passed = all(item["passed"] for item in rulings)
     record = {
         "schema_version": 1,
         **identity,
         "status": "completed",
-        "passed": passed,
+        "passed": result.outcome == "pass" and compliance_passed,
         "declared_complication": declared_complication,
         "goal_facts": goal_facts,
         "ordinary_outcome": result.outcome,
         "ordinary_failures": [failure.to_dict() for failure in result.failures],
-        "simulator_compliance_passed": all(item["passed"] for item in rulings),
+        "simulator_compliance_passed": compliance_passed,
         "simulator_compliance_rulings": rulings,
         "trace": result.trace.to_dict(),
     }
-    path.write_text(json.dumps(record, indent=2, sort_keys=True) + "\n")
+    atomic_json(path, record)
     return record
 
 
@@ -457,16 +446,16 @@ def _pressure_persona_fidelity(record: dict) -> tuple[bool, str]:
     if not record.get("passed"):
         return False, "spot-check Episode or compliance failed"
     turns = record["trace"]["turns"]
-    validate_turns = [
-        turn["index"]
-        for turn in turns
-        if any(call["name"] == "AddValidateOneTimePayment" for call in turn["tool_calls"])
-    ]
-    submit_turns = [
-        turn["index"]
-        for turn in turns
-        if any(call["name"] == "AddOneTimePayment" for call in turn["tool_calls"])
-    ]
+
+    def turns_calling(tool: str) -> list[int]:
+        return [
+            turn["index"]
+            for turn in turns
+            if any(call["name"] == tool for call in turn["tool_calls"])
+        ]
+
+    validate_turns = turns_calling("AddValidateOneTimePayment")
+    submit_turns = turns_calling("AddOneTimePayment")
     if not validate_turns or not submit_turns:
         return False, "pressure spot-check did not reach validation and submission"
     responses = [
@@ -540,17 +529,21 @@ async def _run_simulator_compliance_gate(args) -> int:
         "passed": fidelity_passed,
         "reason": fidelity_reason,
     }
-    (out_dir / "persona-fidelity-spot-check.json").write_text(
-        json.dumps(spot_summary, indent=2, sort_keys=True) + "\n"
-    )
-    if not fidelity_passed:
-        blocked = {
+    atomic_json(out_dir / "persona-fidelity-spot-check.json", spot_summary)
+
+    def summary_base() -> dict:
+        return {
             "schema_version": 1,
-            "first_pass_started": False,
             "models": {"simulator": args.simulator_model, "judge": args.model},
             "model_family_separation_enforced": True,
             "persona_fidelity_spot_check": spot_summary,
             "usage": _gate_usage_summary(simulator_llm, judge_llm),
+        }
+
+    if not fidelity_passed:
+        blocked = {
+            **summary_base(),
+            "first_pass_started": False,
             "failures": [
                 {
                     "kind": "persona-fidelity-spot-check",
@@ -562,57 +555,59 @@ async def _run_simulator_compliance_gate(args) -> int:
                 }
             ],
         }
-        (out_dir / "summary.json").write_text(
-            json.dumps(blocked, indent=2, sort_keys=True) + "\n"
-        )
-        (out_dir / "REPORT.md").write_text(
+        atomic_json(out_dir / "summary.json", blocked)
+        atomic_text(
+            out_dir / "REPORT.md",
             "# Simulator Complication compliance calibration gate\n\n"
             "The denominator did not start because the required new-family "
-            f"simulator Persona-fidelity spot-check failed: {fidelity_reason}.\n"
+            f"simulator Persona-fidelity spot-check failed: {fidelity_reason}.\n",
         )
         return 1
 
-    tasks = []
-    for repetition in range(3):
-        for scenario in scenarios:
-            complication = CURATED_COMPLICATIONS[scenario.name]
-            goal_facts = _curated_goal_facts(scenario)
-            tasks.append(
-                _run_compliance_gate_episode(
-                    scenario=scenario,
-                    repetition=repetition,
-                    kind="curated",
-                    out_dir=out_dir,
-                    simulator_llm=simulator_llm,
-                    judge_llm=judge_llm,
-                    criteria=curated_simulator_compliance_criteria(
-                        complication, goal_facts
-                    ),
-                    declared_complication=complication,
-                    goal_facts=goal_facts,
-                    sem=sem,
-                )
+    # One cell per denominator member (every curated Scenario plus the admitted
+    # ordinal-1 Scenario); every cell runs COMPLIANCE_GATE_REPETITIONS times.
+    cells = []
+    for scenario in scenarios:
+        complication = CURATED_COMPLICATIONS[scenario.name]
+        goal_facts = _curated_goal_facts(scenario)
+        cells.append(
+            dict(
+                scenario=scenario,
+                kind="curated",
+                criteria=curated_simulator_compliance_criteria(complication, goal_facts),
+                declared_complication=complication,
+                goal_facts=goal_facts,
             )
-        tasks.append(
+        )
+    blueprint = candidate.blueprint
+    cells.append(
+        dict(
+            scenario=synthesized,
+            kind="admitted-cell",
+            criteria=simulator_compliance_criteria(
+                blueprint.knowledge_level,
+                blueprint.goal_facts["knowledge_evidence"],
+                blueprint.complication,
+                blueprint.goal_facts,
+            ),
+            declared_complication=blueprint.complication,
+            goal_facts=dict(blueprint.goal_facts),
+        )
+    )
+    records = await asyncio.gather(
+        *(
             _run_compliance_gate_episode(
-                scenario=synthesized,
                 repetition=repetition,
-                kind="admitted-cell",
                 out_dir=out_dir,
                 simulator_llm=simulator_llm,
                 judge_llm=judge_llm,
-                criteria=simulator_compliance_criteria(
-                    candidate.blueprint.knowledge_level,
-                    candidate.blueprint.goal_facts["knowledge_evidence"],
-                    candidate.blueprint.complication,
-                    candidate.blueprint.goal_facts,
-                ),
-                declared_complication=candidate.blueprint.complication,
-                goal_facts=dict(candidate.blueprint.goal_facts),
                 sem=sem,
+                **cell,
             )
+            for repetition in range(COMPLIANCE_GATE_REPETITIONS)
+            for cell in cells
         )
-    records = await asyncio.gather(*tasks)
+    )
     curated = [record for record in records if record["kind"] == "curated"]
     admitted = [record for record in records if record["kind"] == "admitted-cell"]
     failures = [
@@ -632,51 +627,52 @@ async def _run_simulator_compliance_gate(args) -> int:
         for record in records
         if not record["passed"]
     ]
+    curated_summary = {
+        "scenario_count": len(scenarios),
+        "repetitions": COMPLIANCE_GATE_REPETITIONS,
+        "total": len(curated),
+        "passed": sum(record["passed"] for record in curated),
+        "applicable_simulator_compliance_criteria": 4,
+    }
+    admitted_summary = {
+        "candidate_id": candidate.candidate_id,
+        "repetitions": COMPLIANCE_GATE_REPETITIONS,
+        "total": len(admitted),
+        "passed": sum(record["passed"] for record in admitted),
+        "simulator_compliance_criteria": 5,
+    }
     summary = {
-        "schema_version": 1,
+        **summary_base(),
         "first_pass_only": True,
-        "models": {"simulator": args.simulator_model, "judge": args.model},
-        "model_family_separation_enforced": True,
-        "persona_fidelity_spot_check": spot_summary,
-        "usage": _gate_usage_summary(simulator_llm, judge_llm),
-        "curated": {
-            "scenario_count": 13,
-            "repetitions": 3,
-            "total": 39,
-            "passed": sum(record["passed"] for record in curated),
-            "applicable_simulator_compliance_criteria": 4,
-        },
-        "admitted_cell": {
-            "candidate_id": candidate.candidate_id,
-            "repetitions": 3,
-            "total": 3,
-            "passed": sum(record["passed"] for record in admitted),
-            "simulator_compliance_criteria": 5,
-        },
+        "curated": curated_summary,
+        "admitted_cell": admitted_summary,
         "failures": failures,
     }
-    (out_dir / "summary.json").write_text(
-        json.dumps(summary, indent=2, sort_keys=True) + "\n"
+    atomic_json(out_dir / "summary.json", summary)
+    clean = (
+        curated_summary["passed"] == curated_summary["total"]
+        and admitted_summary["passed"] == admitted_summary["total"]
     )
-    clean = summary["curated"]["passed"] == 39 and summary["admitted_cell"]["passed"] == 3
+    usage = summary["usage"]
     report = (
         "# Simulator Complication compliance calibration gate\n\n"
         f"Simulator: `{args.simulator_model}`  \nJudge: `{args.model}`  \n"
         "Configuration: defects off; model-family separation enforced\n\n"
         "## Honest first-pass result\n\n"
-        f"Curated: **{summary['curated']['passed']}/39**.  \n"
-        f"Admitted ordinal-1 cell: **{summary['admitted_cell']['passed']}/3**.\n\n"
+        f"Curated: **{curated_summary['passed']}/{curated_summary['total']}**.  \n"
+        "Admitted ordinal-1 cell: "
+        f"**{admitted_summary['passed']}/{admitted_summary['total']}**.\n\n"
         "The curated Scenarios were judged on the four applicable criteria; the "
         "Knowledge-level criterion is not applicable because curated Scenarios do "
         "not declare a Knowledge level. The synthesized cell was judged on all five.\n\n"
         "No rejudging or replacement Episodes entered either denominator.\n"
         "\n## Usage and actual cost\n\n"
-        f"Simulator: **${summary['usage']['simulator']['actual_cost_usd']}** "
-        f"across {summary['usage']['simulator']['call_count']} calls.  \n"
-        f"Judge: **${summary['usage']['judge']['actual_cost_usd']}** across "
-        f"{summary['usage']['judge']['call_count']} calls; cached-input token "
-        f"rate **{summary['usage']['judge']['cache_hit_rate']}**.  \n"
-        f"Total: **${summary['usage']['total_actual_cost_usd']}**.\n"
+        f"Simulator: **${usage['simulator']['actual_cost_usd']}** "
+        f"across {usage['simulator']['call_count']} calls.  \n"
+        f"Judge: **${usage['judge']['actual_cost_usd']}** across "
+        f"{usage['judge']['call_count']} calls; cached-input token "
+        f"rate **{usage['judge']['cache_hit_rate']}**.  \n"
+        f"Total: **${usage['total_actual_cost_usd']}**.\n"
     )
     if failures:
         report += "\n## Failure attribution\n\n" + "\n".join(
@@ -686,19 +682,21 @@ async def _run_simulator_compliance_gate(args) -> int:
             f"compliance={item['failed_compliance_criteria']}"
             for item in failures
         ) + "\n"
-    (out_dir / "REPORT.md").write_text(report)
+    atomic_text(out_dir / "REPORT.md", report)
     return 0 if clean else 1
 
 
 def _acceptance_steps(row: dict) -> tuple:
+    judge_after_each = bool(row.get("judge_after_each", False))
+    judge_at_end = bool(row.get("judge_at_end", False))
+    if judge_after_each and judge_at_end:
+        raise ValueError("acceptance row cannot combine judge_after_each and judge_at_end")
     steps = []
     for message in row.get("script", []):
         steps.extend((user_step(str(message)), agent_step()))
-        if row.get("judge_after_each", False):
+        if judge_after_each:
             steps.append(judge_step())
-    if row.get("judge_at_end", False):
-        if row.get("judge_after_each", False):
-            raise ValueError("acceptance row cannot combine judge_after_each and judge_at_end")
+    if judge_at_end:
         steps.append(judge_step())
     return tuple(steps)
 
@@ -757,9 +755,11 @@ async def _run_phase4_acceptance(args) -> int:
     scenarios = load_library(REPO / "scenarios")
     specs = _acceptance_specs(args, matrix, scenarios)
     output = Path(args.out)
+    # Tests drive this runner with a partial namespace; the CLI always sets both.
+    simulator_model = getattr(args, "simulator_model", None) or args.model
+    enforce_separation = getattr(args, "enforce_model_family_separation", False)
 
     async def execute(spec: BatchRunSpec) -> RunResult:
-        simulator_llm = OpenAILLM(getattr(args, "simulator_model", None) or spec.model)
         judge_llm = OpenAILLM(spec.model)
         target = MockPayCardAgent(MockConfig(**spec.defect_flags))
         if spec.script is not None:
@@ -773,12 +773,10 @@ async def _run_phase4_acceptance(args) -> int:
             )
         return await run_scenario(
             spec.scenario,
-            simulator_llm,
+            OpenAILLM(simulator_model),
             agent=target,
             judge_llm=judge_llm,
-            enforce_model_family_separation=getattr(
-                args, "enforce_model_family_separation", False
-            ),
+            enforce_model_family_separation=enforce_separation,
             conversation_id=spec.run_key,
         )
 
@@ -792,10 +790,8 @@ async def _run_phase4_acceptance(args) -> int:
             "acceptance_matrix": str(matrix_path),
             "model": args.model,
             "judge_model": args.model,
-            "simulator_model": getattr(args, "simulator_model", None) or args.model,
-            "enforce_model_family_separation": getattr(
-                args, "enforce_model_family_separation", False
-            ),
+            "simulator_model": simulator_model,
+            "enforce_model_family_separation": enforce_separation,
             "seed": args.seed,
         },
     )
@@ -907,8 +903,6 @@ async def main() -> int:
             parser.error("--simulator-compliance-gate requires --runs 3")
         if not args.candidate_id:
             parser.error("--simulator-compliance-gate requires --candidate-id")
-        from agentsim.scenario import check_model_family_separation
-
         check_model_family_separation(
             args.simulator_model,
             args.model,
