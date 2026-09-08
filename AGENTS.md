@@ -69,6 +69,10 @@ Do not violate these without explicit instruction in the current prompt.
 - Honor all prompt-imposed file-reading and evidence boundaries.
   Otherwise inspect only files relevant to the task; do not browse old
   calibration transcripts, build plans, or unrelated artifacts.
+- A LEGACY docstring or a cutover list is not evidence that a module has no
+  production callers. Before proposing or performing a deletion, verify transitive
+  importers from non-legacy code; `tests/test_synthesis_cutover_boundary.py` pins
+  the one permitted edge.
 - Before qualifying a requested fresh Candidate, verify that its bundle was created by
   the current production attempt; an idempotently returned pre-existing bundle is not fresh.
 
