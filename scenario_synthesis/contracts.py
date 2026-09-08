@@ -207,6 +207,24 @@ def fitness_entries_for_policies(
     )
 
 
+def fitness_entry(
+    target_id: str,
+    shape_id: str | None,
+    *,
+    contracts: ContractSet | None = None,
+) -> Mapping[str, Any] | None:
+    """The reviewed fitness-target entry for one target and shape, if any."""
+    contracts = contracts or load_reviewed_contracts()
+    return next(
+        (
+            entry
+            for entry in contracts.contracts["fitness-targets"].content["targets"]
+            if entry["target_id"] == target_id and entry["shape_id"] == shape_id
+        ),
+        None,
+    )
+
+
 def fitness_checks_for_policies(
     policy_ids: Sequence[str],
     *,

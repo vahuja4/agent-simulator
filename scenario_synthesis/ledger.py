@@ -20,6 +20,11 @@ class LedgerError(RuntimeError):
     """The rejection ledger is invalid or cannot be appended safely."""
 
 
+def cell_lock_path(output_root: str | Path, cell_id: str) -> Path:
+    """The one mutex every lifecycle command for a Coverage cell must hold."""
+    return Path(output_root) / "locks" / f"{cell_id}.lock"
+
+
 @contextmanager
 def exclusive_lock(path: str | Path, *, command: str) -> Iterator[None]:
     lock = Path(path)

@@ -6,6 +6,7 @@ import hashlib
 import json
 import os
 import tempfile
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -24,6 +25,11 @@ def sha256_bytes(value: bytes) -> str:
 
 def sha256_file(path: str | Path) -> str:
     return sha256_bytes(Path(path).read_bytes())
+
+
+def utc_timestamp() -> str:
+    """The evidence timestamp format: ISO 8601 in UTC with a ``Z`` suffix."""
+    return datetime.now(UTC).isoformat().replace("+00:00", "Z")
 
 
 def atomic_text(path: str | Path, value: str) -> None:

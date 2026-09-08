@@ -29,6 +29,7 @@ from .contracts import (
     ContractSet,
     canonical_sha256,
     fitness_checks_for_policies,
+    fitness_entry,
     load_reviewed_contracts,
 )
 from .policies import POLICIES, Policy
@@ -520,14 +521,10 @@ class CoverageBlueprintValidator:
             errors.append("Complication event is not represented by the Journey graph")
         if blueprint.fitness_target_id is None:
             return
-        targets = self.contracts.contracts["fitness-targets"].content["targets"]
-        target = next(
-            (
-                item for item in targets
-                if item["target_id"] == blueprint.fitness_target_id
-                and item["shape_id"] == blueprint.fitness_shape_id
-            ),
-            None,
+        target = fitness_entry(
+            blueprint.fitness_target_id,
+            blueprint.fitness_shape_id,
+            contracts=self.contracts,
         )
         if target is None:
             errors.append("unknown Fitness target/shape")

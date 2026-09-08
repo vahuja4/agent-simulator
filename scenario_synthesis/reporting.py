@@ -283,7 +283,6 @@ def _validated_admissions(
                 root,
                 config,
                 contracts,
-                allow_repository_state_drift=True,
             )
             library_path = root / str(terminal["library_path"])
             if not library_path.is_file() or library_path.read_bytes() != candidate.scenario_path.read_bytes():
