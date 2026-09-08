@@ -1388,9 +1388,10 @@ def test_live_providers_pin_current_configured_models_without_calling_them(
     monkeypatch.setattr(
         "scenario_synthesis.realization_provider.OpenAILLM", FakeLLM
     )
+    simulator_model = str(synthesis_config.load_config().content["models"]["simulator"])
     provider = LiveRealizationProvider.from_config()
-    assert provider.provider_id == "openai-structured-realization:gpt-5.6-luna"
-    assert realization_models == ["gpt-5.6-luna"]
+    assert provider.provider_id == f"openai-structured-realization:{simulator_model}"
+    assert realization_models == [simulator_model]
 
     class FakeQualificationLLM:
         def __init__(self, model: str) -> None:
@@ -1400,7 +1401,7 @@ def test_live_providers_pin_current_configured_models_without_calling_them(
         "scenario_synthesis.qualification.OpenAILLM", FakeQualificationLLM
     )
     LiveQualificationRunner.from_config()
-    assert qualification_models == ["gpt-5.6-luna", "gpt-5.5"]
+    assert qualification_models == [simulator_model, "gpt-5.5"]
 
 
 def test_live_realization_provider_uses_structured_blueprint_surface(
