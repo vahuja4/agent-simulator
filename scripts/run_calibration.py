@@ -564,13 +564,13 @@ async def _run_simulator_compliance_gate(args) -> int:
         )
         return 1
 
-    # One cell per denominator member (every curated Scenario plus the admitted
-    # ordinal-1 Scenario); every cell runs COMPLIANCE_GATE_REPETITIONS times.
-    cells = []
+    # One member per denominator entry (every curated Scenario plus the admitted
+    # ordinal-1 Scenario); every member runs COMPLIANCE_GATE_REPETITIONS times.
+    members = []
     for scenario in scenarios:
         complication = CURATED_COMPLICATIONS[scenario.name]
         goal_facts = _curated_goal_facts(scenario)
-        cells.append(
+        members.append(
             dict(
                 scenario=scenario,
                 kind="curated",
@@ -580,7 +580,7 @@ async def _run_simulator_compliance_gate(args) -> int:
             )
         )
     blueprint = candidate.blueprint
-    cells.append(
+    members.append(
         dict(
             scenario=synthesized,
             kind="admitted-cell",
@@ -602,10 +602,10 @@ async def _run_simulator_compliance_gate(args) -> int:
                 simulator_llm=simulator_llm,
                 judge_llm=judge_llm,
                 sem=sem,
-                **cell,
+                **member,
             )
             for repetition in range(COMPLIANCE_GATE_REPETITIONS)
-            for cell in cells
+            for member in members
         )
     )
     curated = [record for record in records if record["kind"] == "curated"]

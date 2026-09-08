@@ -38,3 +38,13 @@ again.
 
 `make test` prints `baseline check: OK` on `main`, and `ENVIRONMENT.md` records
 the new green count in the same commit.
+
+## Comments
+
+2026-09-08: Cause 1 also blinds the regression bar to `scripts/run_calibration.py`.
+The 13 offline tests that exercise that script (`test_phase4_acceptance.py`,
+most of `test_live_calibration_infrastructure.py`) are all in the red set, so a
+change there passes "same 17 failures" without being run. Until this is fixed,
+verify such changes by moving both `scenarios/generated_*.yaml` files aside,
+running those two files (16 pass on the pre- and post-simplification script as
+of `8748088`), then restoring them.
