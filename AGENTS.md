@@ -47,6 +47,10 @@ Do not violate these without explicit instruction in the current prompt.
   uses overlay files.
 - Validate contract preconditions against their governing ADR definitions,
   never against a single curated exemplar.
+- Fix a reviewed-contract validation failure at its input. Never edit a
+  contract's content or its embedded dependency hashes to make validation
+  pass unless the current prompt explicitly approves that contract change.
+  Synthesized Scenarios never go under `scenarios/`.
 - Synchronous synthesis providers that reuse the shared OpenAI client must
   execute on one process-local event loop; do not create a new event loop per call.
 - Before any simulator-instruction change lands, check it for conflicts with

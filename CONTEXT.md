@@ -10,6 +10,11 @@ file in the same commit.
 - **Scenario** — a declarative test situation: persona + goal + knowledge
   level + zero or one complication + max turns + judge criteria. Stored as a
   file; the unit of test authorship.
+- **Curated Scenario** — a hand-authored, reviewed Scenario stored under
+  `scenarios/` with no synthesis provenance. The curated library is exactly
+  that reviewed set; it is the calibration and compliance-gate denominator.
+  A Scenario carrying synthesis provenance is never curated, whatever
+  directory it sits in, and the curated loader fails closed on it.
 - **Journey** — an approved domain workflow through which the simulated user
   pursues a goal. A journey may contain multiple valid paths.
 - **Persona** — who the simulated user is: background, temperament,
