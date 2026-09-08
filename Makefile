@@ -19,4 +19,4 @@ doctor:
 	@echo "environment: OK"
 
 test: doctor
-	$(PYTHON) -m pytest
+	$(PYTHON) scripts/check_offline_baseline.py

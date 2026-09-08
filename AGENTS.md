@@ -19,7 +19,9 @@ filenames, and prose.
   default; live tests are marked and deselected.
 - The expected baseline is recorded in `ENVIRONMENT.md`. Run the full baseline
   test suite and verify its result before code changes unless the current prompt
-  imposes a narrower read boundary.
+  imposes a narrower read boundary. A commit that changes the offline suite's
+  pass count must update that baseline in the same commit; `make test` fails on
+  any drift, and a red suite is never left for a later commit to explain.
 - Before an approved live LLM command, export the ignored `.env` into the command
   environment without printing secrets and verify that credentials are available.
 - Live calibration fan-out must persist each Episode's infrastructure error with
