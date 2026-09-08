@@ -14,3 +14,6 @@ dist/
 .mypy_cache/
 .ruff_cache/
 .scratch/
+
+# Claude Code worktrees (nested checkouts created by EnterWorktree)
+.claude/worktrees/
