@@ -86,17 +86,37 @@ single live re-qualification batch, not interleaved with it.
 
 ## Phase 1: offline fixes, no LLM calls, one worktree each
 
-1. **Fix the mock for M-018 and M-019. Needs explicit approval under the
-   AGENTS.md mock-change rule.**
-   Where: `agentsim/adapters/mock_paycard/agent.py` `handle_card_mention` and
-   `j1_one_time.py` amount capture.
-   Change: a two-card mention that negates the current card switches to the
-   other card and refetches options; a question turn never captures an amount;
-   a clarification that names no option label lists the options with their
-   meanings from fetched state.
-   Proof: the three replays recorded in the ledger entries pass; the M3 "this
-   Freedom card" behavior and every planted D-series shape are unchanged under
-   the defect-toggle suite.
+1. **Gate slot extraction on turn intent in the mock. Needs explicit approval
+   under the AGENTS.md mock-change rule.**
+   Where: `agentsim/adapters/mock_paycard/agent.py` `handle_card_mention`,
+   `j1_one_time.py` amount capture, and `parsing.py`.
+   M-018 and M-019 share one cause: the mock mines every message for amounts,
+   labels, and card numbers before deciding what the customer is doing. A
+   question was mined for an amount and one was found; a negated mention was
+   mined for cards and two were found. The fix is structural, not two patches:
+   - Split the message into sentences. Slot extraction runs only on sentences
+     that are not questions (ending in `?` or opening with an interrogative).
+     Question sentences go to the answering path, which is extended to list
+     the options with their fixture-state meanings when no label is named.
+   - A card mention inside a negation window ("not", "instead of", "rather
+     than") is excluded. One remaining non-negated card is the switch target.
+   - A message with noise markers (no terminal punctuation and several
+     candidate details, or tokens that match nothing) is not acted on. The mock
+     reflects back its reading and waits for confirmation. This is the
+     recovery behavior CONTEXT.md requires for channel noise, so the clean
+     reference exhibits it rather than guessing.
+   The principle: rules cannot make the mock understand more, but they can
+   reliably make it act less. A miss becomes a clarifying question, never a
+   staged payment the customer did not choose. An LLM classifier is excluded:
+   it is an invariant, it breaks replayability and the defect on/off
+   comparison, and it would need its own calibration.
+   Proof: the three replays in the M-018 and M-019 ledger entries pass; the M3
+   "this Freedom card" behavior and every planted D-series shape are unchanged
+   under the defect-toggle suite; and a new corpus test runs every recorded
+   customer turn from `synthesized_scenarios/runs/*/episodes/*-transcript.jsonl`
+   through the gate and asserts no question turn captures an amount and no
+   negated card is selected. Labeling that corpus once with an LLM, offline, is
+   permitted so the test does not merely agree with its own regexes.
    Do this first. It decides whether `6af931a…` and `89c8eb9…` can be admitted
    at all, and it is independent of every judge or prompt change.
 
@@ -152,13 +172,17 @@ single live re-qualification batch, not interleaved with it.
    that set. The second is a Fitness-target contract change. Recommendation:
    the second; a defect that fires exactly as planted is clean detection.
 
-7. **Decide whether a verified M-series mock defect is a harness fault.**
-   The Candidate rejection invalidation transition returns budget only for
-   harness faults. The mock is harness infrastructure and M-006 set the
-   precedent for invalidating on harness defects, so the recommendation is
-   yes for rejections whose every non-simulator failing Episode is a ledgered
-   mock defect. A realization mismatch is not a harness fault; it is a bad
-   Candidate and consumes its ordinal.
+7. **A ledgered mock defect makes the cell BLOCKED; it does not reject the
+   Candidate.**
+   CONTEXT.md already defines BLOCKED as an eligible obligation the current
+   implementation cannot realize for a recorded reason, engineering debt that
+   trends to zero. A defects-off failure whose cause is a ledgered M-series
+   entry is exactly that. Rule: such a failure moves the cell to BLOCKED with
+   the M-number as the recorded reason, consumes no ordinal, and is attributed
+   to the mock, never to the simulator. When the entry is resolved the cell
+   returns to UNCOVERED. This replaces the first draft's question of whether a
+   mock bug is a harness fault. It is a CONTEXT.md and planner change and
+   needs explicit approval.
 
 The factual-grounding criterion narrowing from the first draft is dropped. It
 was done under N-007-S1 on 2026-08-31, live-verified, and the affected
@@ -166,15 +190,16 @@ rejection is already invalidated.
 
 ## Phase 3: bookkeeping and one live batch, on explicit request
 
-8. **Invalidate the mock-caused rejections per decision 7.**
-   Add `invalidate-rejection` to `scenario_synthesis/cli.py`; the ledger stage
-   `qualification-invalidation` and the exhaustion accounting in
-   `reporting.py` already honor it. Candidates: `f703deec` ord 1 and
-   `f8e71a6d` ord 2, both `6af931a…`, which restores two ordinals to that cell.
-   `5787127b` stands on its rep 0 simulator failure. `91e9d6f1` stands as a
-   realization defect. Before appending, reconcile the orphan run directory
-   `de630451…` (episodes and a snapshot, no qualification record, no ledger
-   entry) and the duplicate stub-run bundle for `f703deec`.
+8. **Re-attribute the mock-caused rejections and restore `6af931a…`.**
+   `f703deec` ord 1 and `f8e71a6d` ord 2 failed on M-019 and, under decision
+   7, should never have consumed ordinals. The historical records stay; add
+   `invalidate-rejection` to `scenario_synthesis/cli.py` over the existing
+   `qualification-invalidation` ledger stage so the two ordinals return, and
+   record BLOCKED(M-019) as the cell's state until step 1 lands. `5787127b`
+   stands on its rep 0 simulator failure. `91e9d6f1` stands as a realization
+   defect. Before appending, reconcile the orphan run directory `de630451…`
+   (episodes and a snapshot, no qualification record, no ledger entry) and the
+   duplicate stub-run bundle for `f703deec`.
 
 9. **Re-qualify all eight attempted cells live, N=3.**
    Per-cell expectation, so the batch is read against a prediction rather
@@ -184,7 +209,7 @@ rejection is already invalidated.
    |---|---|---|
    | `ecbf1aff` | admission retired by config drift only | admit |
    | `01bb058` | single-failure rule | admit if decision 6 changes the rule, else reject again |
-   | `6af931a` | M-019, budget exhausted | admit if step 1 lands and decision 7 restores budget |
+   | `6af931a` | M-019, budget exhausted | admit if step 1 lands and step 8 restores budget |
    | `89c8eb9` | realization mismatch, M-018 | fresh ordinal 1 after step 2; admit if step 1 lands |
    | `97efe21` | realization mismatch, stop marker | fresh ordinal 1 after steps 2 and 4; uncertain, first material-noise realization |
    | `0743dfb` | high-Knowledge rule, untriaged two-payment mock behavior | uncertain until step 5 is measured |
@@ -214,7 +239,10 @@ It does not: lower any criterion; fix the main judge's premature ordered-
 criterion halts (N6 in the design plan), which will keep truncating Episodes
 and now be attributed correctly rather than prevented; touch the untriaged
 two-payment mock behavior in `9ce0907b`; or scale production. Steps 1, 5, 6,
-and 7 each need an explicit approval before they can land.
+and 7 each need an explicit approval before they can land. It does not make
+the mock understand customers; it makes the mock ask instead of guess, and a
+persona noisy enough to exhaust the turn budget with clarifications is the
+measurable point at which an LLM classifier would be reconsidered.
 
 ## What would change this plan
 
