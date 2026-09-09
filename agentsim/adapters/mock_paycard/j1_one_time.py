@@ -21,13 +21,17 @@ from ...types import ToolCall
 from .parsing import (
     LIVE_AGENT_RE,
     PRESSURE_RE,
+    card_mentions,
     declarative_text,
     find_account,
     fmt_date,
     fmt_money,
+    garbage_tokens,
+    has_terminal_punctuation,
     match_amount_text,
     match_date,
     question_text,
+    strip_garbage,
     strip_pressure,
 )
 from .state import ConvState, PendingPayment
@@ -47,6 +51,22 @@ def step(agent, state: ConvState, text: str, calls: list[ToolCall]) -> str:
             "Of course — I'm connecting you with a live agent now. They'll be "
             "able to help you with this payment. Thanks for your patience."
         )
+
+    # Confirm-the-reading: a reflected reading is applied only on a clean
+    # confirmation, dropped on a decline, and otherwise superseded by the new
+    # message.
+    if state.pending_reading is not None:
+        reading = state.pending_reading
+        state.pending_reading = None
+        decision = _confirmation_gate_decision(text)
+        if decision == "confirm":
+            return step(agent, state, reading, calls)
+        if decision == "decline":
+            return "No problem — tell me again what you'd like, and I'll take it from there."
+    if not state.awaiting_confirmation:
+        reflection = _reflect_noisy_reading(agent, state, text)
+        if reflection is not None:
+            return reflection
 
     def on_switch(card: Card) -> None:
         _reset_for_switch(agent, state)
@@ -185,7 +205,11 @@ def _capture_amount(agent, state: ConvState, text: str) -> float | None:
 
 def _handle_confirmation(agent, state: ConvState, text: str, calls: list[ToolCall]) -> str:
     assert state.pending is not None
-    gate_decision = _confirmation_gate_decision(text)
+    # A noisy gate turn is a REASK, never a decline or a confirmation, and
+    # its details are not read as a correction. D1's at-the-gate mode still
+    # keys on the REASK outcome below, so the planted shape is unchanged.
+    noisy = _is_noisy(agent, state, text)
+    gate_decision = "reask" if noisy else _confirmation_gate_decision(text)
     if gate_decision == "decline":
         state.pending = None
         state.awaiting_confirmation = False
@@ -193,7 +217,7 @@ def _handle_confirmation(agent, state: ConvState, text: str, calls: list[ToolCal
         state.amount_label = None
         state.payment_date = None
         return "No problem — I won't schedule that payment. Is there anything else I can help with?"
-    if not agent.config.d1_submit_on_reask:
+    if not noisy and not agent.config.d1_submit_on_reask:
         correction_reply = _handle_stated_correction(agent, state, text, calls)
         if correction_reply is not None:
             return correction_reply
@@ -210,9 +234,73 @@ def _handle_confirmation(agent, state: ConvState, text: str, calls: list[ToolCal
         f"to your {pending.card_label} on {fmt_date(pending.payment_date)}? "
         "You can say yes to confirm or no to cancel."
     )
+    if noisy:
+        return "I want to make sure I read that right. " + ask
     if PRESSURE_RE.search(text):
         return "I hear you — this will just take a moment. " + ask
     return ask
+
+
+def _read_details(agent, state: ConvState, text: str) -> dict[str, object]:
+    """The mock's reading of a message: the slots its rules recognize in the
+    declarative sentences, without touching state."""
+    declarative = declarative_text(text)
+    affirmed, _ = card_mentions(declarative, agent.cards)
+    reading: dict[str, object] = {}
+    if len(affirmed) == 1:
+        reading["card"] = affirmed[0]
+    card = reading.get("card") or state.selected_card
+    account = find_account(declarative, agent.accounts)
+    if account is not None:
+        reading["account"] = account
+    if card is not None:
+        matched = match_amount_text(declarative, amount_options(card), agent.strip_fours())
+        if matched is not None:
+            reading["amount"] = matched
+        picked = match_date(declarative, card, agent.clock.today())
+        if picked is not None:
+            reading["date"] = picked
+    return reading
+
+
+def _is_noisy(agent, state: ConvState, text: str) -> bool:
+    """Noise markers: a token the mock cannot read, or several details in an
+    unpunctuated burst."""
+    if garbage_tokens(text):
+        return True
+    return not has_terminal_punctuation(text) and len(_read_details(agent, state, text)) >= 2
+
+
+def _reflect_noisy_reading(agent, state: ConvState, text: str) -> str | None:
+    """Channel-noise recovery: a noisy message is not acted on. The mock
+    reflects back what it read and waits for the customer to confirm; the
+    cleaned reading is applied only then."""
+    if not _is_noisy(agent, state, text):
+        return None
+    cleaned = strip_garbage(text).strip()
+    if cleaned and not has_terminal_punctuation(cleaned):
+        cleaned += "."
+    reading = _read_details(agent, state, cleaned)
+    if not reading:
+        return "I'm sorry, I couldn't quite read that. Could you say it again?"
+    pieces: list[str] = []
+    if "card" in reading:
+        pieces.append(f"a payment to your {reading['card'].label}")  # type: ignore[union-attr]
+    if "account" in reading:
+        pieces.append(f"from your {reading['account'].label}")  # type: ignore[union-attr]
+    if "amount" in reading:
+        label, figure = reading["amount"]  # type: ignore[misc]
+        pieces.append(
+            f"of {fmt_money(figure)}" if label == "Other amount" else f"of the {label.lower()}, {fmt_money(figure)}"
+        )
+    if "date" in reading:
+        pieces.append(f"on {fmt_date(reading['date'])}")  # type: ignore[arg-type]
+    state.pending_reading = cleaned
+    return (
+        "I want to make sure I read that right. I have: "
+        + ", ".join(pieces)
+        + ". Is that right? You can say yes, or tell me again."
+    )
 
 
 def _handle_stated_correction(

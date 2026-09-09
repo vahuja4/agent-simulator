@@ -161,6 +161,9 @@ class ConvState:
     # the offer hands off terminally.
     live_agent_offered: bool = False
     handed_off: bool = False
+    # Confirm-the-reading (recovery plan step 1): a noisy message is reflected
+    # back as this cleaned text and applied only once the customer confirms.
+    pending_reading: str | None = None
 
     # J2/J3 — AutoPay amount collection
     autopay_options_card_id: str | None = None

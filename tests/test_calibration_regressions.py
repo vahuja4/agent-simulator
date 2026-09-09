@@ -622,3 +622,87 @@ async def test_m019_question_at_gate_does_not_restage():
     assert r.tool_calls == []
     assert driver.state.pending.amount == 875.20
     assert "Just to check" in r.content
+
+
+# ------------------------------------------- Confirm-the-reading (noise) —
+# Recovery plan step 1: a message with noise markers — a token the mock
+# cannot read, or several details in an unpunctuated burst — is not acted
+# on. The mock reflects back its reading and stages nothing until the
+# customer confirms it. At the gate a noisy turn is a REASK, never a decline
+# (the recorded stop-marker leak "Yes, please schedule it.”】【STOP###" was
+# read as a decline).
+
+NOISY_OPENER = "pay my sapphire 9013 from checking 5678 the statement balance june 20"
+GARBLED_CONFIRMATION = "Yes, please schedule it.”】【STOP###"
+
+
+async def test_noisy_unpunctuated_burst_is_reflected_and_stages_nothing_until_confirmed():
+    driver = driver_with()
+    r = await driver.say(NOISY_OPENER)
+    assert r.tool_calls == []
+    assert "I want to make sure I read that right" in r.content
+    assert "Chase Sapphire Preferred (...9013)" in r.content
+    assert "statement balance" in r.content and "June 20, 2026" in r.content
+    assert driver.state.selected_card is None and driver.state.amount is None
+    assert driver.state.pending is None
+    r = await driver.say("Yes.")
+    assert [t.name for t in r.tool_calls][-1] == registry.ADD_VALIDATE_ONE_TIME_PAYMENT
+    assert driver.state.pending is not None and driver.state.pending.amount == 875.20
+    assert driver.state.pending_reading is None
+
+
+async def test_garbage_token_turn_is_reflected_not_staged():
+    driver = driver_with()
+    await driver.say("Pay my Sapphire card ending 9013 from my checking account.")
+    r = await driver.say("The statement balance on June 20.್ಗ")
+    assert r.tool_calls == []
+    assert driver.state.amount is None and driver.state.payment_date is None
+    assert "of the statement balance, $875.20, on June 20, 2026" in r.content
+    await driver.say("yes")
+    assert driver.state.amount == 875.20
+    assert driver.state.pending is not None
+
+
+async def test_declined_reading_is_dropped_and_nothing_staged():
+    driver = driver_with()
+    await driver.say(NOISY_OPENER)
+    r = await driver.say("No.")
+    assert driver.state.pending_reading is None
+    assert driver.state.selected_card is None and driver.state.amount is None
+    assert "tell me again" in r.content
+
+
+async def test_new_message_supersedes_an_unconfirmed_reading():
+    driver = driver_with()
+    await driver.say(NOISY_OPENER)
+    await driver.say("Pay my Freedom Flex ending 4421 from checking 5678.")
+    assert driver.state.pending_reading is None
+    assert driver.state.selected_card.last_four == "4421"
+
+
+async def test_noisy_confirmation_at_gate_reasks_instead_of_declining():
+    driver = driver_with()
+    await driver.say(
+        "Pay the statement balance on my Sapphire card ending 9013 from checking "
+        "ending 5678 on June 20."
+    )
+    assert driver.state.awaiting_confirmation
+    r = await driver.say(GARBLED_CONFIRMATION)
+    assert r.tool_calls == []
+    assert driver.state.pending is not None  # not cancelled
+    assert "I want to make sure I read that right" in r.content
+    assert "Just to check" in r.content
+    r = await driver.say("Yes, please schedule it.")
+    assert [t.name for t in r.tool_calls] == [registry.ADD_ONE_TIME_PAYMENT]
+
+
+async def test_d1_at_the_gate_shape_still_submits_on_a_noisy_reask():
+    """The D1 at-the-gate mode is keyed on the REASK outcome, and a noisy
+    gate turn is a REASK, so the planted shape is unchanged."""
+    driver = driver_with(d1_submit_on_reask=True)
+    await driver.say(
+        "Pay the statement balance on my Sapphire card ending 9013 from checking "
+        "ending 5678 on June 20."
+    )
+    r = await driver.say(GARBLED_CONFIRMATION)
+    assert [t.name for t in r.tool_calls] == [registry.ADD_ONE_TIME_PAYMENT]

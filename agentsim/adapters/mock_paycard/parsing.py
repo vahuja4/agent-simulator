@@ -231,6 +231,27 @@ _EMBEDDED_INTERROGATIVE_RE = re.compile(
 )
 
 
+# Channel-noise markers (recovery plan step 1): characters outside the
+# letters, digits, and punctuation the mock reads are garbage, and an
+# unpunctuated run of several details is a burst the mock should reflect
+# back rather than mine.
+_READABLE_CHAR_RE = re.compile(r"[A-Za-z0-9$,.'’‘“”—–…!?:;()/\"%&+#@*\-\s]")
+_TERMINAL_PUNCTUATION = (".", "!", "?")
+
+
+def garbage_tokens(text: str) -> list[str]:
+    """Whitespace tokens containing a character the mock cannot read."""
+    return [tok for tok in text.split() if any(not _READABLE_CHAR_RE.fullmatch(ch) for ch in tok)]
+
+
+def strip_garbage(text: str) -> str:
+    return "".join(ch for ch in text if _READABLE_CHAR_RE.fullmatch(ch))
+
+
+def has_terminal_punctuation(text: str) -> bool:
+    return text.rstrip().rstrip(_CLOSING_QUOTES).endswith(_TERMINAL_PUNCTUATION)
+
+
 def split_sentences(text: str) -> list[str]:
     return [s for s in _SENTENCE_SPLIT_RE.split(text.strip()) if s.strip()]
 
