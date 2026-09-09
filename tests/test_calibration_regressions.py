@@ -216,14 +216,18 @@ async def test_card_switch_uses_explicitly_corrected_statement_amount():
     assert driver.state.pending is not None and driver.state.pending.amount == 310.45
 
 
-async def test_m5_question_phrased_choice_still_resolves():
-    """The fallback: a message that is ONLY a question still picks the option
-    it names ("can you do the minimum?")."""
+async def test_m5_question_phrased_choice_is_answered_not_staged():
+    """Re-pinned under M-019: a message that is ONLY a question ("can you do
+    the minimum?") is answered from fetched state and stages nothing. The
+    pre-M-019 full-text fallback selected the minimum here."""
     driver = driver_with()
     await driver.say("Pay my Sapphire card from my checking account.")
-    await driver.say("Can you do the minimum?")
+    r = await driver.say("Can you do the minimum?")
+    assert driver.state.amount is None
+    assert "the minimum payment due is $40.00" in r.content
+    assert "How much would you like to pay?" in r.content
+    await driver.say("The minimum, please.")
     assert driver.state.amount == 40.0
-    assert driver.state.amount_label == "Minimum payment due"
 
 
 async def test_m5_adjacent_stop_gerund_with_payment_referent_declines():
@@ -551,3 +555,70 @@ async def test_m018_m3_tie_including_current_card_still_refers_to_it():
     assert "Which one did you mean" not in r.content
     assert driver.state.selected_card.last_four == "0767"
     assert driver.state.amount == 310.45
+
+
+# ------------------------------------------------------------------- M-019 —
+# Slot extraction runs on non-question sentences only. A question about the
+# amount options is answered from fetched state — the named options with
+# their meanings, or every option with its meaning when no label is named —
+# and never stages an amount. (Live bug: "the statement balance or the
+# remaining statement balance?" staged $210.45; "which of those is the whole
+# bill?" got a bare re-ask.)
+
+M019_OPENER = "I’d like to make a one-time payment on my card ending in 0767 from checking ending in 5678."
+
+
+async def test_m019_question_naming_labels_never_stages_an_amount():
+    driver = driver_with()
+    await driver.say(M019_OPENER)
+    r = await driver.say(
+        "Which option means the whole bill amount shown for this due date—the "
+        "statement balance or the remaining statement balance?"
+    )
+    assert r.tool_calls == []
+    assert driver.state.amount is None and driver.state.pending is None
+    assert "the statement balance is $310.45 (" in r.content
+    assert "the remaining statement balance is $210.45 (" in r.content
+    assert "How much would you like to pay?" in r.content
+    await driver.say("The statement balance.")
+    assert driver.state.amount == 310.45
+
+
+async def test_m019_unnamed_label_question_lists_options_with_meanings():
+    driver = driver_with()
+    await driver.say(M019_OPENER)
+    r = await driver.say("I want to pay whatever the full bill says I owe. Which of those options does that mean?")
+    assert r.tool_calls == []
+    assert driver.state.amount is None
+    for figure in ("$35.00", "$310.45", "$210.45", "$432.10"):
+        assert figure in r.content
+    assert "Statement balance, $310.45, is the full amount billed on your last statement" in r.content
+    assert "How much would you like to pay?" in r.content
+
+
+async def test_m019_embedded_question_in_opener_is_answered_not_mined():
+    driver = driver_with()
+    r = await driver.say(
+        "I want to make a one-time payment on card 0767 from checking 5678. I want "
+        "to pay the whole bill amount shown for the due date, but I’m not sure "
+        "which payment option that is."
+    )
+    assert driver.state.selected_card.last_four == "0767"  # the declarative sentence still selects
+    assert driver.state.funding_account.last_four == "5678"
+    assert driver.state.amount is None and driver.state.payment_date is None
+    assert "Here's what each option means" in r.content
+
+
+async def test_m019_question_at_gate_does_not_restage():
+    """M-002 gate corrections still re-stage, but a question at the gate is
+    not a correction."""
+    driver = driver_with()
+    await driver.say(
+        "Pay the statement balance on my Sapphire card ending 9013 from checking "
+        "ending 5678 on June 20."
+    )
+    assert driver.state.pending is not None and driver.state.pending.amount == 875.20
+    r = await driver.say("Just to be sure, is it $875.20 or $40.00?")
+    assert r.tool_calls == []
+    assert driver.state.pending.amount == 875.20
+    assert "Just to check" in r.content

@@ -21,11 +21,13 @@ from ...types import ToolCall
 from .parsing import (
     LIVE_AGENT_RE,
     PRESSURE_RE,
+    declarative_text,
     find_account,
     fmt_date,
     fmt_money,
     match_amount_text,
     match_date,
+    question_text,
     strip_pressure,
 )
 from .state import ConvState, PendingPayment
@@ -50,7 +52,12 @@ def step(agent, state: ConvState, text: str, calls: list[ToolCall]) -> str:
         _reset_for_switch(agent, state)
         parts.append(f"Sure — let's set up the payment for your {card.label} instead.")
 
-    reply = agent.handle_card_mention(state, text, on_switch=on_switch)
+    # Intent gate (M-019): slots are read from the non-question sentences
+    # only; question sentences go to the answering path.
+    declarative = declarative_text(text)
+    questions = question_text(text)
+
+    reply = agent.handle_card_mention(state, declarative, on_switch=on_switch)
     if reply:
         return reply
 
@@ -71,7 +78,7 @@ def step(agent, state: ConvState, text: str, calls: list[ToolCall]) -> str:
         if not state.funding_picker_fetched:
             calls.append(agent.call_funding_picker())
             state.funding_picker_fetched = True
-        account = find_account(text, agent.accounts)
+        account = find_account(declarative, agent.accounts)
         if account is None:
             labels = ", ".join(a.label for a in agent.accounts)
             parts.append(f"Which account should the payment come from? You have: {labels}.")
@@ -102,9 +109,15 @@ def step(agent, state: ConvState, text: str, calls: list[ToolCall]) -> str:
         )
 
     # Amount.
-    amount_clarification = _presented_amount_clarification(text, state.options)
-    if state.amount is None and _capture_amount(agent, state, text) is None:
-        if state.represent_options:
+    amount_answer = _amount_question_answer(questions, state.options, card)
+    if state.amount is None and _capture_amount(agent, state, declarative) is None:
+        if amount_answer:
+            # M-019: the question is answered from fetched state; nothing is
+            # staged until the customer names a choice.
+            state.represent_options = False
+            parts.append(amount_answer)
+            parts.append("How much would you like to pay?")
+        elif state.represent_options:
             state.represent_options = False
             lines = [
                 f"{o['label']}: {fmt_money(o['amount'])}"  # type: ignore[arg-type]
@@ -122,13 +135,13 @@ def step(agent, state: ConvState, text: str, calls: list[ToolCall]) -> str:
             parts.append("How much would you like to pay?")
         return " ".join(parts)
     state.represent_options = False
-    if amount_clarification:
-        parts.append(amount_clarification)
+    if amount_answer:
+        parts.append(amount_answer)
 
     # Payment date — the customer actively picks it (Eastern Time, due date
     # mentioned).
     if state.payment_date is None:
-        picked = match_date(text, card, agent.clock.today())
+        picked = match_date(declarative, card, agent.clock.today())
         if picked is None:
             parts.append(
                 f"What date would you like the payment to be made? "
@@ -205,13 +218,16 @@ def _handle_confirmation(agent, state: ConvState, text: str, calls: list[ToolCal
 def _handle_stated_correction(
     agent, state: ConvState, text: str, calls: list[ToolCall]
 ) -> str | None:
-    """Invalidate and re-stage a changed amount or date stated at the gate."""
+    """Invalidate and re-stage a changed amount or date stated at the gate.
+    Only declarative sentences count (M-019): "is it $875.20 or $40?" asks,
+    it does not correct."""
     pending = state.pending
     card = state.selected_card
     assert pending is not None and card is not None and state.options is not None
 
-    matched_amount = match_amount_text(text, state.options, agent.strip_fours())
-    matched_date = match_date(text, card, agent.clock.today())
+    declarative = declarative_text(text)
+    matched_amount = match_amount_text(declarative, state.options, agent.strip_fours())
+    matched_date = match_date(declarative, card, agent.clock.today())
     amount_changed = matched_amount is not None and matched_amount[1] != pending.amount
     date_changed = matched_date is not None and matched_date != pending.payment_date
     if not amount_changed and not date_changed:
@@ -287,30 +303,70 @@ def _confirmation_gate_decision(text: str) -> str:
     return "reask"
 
 
-def _presented_amount_clarification(
-    text: str, options: list[dict[str, object]]
+# What each fetched amount option means, stated from fixture state so a
+# low-Knowledge customer can pick without the mock guessing for them (M-019).
+# The same option vocabulary match_amount_text reads, so a question names an
+# option exactly when a declaration would have selected it.
+_OPTION_KEYWORD_RE = {
+    "minimum_due": re.compile(r"\bminimum\b"),
+    "statement_balance": re.compile(r"\bstatement\b"),
+    "remaining_statement_balance": re.compile(r"\bremaining statement\b"),
+    "current_balance": re.compile(r"\b(?:current|full|entire|whole)\s+balance\b|pay it off"),
+}
+_AMOUNT_QUESTION_RE = re.compile(
+    r"\b(?:option|options|amount|bill|balance|owe|pay|paying|much|due|mean|means)\b"
+)
+
+
+def _option_meaning(option_id: str, card: Card) -> str:
+    due = fmt_date(card.due_date)
+    return {
+        "minimum_due": "the least you can pay by the due date to keep the account current",
+        "statement_balance": (
+            f"the full amount billed on your last statement, so paying it by {due} "
+            "pays that bill in full"
+        ),
+        "remaining_statement_balance": (
+            "the part of that statement amount still unpaid after payments made "
+            "since it was issued"
+        ),
+        "current_balance": (
+            "everything owed on the card right now, including charges since the statement"
+        ),
+    }.get(option_id, "an amount of your choice")
+
+
+def _amount_question_answer(
+    questions: str, options: list[dict[str, object]], card: Card
 ) -> str | None:
-    """Answer questions about displayed J1 amounts from fetched state only."""
-    question_text = " ".join(re.findall(r"(?:^|(?<=[.!]))\s*([^?]*\?)", text)).lower()
-    if not question_text:
+    """Answer the question sentences about amounts from fetched state only.
+    A question naming labels or figures gets those options with their
+    meanings; one naming no label ("which of those is the whole bill?") gets
+    every option with its meaning (M-019). Nothing here stages an amount."""
+    if not questions:
         return None
-
-    mentioned: list[dict[str, object]] = []
-    for option in options:
-        amount = option["amount"]
-        if amount is None:
-            continue
-        label = str(option["label"])
-        if label.lower() in question_text or fmt_money(float(amount)).lower() in question_text:
-            mentioned.append(option)
-    if not mentioned:
+    priced = [o for o in options if o["amount"] is not None]
+    named = [
+        o
+        for o in priced
+        if _OPTION_KEYWORD_RE[str(o["optionId"])].search(questions)
+        or fmt_money(float(o["amount"])).lower() in questions  # type: ignore[arg-type]
+    ]
+    if named:
+        figures = " and ".join(
+            f"the {str(o['label']).lower()} is {fmt_money(float(o['amount']))} "  # type: ignore[arg-type]
+            f"({_option_meaning(str(o['optionId']), card)})"
+            for o in named
+        )
+        return f"The fetched options for this card show that {figures}."
+    if not _AMOUNT_QUESTION_RE.search(questions):
         return None
-
-    figures = " and ".join(
-        f"the {str(option['label']).lower()} is {fmt_money(float(option['amount']))}"
-        for option in mentioned
+    meanings = "; ".join(
+        f"{o['label']}, {fmt_money(float(o['amount']))}, is "  # type: ignore[arg-type]
+        f"{_option_meaning(str(o['optionId']), card)}"
+        for o in priced
     )
-    return f"The fetched options for this card show that {figures}."
+    return f"Here's what each option means for your {card.label}: {meanings}."
 
 
 def _validate_and_stage(agent, state: ConvState, calls: list[ToolCall], parts: list[str]) -> str:

@@ -216,14 +216,45 @@ def extract_money(text: str, strip_last_fours: list[str]) -> float | None:
 
 
 _SENTENCE_SPLIT_RE = re.compile(r"(?<=[.!?])\s+")
+_CLOSING_QUOTES = "\"'’”)"
+# Sentence intent (M-019): a sentence is a question when it ends in "?",
+# opens with an interrogative, or embeds one ("I'm not sure which option
+# that is", "please explain which named option means the full bill").
+_INTERROGATIVE_OPENER_RE = re.compile(
+    r"^(?:which|what|why|how|when|where|who|whom|whose)\b|"
+    r"^(?:is|are|was|were|does|do|did|can|could|would|will|should|may|might|am)"
+    r"\s+(?:i|you|it|that|this|those|these|there|we|they)\b"
+)
+_EMBEDDED_INTERROGATIVE_RE = re.compile(
+    r"\b(?:not sure|unsure|explain|tell me|clarify|confirm|know|asked|asking|wondering)\b"
+    r"[^.!?]*\b(?:which|what|whether|how)\b"
+)
+
+
+def split_sentences(text: str) -> list[str]:
+    return [s for s in _SENTENCE_SPLIT_RE.split(text.strip()) if s.strip()]
+
+
+def is_question(sentence: str) -> bool:
+    body = sentence.strip().rstrip(_CLOSING_QUOTES)
+    if body.endswith("?"):
+        return True
+    opener = body.lstrip("\"'‘“(").strip()
+    return bool(
+        _INTERROGATIVE_OPENER_RE.match(opener) or _EMBEDDED_INTERROGATIVE_RE.search(opener)
+    )
 
 
 def declarative_text(text: str) -> str:
-    """The message minus its question sentences. Used for declarative-first
-    option matching (M5 calibration fix): the option a customer asked a
-    question about must never beat the option they declared."""
-    kept = [s for s in _SENTENCE_SPLIT_RE.split(text) if not s.rstrip().endswith("?")]
-    return " ".join(kept)
+    """The message minus its question sentences. Slot extraction runs on
+    this alone (M-019): a question is answered, never mined for a card,
+    amount, or date."""
+    return " ".join(s for s in split_sentences(text) if not is_question(s))
+
+
+def question_text(text: str) -> str:
+    """The message's question sentences, joined — the answering path's input."""
+    return " ".join(s for s in split_sentences(text) if is_question(s))
 
 
 def match_amount_text(
@@ -232,12 +263,13 @@ def match_amount_text(
     """Match a J1 message against the fetched amount options: option
     keywords first, then an explicit dollar figure as "Other amount".
 
-    Declarative-first (M5 calibration fix): the non-question sentences are
-    tried alone first, so "why does it say remaining statement balance is
-    $210.45? I want to pay the statement balance" resolves to the declared
-    choice, not the questioned figure. If they match nothing, the full text
-    is tried, so question-phrased choices ("can you do the minimum?") still
-    resolve."""
+    Only the non-question sentences are read (M5, then M-019): "why does it
+    say remaining statement balance is $210.45? I want to pay the statement
+    balance" resolves to the declared choice, and a question that names a
+    label ("the statement balance or the remaining statement balance?")
+    matches nothing — the answering path handles it. The old full-text
+    fallback that let "can you do the minimum?" select the minimum is gone;
+    a question is answered, not staged."""
 
     def option(option_id: str) -> tuple[str, float]:
         o = next(o for o in options if o["optionId"] == option_id)
@@ -276,12 +308,7 @@ def match_amount_text(
             return None
         return ("Other amount", figure)
 
-    declarative = declarative_text(text)
-    if declarative != text:
-        matched = match_in(declarative)
-        if matched is not None:
-            return matched
-    return match_in(text)
+    return match_in(declarative_text(text))
 
 
 def match_autopay_type(

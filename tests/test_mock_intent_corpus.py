@@ -45,8 +45,6 @@ LABELS_BY_TEXT: dict[str, dict] = {t["text"]: t for t in _DOC["turns"]}
 # the recovery plan leaves out of step 1.
 MULTI_INTENT = "multi-intent two-payment turn; untriaged, outside recovery plan step 1"
 KNOWN_FAILING: dict[int, str] = {
-    6: 'M-019: question sentence is mined for an amount',
-    7: 'M-019: question sentence is mined for an amount',
     14: 'label disagreement: the labeler omitted the statement-balance option the declarative sentence names',
     17: 'label disagreement: the labeler omitted the statement-balance option the declarative sentence names',
     25: MULTI_INTENT,
@@ -58,17 +56,6 @@ KNOWN_FAILING: dict[int, str] = {
     32: MULTI_INTENT,
     33: MULTI_INTENT,
     34: MULTI_INTENT,
-    52: 'M-019: question sentence is mined for an amount',
-    57: 'M-019: question sentence is mined for an amount',
-    91: 'M-019: question sentence is mined for an amount',
-    94: 'M-019: question sentence is mined for an amount',
-    117: 'M-019: question sentence is mined for an amount',
-    118: 'M-019: date staged onto an amount mined from a question',
-    121: 'M-019: question sentence is mined for an amount',
-    122: 'M-019: date staged onto an amount mined from a question',
-    126: 'M-019: question sentence is mined for an amount',
-    130: 'M-019: question sentence is mined for an amount',
-    134: 'M-019: question sentence is mined for an amount',
 }
 
 
