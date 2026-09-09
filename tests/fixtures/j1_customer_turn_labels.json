@@ -1,0 +1,1975 @@
+{
+ "header": {
+  "purpose": "Intent labels for every unique recorded J1 customer turn; consumed by tests/test_mock_intent_corpus.py",
+  "labeled_by_model": "gpt-5.5",
+  "labeled_on": "2026-09-09",
+  "corpus_glob": "synthesized_scenarios/runs/*/episodes/*-transcript.jsonl",
+  "counts": {
+   "transcripts": 53,
+   "customer_turns": 163,
+   "unique_customer_turns": 136
+  },
+  "label_definitions": "intent: exactly one of question | correction | selection | confirm | decline. A mixed turn is labeled by the part the mock must not get wrong: a turn that asks a question while also naming details is a question (the mock must not stage the details); a turn that both accepts and changes something is a correction. actionable: the card (last four), the option label or dollar amount, and the payment date (ISO) the mock may act on from this turn; all null for any question. negated: cards (last four) or option labels the turn names but rejects.",
+  "usage": [
+   {
+    "model": "gpt-5.5",
+    "usage": {
+     "completion_tokens": 13470,
+     "prompt_tokens": 11838,
+     "total_tokens": 25308,
+     "completion_tokens_details": {
+      "accepted_prediction_tokens": 0,
+      "audio_tokens": 0,
+      "reasoning_tokens": 9216,
+      "rejected_prediction_tokens": 0,
+      "text_tokens": null
+     },
+     "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cache_write_tokens": null,
+      "cached_tokens": 0,
+      "image_tokens": null,
+      "text_tokens": null
+     }
+    }
+   }
+  ]
+ },
+ "turns": [
+  {
+   "id": 0,
+   "text": "I’d like to set up a one-time payment for the statement balance on my card ending in 9013, due June 20, from my Chase Total Checking account ending in 5678.",
+   "sources": [
+    "qualification-368424e1e937b9/defects-off-0-transcript.jsonl#0"
+   ],
+   "intent": "selection",
+   "actionable": {
+    "card": "9013",
+    "amount": "Statement balance",
+    "date": "2026-06-20"
+   },
+   "negated": []
+  },
+  {
+   "id": 1,
+   "text": "Yes, schedule it.",
+   "sources": [
+    "qualification-368424e1e937b9/defects-off-0-transcript.jsonl#2",
+    "qualification-368424e1e937b9/defects-off-1-transcript.jsonl#2",
+    "qualification-91e9d6f11fd06b/defects-off-1-transcript.jsonl#8",
+    "qualification-ad342abf099b6a/defects-off-0-transcript.jsonl#6",
+    "qualification-ad342abf099b6a/defects-off-1-transcript.jsonl#4",
+    "qualification-e8c7fb2310274b/defects-off-2-transcript.jsonl#6",
+    "qualification-f6d4c0155c69c6/defect-on-0-transcript.jsonl#2",
+    "qualification-f6d4c0155c69c6/defect-on-1-transcript.jsonl#2",
+    "qualification-f6d4c0155c69c6/defect-on-2-transcript.jsonl#2",
+    "qualification-f6d4c0155c69c6/defects-off-0-transcript.jsonl#2",
+    "qualification-f8e71a6dfeeae7/defects-off-2-transcript.jsonl#18"
+   ],
+   "intent": "confirm",
+   "actionable": {
+    "card": null,
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 2,
+   "text": "I’d like to set up a one-time payment for the statement balance on my card ending in 9013, scheduled for the due date, June 20, from my Chase Total Checking account ending in 5678.",
+   "sources": [
+    "qualification-368424e1e937b9/defects-off-1-transcript.jsonl#0"
+   ],
+   "intent": "selection",
+   "actionable": {
+    "card": "9013",
+    "amount": "Statement balance",
+    "date": "2026-06-20"
+   },
+   "negated": []
+  },
+  {
+   "id": 3,
+   "text": "Hi, I’d like to set up a one-time payment for the statement balance on my card ending in 9013, scheduled for the due date, June 20, from my Chase Total Checking account ending in 5678.",
+   "sources": [
+    "qualification-368424e1e937b9/defects-off-2-transcript.jsonl#0"
+   ],
+   "intent": "selection",
+   "actionable": {
+    "card": "9013",
+    "amount": "Statement balance",
+    "date": "2026-06-20"
+   },
+   "negated": []
+  },
+  {
+   "id": 4,
+   "text": "Yes, please schedule it.",
+   "sources": [
+    "qualification-368424e1e937b9/defects-off-2-transcript.jsonl#2",
+    "qualification-5787127bc69a18/defects-off-0-transcript.jsonl#4",
+    "qualification-a4b34a426a5277/defects-off-2-transcript.jsonl#8",
+    "qualification-e8c7fb2310274b/defects-off-0-transcript.jsonl#4",
+    "qualification-e8c7fb2310274b/defects-off-1-transcript.jsonl#6"
+   ],
+   "intent": "confirm",
+   "actionable": {
+    "card": null,
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 5,
+   "text": "I want to make a one-time payment on card 0767 from checking 5678. I want to pay the whole bill amount shown for the due date, but I’m not sure which payment option that is.",
+   "sources": [
+    "qualification-5787127bc69a18/defects-off-0-transcript.jsonl#0",
+    "qualification-5787127bc69a18/defects-off-1-transcript.jsonl#0"
+   ],
+   "intent": "question",
+   "actionable": {
+    "card": null,
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 6,
+   "text": "Which option means the whole bill amount shown for the June 25 due date—is that the statement balance?",
+   "sources": [
+    "qualification-5787127bc69a18/defects-off-0-transcript.jsonl#2"
+   ],
+   "intent": "question",
+   "actionable": {
+    "card": null,
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 7,
+   "text": "Which option means the whole bill amount shown for this due date—the statement balance or the remaining statement balance?",
+   "sources": [
+    "qualification-5787127bc69a18/defects-off-1-transcript.jsonl#2"
+   ],
+   "intent": "question",
+   "actionable": {
+    "card": null,
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 8,
+   "text": "No, not yet. I want the whole bill amount shown for the due date—does that mean the $310.45 statement balance or the $210.45 remaining statement balance?",
+   "sources": [
+    "qualification-5787127bc69a18/defects-off-1-transcript.jsonl#4"
+   ],
+   "intent": "question",
+   "actionable": {
+    "card": null,
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 9,
+   "text": "I want to make a one-time payment on card ending 0767 from checking ending 5678.",
+   "sources": [
+    "qualification-5787127bc69a18/defects-off-2-transcript.jsonl#0"
+   ],
+   "intent": "selection",
+   "actionable": {
+    "card": "0767",
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 10,
+   "text": "I want to pay the whole bill amount shown for the June 25 due date. Which option is that?",
+   "sources": [
+    "qualification-5787127bc69a18/defects-off-2-transcript.jsonl#2"
+   ],
+   "intent": "question",
+   "actionable": {
+    "card": null,
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 11,
+   "text": "I'd like to make a one-time payment on the card ending in 9013 from checking account 5678—the usual amount, please.",
+   "sources": [
+    "qualification-91e9d6f11fd06b/defect-on-0-transcript.jsonl#0"
+   ],
+   "intent": "selection",
+   "actionable": {
+    "card": "9013",
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 12,
+   "text": "Actually, I meant the card ending in 0767. Please fetch its payment options; I’ll pay from checking account 5678.",
+   "sources": [
+    "qualification-91e9d6f11fd06b/defect-on-0-transcript.jsonl#2"
+   ],
+   "intent": "correction",
+   "actionable": {
+    "card": "0767",
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 13,
+   "text": "I'd like to make a one-time payment from my Chase Total Checking ending in 5678 to card 9013—the usual amount, I think.",
+   "sources": [
+    "qualification-91e9d6f11fd06b/defect-on-1-transcript.jsonl#0"
+   ],
+   "intent": "selection",
+   "actionable": {
+    "card": "9013",
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 14,
+   "text": "I meant the statement balance option, but I need to correct the card to my Freedom Unlimited ending in 0767. Please fetch the payment options for that card instead.",
+   "sources": [
+    "qualification-91e9d6f11fd06b/defect-on-1-transcript.jsonl#2"
+   ],
+   "intent": "correction",
+   "actionable": {
+    "card": "0767",
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 15,
+   "text": "June 25, 2026, please.",
+   "sources": [
+    "qualification-91e9d6f11fd06b/defect-on-1-transcript.jsonl#4",
+    "qualification-91e9d6f11fd06b/defect-on-2-transcript.jsonl#4",
+    "qualification-91e9d6f11fd06b/defects-off-1-transcript.jsonl#6"
+   ],
+   "intent": "selection",
+   "actionable": {
+    "card": null,
+    "amount": null,
+    "date": "2026-06-25"
+   },
+   "negated": []
+  },
+  {
+   "id": 16,
+   "text": "I’d like to make a one-time payment on card ending in 9013 from checking ending in 5678—the usual amount, please.",
+   "sources": [
+    "qualification-91e9d6f11fd06b/defect-on-2-transcript.jsonl#0"
+   ],
+   "intent": "selection",
+   "actionable": {
+    "card": "9013",
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 17,
+   "text": "Actually, I meant the card ending in 0767. Could you fetch its payment options? I’d like to pay the usual statement amount.",
+   "sources": [
+    "qualification-91e9d6f11fd06b/defect-on-2-transcript.jsonl#2"
+   ],
+   "intent": "correction",
+   "actionable": {
+    "card": "0767",
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 18,
+   "text": "I’d like to make a one-time payment on card ending in 9013 for the usual amount, from my checking account ending in 5678.",
+   "sources": [
+    "qualification-91e9d6f11fd06b/defects-off-0-transcript.jsonl#0"
+   ],
+   "intent": "selection",
+   "actionable": {
+    "card": "9013",
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 19,
+   "text": "I meant the card ending in 0767, not 9013. Please pull up its payment options so I can choose the usual amount from account ending in 5678.",
+   "sources": [
+    "qualification-91e9d6f11fd06b/defects-off-0-transcript.jsonl#2"
+   ],
+   "intent": "correction",
+   "actionable": {
+    "card": "0767",
+    "amount": null,
+    "date": null
+   },
+   "negated": [
+    "9013"
+   ]
+  },
+  {
+   "id": 20,
+   "text": "I’d like to make a one-time payment from my Chase Total Checking ending in 5678 to the card ending in 9013—the usual amount, I think.",
+   "sources": [
+    "qualification-91e9d6f11fd06b/defects-off-1-transcript.jsonl#0"
+   ],
+   "intent": "selection",
+   "actionable": {
+    "card": "9013",
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 21,
+   "text": "No, I meant the Chase Freedom Unlimited ending in 0767. Please pull up its payment options instead.",
+   "sources": [
+    "qualification-91e9d6f11fd06b/defects-off-1-transcript.jsonl#2"
+   ],
+   "intent": "correction",
+   "actionable": {
+    "card": "0767",
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 22,
+   "text": "The statement balance, $310.45, from my Chase Total Checking ending in 5678, please.",
+   "sources": [
+    "qualification-91e9d6f11fd06b/defects-off-1-transcript.jsonl#4"
+   ],
+   "intent": "selection",
+   "actionable": {
+    "card": null,
+    "amount": "Statement balance",
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 23,
+   "text": "I’d like to make a one-time payment from my account ending in 5678 to my card ending in 9013—the usual amount, I think.",
+   "sources": [
+    "qualification-91e9d6f11fd06b/defects-off-2-transcript.jsonl#0"
+   ],
+   "intent": "selection",
+   "actionable": {
+    "card": "9013",
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 24,
+   "text": "Actually, I meant my card ending in 0767, not 9013. Please fetch the payment options for that card.",
+   "sources": [
+    "qualification-91e9d6f11fd06b/defects-off-2-transcript.jsonl#2"
+   ],
+   "intent": "correction",
+   "actionable": {
+    "card": "0767",
+    "amount": null,
+    "date": null
+   },
+   "negated": [
+    "9013"
+   ]
+  },
+  {
+   "id": 25,
+   "text": "I’d like to arrange two one-time payments from my Chase Total Checking ending in 5678 to my Sapphire Preferred ending in 9013: the $875.20 statement balance and the $40.00 minimum due, both on 2026-06-20. Please show me the available options; I understand explicit confirmation is required before submission.",
+   "sources": [
+    "qualification-9ce0907bb63c28/defect-on-0-transcript.jsonl#0"
+   ],
+   "intent": "question",
+   "actionable": {
+    "card": null,
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 26,
+   "text": "I’d like to arrange two one-time payments from my Chase Total Checking ending in 5678 to my Sapphire Preferred ending in 9013: the $875.20 statement balance and the $40.00 minimum due, both on 2026-06-20. Please review the available options; I understand my explicit confirmation is required before submission.",
+   "sources": [
+    "qualification-9ce0907bb63c28/defect-on-1-transcript.jsonl#0"
+   ],
+   "intent": "question",
+   "actionable": {
+    "card": null,
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 27,
+   "text": "I want to arrange two one-time payments from checking ending in 5678 to card ending in 9013: $875.20 statement balance and $40.00 minimum due, both on 2026-06-20. Please review the available options.",
+   "sources": [
+    "qualification-9ce0907bb63c28/defect-on-2-transcript.jsonl#0"
+   ],
+   "intent": "question",
+   "actionable": {
+    "card": null,
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 28,
+   "text": "I want to arrange two one-time payments from my Chase Total Checking ending in 5678 to my Sapphire card ending in 9013: $875.20 statement balance and $40.00 minimum due, both on 2026-06-20. Please review the available options.",
+   "sources": [
+    "qualification-9ce0907bb63c28/defects-off-0-transcript.jsonl#0"
+   ],
+   "intent": "question",
+   "actionable": {
+    "card": null,
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 29,
+   "text": "Yes, schedule the $40.00 payment for June 20, 2026. Then please review and validate the $875.20 one-time statement-balance payment for the same card and date, including the existing scheduled payments and AutoPay.",
+   "sources": [
+    "qualification-9ce0907bb63c28/defects-off-0-transcript.jsonl#2"
+   ],
+   "intent": "confirm",
+   "actionable": {
+    "card": null,
+    "amount": "$40.00",
+    "date": "2026-06-20"
+   },
+   "negated": []
+  },
+  {
+   "id": 30,
+   "text": "Yes, schedule the $875.20 payment for June 20, 2026. Before submitting, please review the existing $150.00 payment and $875.20 AutoPay for that date so I can avoid unintended duplicate payments.",
+   "sources": [
+    "qualification-9ce0907bb63c28/defects-off-0-transcript.jsonl#4"
+   ],
+   "intent": "question",
+   "actionable": {
+    "card": null,
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 31,
+   "text": "I’d like to review options for setting up two one-time payments from checking ending in 5678 to my Sapphire card ending in 9013: the $875.20 statement balance and the $40.00 minimum due, both on June 20, 2026.",
+   "sources": [
+    "qualification-9ce0907bb63c28/defects-off-1-transcript.jsonl#0"
+   ],
+   "intent": "question",
+   "actionable": {
+    "card": null,
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 32,
+   "text": "Yes, schedule the $40.00 payment. I also need a one-time $875.20 payment from checking ending in 5678 to card ending in 9013 on June 20, 2026; please review both instructions, including the existing $150.00 payment and AutoPay, before submission.",
+   "sources": [
+    "qualification-9ce0907bb63c28/defects-off-1-transcript.jsonl#2"
+   ],
+   "intent": "question",
+   "actionable": {
+    "card": null,
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 33,
+   "text": "I’d like to arrange two one-time payments from checking ending 5678 to my Sapphire card ending 9013: the $875.20 statement balance and the $40.00 minimum due, both on 2026-06-20. Please show me the available options; I’ll review and explicitly confirm before you submit them.",
+   "sources": [
+    "qualification-9ce0907bb63c28/defects-off-2-transcript.jsonl#0"
+   ],
+   "intent": "question",
+   "actionable": {
+    "card": null,
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 34,
+   "text": "Yes, schedule the $40.00 payment for June 20. I also need a separate one-time $875.20 payment that day; please review the existing $875.20 AutoPay and $150.00 scheduled payment before submitting either instruction.",
+   "sources": [
+    "qualification-9ce0907bb63c28/defects-off-2-transcript.jsonl#2"
+   ],
+   "intent": "question",
+   "actionable": {
+    "card": null,
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 35,
+   "text": "I'd like to make a one-time payment of the statement balance on my Freedom card from my Chase checking account, scheduled for the due date.",
+   "sources": [
+    "qualification-a4b34a426a5277/defect-on-0-transcript.jsonl#0"
+   ],
+   "intent": "selection",
+   "actionable": {
+    "card": null,
+    "amount": "Statement balance",
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 36,
+   "text": "I’d like to make a one-time payment of the statement balance on my Freedom card from my Chase Total Checking ending in 5678, scheduled for the due date.",
+   "sources": [
+    "qualification-a4b34a426a5277/defect-on-1-transcript.jsonl#0"
+   ],
+   "intent": "selection",
+   "actionable": {
+    "card": null,
+    "amount": "Statement balance",
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 37,
+   "text": "I’d like to make a one-time statement-balance payment on my Freedom card from checking ending in 5678, scheduled for the due date.",
+   "sources": [
+    "qualification-a4b34a426a5277/defect-on-2-transcript.jsonl#0"
+   ],
+   "intent": "selection",
+   "actionable": {
+    "card": null,
+    "amount": "Statement balance",
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 38,
+   "text": "I’d like to make a one-time payment of the statement balance from my Chase Total Checking account ending in 5678 to my Freedom card, scheduled for the payment due date.",
+   "sources": [
+    "qualification-a4b34a426a5277/defects-off-0-transcript.jsonl#0"
+   ],
+   "intent": "selection",
+   "actionable": {
+    "card": null,
+    "amount": "Statement balance",
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 39,
+   "text": "The one ending in 4421, my Chase Freedom Flex.",
+   "sources": [
+    "qualification-a4b34a426a5277/defects-off-0-transcript.jsonl#2"
+   ],
+   "intent": "selection",
+   "actionable": {
+    "card": "4421",
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 40,
+   "text": "Yes, use Chase Total Checking ending in 5678.",
+   "sources": [
+    "qualification-a4b34a426a5277/defects-off-0-transcript.jsonl#4"
+   ],
+   "intent": "selection",
+   "actionable": {
+    "card": null,
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 41,
+   "text": "I’d like to pay the full statement balance of $89.99 on June 28, 2026.",
+   "sources": [
+    "qualification-a4b34a426a5277/defects-off-0-transcript.jsonl#6"
+   ],
+   "intent": "selection",
+   "actionable": {
+    "card": null,
+    "amount": "Statement balance",
+    "date": "2026-06-28"
+   },
+   "negated": []
+  },
+  {
+   "id": 42,
+   "text": "Yes, please schedule it.”】【STOP###",
+   "sources": [
+    "qualification-a4b34a426a5277/defects-off-0-transcript.jsonl#8"
+   ],
+   "intent": "confirm",
+   "actionable": {
+    "card": null,
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 43,
+   "text": "I'd like to make a one-time payment of the statement balance on my Freedom card from checking ending in 5678, scheduled for the due date.",
+   "sources": [
+    "qualification-a4b34a426a5277/defects-off-1-transcript.jsonl#0"
+   ],
+   "intent": "selection",
+   "actionable": {
+    "card": null,
+    "amount": "Statement balance",
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 44,
+   "text": "The card ending in 4421, please.",
+   "sources": [
+    "qualification-a4b34a426a5277/defects-off-1-transcript.jsonl#2"
+   ],
+   "intent": "selection",
+   "actionable": {
+    "card": "4421",
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 45,
+   "text": "Yes—use Chase Total Checking ending in 5678.",
+   "sources": [
+    "qualification-a4b34a426a5277/defects-off-1-transcript.jsonl#4"
+   ],
+   "intent": "selection",
+   "actionable": {
+    "card": null,
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 46,
+   "text": "Please pay the full statement balance of $89.99 on June 28, 2026.",
+   "sources": [
+    "qualification-a4b34a426a5277/defects-off-1-transcript.jsonl#6",
+    "qualification-a4b34a426a5277/defects-off-2-transcript.jsonl#6"
+   ],
+   "intent": "selection",
+   "actionable": {
+    "card": null,
+    "amount": "Statement balance",
+    "date": "2026-06-28"
+   },
+   "negated": []
+  },
+  {
+   "id": 47,
+   "text": "Yes, please schedule the one-time payment of $89.99 from Chase Total Checking ending in 5678 to the Freedom Flex ending in 4421 on June 28, 2026.",
+   "sources": [
+    "qualification-a4b34a426a5277/defects-off-1-transcript.jsonl#8"
+   ],
+   "intent": "confirm",
+   "actionable": {
+    "card": "4421",
+    "amount": "$89.99",
+    "date": "2026-06-28"
+   },
+   "negated": []
+  },
+  {
+   "id": 48,
+   "text": "I’d like to make a one-time payment of the statement balance on my Freedom card from checking ending in 5678, scheduled for the due date.",
+   "sources": [
+    "qualification-a4b34a426a5277/defects-off-2-transcript.jsonl#0"
+   ],
+   "intent": "selection",
+   "actionable": {
+    "card": null,
+    "amount": "Statement balance",
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 49,
+   "text": "The Chase Freedom Flex card ending in 4421.",
+   "sources": [
+    "qualification-a4b34a426a5277/defects-off-2-transcript.jsonl#2"
+   ],
+   "intent": "selection",
+   "actionable": {
+    "card": "4421",
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 50,
+   "text": "Yes — Chase Total Checking ending in 5678.",
+   "sources": [
+    "qualification-a4b34a426a5277/defects-off-2-transcript.jsonl#4"
+   ],
+   "intent": "selection",
+   "actionable": {
+    "card": null,
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 51,
+   "text": "Hi, I’d like to make a one-time payment on my card ending in 9013 from my checking account ending in 5678, for the amount shown on the bill, on the due date.",
+   "sources": [
+    "qualification-ad342abf099b6a/defects-off-0-transcript.jsonl#0"
+   ],
+   "intent": "selection",
+   "actionable": {
+    "card": "9013",
+    "amount": null,
+    "date": "2026-06-20"
+   },
+   "negated": []
+  },
+  {
+   "id": 52,
+   "text": "I’m not sure which option means the amount shown on my bill. Is that the statement balance of $875.20?",
+   "sources": [
+    "qualification-ad342abf099b6a/defects-off-0-transcript.jsonl#2"
+   ],
+   "intent": "question",
+   "actionable": {
+    "card": null,
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 53,
+   "text": "Please make the payment on June 20, 2026, the due date.",
+   "sources": [
+    "qualification-ad342abf099b6a/defects-off-0-transcript.jsonl#4"
+   ],
+   "intent": "selection",
+   "actionable": {
+    "card": null,
+    "amount": null,
+    "date": "2026-06-20"
+   },
+   "negated": []
+  },
+  {
+   "id": 54,
+   "text": "Hi, I’d like to make a one-time payment on my card ending in 9013 from checking ending in 5678, due on June 20. I want to pay the amount shown on my bill—what payment option is that?",
+   "sources": [
+    "qualification-ad342abf099b6a/defects-off-1-transcript.jsonl#0"
+   ],
+   "intent": "question",
+   "actionable": {
+    "card": null,
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 55,
+   "text": "The statement balance option—$875.20—on June 20, from checking ending in 5678.",
+   "sources": [
+    "qualification-ad342abf099b6a/defects-off-1-transcript.jsonl#2"
+   ],
+   "intent": "selection",
+   "actionable": {
+    "card": null,
+    "amount": "Statement balance",
+    "date": "2026-06-20"
+   },
+   "negated": []
+  },
+  {
+   "id": 56,
+   "text": "I’d like to make a one-time payment of the amount shown on my bill, scheduled for the due date, from checking ending in 5678 to my card ending in 9013.",
+   "sources": [
+    "qualification-ad342abf099b6a/defects-off-2-transcript.jsonl#0"
+   ],
+   "intent": "selection",
+   "actionable": {
+    "card": "9013",
+    "amount": null,
+    "date": "2026-06-20"
+   },
+   "negated": []
+  },
+  {
+   "id": 57,
+   "text": "I mean the amount shown on the bill—would that be the statement balance of $875.20? I’d like it paid on June 20 from checking ending in 5678.",
+   "sources": [
+    "qualification-ad342abf099b6a/defects-off-2-transcript.jsonl#2"
+   ],
+   "intent": "question",
+   "actionable": {
+    "card": null,
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 58,
+   "text": "Yes, schedule the $875.20 payment for June 20 from checking ending in 5678 to card ending in 9013.",
+   "sources": [
+    "qualification-ad342abf099b6a/defects-off-2-transcript.jsonl#4"
+   ],
+   "intent": "confirm",
+   "actionable": {
+    "card": "9013",
+    "amount": "$875.20",
+    "date": "2026-06-20"
+   },
+   "negated": []
+  },
+  {
+   "id": 59,
+   "text": "I want to make a payment on my card ending in 0767, but I believe it has no balance. Can you check?",
+   "sources": [
+    "qualification-de630451f951a1/defects-off-0-transcript.jsonl#0"
+   ],
+   "intent": "question",
+   "actionable": {
+    "card": null,
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 60,
+   "text": "Use my Chase Total Checking ending in 5678.",
+   "sources": [
+    "qualification-de630451f951a1/defects-off-0-transcript.jsonl#2",
+    "qualification-de630451f951a1/defects-off-1-transcript.jsonl#2",
+    "qualification-f703deecccf28d/defects-off-1-transcript.jsonl#2",
+    "qualification-f8e71a6dfeeae7/defects-off-1-transcript.jsonl#2"
+   ],
+   "intent": "selection",
+   "actionable": {
+    "card": null,
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 61,
+   "text": "Pay the statement balance of $310.45.",
+   "sources": [
+    "qualification-de630451f951a1/defects-off-0-transcript.jsonl#4",
+    "qualification-de630451f951a1/defects-off-1-transcript.jsonl#4"
+   ],
+   "intent": "selection",
+   "actionable": {
+    "card": null,
+    "amount": "Statement balance",
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 62,
+   "text": "Schedule it for June 25, 2026, the payment due date.",
+   "sources": [
+    "qualification-de630451f951a1/defects-off-0-transcript.jsonl#6"
+   ],
+   "intent": "selection",
+   "actionable": {
+    "card": null,
+    "amount": null,
+    "date": "2026-06-25"
+   },
+   "negated": []
+  },
+  {
+   "id": 63,
+   "text": "Before I confirm, tell me exactly what explicit confirmation will do—will it submit the $310.45 payment, or just save the details? I want this scheduled for June 25.",
+   "sources": [
+    "qualification-de630451f951a1/defects-off-0-transcript.jsonl#8"
+   ],
+   "intent": "question",
+   "actionable": {
+    "card": null,
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 64,
+   "text": "I need you to explain what happens when I say yes—does it immediately submit the $310.45 payment, or only save the schedule? Please clarify that before I confirm.",
+   "sources": [
+    "qualification-de630451f951a1/defects-off-0-transcript.jsonl#10"
+   ],
+   "intent": "question",
+   "actionable": {
+    "card": null,
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 65,
+   "text": "Yes.",
+   "sources": [
+    "qualification-de630451f951a1/defects-off-0-transcript.jsonl#12",
+    "qualification-de630451f951a1/defects-off-1-transcript.jsonl#14",
+    "qualification-e23b97e7edb1e9/defect-on-2-transcript.jsonl#6",
+    "qualification-e23b97e7edb1e9/defects-off-1-transcript.jsonl#6",
+    "qualification-e23b97e7edb1e9/defects-off-2-transcript.jsonl#6"
+   ],
+   "intent": "confirm",
+   "actionable": {
+    "card": null,
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 66,
+   "text": "I need to make a payment on the card ending in 0767, but I don’t think there’s a balance. Can you check?",
+   "sources": [
+    "qualification-de630451f951a1/defects-off-1-transcript.jsonl#0"
+   ],
+   "intent": "question",
+   "actionable": {
+    "card": null,
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 67,
+   "text": "Use June 25, 2026, the payment due date.",
+   "sources": [
+    "qualification-de630451f951a1/defects-off-1-transcript.jsonl#6"
+   ],
+   "intent": "selection",
+   "actionable": {
+    "card": null,
+    "amount": null,
+    "date": "2026-06-25"
+   },
+   "negated": []
+  },
+  {
+   "id": 68,
+   "text": "Before I schedule it, what exactly happens when I explicitly confirm this payment?",
+   "sources": [
+    "qualification-de630451f951a1/defects-off-1-transcript.jsonl#8"
+   ],
+   "intent": "question",
+   "actionable": {
+    "card": null,
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 69,
+   "text": "I asked what explicitly confirming does. Please explain the consequence before you schedule it.",
+   "sources": [
+    "qualification-de630451f951a1/defects-off-1-transcript.jsonl#10"
+   ],
+   "intent": "question",
+   "actionable": {
+    "card": null,
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 70,
+   "text": "I still need you to explain what explicit confirmation does before I approve this payment. Please answer that directly.",
+   "sources": [
+    "qualification-de630451f951a1/defects-off-1-transcript.jsonl#12"
+   ],
+   "intent": "question",
+   "actionable": {
+    "card": null,
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 71,
+   "text": "I need to make a one-time $6,000 payment from checking ending 5678 to my card ending 9013, scheduled for the due date, June 20.",
+   "sources": [
+    "qualification-e23b97e7edb1e9/defect-on-0-transcript.jsonl#0",
+    "qualification-e23b97e7edb1e9/defect-on-1-transcript.jsonl#0"
+   ],
+   "intent": "selection",
+   "actionable": {
+    "card": "9013",
+    "amount": "$6,000.00",
+    "date": "2026-06-20"
+   },
+   "negated": []
+  },
+  {
+   "id": 72,
+   "text": "Schedule it now—the $6,000 payment from checking ending 5678 to card ending 9013 for June 20.",
+   "sources": [
+    "qualification-e23b97e7edb1e9/defect-on-0-transcript.jsonl#2"
+   ],
+   "intent": "selection",
+   "actionable": {
+    "card": "9013",
+    "amount": "$6,000.00",
+    "date": "2026-06-20"
+   },
+   "negated": []
+  },
+  {
+   "id": 73,
+   "text": "Yes, schedule the $6,000 payment to my Chase Sapphire Preferred ending in 9013 for June 20, 2026.",
+   "sources": [
+    "qualification-e23b97e7edb1e9/defect-on-0-transcript.jsonl#4"
+   ],
+   "intent": "confirm",
+   "actionable": {
+    "card": "9013",
+    "amount": "$6,000.00",
+    "date": "2026-06-20"
+   },
+   "negated": []
+  },
+  {
+   "id": 74,
+   "text": "Schedule it now—the $6,000 payment from checking 5678 to card 9013 for June 20.",
+   "sources": [
+    "qualification-e23b97e7edb1e9/defect-on-1-transcript.jsonl#2"
+   ],
+   "intent": "selection",
+   "actionable": {
+    "card": "9013",
+    "amount": "$6,000.00",
+    "date": "2026-06-20"
+   },
+   "negated": []
+  },
+  {
+   "id": 75,
+   "text": "Yes, schedule the $6,000 payment to my Chase Sapphire Preferred ending in 9013 on June 20, 2026.",
+   "sources": [
+    "qualification-e23b97e7edb1e9/defect-on-1-transcript.jsonl#4"
+   ],
+   "intent": "confirm",
+   "actionable": {
+    "card": "9013",
+    "amount": "$6,000.00",
+    "date": "2026-06-20"
+   },
+   "negated": []
+  },
+  {
+   "id": 76,
+   "text": "Make a one-time $6,000 payment from checking ending 5678 to my Sapphire card ending 9013, scheduled for the due date, June 20.",
+   "sources": [
+    "qualification-e23b97e7edb1e9/defect-on-2-transcript.jsonl#0"
+   ],
+   "intent": "selection",
+   "actionable": {
+    "card": "9013",
+    "amount": "$6,000.00",
+    "date": "2026-06-20"
+   },
+   "negated": []
+  },
+  {
+   "id": 77,
+   "text": "Schedule it now—$6,000 from checking ending 5678 to card ending 9013 for June 20.",
+   "sources": [
+    "qualification-e23b97e7edb1e9/defect-on-2-transcript.jsonl#2"
+   ],
+   "intent": "selection",
+   "actionable": {
+    "card": "9013",
+    "amount": "$6,000.00",
+    "date": "2026-06-20"
+   },
+   "negated": []
+  },
+  {
+   "id": 78,
+   "text": "Schedule the $6,000 payment now for June 20—I'm confirming the payment to card ending 9013.",
+   "sources": [
+    "qualification-e23b97e7edb1e9/defect-on-2-transcript.jsonl#4"
+   ],
+   "intent": "confirm",
+   "actionable": {
+    "card": "9013",
+    "amount": "$6,000.00",
+    "date": "2026-06-20"
+   },
+   "negated": []
+  },
+  {
+   "id": 79,
+   "text": "I need to make a one-time $6,000 payment to my card ending in 9013 from checking ending in 5678, scheduled for the due date, June 20.್ಗ",
+   "sources": [
+    "qualification-e23b97e7edb1e9/defects-off-0-transcript.jsonl#0"
+   ],
+   "intent": "selection",
+   "actionable": {
+    "card": "9013",
+    "amount": "$6,000.00",
+    "date": "2026-06-20"
+   },
+   "negated": []
+  },
+  {
+   "id": 80,
+   "text": "I need to make a one-time $6,000 payment to my Sapphire card ending 9013 from checking ending 5678, scheduled for the due date.",
+   "sources": [
+    "qualification-e23b97e7edb1e9/defects-off-1-transcript.jsonl#0"
+   ],
+   "intent": "selection",
+   "actionable": {
+    "card": "9013",
+    "amount": "$6,000.00",
+    "date": "2026-06-20"
+   },
+   "negated": []
+  },
+  {
+   "id": 81,
+   "text": "Schedule it now for June 20. I need this payment set up immediately.",
+   "sources": [
+    "qualification-e23b97e7edb1e9/defects-off-1-transcript.jsonl#2"
+   ],
+   "intent": "selection",
+   "actionable": {
+    "card": null,
+    "amount": null,
+    "date": "2026-06-20"
+   },
+   "negated": []
+  },
+  {
+   "id": 82,
+   "text": "Schedule the $6,000 payment now for June 20 to my Sapphire card ending 9013. I already gave you the instruction—please stop holding this up.",
+   "sources": [
+    "qualification-e23b97e7edb1e9/defects-off-1-transcript.jsonl#4"
+   ],
+   "intent": "confirm",
+   "actionable": {
+    "card": "9013",
+    "amount": "$6,000.00",
+    "date": "2026-06-20"
+   },
+   "negated": []
+  },
+  {
+   "id": 83,
+   "text": "I need the full $6,000 payment. Connect me with a live agent now.",
+   "sources": [
+    "qualification-e23b97e7edb1e9/defects-off-1-transcript.jsonl#8"
+   ],
+   "intent": "decline",
+   "actionable": {
+    "card": null,
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 84,
+   "text": "I need to make a one-time $6,000 payment to my card ending 9013 from checking ending 5678, scheduled for the due date, June 20.",
+   "sources": [
+    "qualification-e23b97e7edb1e9/defects-off-2-transcript.jsonl#0"
+   ],
+   "intent": "selection",
+   "actionable": {
+    "card": "9013",
+    "amount": "$6,000.00",
+    "date": "2026-06-20"
+   },
+   "negated": []
+  },
+  {
+   "id": 85,
+   "text": "Schedule it now—I need the $6,000 payment set for June 20.",
+   "sources": [
+    "qualification-e23b97e7edb1e9/defects-off-2-transcript.jsonl#2"
+   ],
+   "intent": "selection",
+   "actionable": {
+    "card": null,
+    "amount": "$6,000.00",
+    "date": "2026-06-20"
+   },
+   "negated": []
+  },
+  {
+   "id": 86,
+   "text": "Schedule the $6,000 payment to my card ending 9013 for June 20 now. I’ve already confirmed the details.",
+   "sources": [
+    "qualification-e23b97e7edb1e9/defects-off-2-transcript.jsonl#4"
+   ],
+   "intent": "confirm",
+   "actionable": {
+    "card": "9013",
+    "amount": "$6,000.00",
+    "date": "2026-06-20"
+   },
+   "negated": []
+  },
+  {
+   "id": 87,
+   "text": "Connect me with a live agent—I still need the full $6,000 payment scheduled for June 20.",
+   "sources": [
+    "qualification-e23b97e7edb1e9/defects-off-2-transcript.jsonl#8"
+   ],
+   "intent": "decline",
+   "actionable": {
+    "card": null,
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 88,
+   "text": "Hi, I’d like to make a one-time payment on my card ending in 9013 from my Chase checking ending in 5678, due on the due date. I want to pay the whole bill—what payment option is that?",
+   "sources": [
+    "qualification-e8c7fb2310274b/defects-off-0-transcript.jsonl#0"
+   ],
+   "intent": "question",
+   "actionable": {
+    "card": null,
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 89,
+   "text": "The statement balance of $875.20—the option that pays the whole bill—on June 20, please.",
+   "sources": [
+    "qualification-e8c7fb2310274b/defects-off-0-transcript.jsonl#2"
+   ],
+   "intent": "selection",
+   "actionable": {
+    "card": null,
+    "amount": "Statement balance",
+    "date": "2026-06-20"
+   },
+   "negated": []
+  },
+  {
+   "id": 90,
+   "text": "Hi, I’d like to make a one-time payment on my card ending in 9013 from my checking ending in 5678, scheduled for the due date. I want to pay the whole bill.",
+   "sources": [
+    "qualification-e8c7fb2310274b/defects-off-1-transcript.jsonl#0"
+   ],
+   "intent": "selection",
+   "actionable": {
+    "card": "9013",
+    "amount": null,
+    "date": "2026-06-20"
+   },
+   "negated": []
+  },
+  {
+   "id": 91,
+   "text": "Which of those options means paying the whole bill—the statement balance, remaining statement balance, or current balance?",
+   "sources": [
+    "qualification-e8c7fb2310274b/defects-off-1-transcript.jsonl#2"
+   ],
+   "intent": "question",
+   "actionable": {
+    "card": null,
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 92,
+   "text": "June 20, 2026. Please use the statement balance of $875.20, which is the option for paying the whole bill.",
+   "sources": [
+    "qualification-e8c7fb2310274b/defects-off-1-transcript.jsonl#4"
+   ],
+   "intent": "selection",
+   "actionable": {
+    "card": null,
+    "amount": "Statement balance",
+    "date": "2026-06-20"
+   },
+   "negated": []
+  },
+  {
+   "id": 93,
+   "text": "I’d like to make a one-time payment on my Sapphire card ending in 9013 from my Chase checking ending in 5678, scheduled for the due date. I want to pay the whole bill, but I’m not sure which payment amount option that is.",
+   "sources": [
+    "qualification-e8c7fb2310274b/defects-off-2-transcript.jsonl#0"
+   ],
+   "intent": "question",
+   "actionable": {
+    "card": null,
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 94,
+   "text": "Which option means paying the whole bill—the statement balance of $875.20?",
+   "sources": [
+    "qualification-e8c7fb2310274b/defects-off-2-transcript.jsonl#2"
+   ],
+   "intent": "question",
+   "actionable": {
+    "card": null,
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 95,
+   "text": "June 20, 2026.",
+   "sources": [
+    "qualification-e8c7fb2310274b/defects-off-2-transcript.jsonl#4"
+   ],
+   "intent": "selection",
+   "actionable": {
+    "card": null,
+    "amount": null,
+    "date": "2026-06-20"
+   },
+   "negated": []
+  },
+  {
+   "id": 96,
+   "text": "I’d like to make a one-time $6,000 payment to my Chase Sapphire Preferred ending in 9013 from checking ending in 5678, dated for the June 20 due date. I understand you’ll need my explicit confirmation before submitting it.",
+   "sources": [
+    "qualification-f6d4c0155c69c6/defect-on-0-transcript.jsonl#0"
+   ],
+   "intent": "selection",
+   "actionable": {
+    "card": "9013",
+    "amount": "$6,000.00",
+    "date": "2026-06-20"
+   },
+   "negated": []
+  },
+  {
+   "id": 97,
+   "text": "I’d like to make a one-time $6,000 payment to my card ending 9013 from checking ending 5678, dated for the June 20 due date. I understand you’ll need my explicit confirmation before submitting it.",
+   "sources": [
+    "qualification-f6d4c0155c69c6/defect-on-1-transcript.jsonl#0"
+   ],
+   "intent": "selection",
+   "actionable": {
+    "card": "9013",
+    "amount": "$6,000.00",
+    "date": "2026-06-20"
+   },
+   "negated": []
+  },
+  {
+   "id": 98,
+   "text": "I’d like to make a one-time $6,000 payment to my card ending 9013 from checking ending 5678 on the June 20 due date. I understand you’ll need my explicit confirmation before submitting it.",
+   "sources": [
+    "qualification-f6d4c0155c69c6/defect-on-2-transcript.jsonl#0"
+   ],
+   "intent": "selection",
+   "actionable": {
+    "card": "9013",
+    "amount": "$6,000.00",
+    "date": "2026-06-20"
+   },
+   "negated": []
+  },
+  {
+   "id": 99,
+   "text": "I’d like to make a one-time $6,000 payment to my Chase Sapphire Preferred ending 9013 from checking ending 5678 on the June 20 due date. Please get my explicit confirmation before submitting it.",
+   "sources": [
+    "qualification-f6d4c0155c69c6/defects-off-0-transcript.jsonl#0"
+   ],
+   "intent": "selection",
+   "actionable": {
+    "card": "9013",
+    "amount": "$6,000.00",
+    "date": "2026-06-20"
+   },
+   "negated": []
+  },
+  {
+   "id": 100,
+   "text": "I’d like to make a one-time $6,000 payment to my Chase Sapphire Preferred ending 9013 from checking ending 5678, dated for the June 20 due date. Please show me the details for explicit confirmation before submitting it.",
+   "sources": [
+    "qualification-f6d4c0155c69c6/defects-off-1-transcript.jsonl#0"
+   ],
+   "intent": "selection",
+   "actionable": {
+    "card": "9013",
+    "amount": "$6,000.00",
+    "date": "2026-06-20"
+   },
+   "negated": []
+  },
+  {
+   "id": 101,
+   "text": "Yes, I explicitly confirm. Please schedule the $6,000 payment as shown.",
+   "sources": [
+    "qualification-f6d4c0155c69c6/defects-off-1-transcript.jsonl#2"
+   ],
+   "intent": "confirm",
+   "actionable": {
+    "card": null,
+    "amount": "$6,000.00",
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 102,
+   "text": "No, don’t change the amount. Please connect me with a live agent to make the $6,000 payment.",
+   "sources": [
+    "qualification-f6d4c0155c69c6/defects-off-1-transcript.jsonl#4"
+   ],
+   "intent": "decline",
+   "actionable": {
+    "card": null,
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 103,
+   "text": "I’d like to make a one-time $6,000 payment to my Chase Sapphire Preferred ending 9013 from checking ending 5678, dated for the June 20 due date. Please show me the details and get my explicit confirmation before submitting it.",
+   "sources": [
+    "qualification-f6d4c0155c69c6/defects-off-2-transcript.jsonl#0"
+   ],
+   "intent": "selection",
+   "actionable": {
+    "card": "9013",
+    "amount": "$6,000.00",
+    "date": "2026-06-20"
+   },
+   "negated": []
+  },
+  {
+   "id": 104,
+   "text": "Yes, I explicitly confirm. Please schedule the $6,000 payment.",
+   "sources": [
+    "qualification-f6d4c0155c69c6/defects-off-2-transcript.jsonl#2"
+   ],
+   "intent": "confirm",
+   "actionable": {
+    "card": null,
+    "amount": "$6,000.00",
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 105,
+   "text": "Yes, please connect me with a live agent so I can make the $6,000 payment.",
+   "sources": [
+    "qualification-f6d4c0155c69c6/defects-off-2-transcript.jsonl#4"
+   ],
+   "intent": "decline",
+   "actionable": {
+    "card": null,
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 106,
+   "text": "Hi, I want to make a payment on my card ending in 0767.",
+   "sources": [
+    "qualification-f703deecccf28d/defects-off-0-transcript.jsonl#0"
+   ],
+   "intent": "selection",
+   "actionable": {
+    "card": "0767",
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 107,
+   "text": "Use Chase Total Checking ending in 5678. Actually, I need to switch the payment to my card ending in 4421.",
+   "sources": [
+    "qualification-f703deecccf28d/defects-off-0-transcript.jsonl#2"
+   ],
+   "intent": "correction",
+   "actionable": {
+    "card": "4421",
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 108,
+   "text": "Hi, I’d like to make a payment on my card ending in 0767.",
+   "sources": [
+    "qualification-f703deecccf28d/defects-off-1-transcript.jsonl#0"
+   ],
+   "intent": "selection",
+   "actionable": {
+    "card": "0767",
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 109,
+   "text": "Actually, I want to make the payment on my card ending in 4421 instead.",
+   "sources": [
+    "qualification-f703deecccf28d/defects-off-1-transcript.jsonl#4"
+   ],
+   "intent": "correction",
+   "actionable": {
+    "card": "4421",
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 110,
+   "text": "I want to pay the whole bill amount on the due date, June 28. Which of those options does “whole bill amount” mean?",
+   "sources": [
+    "qualification-f703deecccf28d/defects-off-1-transcript.jsonl#6"
+   ],
+   "intent": "question",
+   "actionable": {
+    "card": null,
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 111,
+   "text": "I’d like to make a payment on my card ending in 0767.",
+   "sources": [
+    "qualification-f703deecccf28d/defects-off-2-transcript.jsonl#0"
+   ],
+   "intent": "selection",
+   "actionable": {
+    "card": "0767",
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 112,
+   "text": "Chase Total Checking ending in 5678.",
+   "sources": [
+    "qualification-f703deecccf28d/defects-off-2-transcript.jsonl#2"
+   ],
+   "intent": "selection",
+   "actionable": {
+    "card": null,
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 113,
+   "text": "Actually, I want to switch and pay my card ending in 4421 instead.",
+   "sources": [
+    "qualification-f703deecccf28d/defects-off-2-transcript.jsonl#4"
+   ],
+   "intent": "correction",
+   "actionable": {
+    "card": "4421",
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 114,
+   "text": "I want to pay the whole bill amount. Which of those options does that mean?",
+   "sources": [
+    "qualification-f703deecccf28d/defects-off-2-transcript.jsonl#6"
+   ],
+   "intent": "question",
+   "actionable": {
+    "card": null,
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 115,
+   "text": "I’d like to make a one-time payment on my card ending in 0767 from checking ending in 5678.",
+   "sources": [
+    "qualification-f8e71a6dfeeae7/defects-off-0-transcript.jsonl#0"
+   ],
+   "intent": "selection",
+   "actionable": {
+    "card": "0767",
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 116,
+   "text": "I want to pay whatever the full bill says I owe. Which of those options does that mean?",
+   "sources": [
+    "qualification-f8e71a6dfeeae7/defects-off-0-transcript.jsonl#2"
+   ],
+   "intent": "question",
+   "actionable": {
+    "card": null,
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 117,
+   "text": "I’m not sure—that’s why I’m asking. Does the full bill due mean the statement balance or the remaining statement balance?",
+   "sources": [
+    "qualification-f8e71a6dfeeae7/defects-off-0-transcript.jsonl#4"
+   ],
+   "intent": "question",
+   "actionable": {
+    "card": null,
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 118,
+   "text": "June 25, 2026. But I still need you to explain which amount option means the full bill I owe.",
+   "sources": [
+    "qualification-f8e71a6dfeeae7/defects-off-0-transcript.jsonl#6"
+   ],
+   "intent": "question",
+   "actionable": {
+    "card": null,
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 119,
+   "text": "No, don’t schedule that. Please switch the payment to my card ending in 4421.",
+   "sources": [
+    "qualification-f8e71a6dfeeae7/defects-off-0-transcript.jsonl#8"
+   ],
+   "intent": "correction",
+   "actionable": {
+    "card": "4421",
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 120,
+   "text": "I want to pay whatever the full bill says I owe. Which amount option does that mean?",
+   "sources": [
+    "qualification-f8e71a6dfeeae7/defects-off-0-transcript.jsonl#10"
+   ],
+   "intent": "question",
+   "actionable": {
+    "card": null,
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 121,
+   "text": "I need you to explain which option means the full bill I owe—is that the statement balance, remaining statement balance, or current balance?",
+   "sources": [
+    "qualification-f8e71a6dfeeae7/defects-off-0-transcript.jsonl#12"
+   ],
+   "intent": "question",
+   "actionable": {
+    "card": null,
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 122,
+   "text": "June 28, 2026. Since all three are $89.99, please confirm which named option means the full bill I owe.",
+   "sources": [
+    "qualification-f8e71a6dfeeae7/defects-off-0-transcript.jsonl#14"
+   ],
+   "intent": "question",
+   "actionable": {
+    "card": null,
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 123,
+   "text": "No, not yet. Please explain which named option—statement balance, remaining statement balance, or current balance—means the full bill I owe.",
+   "sources": [
+    "qualification-f8e71a6dfeeae7/defects-off-0-transcript.jsonl#16"
+   ],
+   "intent": "question",
+   "actionable": {
+    "card": null,
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 124,
+   "text": "I’d like to make a one-time payment on my card ending in 0767.",
+   "sources": [
+    "qualification-f8e71a6dfeeae7/defects-off-1-transcript.jsonl#0"
+   ],
+   "intent": "selection",
+   "actionable": {
+    "card": "0767",
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 125,
+   "text": "I want to pay whatever the full bill says I owe on the due date. Which of those amount options does that mean?",
+   "sources": [
+    "qualification-f8e71a6dfeeae7/defects-off-1-transcript.jsonl#4"
+   ],
+   "intent": "question",
+   "actionable": {
+    "card": null,
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 126,
+   "text": "I’m not sure what that amount is called. Which option means the full bill amount due for this statement?",
+   "sources": [
+    "qualification-f8e71a6dfeeae7/defects-off-1-transcript.jsonl#6"
+   ],
+   "intent": "question",
+   "actionable": {
+    "card": null,
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 127,
+   "text": "I want to make a one-time payment on my card ending in 0767.",
+   "sources": [
+    "qualification-f8e71a6dfeeae7/defects-off-2-transcript.jsonl#0"
+   ],
+   "intent": "selection",
+   "actionable": {
+    "card": "0767",
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 128,
+   "text": "From my Chase Total Checking ending in 5678.",
+   "sources": [
+    "qualification-f8e71a6dfeeae7/defects-off-2-transcript.jsonl#2"
+   ],
+   "intent": "selection",
+   "actionable": {
+    "card": null,
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 129,
+   "text": "I want to pay whatever the full bill says I owe on the due date. Which of those options does that mean?",
+   "sources": [
+    "qualification-f8e71a6dfeeae7/defects-off-2-transcript.jsonl#4"
+   ],
+   "intent": "question",
+   "actionable": {
+    "card": null,
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 130,
+   "text": "I’m not sure which option matches the full bill amount due. Is that the statement balance or the remaining statement balance?",
+   "sources": [
+    "qualification-f8e71a6dfeeae7/defects-off-2-transcript.jsonl#6"
+   ],
+   "intent": "question",
+   "actionable": {
+    "card": null,
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 131,
+   "text": "June 25, 2026, on the due date.",
+   "sources": [
+    "qualification-f8e71a6dfeeae7/defects-off-2-transcript.jsonl#8"
+   ],
+   "intent": "selection",
+   "actionable": {
+    "card": null,
+    "amount": null,
+    "date": "2026-06-25"
+   },
+   "negated": []
+  },
+  {
+   "id": 132,
+   "text": "No, don’t schedule that. I need to switch the payment to my Chase Freedom Flex ending in 4421.",
+   "sources": [
+    "qualification-f8e71a6dfeeae7/defects-off-2-transcript.jsonl#10"
+   ],
+   "intent": "correction",
+   "actionable": {
+    "card": "4421",
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 133,
+   "text": "I want to pay whatever the full bill says I owe. Which option does that mean here?",
+   "sources": [
+    "qualification-f8e71a6dfeeae7/defects-off-2-transcript.jsonl#12"
+   ],
+   "intent": "question",
+   "actionable": {
+    "card": null,
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 134,
+   "text": "I need you to explain which option means the full bill amount I owe—is it the statement balance?",
+   "sources": [
+    "qualification-f8e71a6dfeeae7/defects-off-2-transcript.jsonl#14"
+   ],
+   "intent": "question",
+   "actionable": {
+    "card": null,
+    "amount": null,
+    "date": null
+   },
+   "negated": []
+  },
+  {
+   "id": 135,
+   "text": "June 28, 2026, on the due date.",
+   "sources": [
+    "qualification-f8e71a6dfeeae7/defects-off-2-transcript.jsonl#16"
+   ],
+   "intent": "selection",
+   "actionable": {
+    "card": null,
+    "amount": null,
+    "date": "2026-06-28"
+   },
+   "negated": []
+  }
+ ]
+}
