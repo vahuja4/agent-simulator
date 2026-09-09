@@ -49,8 +49,6 @@ KNOWN_FAILING: dict[int, str] = {
     7: 'M-019: question sentence is mined for an amount',
     14: 'label disagreement: the labeler omitted the statement-balance option the declarative sentence names',
     17: 'label disagreement: the labeler omitted the statement-balance option the declarative sentence names',
-    19: 'M-018: two-card correction naming the current card does not switch',
-    24: 'M-018: two-card correction naming the current card does not switch',
     25: MULTI_INTENT,
     26: MULTI_INTENT,
     27: MULTI_INTENT,

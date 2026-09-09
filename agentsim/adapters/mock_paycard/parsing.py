@@ -146,6 +146,40 @@ def find_cards(text: str, cards: tuple[Card, ...]) -> list[Card]:
     return [c for c in cards if scores[c.card_id] == best]
 
 
+# Negation window (M-018): a card named right after "not", "instead of",
+# "rather than", or "no longer" is being rejected, not chosen. The window
+# runs to the next clause boundary, so in "the 0767, not 9013. Please ..."
+# only "9013" is negated.
+_NEGATION_RE = re.compile(r"\b(?:not|instead of|rather than|no longer)\b")
+_CLAUSE_END_RE = re.compile(r"[.,;:!?]|\b(?:and|but|so)\b")
+
+
+def negated_windows(text: str) -> list[tuple[int, int]]:
+    """Character spans of the message that sit inside a negation window."""
+    windows: list[tuple[int, int]] = []
+    for match in _NEGATION_RE.finditer(text):
+        start = match.end()
+        boundary = _CLAUSE_END_RE.search(text, start)
+        windows.append((start, boundary.start() if boundary else len(text)))
+    return windows
+
+
+def card_mentions(text: str, cards: tuple[Card, ...]) -> tuple[list[Card], list[Card]]:
+    """Cards the message names, split into (affirmed, negated). A card inside
+    a negation window is excluded from the affirmed set, so "I meant the card
+    ending in 0767, not 9013" affirms 0767 alone and negates 9013 (M-018).
+    Affirmed ties keep ``find_cards`` semantics for the caller to resolve."""
+    windows = negated_windows(text)
+    if not windows:
+        return find_cards(text, cards), []
+    negated_text = " ".join(text[start:end] for start, end in windows)
+    affirmed_text = list(text)
+    for start, end in windows:
+        affirmed_text[start:end] = " " * (end - start)
+    negated = find_cards(negated_text, cards) if negated_text.strip() else []
+    return find_cards("".join(affirmed_text), cards), negated
+
+
 def find_account(text: str, accounts: tuple[FundingAccount, ...]) -> FundingAccount | None:
     definite = [a for a in accounts if a.last_four in text]
     if len(definite) == 1:

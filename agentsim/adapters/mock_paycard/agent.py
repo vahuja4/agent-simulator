@@ -26,7 +26,7 @@ from ...types import AgentInput, AgentResponse, ToolCall
 from ..base import AgentAdapter
 from . import j1_one_time, j2_autopay_setup, j3_autopay_update, j4_autopay_cancel, j5_cancel_payment
 from .config import MockConfig
-from .parsing import find_cards, match_autopay_type, route_journey
+from .parsing import card_mentions, find_cards, match_autopay_type, route_journey
 from .state import AutoPayState, ConvState, ScheduledPaymentState
 
 # Always worded exactly like this (design J3/J4): shown with current AutoPay
@@ -131,9 +131,21 @@ class MockPayCardAgent(AgentAdapter):
     ) -> str | None:
         """Card mentions are handled on every turn — selection, the last-four
         tie question (invariant 5), and mid-flow switches (invariant 6, via
-        the journey's ``on_switch`` reset). Returns a full reply when the
+        the journey's ``on_switch`` reset). A card inside a negation window
+        is never a switch target (M-018). Returns a full reply when the
         mention needs disambiguation, else None."""
-        mentioned = find_cards(text, self.cards)
+        mentioned, negated = card_mentions(text, self.cards)
+        if (
+            not mentioned
+            and state.selected_card is not None
+            and any(c.card_id == state.selected_card.card_id for c in negated)
+        ):
+            # M-018: the only card named is the current one, rejected ("not
+            # the 9013"). Ask rather than guess the replacement.
+            others = ", ".join(
+                c.label for c in self.cards if c.card_id != state.selected_card.card_id
+            )
+            return f"Which card would you like to use instead? You have: {others}."
         if len(mentioned) > 1:
             if state.selected_card is not None and any(
                 c.card_id == state.selected_card.card_id for c in mentioned

@@ -503,3 +503,51 @@ async def test_m10_acknowledgment_with_new_cancel_request_still_matches():
     r = await driver.say("Okay, then cancel the $150 one.")
     assert "$150.00" in r.content
     assert [t.name for t in r.tool_calls] == [registry.GET_CANCEL_PAYMENT_OPTIONS]
+
+
+# ------------------------------------------------------------------- M-018 —
+# A card correction that names both the old and the new card: the negated
+# current card is excluded from the mention set, so the one affirmed card is
+# the switch target and its options are refetched. (Live bug: "0767, not
+# 9013" hit the M3 name-tie rule and stayed on 9013.)
+
+M018_OPENER = (
+    "I’d like to make a one-time payment on card ending in 9013 for the usual "
+    "amount, from my checking account ending in 5678."
+)
+
+
+async def test_m018_two_card_correction_negating_current_card_switches():
+    driver = driver_with()
+    await driver.say(M018_OPENER)
+    assert driver.state.selected_card.last_four == "9013"
+    r = await driver.say(
+        "I meant the card ending in 0767, not 9013. Please pull up its payment "
+        "options so I can choose the usual amount from account ending in 5678."
+    )
+    assert driver.state.selected_card.last_four == "0767"
+    assert "Chase Freedom Unlimited (...0767) instead" in r.content
+    options = [t for t in r.tool_calls if t.name == registry.ADD_OPTIONS_ONE_TIME_PAYMENT]
+    assert [t.arguments["payeeId"] for t in options] == ["card-freedom-unlimited-0767"]
+    assert "$310.45" in r.content  # the new card's options, not 9013's
+
+
+async def test_m018_negated_current_card_alone_asks_which_card():
+    driver = driver_with()
+    await driver.say(M018_OPENER)
+    r = await driver.say("Not the 9013.")
+    assert "Which card would you like to use instead" in r.content
+    assert "9013" not in r.content
+    assert driver.state.selected_card.last_four == "9013"  # unchanged until named
+    assert r.tool_calls == []
+
+
+async def test_m018_m3_tie_including_current_card_still_refers_to_it():
+    """The M3 rule is untouched: a non-negated name tie that includes the
+    current card refers to it."""
+    driver = driver_with()
+    await driver.say("Pay my Freedom Unlimited ending 0767 from my checking account.")
+    r = await driver.say("Let's use this Freedom card. The statement balance.")
+    assert "Which one did you mean" not in r.content
+    assert driver.state.selected_card.last_four == "0767"
+    assert driver.state.amount == 310.45
