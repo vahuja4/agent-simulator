@@ -17,3 +17,8 @@ dist/
 
 # Claude Code worktrees (nested checkouts created by EnterWorktree)
 .claude/worktrees/
+
+# Journey harness development Runs (scripts/journey_harness.py run). A
+# development Run is not evidence. Spot-check records (journey_spot_checks/) are
+# evidence and are NOT ignored.
+journey_runs/

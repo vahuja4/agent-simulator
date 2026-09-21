@@ -156,6 +156,10 @@ file in the same commit.
   pass rate.
 - **Run** — one execution of the full suite (or a filtered subset):
   scenarios × seeds, producing a set of transcripts and a results summary.
+  On the Journey-definition path a Run is one Episode per Scenario of one
+  synthesized set, played strictly one after another against one Journey
+  definition, and its Run record says whether it completed or was aborted. An
+  aborted Run keeps every Episode it finished and is reported as aborted.
 - **Episode** — one simulated conversation: a single scenario + seed
   played out between the simulated user and the agent-under-test.
 - **Turn** — one user message and the agent's reply to it, including any

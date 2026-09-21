@@ -5,8 +5,9 @@ Written 2026-09-21 (session 01), before any code existed. A session that must
 deviate changes this note in the same commit and says so in its report.
 Amended by session 03 (sections 4, 5, 8, 9, 11, 12), session 07 (sections
 6, 7, 9, 11), session 07c (sections 6, 7, 9), session 05a (sections 1, 2,
-8, 11, 12), session 05b (sections 5, 8, 9, 11) and session 06c (sections 4,
-5, 9, 11: Judge criteria are data in `journey.yaml`).
+8, 11, 12), session 05b (sections 5, 8, 9, 11), session 06c (sections 4,
+5, 9, 11: Judge criteria are data in `journey.yaml`) and session 08 (sections
+8, 9, 11: the commands as built, the Run record, what clustering is handed).
 
 HARNESS = `/Users/vishal/Desktop/agent_simulator-langgraph`, AGENT =
 `/Users/vishal/Desktop/journey_agent`. The Journey is fictional appointment
@@ -609,7 +610,12 @@ clustering similarity runs over `data`, so free text stays in `message`.
 `files` are names relative to the Episode directory, identical for every
 Episode, so they do not pull clusters apart. A Judge failure's stable details
 are `stop_reason`, `expected_outcome`, `outcome_status` and `tools`; its
-`turn_index` is `None`.
+`turn_index` is `None`. `message_ids` and `action_ids` differ whenever two
+conversations differ in length, so clustering is never shown them (session
+08): `run` writes each failure into `manifest.json` — the only thing
+`cluster_failures` reads — through `agentsim.journey.report.clustering_view`,
+which drops those two lists and nothing else. `evaluation.json` keeps the full
+record, and the report links to it.
 One Episode per Scenario (`seed=0`); no Pass rate over Seeds is reported.
 
 ## 9. Run directory and commands
@@ -619,6 +625,7 @@ its `runs/<run_key>/`:
 
 ```
 journey_runs/<run_id>/
+  journey_run.json          # the Run record: status, inputs, agent kind, models, error
   manifest.json, clusters.json, report.md
   runs/<run_key>/
     scenario.yaml
@@ -667,10 +674,59 @@ verdict, error}`, `failures` (`FailureRecord.to_dict()`), `incomplete`,
 `episode_error`, `simulator_model`. It is derived, so re-evaluating replaces
 it. `run`
 passes `BatchRunner(concurrency=1)` an async `execute` = `await run_episode` +
-`await evaluate_episode` (section 8). `summarize` calls `cluster_failures` unchanged (it
-clusters `fail` only, so `error` never enters an agent-failure cluster), skips
-`label_clusters`, lists `task_incomplete` by stop reason, and renders
-`agentsim/journey/report.py`.
+`await evaluate_episode` (section 8), **one Scenario per `BatchRunner.run`
+call, in a plain loop** (session 08). Handing it every spec at once would
+leave sequencing to a semaphore inside `asyncio.gather`, and `gather` does not
+stop the siblings when one task is interrupted; a loop makes "sequential" and
+"an interrupt stops the Run" true by construction. `BatchRunner` never retries
+(`retry_errors=False`): `run_episode` refuses a directory that already holds
+an Episode. An `execute` that raises is that Scenario's `error` and the loop
+goes on. `summarize` calls `cluster_failures` unchanged (it clusters `fail`
+only, so `error` never enters an agent-failure cluster), skips
+`label_clusters`, and renders `agentsim/journey/report.py`.
+
+**The Run record** `journey_run.json` (session 08) is written before the first
+Episode with `status: running` and finished as `complete` or `aborted`:
+`schema_version`, `run_id`, `status`, `journey_id`, `journey_dir`,
+`journey_sha256`, `fixture_state_sha256`, `scenario_set`, `scenario_ids` (the
+plan, so Scenarios the Run never reached can be named), `service_url`, `agent`,
+`simulator_model`, `judge_model`, `enforce_model_family_separation`,
+`request_timeout_s`, `episode_timeout_s`, `started_at`, `ended_at`,
+`re_evaluated_at`, `error {type, message}`. `BatchRunner`'s manifest says
+`pending | running | completed` per Episode but nothing about the Run, so the
+AGENTS.md rule (a command that writes before fallible work leaves a record
+marked aborted) needs this file. Whatever escapes `BatchRunner` — an interrupt,
+a failed write — marks the Run `aborted` with the error, keeps every completed
+Episode (the interrupted one has its own `episode.json` with `status:
+aborted`), prints one `ABORTED:` line and exits 1; an interrupt then propagates
+as itself. A Run directory is never reused: `run` refuses an existing one.
+Anything other than `complete` is reported as aborted, so a killed process that
+never wrote its end is not mistaken for a finished Run.
+
+**The report** (`agentsim/journey/report.py`, from the Run directory alone).
+Near the top, once: nothing checks Simulated-user fidelity, a failure may be
+the Simulated user's doing, read the conversation before treating a cluster as
+an agent defect, and a reported Run needs Spot-check records — wording only,
+no detection (section 12 item 3). Then the outcome counts and one section per
+outcome, so an Episode that is counted is always listed: failure clusters
+(`fail`; presented as similar failure symptoms, never as proven common root
+causes; one row per failure, so an Episode with two failures has two rows);
+`task_incomplete`, which has no failure record and can never be in a cluster,
+grouped by the structured reason `evaluation.json` `incomplete` holds (expected
+outcome, outcome status, stop reason, Judge decision); agent errors (`service`
++ `agent_error`: the agent crashed or looped) apart from infrastructure and
+harness errors, each grouped by the adapter error kind and service code in
+`episode.json`, or by the evaluation rule that made it an error; and, for an
+aborted Run, what was interrupted or never started. Every row links the
+conversation, raw Trace, normalized Trace, evaluation result and Episode
+record that exist, relative to the Run directory. The Judge call count is
+labelled as not a total: the Simulated user's calls are not recorded.
+
+`journey_runs/` is git-ignored (session 08): a development Run is not
+evidence, and a reported Run is outside these sessions. `journey_spot_checks/`
+is **not** ignored — those records are the evidence. Known consequence: a
+Spot-check record validates only on a machine that still has the Run it
+points to.
 
 **Spot-check records** (session 06b) are the one thing about a Run kept
 outside its directory, because they are a human's and must outlive a
@@ -693,10 +749,40 @@ composition roots; `run_calibration.py` already imports both packages):
 ```
 .venv/bin/python scripts/journey_harness.py synthesize --journey journeys/appointment_rescheduling \
     --count 6 --set-id <set_id> [--seed 0] [--stub] [--output-root synthesized_journey_scenarios]
-.venv/bin/python scripts/journey_harness.py run --scenarios <set dir> \
-    --service-url http://127.0.0.1:8765 --run-id <run_id> [--output-root journey_runs]
+.venv/bin/python scripts/journey_harness.py run --journey journeys/appointment_rescheduling \
+    --scenarios <set dir> --service-url http://127.0.0.1:8765 --run-id <run_id> \
+    [--output-root journey_runs] [--simulator-model …] [--request-timeout 120] \
+    [--episode-timeout 600] [--enforce-model-family-separation]
+.venv/bin/python scripts/journey_harness.py run --journey journeys/appointment_rescheduling \
+    --re-evaluate journey_runs/<run_id>
 .venv/bin/python scripts/journey_harness.py summarize journey_runs/<run_id>
 ```
+
+`run` takes a required `--journey <dir>` (session 08; carried over from session
+03): `check_against_inputs` needs the Journey definition and Fixture state, and
+`--scenarios` alone does not locate them — explicit beats inferring a path
+from `provenance.json`. Before anything is written `run` refuses, with exit
+status 2 and one line: a set that fails `verify_provenance` (an aborted,
+half-written set included), a Scenario whose `synthesis.journey_sha256` or
+`fixture_state_sha256` does not match that directory, a Scenario
+`check_against_inputs` refuses, an existing Run directory, missing model
+configuration, and a service that does not answer. It learns which agent
+answers from a probe conversation (start, then release — the contract has no
+other way to ask) and prints `agent: stub|langgraph` before the first Episode.
+The Journey definition is loaded once and that one object is handed to
+`live_journey_judge` and to every `evaluate_episode` call. Exit status: 0 when
+the Run finished, whatever the outcomes — a `fail` or an `error` Episode is a
+result, not a command failure; 1 aborted after the first write; 2 unusable
+request.
+
+`run --re-evaluate <run dir>` evaluates the saved Episodes of an existing Run
+again and replays nothing: `evaluation.json` is derived and replaced, the
+manifest records are rewritten through `BatchRunner`, conversation files are
+untouched. It makes the same hash check as `run` and refuses, before any
+write, a Journey directory edited since the Scenarios were written — criterion
+wording lives in `journey.yaml`, so the Episodes would otherwise be judged with
+other wording. An aborted Run stays aborted; Scenarios it never started are
+left as they are.
 
 `synthesize` is `journey_synthesis.synthesize_command(...)`, which prints the
 report and returns the exit status: 0; 1 on a shortfall, or when the run
@@ -741,7 +827,7 @@ Persona-fidelity spot-check of that model and of the new
 | 06b | HARNESS | `agentsim/journey/simulated_user.py` (the rule statement in the knowledge text; construction takes the Journey definition), `JourneyDefinition.knowledge_rule` in `agentsim/journey/definition.py`, `agentsim/journey/spot_check.py`; `tests/test_journey_{simulated_user,spot_check}.py`; `CONTEXT.md` (Spot-check record); sections 5, 9 and 12 of this note |
 | 06c | HARNESS | `journeys/appointment_rescheduling/journey.yaml` (`criteria.judge` in full); `agentsim/journey/{definition,checks,judge,evaluation,scenario}.py`; their tests and `tests/journey_trace_builder.py`; sections 4, 5 and 9 of this note |
 | 07 | HARNESS | `scenario_synthesis/journey_synthesis.py`; `tests/test_journey_synthesis.py`; `CONTEXT.md`; the `knowledge_evidence.kind` closed set in `agentsim/journey/scenario.py` with its tests and `tests/journey_trace_builder.py` |
-| 08 | HARNESS | `scripts/journey_harness.py`; `agentsim/journey/report.py`; `tests/test_journey_{cli,report,e2e}.py` |
+| 08 | HARNESS | `scripts/journey_harness.py`; `agentsim/journey/report.py`; `tests/test_journey_{cli,report,e2e}.py`; `tests/journey_run_doubles.py` (a whole Run on doubles, reusable by 09); `.gitignore` (`journey_runs/`); `CONTEXT.md` (Run); sections 8, 9 and 11 of this note |
 | 09 | both | setup-and-run docs, walkthrough evidence, final report |
 
 Every HARNESS session also edits `ENVIRONMENT.md` and adds compound outputs.
