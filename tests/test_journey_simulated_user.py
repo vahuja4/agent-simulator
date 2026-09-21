@@ -14,34 +14,45 @@ import pytest
 
 from agentsim.journey import checks
 from agentsim.journey import simulated_user as su
-from agentsim.journey.definition import load_journey_inputs
-from agentsim.journey.scenario import GroundedFact, load_journey_scenario
+from agentsim.journey.definition import JourneyDefinitionError, load_journey_inputs
+from agentsim.journey.scenario import (
+    KNOWLEDGE_EVIDENCE,
+    GroundedFact,
+    KnowledgeEvidence,
+    load_journey_scenario,
+)
 from agentsim.llm import LLMError
 from agentsim.simulator import Persona, UserSimulator
 from agentsim.types import Message
 from scenario_synthesis import journey_synthesis as js
-from tests.journey_trace_builder import journey_scenario
+from tests.journey_trace_builder import JOURNEY, journey_scenario
 
 JOURNEY_DIR = Path("journeys/appointment_rescheduling")
 AGENT_ROLE = "an appointment-scheduling assistant for a fictional dental clinic"
+STATES_RULE = "states_rule_unprompted"
 
 
-def _synthesized(tmp_path, complication, *, tool_failures=()):
+def _synthesized(tmp_path, complication, *, tool_failures=(), knowledge_level=None):
     """A real synthesized Scenario (stub narrative) with this Complication."""
     result = js.synthesize_set(
         JOURNEY_DIR, count=1, set_id="set-1", provider=js.StubNarrativeProvider(),
         settings=js.VariationSettings(
-            complications=(complication,), tool_failure_conditions=(tuple(tool_failures),)
+            complications=(complication,), tool_failure_conditions=(tuple(tool_failures),),
+            knowledge_levels=(knowledge_level,) if knowledge_level else None,
         ),
-        output_root=tmp_path / complication,
+        output_root=tmp_path / f"{complication}-{knowledge_level}",
     )
     return load_journey_scenario(result.accepted[0])
+
+
+def _rule_statement(rule_id):
+    return next(rule.statement for rule in JOURNEY.knowledge_rules if rule.id == rule_id)
 
 
 async def _prompt(stub_llm, scenario, history=()):
     """Everything the model is shown for one turn."""
     stub_llm.push({"intent": "state goal", "message": "hi", "stop_reason": "none"})
-    user = su.JourneySimulatedUser.for_scenario(stub_llm, scenario, agent_role=AGENT_ROLE)
+    user = su.JourneySimulatedUser.for_scenario(stub_llm, scenario, JOURNEY)
     await user.next_turn(list(history))
     call = stub_llm.calls[-1]
     return "\n".join([call["system"], *(m["content"] for m in call["messages"])])
@@ -50,8 +61,14 @@ async def _prompt(stub_llm, scenario, history=()):
 # ------------------------------------------------------ what it is never told
 
 
-async def test_the_prompt_holds_no_check_outcome_tool_failure_or_fact_path(stub_llm, tmp_path):
-    scenario = _synthesized(tmp_path, "none", tool_failures=("update_appointment",))
+@pytest.mark.parametrize("knowledge_level", sorted(KNOWLEDGE_EVIDENCE))
+async def test_the_prompt_holds_no_check_outcome_tool_failure_or_fact_path(
+    stub_llm, tmp_path, knowledge_level
+):
+    scenario = _synthesized(
+        tmp_path, "none", tool_failures=("update_appointment",), knowledge_level=knowledge_level
+    )
+    assert scenario.knowledge_evidence.kind == KNOWLEDGE_EVIDENCE[knowledge_level][0]
     assert scenario.expected_outcome == checks.OUTCOME_UPDATE_FAILED_REPORTED
     prompt = await _prompt(stub_llm, scenario, [Message("user", "hi"), Message("assistant", "hello")])
 
@@ -70,6 +87,9 @@ async def test_the_prompt_holds_no_check_outcome_tool_failure_or_fact_path(stub_
         assert fact.path not in prompt
     for fixture_id in (binding.customer_id, binding.appointment_id, *binding.target_slot_ids):
         assert fixture_id not in prompt
+    # A rule is known by its statement; its id is the definition's, not a customer's.
+    for rule in journey.knowledge_rules:
+        assert rule.id not in prompt
 
 
 async def test_it_is_told_its_persona_goal_and_the_agent_role_not_the_payments_wording(stub_llm):
@@ -107,7 +127,7 @@ def test_knowledge_renders_values_under_customer_facing_headings():
             GroundedFact("slots.S-101.start", "2026-10-09T11:00:00"),
         ),
     )
-    assert su.render_journey_knowledge(scenario) == (
+    assert su.render_journey_knowledge(scenario, JOURNEY) == (
         "About you:\n"
         "- name: Maya Okafor\n"
         "The appointment you want to move:\n"
@@ -141,7 +161,7 @@ def test_knowledge_keeps_the_other_entity_facts_a_complication_needs(
     assert {f.path.split(".")[0] for f in others} == {other_collection}
     assert {f.path.split(".")[2] for f in others} == other_fields
 
-    knowledge = su.render_journey_knowledge(scenario)
+    knowledge = su.render_journey_knowledge(scenario, JOURNEY)
     heading = (
         "Another appointment you know about:" if other_collection == "appointments"
         else "Another appointment time you know about:"
@@ -160,14 +180,62 @@ def test_a_date_time_is_rendered_as_written_never_converted():
     assert su._render_value("HSD-4821") == "HSD-4821"
 
 
+# ------------------------------------------------- the rule a customer knows
+
+
+@pytest.mark.parametrize("knowledge_level", sorted(KNOWLEDGE_EVIDENCE))
+async def test_only_a_customer_who_states_a_rule_unprompted_is_shown_its_statement(
+    stub_llm, tmp_path, knowledge_level
+):
+    """Session 05b's gap: the stub's Goal never spells the rule out, so a high
+    Knowledge level customer had nothing to state. Medium relies on the agent
+    for the rule and low has no rule at all — neither is shown one."""
+    scenario = _synthesized(tmp_path, "none", knowledge_level=knowledge_level)
+    kind = scenario.knowledge_evidence.kind
+    prompt = await _prompt(stub_llm, scenario)
+    shown = [rule.id for rule in JOURNEY.knowledge_rules if rule.statement in prompt]
+    assert shown == ([scenario.knowledge_evidence.rule] if kind == STATES_RULE else [])
+
+
+def test_the_rule_is_rendered_as_something_the_customer_knows():
+    scenario = replace(
+        journey_scenario(),
+        knowledge_level="high",
+        knowledge_evidence=KnowledgeEvidence(STATES_RULE, "provider_follows_slot", None),
+        grounded_facts=(GroundedFact("customers.C-100.name", "Maya Okafor"),),
+    )
+    assert su.render_journey_knowledge(scenario, JOURNEY) == (
+        "About you:\n"
+        "- name: Maya Okafor\n"
+        "A rule you know about how this works:\n"
+        f"- {_rule_statement('provider_follows_slot')}"
+    )
+    # The rule alone is knowledge: never the "nothing" placeholder beside it.
+    assert su.render_journey_knowledge(replace(scenario, grounded_facts=()), JOURNEY) == (
+        f"A rule you know about how this works:\n- {_rule_statement('provider_follows_slot')}"
+    )
+
+
+@pytest.mark.parametrize("kind", ["states_rule_unprompted", "relies_on_agent_for_rule"])
+def test_a_rule_the_definition_does_not_define_refuses_to_build_the_simulated_user(
+    stub_llm, kind
+):
+    """Never a customer quietly built without the rule."""
+    scenario = replace(
+        journey_scenario(), knowledge_evidence=KnowledgeEvidence(kind, "no_such_rule", None)
+    )
+    with pytest.raises(JourneyDefinitionError) as refused:
+        su.JourneySimulatedUser.for_scenario(stub_llm, scenario, JOURNEY)
+    assert "no_such_rule" in str(refused.value)
+    assert stub_llm.calls == []
+
+
 # ------------------------------------------------------ confirmation gate
 
 
 def test_the_confirmation_gate_text_equals_the_payments_simulator(stub_llm):
     payments = UserSimulator(stub_llm, persona=Persona("A", "b"), goal="g", knowledge="k")
-    journey = su.JourneySimulatedUser.for_scenario(
-        stub_llm, journey_scenario(), agent_role=AGENT_ROLE
-    )
+    journey = su.JourneySimulatedUser.for_scenario(stub_llm, journey_scenario(), JOURNEY)
     assert su.CONFIRMATION_GATE_PARAGRAPH in payments._system_prompt()
     assert su.CONFIRMATION_GATE_PARAGRAPH in journey._system_prompt()
     assert su.CONFIRMATION_GATE_REMINDER in payments._turn_context()["content"]
@@ -188,7 +256,7 @@ def test_the_confirmation_gate_text_equals_the_payments_simulator(stub_llm):
 async def test_a_turn_carries_its_stop_reason(stub_llm, stop_reason, stop):
     stub_llm.push({"intent": "confirm", "message": "```\nYes, go ahead.\n```",
                    "stop_reason": stop_reason})
-    user = su.JourneySimulatedUser.for_scenario(stub_llm, journey_scenario(), agent_role=AGENT_ROLE)
+    user = su.JourneySimulatedUser.for_scenario(stub_llm, journey_scenario(), JOURNEY)
     turn = await user.next_turn([])
     assert (turn.intent, turn.text, turn.stop, turn.stop_reason) == (
         "confirm", "Yes, go ahead.", stop, stop_reason
@@ -200,7 +268,7 @@ async def test_a_turn_carries_its_stop_reason(stub_llm, stop_reason, stop):
 
 async def test_history_is_role_reversed_after_a_journey_opening_line(stub_llm):
     stub_llm.push({"intent": "answer", "message": "ok", "stop_reason": "none"})
-    user = su.JourneySimulatedUser.for_scenario(stub_llm, journey_scenario(), agent_role=AGENT_ROLE)
+    user = su.JourneySimulatedUser.for_scenario(stub_llm, journey_scenario(), JOURNEY)
     await user.next_turn([Message("user", "hi"), Message("assistant", "hello")])
     messages = stub_llm.calls[0]["messages"]
     assert AGENT_ROLE in messages[0]["content"]
@@ -220,14 +288,14 @@ async def test_history_is_role_reversed_after_a_journey_opening_line(stub_llm):
 )
 async def test_an_unusable_model_answer_is_an_llm_error(stub_llm, response):
     stub_llm.push(response)
-    user = su.JourneySimulatedUser.for_scenario(stub_llm, journey_scenario(), agent_role=AGENT_ROLE)
+    user = su.JourneySimulatedUser.for_scenario(stub_llm, journey_scenario(), JOURNEY)
     with pytest.raises(LLMError):
         await user.next_turn([])
 
 
 async def test_a_silent_stop_is_allowed(stub_llm):
     stub_llm.push({"intent": "stop", "message": "", "stop_reason": "gave_up"})
-    user = su.JourneySimulatedUser.for_scenario(stub_llm, journey_scenario(), agent_role=AGENT_ROLE)
+    user = su.JourneySimulatedUser.for_scenario(stub_llm, journey_scenario(), JOURNEY)
     turn = await user.next_turn([])
     assert (turn.text, turn.stop_reason) == ("", "gave_up")
 

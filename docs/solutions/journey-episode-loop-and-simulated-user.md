@@ -54,6 +54,10 @@ played by this class and `agentsim/simulator.py` is unchanged):
   unchanged. Vigilant, out-of-scope drift, channel noise: no instruction
   touches them.
 
+Session 06b re-ran this check when it added the rule statement to a high
+Knowledge level customer's knowledge text:
+`journey-simulated-user-fidelity-is-a-human-record.md`.
+
 **Episode loop.** A user message is appended to `transcript.jsonl` before
 `send_message`; a reply as it arrives. Retrieve, then release, in a `finally`:
 both are attempted after every stop reason and after an unexpected exception.

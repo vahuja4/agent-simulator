@@ -170,6 +170,14 @@ file in the same commit.
   beside it.
 - **Simulated user** — the LLM role-playing the persona toward the goal.
   Also: synthetic user.
+- **Spot-check record** — a human reviewer's ruling on whether the Simulated
+  user played the Scenario it was given in one Episode: faithful, drifted or
+  not applicable, with a note, for each of Persona, Knowledge level,
+  Complication and grounded facts. On the Journey-definition path nothing
+  checks this automatically, so these records are its only evidence of
+  Simulated-user fidelity, and the labelled data a fidelity Judge would later
+  be tuned against. A Spot-check record is not an Assertion, a Judge ruling or
+  part of the Verdict.
 - **Agent adapter** — the interface to the agent-under-test, holding
   whatever session state the backend needs; the only code that knows the
   platform's transport. Two shapes. The payments path's is one method:

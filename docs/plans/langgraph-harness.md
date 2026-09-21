@@ -343,6 +343,26 @@ forbids dates relative to today. `tool_failures` never reaches it.
 exists. An unusable model answer (unknown `stop_reason`, empty message without
 a stop) is an `LLMError`, which the Episode records as `simulator_error`.
 
+Session 06b: a customer whose `knowledge_evidence.kind` is
+`states_rule_unprompted` is also shown the **statement** of the Journey
+knowledge rule its `knowledge_evidence.rule` names, under "A rule you know
+about how this works:" at the end of the knowledge text — never the rule's id.
+Session 05b had found that no rule statement reached the prompt, so such a
+Scenario worked only if its model-written Goal happened to spell the rule out,
+and the stub's never does. `relies_on_agent_for_rule` (that customer depends on
+the agent for the rule) and `material_fluency_gap` are shown no rule. A rule
+statement is permitted knowledge (a represented domain rule under the
+Sealed-world rule), not an evaluation criterion; nothing else the Simulated
+user is shown changed, and both gate texts are still pinned byte-equal. The
+statement comes from the Journey definition, so construction takes it:
+`JourneySimulatedUser.for_scenario(llm, scenario, journey, *, model=None)`
+(`journey` replaces `agent_role=`, which is now read from it) and
+`render_journey_knowledge(scenario, journey)`; `live_simulated_user(scenario,
+journey, model=None)` is unchanged. A `knowledge_evidence.rule` the definition
+does not define raises `JourneyDefinitionError` from
+`JourneyDefinition.knowledge_rule` while the Simulated user is being built,
+for either rule-bearing kind — never a customer quietly built without the rule.
+
 **Judge.** `JourneyJudge(GeneralJudge)` in `agentsim/journey/judge.py`
 overrides only `_system_prompt` and `_render` (completed-conversation framing;
 `agent_role`, Goal, required rules, criteria, transcript, projected Trace) and
@@ -652,6 +672,21 @@ clusters `fail` only, so `error` never enters an agent-failure cluster), skips
 `label_clusters`, lists `task_incomplete` by stop reason, and renders
 `agentsim/journey/report.py`.
 
+**Spot-check records** (session 06b) are the one thing about a Run kept
+outside its directory, because they are a human's and must outlive a
+re-evaluation: YAML files under `journey_spot_checks/`, one record per
+reviewed Episode — `run_id`, `scenario_id`, `reviewer`, `date`, and for each of
+`persona`, `knowledge_level`, `complication`, `grounded_facts` a
+`{verdict: faithful | drifted | not_applicable, note}`. The format is
+documented in `agentsim/journey/spot_check.py`;
+`load_spot_check_records(path, *, runs_root="journey_runs")` refuses unknown
+fields, unknown verdicts, a `drifted` verdict with no note, a duplicate record,
+and a record whose Episode (`<runs_root>/<run_id>/runs/*/episode.json` with
+that `scenario_id`, exactly one) does not exist.
+`.venv/bin/python -m agentsim.journey.spot_check <file> [--runs-root …]`
+validates a file (exit 0, or 2 with one line) and does nothing else. See
+section 12 item 3 for why this is a human record and not a check.
+
 Entry point `scripts/journey_harness.py` (scripts are this repository's
 composition roots; `run_calibration.py` already imports both packages):
 
@@ -703,6 +738,7 @@ Persona-fidelity spot-check of that model and of the new
 | 05a | HARNESS | `agentsim/adapters/{conversation,journey_service}.py`; `tests/test_journey_adapter.py`; `tests/fixtures/journey_agent_raw_traces/` (raw Traces captured from AGENT's stub service, pinned for contract tests); `CONTEXT.md` (Agent adapter, Trace) |
 | 05b | HARNESS | `agentsim/journey/{simulated_user,episode}.py`; `tests/test_journey_{simulated_user,episode}.py`; `CONTEXT.md` (Termination, Transcript); the `agentsim/journey/__init__.py` docstring (running a Scenario, unlike loading one, does import the payments simulator) |
 | 06 | HARNESS | `agentsim/journey/{judge,evaluation}.py`; `JUDGE_CRITERION_TOOLS` in `agentsim/journey/checks.py` (no wording touched); `tests/test_journey_evaluation.py`; `CONTEXT.md` (Verdict) |
+| 06b | HARNESS | `agentsim/journey/simulated_user.py` (the rule statement in the knowledge text; construction takes the Journey definition), `JourneyDefinition.knowledge_rule` in `agentsim/journey/definition.py`, `agentsim/journey/spot_check.py`; `tests/test_journey_{simulated_user,spot_check}.py`; `CONTEXT.md` (Spot-check record); sections 5, 9 and 12 of this note |
 | 06c | HARNESS | `journeys/appointment_rescheduling/journey.yaml` (`criteria.judge` in full); `agentsim/journey/{definition,checks,judge,evaluation,scenario}.py`; their tests and `tests/journey_trace_builder.py`; sections 4, 5 and 9 of this note |
 | 07 | HARNESS | `scenario_synthesis/journey_synthesis.py`; `tests/test_journey_synthesis.py`; `CONTEXT.md`; the `knowledge_evidence.kind` closed set in `agentsim/journey/scenario.py` with its tests and `tests/journey_trace_builder.py` |
 | 08 | HARNESS | `scripts/journey_harness.py`; `agentsim/journey/report.py`; `tests/test_journey_{cli,report,e2e}.py` |
@@ -753,6 +789,27 @@ that Knowledge-level compliance is unverified (item 3), and that the
    verified behavior. (a) *Recommended:* record `knowledge_evidence` and say
    compliance is unverified in the report. (b) Port `simulator_compliance.py`,
    which is bound to Qualification and payments criterion snapshots.
+
+   **Automated checks of the Simulated user were considered on 2026-09-21 and
+   rejected by the user — do not re-propose them.** What was considered:
+   lexical matching of the customer's messages against the Scenario (did it
+   state the rule, use the wrong label, withhold the fact), a self-report field
+   in the Simulated user's structured answer, per-Episode deviation flags, and
+   a fidelity Judge. Why not: the customer is an LLM writing free text, so a
+   text match misses every honest paraphrase and fires on coincidences; a
+   self-report is the same model grading itself; and a fidelity Judge has no
+   labelled data to be tuned against, so its rulings would be one more
+   unvalidated opinion. Each would raise false alarms that cost more attention
+   than they save, and a quiet check would be read as evidence it is not.
+   Deterministic checks stay where the evidence is structured (Assertions over
+   the Normalized Trace, provenance hashes). Simulated-user fidelity on this
+   path is therefore a **human** judgement: the Persona-fidelity spot-check
+   AGENTS.md requires, recorded as Spot-check records (section 9). Those
+   records are the only fidelity evidence this path has, and they are the
+   labelled data a fidelity Judge could later be tuned against — the point at
+   which this decision may be revisited, not before. Session 06b closed the
+   one concrete gap behind the question (a high Knowledge level customer was
+   never shown the rule it is to state; section 5) and added no check.
 4. **ADRs 0002, 0004, 0007** — not engaged: no coverage, eligibility, Fitness
    or Admission claim, one Episode per Scenario. ADR 0007's "code owns
    structure, an LLM realizes narrative" and **ADR 0003**'s single archetype

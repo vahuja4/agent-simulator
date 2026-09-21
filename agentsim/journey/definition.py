@@ -133,6 +133,17 @@ class JourneyDefinition:
             f"criterion {criterion_id!r} (defined: {sorted(self.judge_criterion_ids)})"
         )
 
+    def knowledge_rule(self, rule_id: str) -> KnowledgeRule:
+        """The knowledge rule with this id. An id the definition does not
+        define is an error, never a customer built without the rule."""
+        for rule in self.knowledge_rules:
+            if rule.id == rule_id:
+                return rule
+        raise JourneyDefinitionError(
+            f"{Path(self.source).name}: Journey {self.journey_id!r} defines no knowledge "
+            f"rule {rule_id!r} (defined: {sorted(r.id for r in self.knowledge_rules)})"
+        )
+
     def criteria_for_judge(self, criterion_ids: Iterable[str]) -> tuple[Criterion, ...]:
         """The ``agentsim.judge.Criterion`` objects the Judge is handed, in the
         requested order."""

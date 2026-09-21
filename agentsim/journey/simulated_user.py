@@ -8,7 +8,13 @@ simulator ``Persona`` is only built here.
 
 It is given its Persona, its Goal and its permitted knowledge. It is never
 given the Scenario's Assertions, Judge criteria, Expected outcome or
-``tool_failures``: a customer knows none of them.
+``tool_failures``: a customer knows none of them. Permitted knowledge is the
+Scenario's grounded facts and, for a customer who is to state a rule
+unprompted, that one Journey knowledge rule — a rule a customer can know, not
+a criterion it is evaluated by.
+
+Nothing checks whether the model then played the Scenario it was given
+(design note section 12 item 3); ``spot_check`` holds the human record.
 
 The instructions are designed, not empirically validated: no Persona-fidelity
 spot-check has been run on them.
@@ -121,6 +127,12 @@ class JourneySimTurn(SimTurn):
 
 # ---------------------------------------------------------- knowledge text
 
+# The one Knowledge-level evidence kind whose customer knows the rule itself
+# (``scenario.KNOWLEDGE_EVIDENCE``): ``relies_on_agent_for_rule`` depends on
+# the agent for it, and ``material_fluency_gap`` names no rule.
+_KIND_THAT_KNOWS_THE_RULE = "states_rule_unprompted"
+_RULE_HEADING = "A rule you know about how this works:"
+
 _FIELD_LABELS = {"start": "date and time"}
 _WEEKDAYS = (
     "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday",
@@ -131,14 +143,20 @@ _MONTHS = (
 )
 
 
-def render_journey_knowledge(scenario: JourneyScenario) -> str:
+def render_journey_knowledge(scenario: JourneyScenario, journey: JourneyDefinition) -> str:
     """The customer's knowledge, rendered by code from the Scenario's grounded
     facts: every fact's **value**, never its **path** — a path holds Fixture
     ids no customer knows. The Fixture binding only decides which heading a
     fact sits under. Facts about other entities (the provider a false-premise
     customer believes in, the slot a correction asks for first, the other
     appointment of an ambiguous reference) are kept: they are what makes the
-    Complication playable."""
+    Complication playable.
+
+    A customer whose Knowledge level is evidenced by stating a rule unprompted
+    also knows that rule's statement, from the Journey definition — never its
+    id, and never for another evidence kind. A rule the definition does not
+    define is a ``JourneyDefinitionError``, whatever the kind: the customer is
+    never quietly built without it."""
     groups: dict[tuple[str, ...], list[str]] = {}
     for fact in scenario.grounded_facts:
         parts = fact.path.split(".")
@@ -150,6 +168,11 @@ def render_journey_knowledge(scenario: JourneyScenario) -> str:
     for entity, facts in groups.items():
         lines.append(_heading(entity, scenario))
         lines.extend(facts)
+    evidence = scenario.knowledge_evidence
+    if evidence.rule is not None:
+        rule = journey.knowledge_rule(evidence.rule)
+        if evidence.kind == _KIND_THAT_KNOWS_THE_RULE:
+            lines.extend([_RULE_HEADING, f"- {rule.statement}"])
     return "\n".join(lines) if lines else "(nothing beyond your goal)"
 
 
@@ -208,18 +231,19 @@ class JourneySimulatedUser(UserSimulator):
         cls,
         llm: LLMClient,
         scenario: JourneyScenario,
+        journey: JourneyDefinition,
         *,
-        agent_role: str,
         model: str | None = None,
     ) -> JourneySimulatedUser:
         """Persona, Goal and knowledge only — nothing else of the Scenario
-        reaches the prompt."""
+        reaches the prompt, and of the Journey definition only ``agent_role``
+        and the one rule statement ``render_journey_knowledge`` allows."""
         return cls(
             llm,
             persona=Persona(name=scenario.persona.name, traits=scenario.persona.traits),
             goal=scenario.goal,
-            knowledge=render_journey_knowledge(scenario),
-            agent_role=agent_role,
+            knowledge=render_journey_knowledge(scenario, journey),
+            agent_role=journey.agent_role,
             model=model,
         )
 
@@ -306,6 +330,4 @@ def live_simulated_user(
         )
     if not os.environ.get("OPENAI_API_KEY"):
         raise SimulatorConfigError("OPENAI_API_KEY is not set (export the ignored .env)")
-    return JourneySimulatedUser.for_scenario(
-        OpenAILLM(model), scenario, agent_role=journey.agent_role, model=model
-    )
+    return JourneySimulatedUser.for_scenario(OpenAILLM(model), scenario, journey, model=model)
