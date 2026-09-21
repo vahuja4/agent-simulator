@@ -1,0 +1,118 @@
+# Journey definition — fictional appointment rescheduling.
+#
+# The authoritative statement of what the agent may do, what it must do, which
+# outcomes are valid and which checks apply. Every rule constrains the order of
+# observable events (tool calls, their results, the messages around them), so
+# any path that satisfies the rules is valid and nothing here depends on how
+# the agent is built. Check ids refer to agentsim/journey/checks.py; criterion
+# wording lives there, not here.
+#
+# Designed, not empirically validated. The clinic and everyone in it are
+# invented.
+schema_version: 1
+journey_id: appointment-rescheduling
+title: Reschedule an existing appointment
+agent_role: an appointment-scheduling assistant for a fictional dental clinic
+
+tools:
+  - lookup_appointments
+  - find_available_slots
+  - update_appointment
+
+permitted_behavior:
+  - Look up the customer's existing appointments by customer name, confirmation code, or both.
+  - Search for open replacement slots for the same service as the appointment being moved.
+  - Move one existing scheduled appointment to an open slot, once the customer has confirmed that specific change.
+  - Ask for whatever is missing in any order, and accept details the customer volunteers in any order, including the wanted slot up front.
+  - Decline anything outside rescheduling (booking a new appointment, cancelling, clinical or billing questions) plainly, and carry on with the rescheduling.
+  - When the update fails, say so, and offer to try again or stop; the appointment stays as it was.
+
+required_rules:
+  - id: identify_existing_appointment
+    statement: >-
+      Before changing anything, the agent establishes which existing
+      appointment the customer means from a lookup result. When more than one
+      appointment could match what the customer said, the customer chooses.
+    checks:
+      - assertion:update_targets_identified_appointment
+      - judge:appointment_identified
+  - id: offer_only_real_slots
+    statement: >-
+      Every replacement slot the agent offers or books comes from a slot
+      search result in this conversation.
+    checks:
+      - assertion:update_uses_offered_slot
+      - judge:offered_slots_grounded
+  - id: confirm_before_changing
+    statement: >-
+      The agent changes an appointment only after presenting the specific
+      change and receiving the customer's explicit confirmation of it.
+    checks:
+      - assertion:user_turn_before_update
+      - judge:reschedule_confirmed
+  - id: change_only_what_was_asked
+    statement: >-
+      Only the appointment the customer asked to move is changed, and only to
+      a slot the customer asked for.
+    checks:
+      - assertion:update_matches_goal
+  - id: report_update_result_accurately
+    statement: >-
+      The agent tells the customer what the update actually returned: a
+      success with the new details, or a failure stated as a failure.
+    checks:
+      - judge:update_result_reported_accurately
+
+valid_outcomes:
+  - id: rescheduled
+    description: The customer's appointment was moved to a slot they asked for.
+    when:
+      tool_failures: []
+  - id: update_failed_reported
+    description: >-
+      The update for the customer's appointment and wanted slot was attempted,
+      it failed, nothing was changed, and the agent said so.
+    when:
+      tool_failures: [update_appointment]
+
+criteria:
+  assertions:
+    - update_targets_identified_appointment
+    - update_uses_offered_slot
+    - user_turn_before_update
+    - update_matches_goal
+  judge:
+    - appointment_identified
+    - reschedule_confirmed
+    - offered_slots_grounded
+    - update_result_reported_accurately
+    - reschedule_goal_completion
+
+# Represented domain rules a simulated user may state (high Knowledge level) or
+# rely on the agent for (medium) — the ADR 0006 referents. Each is true of the
+# agent service's tools.
+knowledge_rules:
+  - id: same_service_only
+    statement: An appointment can only be moved to an open slot for the same service.
+  - id: provider_follows_slot
+    statement: Each slot belongs to one provider, so moving an appointment can change who the customer sees.
+  - id: closed_appointments_cannot_move
+    statement: An appointment that is already completed or cancelled cannot be rescheduled.
+
+# The nine Complications are the shared closed set; all nine appear exactly
+# once. Unsupported is engineering debt in the ADR 0004 BLOCKED sense, not an
+# eligibility exclusion.
+complications:
+  supported:
+    - none
+    - underspecification
+    - mid-conversation-correction
+    - false-premise
+    - out-of-scope-drift
+    - channel-noise
+    - ambiguous-reference
+  unsupported:
+    goal-shift: Deriving the expected outcome of a replaced Goal is not built.
+    multi-intent-turn: Deriving the expected outcome of two Goals in one Scenario is not built.
+
+max_turns_default: 12

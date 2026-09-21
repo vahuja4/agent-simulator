@@ -1,0 +1,93 @@
+# Fixture state — the synthetic appointments and slots for the fictional
+# appointment-rescheduling Journey. Plain data: nothing here knows how the
+# agent is built. The harness sends it inline when a conversation starts and
+# both sides hash its canonical JSON, so date-times stay quoted strings.
+#
+# Every person, provider, code and time is invented. Maya Okafor holds two
+# dental cleanings on purpose: the ambiguous-reference Complication needs a
+# reference that matches more than one real appointment.
+schema_version: 1
+fixture_state_id: harbor-street-dental-2026-10
+now: "2026-10-01T09:00:00"
+
+customers:
+  - customer_id: C-100
+    name: Maya Okafor
+  - customer_id: C-200
+    name: Daniel Reyes
+  - customer_id: C-300
+    name: Priya Natarajan
+
+appointments:
+  - appointment_id: A-1001
+    customer_id: C-100
+    confirmation_code: HSD-4821
+    service: dental cleaning
+    provider: Dr. Alvarez
+    start: "2026-10-06T10:00:00"
+    status: scheduled
+  - appointment_id: A-1002
+    customer_id: C-100
+    confirmation_code: HSD-4822
+    service: dental cleaning
+    provider: Dr. Chen
+    start: "2026-10-20T14:30:00"
+    status: scheduled
+  - appointment_id: A-2001
+    customer_id: C-200
+    confirmation_code: HSD-5107
+    service: orthodontic check
+    provider: Dr. Chen
+    start: "2026-10-08T09:30:00"
+    status: scheduled
+  - appointment_id: A-3001
+    customer_id: C-300
+    confirmation_code: HSD-6650
+    service: dental cleaning
+    provider: Dr. Alvarez
+    start: "2026-10-07T16:00:00"
+    status: scheduled
+  - appointment_id: A-3002
+    customer_id: C-300
+    confirmation_code: HSD-6611
+    service: orthodontic check
+    provider: Dr. Patel
+    start: "2026-09-15T11:00:00"
+    status: completed
+
+slots:
+  - slot_id: S-101
+    service: dental cleaning
+    provider: Dr. Alvarez
+    start: "2026-10-09T11:00:00"
+    available: true
+  - slot_id: S-102
+    service: dental cleaning
+    provider: Dr. Alvarez
+    start: "2026-10-13T15:30:00"
+    available: true
+  - slot_id: S-103
+    service: dental cleaning
+    provider: Dr. Chen
+    start: "2026-10-14T09:00:00"
+    available: true
+  - slot_id: S-104
+    service: dental cleaning
+    provider: Dr. Chen
+    start: "2026-10-10T13:00:00"
+    available: false
+  - slot_id: S-201
+    service: orthodontic check
+    provider: Dr. Chen
+    start: "2026-10-12T10:30:00"
+    available: true
+  - slot_id: S-202
+    service: orthodontic check
+    provider: Dr. Patel
+    start: "2026-10-15T14:00:00"
+    available: true
+  - slot_id: S-203
+    service: orthodontic check
+    provider: Dr. Patel
+    start: "2026-10-16T08:30:00"
+    available: false

@@ -1,8 +1,9 @@
 # LangGraph synthesis harness — design note
 
 Contract for sessions 02–09 on branch `codex/langgraph-synthesis-harness`.
-Written 2026-09-21 (session 01); no code exists yet. A session that must
+Written 2026-09-21 (session 01), before any code existed. A session that must
 deviate changes this note in the same commit and says so in its report.
+Amended by session 03 (sections 4, 5, 8, 9, 11, 12).
 
 HARNESS = `/Users/vishal/Desktop/agent_simulator-langgraph`, AGENT =
 `/Users/vishal/Desktop/journey_agent`. The Journey is fictional appointment
@@ -172,8 +173,12 @@ customer_id, confirmation_code, service, provider, start, status}]`,
 appointments for the same service (ambiguous reference needs it).
 
 Strict loaders in `agentsim/journey/definition.py` (`JourneyDefinition`,
-`FixtureState.sha256`): unknown fields, dangling ids and unknown check
-references fail loudly.
+`FixtureState.sha256`, `load_journey_inputs(directory)`): unknown fields,
+dangling ids and unknown check references fail loudly. Date-times are quoted
+strings (an unquoted YAML timestamp cannot be hashed or sent inline), ids hold
+no `.`, and `status ∈ {scheduled, completed, cancelled}`.
+`JourneyDefinition.outcome_for(tool_failures)` derives the expected outcome;
+`FixtureState.fact("<collection>.<id>.<field>")` resolves a grounded-fact path.
 
 ## 5. Criteria, Assertions and the Scenario seam
 
@@ -191,20 +196,48 @@ Assertions — pure functions of `NormalizedTrace` and the Scenario, returning
 | `user_turn_before_update` | the update's `caused_by_message_id` is a user message later than the agent reply of the turn that first surfaced that slot (ordering only — the `validated_submit` split) |
 | `update_matches_goal` | no succeeded update outside the Scenario's `appointment_id` / `target_slot_ids` |
 
+"Each update" means every attempt, succeeded or failed; only
+`update_matches_goal` is limited to succeeded ones. An Assertion is
+`unavailable` when an evidence class it reads is not `available`, or when an
+action, a referenced message or a contract result key it needs is missing.
+`user_turn_before_update` also fails, with reason `slot_never_surfaced`, when
+no earlier agent reply surfaced the slot.
+
 `expected_outcome_evidenced` is a deterministic gate, not a failure source:
 `rescheduled` needs a succeeded matching update; `update_failed_reported` needs
-a failed update and no succeeded one.
+a failed matching update and no succeeded update at all ("matching" = the
+Scenario's `appointment_id` and one of its `target_slot_ids`; a failed update
+aimed elsewhere is not the expected outcome). It alone decides whether the
+Goal was completed.
 
 Judge criteria, end-state phrased for one final ruling:
 `appointment_identified`, `reschedule_confirmed` (the user message before the
 update is a clear yes to the presented change), `offered_slots_grounded`,
 `update_result_reported_accurately` (Say/do consistency),
-`reschedule_goal_completion`. Session 03 writes the wording.
+`reschedule_goal_completion`. Session 03 wrote the wording
+(`agentsim/journey/checks.py`).
+
+`reschedule_goal_completion` is pinned to the payments `goal_completion`
+criterion in `agentsim/judge.py`: it is false only if the agent lost the
+thread, contradicted itself, or made completion impossible. An unfinished Goal
+alone does not fail it, and the criterion says so; completion is the gate's
+call, not the Judge's. Otherwise every Turn-limit or gave-up Episode would
+become `fail` through rule 5 of section 8, rule 7 would be unreachable, and
+"running out of turns is not a policy failure" would break.
 
 **Seam.** A parallel loader, `agentsim/journey/scenario.py`
 (`JourneyScenario`, `load_journey_scenario`), exposing `name` and `source` so
 `BatchRunSpec` accepts it. `agentsim/scenario.py` is not edited; its closed
 `JOURNEYS` rejects the new files and the new loader rejects payments files.
+The loader validates the file alone (schema, closed sets, check ids exist);
+`check_against_inputs(scenario, journey, fixture_state)` checks fit against
+the inputs it will run with — ids resolve and belong to the customer, target
+slots are bookable and match the service, grounded facts equal Fixture state,
+derived fields are what `journey.yaml` derives. Session 07 calls it and adds
+the narrative Sealed-world check; `run` calls it before starting an Episode.
+The three closed sets are restated in `agentsim/journey/` (importing
+`scenario_synthesis.contracts` would pull in `fixtures.paycard`) and pinned
+equal to the reviewed constants by tests.
 
 **Simulated user.** `JourneySimulatedUser(UserSimulator)` in
 `agentsim/journey/simulated_user.py` overrides `_system_prompt`,
@@ -319,6 +352,14 @@ Outcome — first matching rule (`agentsim/journey/evaluation.py`):
 6. Judge `pass` **and** `expected_outcome_evidenced` → `pass`.
 7. Otherwise → `task_incomplete`.
 
+So an Episode whose conduct is clean but whose outcome is not evidenced is
+`task_incomplete`, whatever the stop reason.
+
+`run_episode` and `evaluate_episode` are `async def`: the Simulated user and
+the Judge are async. They run on `BatchRunner`'s loop, and the CLI enters
+through the single process-local event loop (`scenario_synthesis/_async.py`).
+The adapter stays blocking; with `concurrency=1` that is acceptable.
+
 Each `FailureRecord` carries the check id, an explanation, and
 `data = {stable details…, "evidence": {"message_ids", "action_ids", "files"}}`;
 clustering similarity runs over `data`, so free text stays in `message`.
@@ -342,10 +383,10 @@ journey_runs/<run_id>/
     trace.json, transcript.md, run.json     # BatchRunner, from the RunResult
 ```
 
-`evaluate_episode(episode_dir, judge) -> EvaluationResult` with
+`async evaluate_episode(episode_dir, judge) -> EvaluationResult` with
 `.to_run_result()` (an empty `Trace` when evidence is unavailable). `run`
-passes `BatchRunner(concurrency=1)` an `execute` = `run_episode` +
-`evaluate_episode`. `summarize` calls `cluster_failures` unchanged (it
+passes `BatchRunner(concurrency=1)` an async `execute` = `await run_episode` +
+`await evaluate_episode` (section 8). `summarize` calls `cluster_failures` unchanged (it
 clusters `fail` only, so `error` never enters an agent-failure cluster), skips
 `label_clusters`, lists `task_incomplete` by stop reason, and renders
 `agentsim/journey/report.py`.
@@ -390,7 +431,7 @@ Persona-fidelity spot-check of that model and of the new
 | # | Repo | Creates / edits |
 |---|---|---|
 | 02 | AGENT | `journey_agent/{fixture_state,tools,trace_recorder,service,stub_agent,agent_interface}.py`, tests, packaging |
-| 03 | HARNESS | `journeys/appointment_rescheduling/*.yaml`; `agentsim/journey/{__init__,definition,normalized_trace,checks,scenario}.py`; `tests/test_journey_{definition,normalized_trace,checks,scenario}.py` |
+| 03 | HARNESS | `journeys/appointment_rescheduling/*.yaml`; `agentsim/journey/{__init__,_strict,definition,normalized_trace,checks,scenario}.py`; `tests/test_journey_{definition,normalized_trace,checks,scenario}.py`; `tests/journey_trace_builder.py` (hand-built Traces and Scenarios, reusable by 05–08); `CONTEXT.md` (Journey definition, Expected outcome, Normalized Trace); `docs/solutions/journey-goal-completion-is-the-gates-call.md` |
 | 04 | AGENT | `journey_agent/langgraph_agent.py`, model wiring, tests, pinned dependencies |
 | 05 | HARNESS | `agentsim/adapters/{conversation,journey_service}.py`; `agentsim/journey/{simulated_user,episode}.py`; `tests/test_journey_{adapter,simulated_user,episode}.py`; `CONTEXT.md` |
 | 06 | HARNESS | `agentsim/journey/{judge,evaluation}.py`; `tests/test_journey_evaluation.py` |
@@ -411,14 +452,19 @@ Frictions in the README split, smallest fix each:
   writes its own conforming test fixture.
 - 09's walkthrough assumes doubles outside pytest; section 9 provides none for
   `run`.
-- `CONTEXT.md` is edited by 05 (Agent adapter, Trace, Termination) and 07
-  (synthesized Scenario without Qualification); they never run concurrently.
+- `CONTEXT.md` is edited by 03 (Journey definition, Expected outcome,
+  Normalized Trace), 05 (Agent adapter, Trace, Termination), 06 (Verdict: the
+  expected-outcome gate joins the two layers) and 07 (synthesized Scenario
+  without Qualification); no two of them run concurrently.
 
 ## 12. Conflicts with governing ADRs
 
 Checked ADRs 0001–0007, the `CONTEXT.md` and `AGENTS.md` invariants, and the
-legacy cutover boundary. Each recommendation is what the session plan already
-presumes; each alternative is out of scope or needs approval this effort lacks.
+legacy cutover boundary. The user reviewed this note on 2026-09-21 and approved
+the recommended option for every item (1–6), explicitly accepting that
+synthesized Scenarios are validated but not Qualified or Admitted (item 1),
+that Knowledge-level compliance is unverified (item 3), and that the
+`JourneyJudge` prompt is new and uncalibrated (item 6).
 
 1. **ADR 0001** — "evolve the committed `scenario_synthesis/` prototype rather
    than build a parallel system" vs. a path that skips Blueprint → Candidate →

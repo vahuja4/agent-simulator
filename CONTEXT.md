@@ -17,6 +17,17 @@ file in the same commit.
   directory it sits in, and the curated loader fails closed on it.
 - **Journey** — an approved domain workflow through which the simulated user
   pursues a goal. A journey may contain multiple valid paths.
+- **Journey definition** — the explicit, reviewed statement of one Journey:
+  what the agent is permitted to do, the rules it is required to follow, the
+  valid outcomes, and which Assertions and Judge criteria apply. Its rules
+  constrain only the order of observable events, so every path that satisfies
+  them is valid and nothing depends on how the agent is built. Together with
+  Fixture state it is the authoritative input for a Journey outside payments.
+- **Expected outcome** — the valid outcome a Scenario's Goal should end in
+  under its Fixture conditions, derived from the Journey definition rather
+  than authored. On the Journey-definition path, whether an Episode reached
+  it is decided deterministically from the Normalized Trace, not by a Judge
+  criterion.
 - **Persona** — who the simulated user is: background, temperament,
   communication style. Grounded top-down (from the scenario spec) and
   bottom-up (from what such a user would plausibly know). A pressure Persona
@@ -151,6 +162,14 @@ file in the same commit.
 - **Trace** — the agent platform's record of what the agent did
   internally (tool calls, parameters, results). Fetched by the adapter
   and attached to turns so judges can see actions, not just words.
+- **Normalized Trace** — the harness's platform-independent record of one
+  completed conversation: messages and agent actions under stable ids in one
+  explicit order, each action tied to the user message it handled and the
+  reply it produced, with a statement per evidence class (messages, actions)
+  of whether it is available, partial, or unavailable. Missing facts are
+  stated, never inferred. An Assertion that lacks the evidence it needs is
+  unavailable, which is never a pass, and the Judge is shown a Trace only
+  when both classes are available.
 - **Termination** — the decision that an episode is over, and by whom:
   simulated user (goal reached / gives up), judge (halt on met/failed
   criterion), or harness (max turns). Termination reason is always
