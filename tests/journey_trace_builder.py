@@ -117,7 +117,9 @@ def journey_scenario(
         persona=JourneyPersona("cooperative", "Maya Okafor", "polite and brief"),
         goal="Move my dental cleaning to a later day.",
         knowledge_level="medium",
-        knowledge_evidence=KnowledgeEvidence("relies_on_agent", "same_service_only", None),
+        knowledge_evidence=KnowledgeEvidence(
+            "relies_on_agent_for_rule", "same_service_only", None
+        ),
         complication="none",
         fixture=FixtureBinding("C-100", appointment_id, target_slot_ids, tool_failures),
         grounded_facts=(),

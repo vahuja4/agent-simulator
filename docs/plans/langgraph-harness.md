@@ -3,7 +3,8 @@
 Contract for sessions 02–09 on branch `codex/langgraph-synthesis-harness`.
 Written 2026-09-21 (session 01), before any code existed. A session that must
 deviate changes this note in the same commit and says so in its report.
-Amended by session 03 (sections 4, 5, 8, 9, 11, 12).
+Amended by session 03 (sections 4, 5, 8, 9, 11, 12) and session 07 (sections
+6, 7, 9, 11).
 
 HARNESS = `/Users/vishal/Desktop/agent_simulator-langgraph`, AGENT =
 `/Users/vishal/Desktop/journey_agent`. The Journey is fictional appointment
@@ -277,7 +278,28 @@ synthesis: {origin: synthesized, qualification: none, set_id, spec_id,
 
 The model writes only `description`, `persona.traits` and `goal` (ADR 0007:
 code owns structure and Fixture bindings). A response carrying any other field
-is rejected with reason `model-supplied-derived-field` — never overridden.
+is rejected with reason `model-supplied-derived-field` — never overridden, even
+when the value agrees with what code derives.
+
+`knowledge_evidence.kind` is a closed set, one kind per Knowledge level because
+identical behavior cannot evidence two levels (ADR 0006); the names are the
+Phase 4.5 ones. The loader enforces kind ↔ level, the field each kind carries,
+and that a `referent` is the `path` of one of the Scenario's own
+`grounded_facts` (a wrong label needs a real fact); `check_against_inputs`
+already checks that a `rule` is a `journey.yaml` `knowledge_rules` id.
+
+| `knowledge_level` | `kind` | carries |
+|---|---|---|
+| `low` | `material_fluency_gap` | `referent` |
+| `medium` | `relies_on_agent_for_rule` | `rule` |
+| `high` | `states_rule_unprompted` | `rule` |
+
+`scenario_id`'s 12 hex digits are the SHA-256 of the canonical JSON of
+`{set_id, spec, narrative}`. `journey_sha256` hashes the bytes of
+`journey.yaml`; `fixture_state_sha256` is `FixtureState.sha256` — the
+canonical-JSON hash the agent service returns and the Normalized Trace records,
+so a Scenario, its Episode and its Fixture state can be matched by one value.
+`provenance.json` records the Fixture file's byte hash as well.
 
 ```
 synthesized_journey_scenarios/<journey_id>/<set_id>/
@@ -285,6 +307,14 @@ synthesized_journey_scenarios/<journey_id>/<set_id>/
   accepted/<scenario_id>.yaml
   rejected/<spec_id>-<attempt>.json  # spec, raw model output, reason codes
 ```
+
+Reason codes: `provider-error`, `malformed-output`,
+`model-supplied-derived-field`, `schema-invalid` (the loader),
+`input-mismatch` (`check_against_inputs`), `sealed-world-violation`. An
+existing set directory is never overwritten, and an output root under
+`scenarios/`, `synthesized_scenarios/` or `generated_scenarios/` is refused.
+`verify_provenance(set_dir, journey_dir)` re-checks the three hashes and every
+accepted file.
 
 Distinguishable from Curated by content (`synthesis.origin`), loader and
 directory; its `synthesis` block is not a Phase 4.5 `SynthesisMetadata`, so
@@ -311,17 +341,45 @@ Not reused: `blueprint`, `generator`, `validator`, `planner`, the legacy set
 `config.yaml`. No reviewed contract YAML is edited.
 
 Flow: code plans `count` specs deterministically from variation settings and a
-seed (appointment × archetype × Knowledge level × supported Complication ×
-tool-failure condition, round-robin); derives `expected_outcome` and `criteria`
-from `journey.yaml`; asks the model for three narrative fields; validates;
-saves. Two attempts per spec, every failed one saved. A shortfall is printed
-and exits non-zero. No coverage claim is made.
+seed (appointment × bookable slot × archetype × Knowledge level × supported
+Complication × tool-failure condition); derives `expected_outcome` and
+`criteria` from `journey.yaml`; asks the model for three narrative fields;
+validates; saves. Two attempts per spec, every failed one saved; the second
+attempt is shown the first one's reason. A shortfall is printed and exits
+non-zero. No coverage claim is made.
+
+Round-robin means each axis takes its least-used value first, ties broken by
+one seeded shuffle of the combinations — plain lock-step indexing would pair
+same-length axes (appointment *j* always with archetype *j*). Tool-failure
+conditions are the `when` conditions of `journey.yaml`'s valid outcomes, so
+every planned condition has a derivable expected outcome. Variation settings
+(`VariationSettings`) narrow the axes; a value outside a closed set, a
+Complication the Journey lists as unsupported, or a condition with no valid
+outcome is refused before anything is generated.
+
+Code also owns what a Complication needs from Fixture state (ADR 0005), and a
+combination that lacks it is not planned: mid-conversation correction names a
+second bookable slot to ask for first; false premise names the appointment's
+provider and another real provider as the believed value — an incorrect belief
+about real Fixture state, never an invented fact; ambiguous reference needs
+another scheduled appointment of the same customer and service. The extra
+facts join `grounded_facts`. The model is shown the spec without
+`tool_failures`, and never the expected outcome or the checks: a customer
+knows none of them.
 
 Validation: schema; closed sets; every fixture id resolves and belongs to the
 Scenario's customer; target slots are available and match the appointment's
 service; each grounded fact equals Fixture state; criterion references exist;
 the narrative holds no identifier, code, date or time that is not a grounded
-fact (Sealed-world rule).
+fact (Sealed-world rule). All but the last run through the section 5 seam
+(`load_journey_scenario` on the exact text to be saved, then
+`check_against_inputs`). The narrative check is lexical: every digit-bearing
+token and every month or weekday name must come from a grounded fact, with
+dates and times accepted in their usual written forms. It checks tokens one at
+a time, so it can reject honest text (a count written as a digit) and cannot
+prove a sentence true. Passing validation is not evidence of test quality,
+coverage, Qualification or Admission; the module docstring, `provenance.json`
+and the command output all say so.
 
 Taxonomy: the nine Complications and three levels are the shared closed sets.
 Applicability is declared in `journey.yaml`; all nine appear exactly once
@@ -402,6 +460,9 @@ composition roots; `run_calibration.py` already imports both packages):
 .venv/bin/python scripts/journey_harness.py summarize journey_runs/<run_id>
 ```
 
+`synthesize` is `journey_synthesis.synthesize_command(...)`, which prints the
+report and returns the exit status: 0, 1 on a shortfall, 2 for an unusable
+request or missing configuration. Session 08 only parses arguments for it.
 `synthesize --stub` is a deterministic provider (precedent:
 `StubRealizationProvider`). `run` has **no** doubles mode outside pytest — a
 committed "pass" from a Judge double would read as a result — so session 09
@@ -435,7 +496,7 @@ Persona-fidelity spot-check of that model and of the new
 | 04 | AGENT | `journey_agent/langgraph_agent.py`, model wiring, tests, pinned dependencies |
 | 05 | HARNESS | `agentsim/adapters/{conversation,journey_service}.py`; `agentsim/journey/{simulated_user,episode}.py`; `tests/test_journey_{adapter,simulated_user,episode}.py`; `CONTEXT.md` |
 | 06 | HARNESS | `agentsim/journey/{judge,evaluation}.py`; `tests/test_journey_evaluation.py` |
-| 07 | HARNESS | `scenario_synthesis/journey_synthesis.py`; `tests/test_journey_synthesis.py`; `CONTEXT.md` |
+| 07 | HARNESS | `scenario_synthesis/journey_synthesis.py`; `tests/test_journey_synthesis.py`; `CONTEXT.md`; the `knowledge_evidence.kind` closed set in `agentsim/journey/scenario.py` with its tests and `tests/journey_trace_builder.py` |
 | 08 | HARNESS | `scripts/journey_harness.py`; `agentsim/journey/report.py`; `tests/test_journey_{cli,report,e2e}.py` |
 | 09 | both | setup-and-run docs, walkthrough evidence, final report |
 

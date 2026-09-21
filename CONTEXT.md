@@ -15,6 +15,16 @@ file in the same commit.
   that reviewed set; it is the calibration and compliance-gate denominator.
   A Scenario carrying synthesis provenance is never curated, whatever
   directory it sits in, and the curated loader fails closed on it.
+- **Synthesized Journey Scenario** — a Scenario generated from a Journey
+  definition and Fixture state on the Journey-definition path. Code owns its
+  structure, Fixture bindings, Expected outcome and checks; a model writes only
+  narrative fields, and a response that supplies anything else is rejected
+  rather than overridden. It is validated — well-formed, grounded in Fixture
+  state, Sealed-world — and says `qualification: none`: it is never a
+  Candidate and has no Qualification or Admission, and validation claims
+  nothing about test quality or coverage. Stored under
+  `synthesized_journey_scenarios/`, never under `scenarios/` or the Phase 4.5
+  `synthesized_scenarios/`.
 - **Journey** — an approved domain workflow through which the simulated user
   pursues a goal. A journey may contain multiple valid paths.
 - **Journey definition** — the explicit, reviewed statement of one Journey:

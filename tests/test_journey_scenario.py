@@ -39,7 +39,7 @@ SCENARIO_RAW = {
     },
     "goal": "Move the dental cleaning on 6 October to 9 October at 11:00.",
     "knowledge_level": "medium",
-    "knowledge_evidence": {"kind": "relies_on_agent", "rule": "same_service_only"},
+    "knowledge_evidence": {"kind": "relies_on_agent_for_rule", "rule": "same_service_only"},
     "complication": "none",
     "fixture": {
         "customer_id": "C-100",
@@ -113,11 +113,36 @@ def test_a_loaded_scenario_runs_through_the_assertions(tmp_path):
     assert len(checks.judge_criteria(scenario.judge_criterion_ids)) == 5
 
 
+def test_each_knowledge_level_loads_with_the_one_kind_that_evidences_it(tmp_path):
+    from agentsim.journey.scenario import KNOWLEDGE_EVIDENCE
+
+    assert set(KNOWLEDGE_EVIDENCE) == KNOWLEDGE_LEVELS
+    for level, (kind, about) in KNOWLEDGE_EVIDENCE.items():
+        value = "same_service_only" if about == "rule" else "appointments.A-1001.start"
+
+        def mutate(raw, level=level, kind=kind, about=about, value=value):
+            raw["knowledge_level"] = level
+            raw["knowledge_evidence"] = {"kind": kind, about: value}
+
+        evidence = _load(tmp_path, mutate).knowledge_evidence
+        assert (evidence.kind, getattr(evidence, about)) == (kind, value)
+
+
 def test_closed_sets_equal_the_reviewed_contract_constants():
     from scenario_synthesis import contracts
 
     assert ARCHETYPE_IDS == contracts.ARCHETYPE_IDS
     assert KNOWLEDGE_LEVELS == contracts.KNOWLEDGE_LEVELS
+
+
+def test_knowledge_evidence_kinds_are_the_phase_4_5_names():
+    """One vocabulary for ADR 0006 evidence across both synthesis paths."""
+    from agentsim.journey.scenario import KNOWLEDGE_EVIDENCE
+    from scenario_synthesis.generator import _knowledge_evidence
+
+    for level, (kind, about) in KNOWLEDGE_EVIDENCE.items():
+        phase_4_5 = _knowledge_evidence(level)
+        assert phase_4_5["kind"] == kind and about in phase_4_5
 
 
 @pytest.mark.parametrize(
@@ -137,6 +162,16 @@ def test_closed_sets_equal_the_reviewed_contract_constants():
         (lambda r: r["knowledge_evidence"].update(referent="appointments.A-1001"),
          "exactly one of 'rule' or 'referent'"),
         (lambda r: r["knowledge_evidence"].pop("rule"), "exactly one of 'rule' or 'referent'"),
+        (lambda r: r["knowledge_evidence"].update(kind="relies_on_agent"),
+         "knowledge_evidence.kind must be one of"),
+        (lambda r: r["knowledge_evidence"].update(kind="states_rule_unprompted"),
+         "does not evidence knowledge_level 'medium'"),
+        (lambda r: r.update(knowledge_evidence={
+            "kind": "relies_on_agent_for_rule", "referent": "appointments.A-1001.start"}),
+         "names a 'rule'"),
+        (lambda r: r.update(knowledge_level="low", knowledge_evidence={
+            "kind": "material_fluency_gap", "referent": "appointments.A-1001.service"}),
+         "is not the path of one of the Scenario's grounded facts"),
         (lambda r: r["fixture"].update(target_slot_ids=[]), "target_slot_ids must not be empty"),
         (lambda r: r["fixture"].update(tool_failures=["lookup_appointments"]),
          "no supported controlled failure"),

@@ -48,6 +48,20 @@ ARCHETYPE_IDS: frozenset[str] = frozenset(
 )
 KNOWLEDGE_LEVELS: frozenset[str] = frozenset({"low", "medium", "high"})
 
+# ADR 0006: each Knowledge level is evidenced by exactly one kind of behavior,
+# because identical behavior can never earn credit for more than one level.
+# level -> (kind, the field that names what the behavior is about). A ``rule``
+# is a ``journey.yaml`` ``knowledge_rules`` id; a ``referent`` is the path of
+# one of the Scenario's own grounded facts (a wrong label for a real fact).
+KNOWLEDGE_EVIDENCE: dict[str, tuple[str, str]] = {
+    "low": ("material_fluency_gap", "referent"),
+    "medium": ("relies_on_agent_for_rule", "rule"),
+    "high": ("states_rule_unprompted", "rule"),
+}
+KNOWLEDGE_EVIDENCE_KINDS: frozenset[str] = frozenset(
+    kind for kind, _ in KNOWLEDGE_EVIDENCE.values()
+)
+
 _PAYMENTS_JOURNEY = re.compile(r"^J\d+$")
 _SHA256 = re.compile(r"^[0-9a-f]{64}$")
 _SYNTHESIS_HASHES = (
@@ -69,8 +83,9 @@ class JourneyPersona:
 
 @dataclass(frozen=True)
 class KnowledgeEvidence:
-    """What this Scenario's Knowledge level is to be evidenced by: a Journey
-    ``knowledge_rules`` id or a Fixture referent, never both (ADR 0006)."""
+    """What this Scenario's Knowledge level is to be evidenced by: a
+    ``KNOWLEDGE_EVIDENCE`` kind about a Journey ``knowledge_rules`` id or a
+    grounded-fact referent, never both (ADR 0006)."""
 
     kind: str
     rule: str | None
@@ -170,6 +185,13 @@ def load_journey_scenario(path: str | Path) -> JourneyScenario:
             f"(known: {sorted(checks.OUTCOME_IDS)})"
         )
     assertion_ids, judge_ids = _parse_criteria(raw["criteria"], where)
+    knowledge_level = _closed(
+        raw["knowledge_level"], KNOWLEDGE_LEVELS, f"{where}: knowledge_level"
+    )
+    grounded_facts = _parse_grounded_facts(raw["grounded_facts"], where)
+    knowledge_evidence = _parse_knowledge_evidence(
+        raw["knowledge_evidence"], knowledge_level, grounded_facts, where
+    )
 
     return JourneyScenario(
         scenario_id=scenario_id,
@@ -177,15 +199,13 @@ def load_journey_scenario(path: str | Path) -> JourneyScenario:
         description=_string(raw["description"], f"{where}: description", error=error),
         persona=_parse_persona(raw["persona"], where),
         goal=_string(raw["goal"], f"{where}: goal", error=error),
-        knowledge_level=_closed(
-            raw["knowledge_level"], KNOWLEDGE_LEVELS, f"{where}: knowledge_level"
-        ),
-        knowledge_evidence=_parse_knowledge_evidence(raw["knowledge_evidence"], where),
+        knowledge_level=knowledge_level,
+        knowledge_evidence=knowledge_evidence,
         complication=_closed(
             raw["complication"], COMPLICATION_IDS, f"{where}: complication"
         ),
         fixture=_parse_fixture(raw["fixture"], where),
-        grounded_facts=_parse_grounded_facts(raw["grounded_facts"], where),
+        grounded_facts=grounded_facts,
         max_turns=_positive_int(raw["max_turns"], f"{where}: max_turns", error=error),
         expected_outcome=expected_outcome,
         assertion_ids=assertion_ids,
@@ -215,7 +235,12 @@ def _parse_persona(raw: Any, where: str) -> JourneyPersona:
     )
 
 
-def _parse_knowledge_evidence(raw: Any, where: str) -> KnowledgeEvidence:
+def _parse_knowledge_evidence(
+    raw: Any,
+    knowledge_level: str,
+    grounded_facts: tuple[GroundedFact, ...],
+    where: str,
+) -> KnowledgeEvidence:
     error = JourneyScenarioError
     spot = f"{where}: knowledge_evidence"
     evidence = _mapping(raw, spot, error=error)
@@ -224,18 +249,25 @@ def _parse_knowledge_evidence(raw: Any, where: str) -> KnowledgeEvidence:
     )
     if ("rule" in evidence) == ("referent" in evidence):
         raise error(f"{spot} must carry exactly one of 'rule' or 'referent'")
+    kind = _closed(evidence["kind"], KNOWLEDGE_EVIDENCE_KINDS, f"{spot}.kind")
+    expected_kind, about = KNOWLEDGE_EVIDENCE[knowledge_level]
+    if kind != expected_kind:
+        raise error(
+            f"{spot}.kind {kind!r} does not evidence knowledge_level "
+            f"{knowledge_level!r}; that level is evidenced by {expected_kind!r}"
+        )
+    if about not in evidence:
+        raise error(f"{spot}: kind {kind!r} names a {about!r}")
+    value = _string(evidence[about], f"{spot}.{about}", error=error)
+    if about == "referent" and value not in {fact.path for fact in grounded_facts}:
+        raise error(
+            f"{spot}.referent {value!r} is not the path of one of the Scenario's "
+            "grounded facts"
+        )
     return KnowledgeEvidence(
-        kind=_string(evidence["kind"], f"{spot}.kind", error=error),
-        rule=(
-            _string(evidence["rule"], f"{spot}.rule", error=error)
-            if "rule" in evidence
-            else None
-        ),
-        referent=(
-            _string(evidence["referent"], f"{spot}.referent", error=error)
-            if "referent" in evidence
-            else None
-        ),
+        kind=kind,
+        rule=value if about == "rule" else None,
+        referent=value if about == "referent" else None,
     )
 
 
