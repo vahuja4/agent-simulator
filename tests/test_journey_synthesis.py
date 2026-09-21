@@ -411,6 +411,22 @@ def test_stub_output_is_reproducible_apart_from_the_timestamp(tmp_path):
     assert names[0] == names[1]
 
 
+def test_fixed_seed_stub_output_is_pinned_across_code_changes(tmp_path):
+    """A Scenario id hashes the set id, the whole planned spec and the
+    narrative, so the ordered ids pin the plan, the stub narrative and the id
+    definition. A refactor must leave this digest alone. A deliberate change
+    to the planner, the stub, the id or the reviewed Journey inputs updates it
+    in the same commit."""
+    result = js.synthesize_set(
+        JOURNEY_DIR, count=12, set_id="pinned", seed=7,
+        provider=js.StubNarrativeProvider(), output_root=tmp_path,
+    )
+    ids = "\n".join(path.stem for path in result.accepted)
+    assert js.sha256_bytes(ids.encode("utf-8")) == (
+        "7aa4d64ba7d5c0c64cd7f6dabd6da47794cafce8aa810f801b4b4f0550acea44"
+    )
+
+
 @pytest.mark.parametrize(
     "output_root",
     ["scenarios", "scenarios/synth", "synthesized_scenarios/library", "generated_scenarios"],
