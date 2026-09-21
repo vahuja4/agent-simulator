@@ -313,6 +313,22 @@ overrides only `_system_prompt` and `_render` (completed-conversation framing;
 `agent_role`, Goal, required rules, criteria, transcript, projected Trace) and
 inherits the schema, the single batched call and `_fail_closed`.
 
+As built (session 06): `JourneyJudge(llm, journey)` is what evaluation is
+handed; `judge_episode(scenario, trace)` binds a copy to the Episode's Scenario
+and makes the one inherited `judge` call. The prompt holds the Goal, the
+criteria the Scenario references, the Journey's required rules that one of
+those references checks (`required_rules_for`), the transcript and the
+projected Trace — never the expected outcome, `tool_failures`, the Persona or
+the rule → check wiring. It tells the Judge the conversation is over and never
+to answer `continue`. `JUDGE_MODEL = "gpt-5.5"` is a literal, so
+`AGENTSIM_MODEL` cannot move it; `live_journey_judge(journey, *,
+simulator_model=None, enforce_model_family_separation=False)` is the real
+wiring and raises a one-line `JudgeConfigError` before any client exists.
+`checks.JUDGE_CRITERION_TOOLS` names the tools each criterion is about (as
+`AssertionSpec.tools` does), because the Judge rules once and names no Turn:
+evaluation points a Judge failure at those tools' actions and the messages
+around them.
+
 ## 6. Synthesized Scenario schema and storage
 
 ```yaml
@@ -503,16 +519,27 @@ defaulting to 600 s in session 05b (first draft: a fixed 300 s).
 
 Outcome — first matching rule (`agentsim/journey/evaluation.py`):
 
-1. Stop reason `adapter_error` or `simulator_error` → `error`.
-2. An evidence class not `available`, or an Assertion `unavailable` → `error`.
+0. `episode.json` or `scenario.yaml` cannot be read → `error` (added in
+   session 06; `evaluation.json` is still written).
+1. Stop reason `adapter_error` or `simulator_error`, `status: aborted` (its
+   stop reason is null), or an unknown stop reason → `error`. `episode.json`'s
+   `error` is copied into `evaluation.json` as `episode_error`, unchanged.
+2. An evidence class not `available`, `normalized_trace.json` unreadable, an
+   Assertion or the outcome gate `unavailable`, or a Trace `to_trace()`
+   refuses → `error`. Assertions are not run on incomplete evidence.
 3. Any Assertion `failed` → `fail`; the Judge is not called, so cannot override.
-4. Judge raises `LLMError` → `error`.
-5. Judge decision `fail` (after `_fail_closed`) → `fail`.
+4. Judge raises (`LLMError` or anything else) → `error`.
+5. Judge decision `fail` (after `_fail_closed`), or a referenced criterion the
+   verdict does not affirm → `fail`. A `fail` with every criterion affirmed
+   carries one failure with id `judge_decision`.
 6. Judge `pass` **and** `expected_outcome_evidenced` → `pass`.
-7. Otherwise → `task_incomplete`.
+7. Otherwise → `task_incomplete`; `evaluation.json` `incomplete` says why,
+   since the gate carries no `FailureRecord`. A Judge `continue` lands here
+   even when the outcome is evidenced: it is never a `pass`.
 
-So an Episode whose conduct is clean but whose outcome is not evidenced is
-`task_incomplete`, whatever the stop reason.
+The Trace is projected only after rules 1 and 2. So an Episode whose conduct
+is clean but whose outcome is not evidenced is `task_incomplete`, whatever the
+stop reason.
 
 `run_episode` and `evaluate_episode` are `async def`: the Simulated user and
 the Judge are async. They run on `BatchRunner`'s loop, and the CLI enters
@@ -522,6 +549,10 @@ The adapter stays blocking; with `concurrency=1` that is acceptable.
 Each `FailureRecord` carries the check id, an explanation, and
 `data = {stable details…, "evidence": {"message_ids", "action_ids", "files"}}`;
 clustering similarity runs over `data`, so free text stays in `message`.
+`files` are names relative to the Episode directory, identical for every
+Episode, so they do not pull clusters apart. A Judge failure's stable details
+are `stop_reason`, `expected_outcome`, `outcome_status` and `tools`; its
+`turn_index` is `None`.
 One Episode per Scenario (`seed=0`); no Pass rate over Seeds is reported.
 
 ## 9. Run directory and commands
@@ -558,8 +589,19 @@ evidence}`, `release {attempted, error}`. `error` is `null` or one of
 readable by `load_journey_scenario`. `raw_trace.json` exists whenever a
 payload arrived, an unusable one included.
 
-`async evaluate_episode(episode_dir, judge) -> EvaluationResult` with
-`.to_run_result()` (an empty `Trace` when evidence is unavailable). `run`
+`async evaluate_episode(episode_dir, judge, *, criteria=criteria_for) ->
+EvaluationResult` with `.to_run_result()` (an empty `Trace` when evidence is
+unavailable; `llm_calls` counts the Judge call only). It reads the Scenario
+from `<episode_dir>/scenario.yaml`. `criteria` resolves a Scenario's criterion
+references to an `EvaluationCriteria` (Assertions, outcome gate, Judge
+criterion → tools): the mechanics take criteria as input and hold none.
+`evaluation.json`: `schema_version`, `scenario_id`, `journey`,
+`conversation_id`, `episode_status`, `stop_reason`, `expected_outcome`,
+`outcome`, `rule {number, name}`, `explanation`, `evidence`, `assertions`
+(`AssertionResult.to_dict()`), `outcome_evidence`, `judge {called, model,
+verdict, error}`, `failures` (`FailureRecord.to_dict()`), `incomplete`,
+`episode_error`, `simulator_model`. It is derived, so re-evaluating replaces
+it. `run`
 passes `BatchRunner(concurrency=1)` an async `execute` = `await run_episode` +
 `await evaluate_episode` (section 8). `summarize` calls `cluster_failures` unchanged (it
 clusters `fail` only, so `error` never enters an agent-failure cluster), skips
@@ -616,7 +658,7 @@ Persona-fidelity spot-check of that model and of the new
 | 04 | AGENT | `journey_agent/langgraph_agent.py`, model wiring, tests, pinned dependencies |
 | 05a | HARNESS | `agentsim/adapters/{conversation,journey_service}.py`; `tests/test_journey_adapter.py`; `tests/fixtures/journey_agent_raw_traces/` (raw Traces captured from AGENT's stub service, pinned for contract tests); `CONTEXT.md` (Agent adapter, Trace) |
 | 05b | HARNESS | `agentsim/journey/{simulated_user,episode}.py`; `tests/test_journey_{simulated_user,episode}.py`; `CONTEXT.md` (Termination, Transcript); the `agentsim/journey/__init__.py` docstring (running a Scenario, unlike loading one, does import the payments simulator) |
-| 06 | HARNESS | `agentsim/journey/{judge,evaluation}.py`; `tests/test_journey_evaluation.py` |
+| 06 | HARNESS | `agentsim/journey/{judge,evaluation}.py`; `JUDGE_CRITERION_TOOLS` in `agentsim/journey/checks.py` (no wording touched); `tests/test_journey_evaluation.py`; `CONTEXT.md` (Verdict) |
 | 07 | HARNESS | `scenario_synthesis/journey_synthesis.py`; `tests/test_journey_synthesis.py`; `CONTEXT.md`; the `knowledge_evidence.kind` closed set in `agentsim/journey/scenario.py` with its tests and `tests/journey_trace_builder.py` |
 | 08 | HARNESS | `scripts/journey_harness.py`; `agentsim/journey/report.py`; `tests/test_journey_{cli,report,e2e}.py` |
 | 09 | both | setup-and-run docs, walkthrough evidence, final report |

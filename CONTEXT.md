@@ -215,7 +215,14 @@ file in the same commit.
   text matches what the trace shows it *did*.
 - **Verdict** — the final outcome for an episode, produced by the
   two-layer design: deterministic assertions act as a hard gate over LLM
-  judge rulings. An episode passes only if both layers pass.
+  judge rulings. An episode passes only if both layers pass. On the
+  Journey-definition path the Verdict is assigned once, after the
+  conversation, to a saved Episode, and the Expected-outcome gate joins the
+  two layers: `pass` needs every Assertion passed, a Judge pass and the
+  Expected outcome evidenced in the Normalized Trace. Clean conduct without
+  that evidence is `task_incomplete`; an Episode error or unavailable
+  evidence is `error`, never `fail` and never `pass`. The Judge is not called
+  after an Assertion failure, so it cannot override one.
 - **Assertion** — a deterministic, code-level check on the transcript or
   trace (no LLM involved). The first layer of the verdict.
 - **Pass rate** — the fraction of seeds of a scenario whose episodes

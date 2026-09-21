@@ -509,6 +509,19 @@ JUDGE_CRITERIA: dict[str, Criterion] = {
 }
 
 
+# The tools whose actions each criterion is about, as ``AssertionSpec.tools``
+# is for an Assertion. The Judge rules on the whole conversation and names no
+# Turn, so evaluation uses this to point a Judge failure at its evidence.
+# ``reschedule_goal_completion`` is about the conversation, not a tool.
+JUDGE_CRITERION_TOOLS: dict[str, tuple[str, ...]] = {
+    "appointment_identified": (LOOKUP_APPOINTMENTS, UPDATE_APPOINTMENT),
+    "reschedule_confirmed": (UPDATE_APPOINTMENT,),
+    "offered_slots_grounded": (LOOKUP_APPOINTMENTS, FIND_AVAILABLE_SLOTS),
+    "update_result_reported_accurately": (UPDATE_APPOINTMENT,),
+    "reschedule_goal_completion": (),
+}
+
+
 def judge_criteria(criterion_ids: Iterable[str]) -> tuple[Criterion, ...]:
     criteria = []
     for criterion_id in criterion_ids:
