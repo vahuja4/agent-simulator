@@ -5,7 +5,8 @@ Written 2026-09-21 (session 01), before any code existed. A session that must
 deviate changes this note in the same commit and says so in its report.
 Amended by session 03 (sections 4, 5, 8, 9, 11, 12), session 07 (sections
 6, 7, 9, 11), session 07c (sections 6, 7, 9), session 05a (sections 1, 2,
-8, 11, 12) and session 05b (sections 5, 8, 9, 11).
+8, 11, 12), session 05b (sections 5, 8, 9, 11) and session 06c (sections 4,
+5, 9, 11: Judge criteria are data in `journey.yaml`).
 
 HARNESS = `/Users/vishal/Desktop/agent_simulator-langgraph`, AGENT =
 `/Users/vishal/Desktop/journey_agent`. The Journey is fictional appointment
@@ -204,10 +205,21 @@ written `assertion:<id>` / `judge:<id>` (at least: identify the existing
 appointment; explicit confirmation before changing it; report the update
 result accurately, failure included), `valid_outcomes: [{id, description,
 when: {tool_failures}}]` (`rescheduled`; `update_failed_reported`),
-`criteria: {assertions, judge}`, `knowledge_rules: [{id, statement}]` (the ADR
-0006 referents), `complications: {supported, unsupported: {id: reason}}`,
+`criteria: {assertions: [<id>], judge: [{id, statement, tools}]}`,
+`knowledge_rules: [{id, statement}]` (the ADR 0006 referents),
+`complications: {supported, unsupported: {id: reason}}`,
 `max_turns_default`. Rules constrain the order of observable events only, so
 alternative paths stay valid and nothing depends on the agent's workflow.
+
+`criteria.judge` states each Judge criterion in full (session 06c): `id`,
+`statement` — the wording the Judge is shown — and `tools`, the Journey tools
+whose actions the criterion is about. `tools` is always written; a criterion
+about the conversation rather than a tool gives `[]`. The loader refuses a
+duplicate id, an empty statement, a tool outside the Journey's `tools`, an
+unknown or missing field, and a `judge:<id>` rule reference to a criterion the
+list does not define. `criteria.assertions` stays a list of ids into
+`agentsim/journey/checks.py`. Because the wording is in `journey.yaml`, editing
+it changes the `journey_sha256` every Scenario's provenance records.
 
 `fixture_state.yaml`: `schema_version`, `fixture_state_id`, `now` (frozen),
 `customers: [{customer_id, name}]`, `appointments: [{appointment_id,
@@ -222,12 +234,27 @@ strings (an unquoted YAML timestamp cannot be hashed or sent inline), ids hold
 no `.`, and `status ∈ {scheduled, completed, cancelled}`.
 `JourneyDefinition.outcome_for(tool_failures)` derives the expected outcome;
 `FixtureState.fact("<collection>.<id>.<field>")` resolves a grounded-fact path.
+`JourneyDefinition.judge_criteria` holds the `JudgeCriterion(id, statement,
+tools)` rows, `judge_criterion_ids` is derived from them,
+`judge_criterion(id)` returns one and `criteria_for_judge(ids)` returns the
+`agentsim.judge.Criterion` objects the Judge is handed; both raise
+`JourneyDefinitionError` for an id the definition does not define.
 
 ## 5. Criteria, Assertions and the Scenario seam
 
-`agentsim/journey/checks.py` holds both halves by stable id; Journey files
-reference ids only, so criterion text stays in code as
-`agentsim.judge.Criterion` objects. Ids never reuse a payments id.
+The two halves live in different places (session 06c; the user directed the
+change on 2026-09-21). **Judge criteria are data in the Journey definition**:
+their wording and tools are in `journey.yaml` (section 4), and the Judge and
+evaluation read them from the `JourneyDefinition` they are given. Sessions
+03–06 kept the wording in code as `agentsim.judge.Criterion` objects, following
+the payments precedent; that was not a requirement, it meant a second Journey
+needed Python for what is only wording and a lookup table, and a wording edit
+did not move `journey_sha256`. **Assertions stay code**, in
+`agentsim/journey/checks.py`, referenced from Journey files by stable id: they
+are logic over the Normalized Trace, and stating them as data would need a rule
+language — the deferred generic refactor. With the outcome ids the gate knows,
+they are the remaining per-Journey Python, to be revisited when a second
+Journey exists. Ids never reuse a payments id.
 
 Assertions — pure functions of `NormalizedTrace` and the Scenario, returning
 `passed | failed | unavailable`:
@@ -257,8 +284,11 @@ Judge criteria, end-state phrased for one final ruling:
 `appointment_identified`, `reschedule_confirmed` (the user message before the
 update is a clear yes to the presented change), `offered_slots_grounded`,
 `update_result_reported_accurately` (Say/do consistency),
-`reschedule_goal_completion`. Session 03 wrote the wording
-(`agentsim/journey/checks.py`).
+`reschedule_goal_completion`. Session 03 wrote the wording; session 06c moved
+it to `journey.yaml` byte for byte, and
+`tests/test_journey_definition.py` pins the SHA-256 of each statement (and
+`tests/test_journey_evaluation.py` the Judge's system prompt), so a wording
+change is deliberate and updates the hash in the same commit.
 
 `reschedule_goal_completion` is pinned to the payments `goal_completion`
 criterion in `agentsim/judge.py`: it is false only if the agent lost the
@@ -272,7 +302,12 @@ become `fail` through rule 5 of section 8, rule 7 would be unreachable, and
 (`JourneyScenario`, `load_journey_scenario`), exposing `name` and `source` so
 `BatchRunSpec` accepts it. `agentsim/scenario.py` is not edited; its closed
 `JOURNEYS` rejects the new files and the new loader rejects payments files.
-The loader validates the file alone (schema, closed sets, check ids exist);
+The loader validates the file alone (schema, closed sets, Assertion ids
+exist). It has no Journey definition, so it cannot know which Judge criterion
+ids exist and does not check them (session 06c): an id the definition does not
+define is refused by `check_against_inputs` ("criteria.judge differ" — in
+synthesis an `input-mismatch`, no longer `schema-invalid`) and by rule 0 of
+evaluation;
 `check_against_inputs(scenario, journey, fixture_state)` checks fit against
 the inputs it will run with — ids resolve and belong to the customer, target
 slots are bookable and match the service, grounded facts equal Fixture state,
@@ -324,10 +359,12 @@ to answer `continue`. `JUDGE_MODEL = "gpt-5.5"` is a literal, so
 `AGENTSIM_MODEL` cannot move it; `live_journey_judge(journey, *,
 simulator_model=None, enforce_model_family_separation=False)` is the real
 wiring and raises a one-line `JudgeConfigError` before any client exists.
-`checks.JUDGE_CRITERION_TOOLS` names the tools each criterion is about (as
-`AssertionSpec.tools` does), because the Judge rules once and names no Turn:
-evaluation points a Judge failure at those tools' actions and the messages
-around them.
+Each Judge criterion's `tools` in `journey.yaml` names the tools it is about
+(as `AssertionSpec.tools` does), because the Judge rules once and names no
+Turn: evaluation points a Judge failure at those tools' actions and the
+messages around them. Session 06 kept that table in `checks.py`; session 06c
+moved it into the Journey definition, and `judge.py` no longer imports
+`checks`.
 
 ## 6. Synthesized Scenario schema and storage
 
@@ -589,12 +626,19 @@ evidence}`, `release {attempted, error}`. `error` is `null` or one of
 readable by `load_journey_scenario`. `raw_trace.json` exists whenever a
 payload arrived, an unusable one included.
 
-`async evaluate_episode(episode_dir, judge, *, criteria=criteria_for) ->
-EvaluationResult` with `.to_run_result()` (an empty `Trace` when evidence is
+`async evaluate_episode(episode_dir, judge, journey, *, criteria=criteria_for)
+-> EvaluationResult` with `.to_run_result()` (an empty `Trace` when evidence is
 unavailable; `llm_calls` counts the Judge call only). It reads the Scenario
-from `<episode_dir>/scenario.yaml`. `criteria` resolves a Scenario's criterion
-references to an `EvaluationCriteria` (Assertions, outcome gate, Judge
-criterion → tools): the mechanics take criteria as input and hold none.
+from `<episode_dir>/scenario.yaml`. `journey` is the `JourneyDefinition` the
+Scenario was written for (session 06c): the Judge protocol exposes only
+`judge_episode`, so the definition is an explicit argument and the Judge
+doubles stay small. `criteria(scenario, journey)` resolves a Scenario's
+criterion references to an `EvaluationCriteria` (Assertions, outcome gate,
+Judge criterion → tools): the mechanics take criteria as input and hold none.
+Two refusals are rule 0 (`error`), never a crash and never a default of "no
+tools": the Scenario's `journey` is not the definition's `journey_id`, and a
+Scenario Judge criterion the definition (or the handed criteria) does not
+define.
 `evaluation.json`: `schema_version`, `scenario_id`, `journey`,
 `conversation_id`, `episode_status`, `stop_reason`, `expected_outcome`,
 `outcome`, `rule {number, name}`, `explanation`, `evidence`, `assertions`
@@ -659,6 +703,7 @@ Persona-fidelity spot-check of that model and of the new
 | 05a | HARNESS | `agentsim/adapters/{conversation,journey_service}.py`; `tests/test_journey_adapter.py`; `tests/fixtures/journey_agent_raw_traces/` (raw Traces captured from AGENT's stub service, pinned for contract tests); `CONTEXT.md` (Agent adapter, Trace) |
 | 05b | HARNESS | `agentsim/journey/{simulated_user,episode}.py`; `tests/test_journey_{simulated_user,episode}.py`; `CONTEXT.md` (Termination, Transcript); the `agentsim/journey/__init__.py` docstring (running a Scenario, unlike loading one, does import the payments simulator) |
 | 06 | HARNESS | `agentsim/journey/{judge,evaluation}.py`; `JUDGE_CRITERION_TOOLS` in `agentsim/journey/checks.py` (no wording touched); `tests/test_journey_evaluation.py`; `CONTEXT.md` (Verdict) |
+| 06c | HARNESS | `journeys/appointment_rescheduling/journey.yaml` (`criteria.judge` in full); `agentsim/journey/{definition,checks,judge,evaluation,scenario}.py`; their tests and `tests/journey_trace_builder.py`; sections 4, 5 and 9 of this note |
 | 07 | HARNESS | `scenario_synthesis/journey_synthesis.py`; `tests/test_journey_synthesis.py`; `CONTEXT.md`; the `knowledge_evidence.kind` closed set in `agentsim/journey/scenario.py` with its tests and `tests/journey_trace_builder.py` |
 | 08 | HARNESS | `scripts/journey_harness.py`; `agentsim/journey/report.py`; `tests/test_journey_{cli,report,e2e}.py` |
 | 09 | both | setup-and-run docs, walkthrough evidence, final report |

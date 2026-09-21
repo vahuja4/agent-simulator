@@ -267,7 +267,7 @@ def test_grounded_dates_and_times_may_be_written_naturally():
         (lambda d: d["grounded_facts"][2].update(value="Dr. Nobody"),
          "input-mismatch", "in the Scenario but"),
         (lambda d: d["criteria"]["judge"].append("always_pass"),
-         "schema-invalid", "unknown Judge criterion(s) ['always_pass']"),
+         "input-mismatch", "criteria.judge differ"),
         (lambda d: d["criteria"]["judge"].pop(), "input-mismatch", "criteria.judge differ"),
         (lambda d: d.update(complication="perturbation"),
          "schema-invalid", "complication must be one of"),

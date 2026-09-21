@@ -333,12 +333,9 @@ def _parse_criteria(raw: Any, where: str) -> tuple[tuple[str, ...], tuple[str, .
             f"{spot}.assertions: unknown Assertion(s) {unknown} "
             f"(known: {sorted(checks.ASSERTIONS)})"
         )
-    unknown = sorted(set(judge_ids) - set(checks.JUDGE_CRITERIA))
-    if unknown:
-        raise error(
-            f"{spot}.judge: unknown Judge criterion(s) {unknown} "
-            f"(known: {sorted(checks.JUDGE_CRITERIA)})"
-        )
+    # Judge criteria are defined by the Journey definition, which this loader
+    # does not have: ``check_against_inputs`` and evaluation refuse an id the
+    # definition does not define.
     return assertion_ids, judge_ids
 
 

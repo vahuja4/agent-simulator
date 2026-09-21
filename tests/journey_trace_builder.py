@@ -11,6 +11,7 @@ from __future__ import annotations
 from typing import Any
 
 from agentsim.journey import checks
+from agentsim.journey.definition import load_journey_definition
 from agentsim.journey.normalized_trace import (
     ActionError,
     Evidence,
@@ -27,6 +28,7 @@ from agentsim.journey.scenario import (
 )
 
 AVAILABLE = Evidence(messages="available", actions="available")
+JOURNEY = load_journey_definition("journeys/appointment_rescheduling/journey.yaml")
 
 
 def lookup(*appointment_ids: str, **overrides: Any) -> dict[str, Any]:
@@ -126,7 +128,7 @@ def journey_scenario(
         max_turns=12,
         expected_outcome=expected_outcome,
         assertion_ids=tuple(checks.ASSERTIONS),
-        judge_criterion_ids=tuple(checks.JUDGE_CRITERIA),
+        judge_criterion_ids=JOURNEY.judge_criterion_ids,
         synthesis=JourneySynthesis(
             set_id="set-1", spec_id="spec-001", journey_sha256="a" * 64,
             fixture_state_sha256="b" * 64, generation_config_sha256="c" * 64,

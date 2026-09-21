@@ -55,7 +55,7 @@ SCENARIO_RAW = {
     "expected_outcome": "rescheduled",
     "criteria": {
         "assertions": list(checks.ASSERTIONS),
-        "judge": list(checks.JUDGE_CRITERIA),
+        "judge": list(load_journey_inputs(JOURNEY_DIR)[0].judge_criterion_ids),
     },
     "synthesis": {
         "origin": "synthesized",
@@ -110,7 +110,8 @@ def test_a_loaded_scenario_runs_through_the_assertions(tmp_path):
     results = checks.run_assertions(scenario.assertion_ids, trace, scenario)
     assert {r.status for r in results} == {"passed"}
     assert checks.expected_outcome_evidenced(trace, scenario).evidenced
-    assert len(checks.judge_criteria(scenario.judge_criterion_ids)) == 5
+    journey, _ = load_journey_inputs(JOURNEY_DIR)
+    assert len(journey.criteria_for_judge(scenario.judge_criterion_ids)) == 5
 
 
 def test_each_knowledge_level_loads_with_the_one_kind_that_evidences_it(tmp_path):
@@ -179,8 +180,6 @@ def test_knowledge_evidence_kinds_are_the_phase_4_5_names():
         (lambda r: r["grounded_facts"][0].pop("value"), "missing field(s) ['value']"),
         (lambda r: r["criteria"]["assertions"].append("validated_submit"),
          "unknown Assertion(s) ['validated_submit']"),
-        (lambda r: r["criteria"]["judge"].append("goal_completion"),
-         "unknown Judge criterion(s) ['goal_completion']"),
         (lambda r: r["synthesis"].update(origin="curated"), "origin must be 'synthesized'"),
         (lambda r: r["synthesis"].update(qualification="admitted"),
          "qualification must be 'none'"),
@@ -292,6 +291,10 @@ def test_the_controlled_failure_scenario_fits_with_its_derived_outcome(tmp_path)
          "is not what the Journey definition derives"),
         (lambda r: r["criteria"]["assertions"].pop(), "criteria.assertions differ"),
         (lambda r: r["criteria"]["judge"].pop(), "criteria.judge differ"),
+        # The loader has no Journey definition, so a Judge criterion id nobody
+        # defines loads; this is where it is caught.
+        (lambda r: r["criteria"]["judge"].append("goal_completion"),
+         "criteria.judge differ"),
     ],
 )
 def test_a_scenario_that_does_not_fit_the_inputs_is_rejected(tmp_path, mutate, fragment):

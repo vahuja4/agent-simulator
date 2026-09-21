@@ -39,7 +39,9 @@ evidence does a Judge failure reference when the Judge names no Turn?
   inherited schema still allows it. `evaluation.json` `incomplete` records the
   decision, because the gate carries no `FailureRecord`.
 - **A Judge failure points at the tools its criterion is about.**
-  `checks.JUDGE_CRITERION_TOOLS` mirrors `AssertionSpec.tools`; the evidence is
+  Each criterion's `tools` mirrors `AssertionSpec.tools` (a table in
+  `checks.py` in session 06; since session 06c a field of the criterion in
+  `journey.yaml` — see `journey-judge-criteria-are-data.md`); the evidence is
   those tools' actions plus the user message each handled and the reply it
   produced. Identities come from the Normalized Trace, never from Transcript
   lines (user lines carry no `message_id`).
@@ -47,7 +49,8 @@ evidence does a Judge failure reference when the Judge names no Turn?
   across Episodes, so `data` stays stable for clustering.
 - **Mechanics take criteria as input.** `evaluate_episode(episode_dir, judge,
   *, criteria=criteria_for)`; `criteria_for` resolves the Scenario's criterion
-  references from `checks.py`. The Judge is handed in ready-made
+  references from `checks.py`. (Session 06c added the `journey` argument and
+  moved the Judge half to the Journey definition.) The Judge is handed in ready-made
   (`JourneyJudge(llm, journey)`), and binds itself to the Scenario that
   evaluation loads from the Episode directory.
 - **The Judge prompt holds four inputs**: Goal; referenced criteria and the
@@ -74,7 +77,8 @@ followed, which is what they open first.
 - Judge criteria calibrated to need valid outcomes or permitted behavior in
   the prompt. That is a wording-level change and needs live verification.
 - A second Journey: `criteria_for` reads one `checks` module; it would need a
-  registry keyed by Journey.
+  registry keyed by Journey. (Session 06c removed that need for the Judge half
+  without a registry; the Assertion half still reads `checks`.)
 - Clustering that splits identical Judge failures because conversations differ
   in length (the action and message ids sit in `data`).
 

@@ -4,8 +4,9 @@ definition (``journey.yaml``) and its Fixture state (``fixture_state.yaml``).
 Both fail loudly — unknown fields, dangling ids and unknown check references
 are errors that name the file and field, never warnings. Neither file knows
 anything about the agent's implementation: the Journey definition states
-permitted behavior, required rules, valid outcomes and which checks apply;
-the Fixture state is plain synthetic data.
+permitted behavior, required rules, valid outcomes, which Assertions apply and
+the Judge criteria in full — their wording and the tools each is about; the
+Fixture state is plain synthetic data.
 """
 
 from __future__ import annotations
@@ -17,8 +18,9 @@ import re
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any, Iterable, Mapping
 
+from ..judge import Criterion
 from . import checks
 from ._strict import (
     _list,
@@ -93,6 +95,13 @@ class KnowledgeRule:
 
 
 @dataclass(frozen=True)
+class JudgeCriterion:
+    id: str
+    statement: str  # the wording the Judge is shown
+    tools: tuple[str, ...]  # the tools whose actions the criterion is about
+
+
+@dataclass(frozen=True)
 class JourneyDefinition:
     journey_id: str
     title: str
@@ -102,12 +111,35 @@ class JourneyDefinition:
     required_rules: tuple[RequiredRule, ...]
     valid_outcomes: tuple[ValidOutcome, ...]
     assertion_ids: tuple[str, ...]
-    judge_criterion_ids: tuple[str, ...]
+    judge_criteria: tuple[JudgeCriterion, ...]
     knowledge_rules: tuple[KnowledgeRule, ...]
     supported_complications: tuple[str, ...]
     unsupported_complications: Mapping[str, str]  # id -> recorded reason
     max_turns_default: int
     source: str
+
+    @property
+    def judge_criterion_ids(self) -> tuple[str, ...]:
+        return tuple(criterion.id for criterion in self.judge_criteria)
+
+    def judge_criterion(self, criterion_id: str) -> JudgeCriterion:
+        """The Judge criterion with this id. An id the definition does not
+        define is an error, never a criterion with no tools."""
+        for criterion in self.judge_criteria:
+            if criterion.id == criterion_id:
+                return criterion
+        raise JourneyDefinitionError(
+            f"{Path(self.source).name}: Journey {self.journey_id!r} defines no Judge "
+            f"criterion {criterion_id!r} (defined: {sorted(self.judge_criterion_ids)})"
+        )
+
+    def criteria_for_judge(self, criterion_ids: Iterable[str]) -> tuple[Criterion, ...]:
+        """The ``agentsim.judge.Criterion`` objects the Judge is handed, in the
+        requested order."""
+        return tuple(
+            Criterion(criterion.id, criterion.statement)
+            for criterion in map(self.judge_criterion, criterion_ids)
+        )
 
     def outcome_for(self, tool_failures: tuple[str, ...]) -> str:
         """The valid outcome expected under a controlled-tool-failure condition."""
@@ -146,7 +178,7 @@ def load_journey_definition(path: str | Path) -> JourneyDefinition:
         )
 
     tools = _unique_strings(raw["tools"], f"{where}: tools", error=error)
-    assertion_ids, judge_ids = _parse_criteria(raw["criteria"], tools, where)
+    assertion_ids, judge_criteria = _parse_criteria(raw["criteria"], tools, where)
     complications = _parse_complications(raw["complications"], where)
 
     return JourneyDefinition(
@@ -158,11 +190,14 @@ def load_journey_definition(path: str | Path) -> JourneyDefinition:
             raw["permitted_behavior"], f"{where}: permitted_behavior", error=error
         ),
         required_rules=_parse_required_rules(
-            raw["required_rules"], assertion_ids, judge_ids, where
+            raw["required_rules"],
+            assertion_ids,
+            tuple(criterion.id for criterion in judge_criteria),
+            where,
         ),
         valid_outcomes=_parse_valid_outcomes(raw["valid_outcomes"], tools, where),
         assertion_ids=assertion_ids,
-        judge_criterion_ids=judge_ids,
+        judge_criteria=judge_criteria,
         knowledge_rules=_parse_knowledge_rules(raw["knowledge_rules"], where),
         supported_complications=complications[0],
         unsupported_complications=complications[1],
@@ -175,7 +210,7 @@ def load_journey_definition(path: str | Path) -> JourneyDefinition:
 
 def _parse_criteria(
     raw: Any, tools: tuple[str, ...], where: str
-) -> tuple[tuple[str, ...], tuple[str, ...]]:
+) -> tuple[tuple[str, ...], tuple[JudgeCriterion, ...]]:
     error = JourneyDefinitionError
     spot = f"{where}: criteria"
     criteria = _mapping(raw, spot, error=error)
@@ -183,7 +218,6 @@ def _parse_criteria(
     assertion_ids = _unique_strings(
         criteria["assertions"], f"{spot}.assertions", error=error
     )
-    judge_ids = _unique_strings(criteria["judge"], f"{spot}.judge", error=error)
     for assertion_id in assertion_ids:
         if assertion_id not in checks.ASSERTIONS:
             raise error(
@@ -196,13 +230,38 @@ def _parse_criteria(
                 f"{spot}.assertions: {assertion_id!r} reads tool(s) {sorted(unread)} "
                 "that the Journey's tools do not list"
             )
-    for criterion_id in judge_ids:
-        if criterion_id not in checks.JUDGE_CRITERIA:
+    return assertion_ids, _parse_judge_criteria(criteria["judge"], tools, spot)
+
+
+def _parse_judge_criteria(
+    raw: Any, tools: tuple[str, ...], where: str
+) -> tuple[JudgeCriterion, ...]:
+    error = JourneyDefinitionError
+    judge_criteria: list[JudgeCriterion] = []
+    for i, item in enumerate(_list(raw, f"{where}.judge", error=error)):
+        spot = f"{where}.judge[{i}]"
+        criterion = _mapping(item, spot, error=error)
+        _strict(criterion, {"id", "statement", "tools"}, spot, error=error)
+        # A criterion about the conversation rather than a tool says so with
+        # an empty list; the field is never left out.
+        criterion_tools = _unique_strings(
+            criterion["tools"], f"{spot}.tools", error=error, allow_empty=True
+        )
+        unlisted = sorted(set(criterion_tools) - set(tools))
+        if unlisted:
             raise error(
-                f"{spot}.judge: unknown Judge criterion {criterion_id!r} "
-                f"(known: {sorted(checks.JUDGE_CRITERIA)})"
+                f"{spot}.tools: {unlisted} are not among the Journey's tools "
+                f"({sorted(tools)})"
             )
-    return assertion_ids, judge_ids
+        judge_criteria.append(
+            JudgeCriterion(
+                id=_string(criterion["id"], f"{spot}.id", error=error),
+                statement=_string(criterion["statement"], f"{spot}.statement", error=error),
+                tools=criterion_tools,
+            )
+        )
+    _require_unique_ids([c.id for c in judge_criteria], f"{where}.judge", error)
+    return tuple(judge_criteria)
 
 
 def _parse_required_rules(

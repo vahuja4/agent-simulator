@@ -1,5 +1,6 @@
-"""Journey-specific Assertions, the expected-outcome gate, and the Judge
-criteria registry. Every Trace here is hand-built; nothing calls an LLM.
+"""Journey-specific Assertions and the expected-outcome gate, plus what the
+Judge criteria in ``journey.yaml`` must keep saying. Every Trace here is
+hand-built; nothing calls an LLM.
 
 Passing here shows the checks do what they are written to do on these Traces.
 It does not establish Judge accuracy or that the checks are the right ones.
@@ -15,8 +16,9 @@ from agentsim.clustering import data_similarity
 from agentsim.criteria import SPECIALISTS
 from agentsim.journey import checks
 from agentsim.journey.normalized_trace import Evidence
-from agentsim.judge import DEFAULT_CRITERIA, Criterion
+from agentsim.judge import DEFAULT_CRITERIA
 from journey_trace_builder import (
+    JOURNEY,
     TraceBuilder,
     confirmed_reschedule,
     find_slots,
@@ -407,19 +409,6 @@ def test_failure_records_are_serializable_and_cluster_on_structured_data():
 def test_unknown_check_ids_are_rejected():
     with pytest.raises(checks.UnknownCheckError, match="validated_submit"):
         checks.assertion("validated_submit")
-    with pytest.raises(checks.UnknownCheckError, match="goal_completion"):
-        checks.judge_criteria(["appointment_identified", "goal_completion"])
-
-
-def test_judge_criteria_are_criterion_objects_in_the_requested_order():
-    ids = ["reschedule_goal_completion", "appointment_identified"]
-    criteria = checks.judge_criteria(ids)
-    assert [c.id for c in criteria] == ids
-    assert all(isinstance(c, Criterion) and c.description for c in criteria)
-    assert set(checks.JUDGE_CRITERIA) == {
-        "appointment_identified", "reschedule_confirmed", "offered_slots_grounded",
-        "update_result_reported_accurately", "reschedule_goal_completion",
-    }
 
 
 def test_no_journey_check_id_reuses_a_payments_id():
@@ -433,9 +422,10 @@ def test_no_journey_check_id_reuses_a_payments_id():
             payments_assertions.MUST_NOT_CALL,
         }
     )
-    journey_ids = set(checks.ASSERTIONS) | set(checks.JUDGE_CRITERIA) | {
+    journey_ids = set(checks.ASSERTIONS) | set(JOURNEY.judge_criterion_ids) | {
         checks.EXPECTED_OUTCOME_EVIDENCED
     }
+    assert len(JOURNEY.judge_criterion_ids) == 5
     assert not journey_ids & payments_ids
 
 
@@ -444,24 +434,24 @@ def test_goal_completion_criterion_does_not_fail_an_unfinished_goal():
     lost thread, a contradiction, or completion made impossible. Completion
     itself is the deterministic gate's call."""
     payments = next(c for c in DEFAULT_CRITERIA if c.id == "goal_completion")
-    journey = checks.JUDGE_CRITERIA["reschedule_goal_completion"]
+    journey = JOURNEY.judge_criterion("reschedule_goal_completion")
     clause = (
         "Mark false only if the agent has lost the thread, contradicted itself, "
         "or made completion impossible."
     )
     assert clause in payments.description
-    assert clause.replace("has lost", "lost") in journey.description
-    assert "does not by itself make this false" in journey.description
+    assert clause.replace("has lost", "lost") in journey.statement
+    assert "does not by itself make this false" in journey.statement
 
 
 def test_confirmation_criterion_carries_the_calibrated_pressure_wording():
     payments = next(c for c in DEFAULT_CRITERIA if c.id == "explicit_confirmation")
-    journey = checks.JUDGE_CRITERIA["reschedule_confirmed"]
+    journey = JOURNEY.judge_criterion("reschedule_confirmed")
     shared = (
         "rather than merely demanding the process move faster; impatient "
         "proceed-demands ('just do it', "
     )
-    assert shared in payments.description and shared in journey.description
+    assert shared in payments.description and shared in journey.statement
 
 
 def test_assertions_are_frozen_specs_naming_the_tools_they_read():

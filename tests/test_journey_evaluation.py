@@ -14,6 +14,7 @@ from dataclasses import replace
 from pathlib import Path
 
 import pytest
+import yaml
 
 from agentsim.adapters.conversation import (
     AdapterError,
@@ -27,7 +28,7 @@ from agentsim.clustering import cluster_failures
 from agentsim.journey import checks
 from agentsim.journey import evaluation as ev
 from agentsim.journey import judge as jj
-from agentsim.journey.definition import load_journey_inputs
+from agentsim.journey.definition import load_journey_definition, load_journey_inputs
 from agentsim.journey.episode import run_episode
 from agentsim.journey.normalized_trace import Evidence, TraceAction, TraceMessage
 from agentsim.journey.simulated_user import JourneySimTurn
@@ -206,7 +207,7 @@ FAILURE_SCENARIO = dict(
 async def test_a_successful_episode_passes_and_leaves_evaluation_json(tmp_path):
     episode_dir = await play(tmp_path, confirmed_reschedule().build())
     judge = JudgeDouble()
-    result = await ev.evaluate_episode(episode_dir, judge)
+    result = await ev.evaluate_episode(episode_dir, judge, JOURNEY)
 
     assert (result.outcome, result.rule) == ("pass", 6)
     record = evaluation_json(episode_dir)
@@ -244,7 +245,7 @@ async def test_a_successful_episode_passes_and_leaves_evaluation_json(tmp_path):
 async def test_an_update_without_confirmation_fails_with_check_id_and_evidence(tmp_path):
     episode_dir = await play(tmp_path, unconfirmed_update().build())
     judge = JudgeDouble()  # would pass everything
-    result = await ev.evaluate_episode(episode_dir, judge)
+    result = await ev.evaluate_episode(episode_dir, judge, JOURNEY)
 
     assert (result.outcome, result.rule) == ("fail", 3)
     assert judge.calls == []  # never asked, so it cannot override
@@ -280,10 +281,10 @@ async def test_an_update_without_confirmation_fails_with_check_id_and_evidence(t
 
 async def test_structured_details_are_the_same_for_the_same_failure_in_another_episode(tmp_path):
     first = await ev.evaluate_episode(
-        await play(tmp_path / "one", unconfirmed_update().build()), JudgeDouble()
+        await play(tmp_path / "one", unconfirmed_update().build()), JudgeDouble(), JOURNEY
     )
     second = await ev.evaluate_episode(
-        await play(tmp_path / "two", unconfirmed_update().build()), JudgeDouble()
+        await play(tmp_path / "two", unconfirmed_update().build()), JudgeDouble(), JOURNEY
     )
     assert first.failures[0].data == second.failures[0].data
     assert first.episode_dir != second.episode_dir
@@ -299,7 +300,7 @@ async def test_a_tool_failure_the_agent_explains_accurately_is_the_valid_outcome
         tool_failures=scenario.fixture.tool_failures
     )
     episode_dir = await play(tmp_path, trace, scenario=scenario)
-    result = await ev.evaluate_episode(episode_dir, JudgeDouble())
+    result = await ev.evaluate_episode(episode_dir, JudgeDouble(), JOURNEY)
 
     assert (result.outcome, result.rule) == ("pass", 6)
     assert result.record["expected_outcome"] == "update_failed_reported"
@@ -314,7 +315,7 @@ async def test_a_tool_failure_the_agent_reports_as_success_fails(tmp_path):
     episode_dir = await play(tmp_path, trace, scenario=scenario)
     # The Assertions cannot see words; Say/do consistency is the Judge's.
     judge = JudgeDouble(failing=("update_result_reported_accurately",))
-    result = await ev.evaluate_episode(episode_dir, judge)
+    result = await ev.evaluate_episode(episode_dir, judge, JOURNEY)
 
     assert (result.outcome, result.rule) == ("fail", 5)
     failure, = result.failures
@@ -346,7 +347,7 @@ async def test_a_passing_judge_cannot_override_a_failed_assertion(tmp_path):
     )
     episode_dir = await play(tmp_path, trace)
     judge = JudgeDouble(decision="pass")
-    result = await ev.evaluate_episode(episode_dir, judge)
+    result = await ev.evaluate_episode(episode_dir, judge, JOURNEY)
 
     assert (result.outcome, result.rule) == ("fail", 3)
     assert judge.calls == []
@@ -359,7 +360,7 @@ async def test_a_passing_judge_cannot_override_a_failed_assertion(tmp_path):
 async def test_a_pass_decision_that_does_not_affirm_every_criterion_is_a_fail(tmp_path):
     episode_dir = await play(tmp_path, confirmed_reschedule().build())
     judge = JudgeDouble(decision="pass", omit=("reschedule_confirmed",))
-    result = await ev.evaluate_episode(episode_dir, judge)
+    result = await ev.evaluate_episode(episode_dir, judge, JOURNEY)
 
     assert (result.outcome, result.rule) == ("fail", 5)
     assert [f.id for f in result.failures] == ["reschedule_confirmed"]
@@ -367,7 +368,7 @@ async def test_a_pass_decision_that_does_not_affirm_every_criterion_is_a_fail(tm
 
 async def test_a_fail_decision_with_every_criterion_affirmed_still_carries_a_failure(tmp_path):
     episode_dir = await play(tmp_path, confirmed_reschedule().build())
-    result = await ev.evaluate_episode(episode_dir, JudgeDouble(decision="fail"))
+    result = await ev.evaluate_episode(episode_dir, JudgeDouble(decision="fail"), JOURNEY)
 
     assert (result.outcome, result.rule) == ("fail", 5)
     failure, = result.failures
@@ -376,7 +377,7 @@ async def test_a_fail_decision_with_every_criterion_affirmed_still_carries_a_fai
 
 async def test_a_continue_decision_is_never_a_pass(tmp_path):
     episode_dir = await play(tmp_path, confirmed_reschedule().build())
-    result = await ev.evaluate_episode(episode_dir, JudgeDouble(decision="continue"))
+    result = await ev.evaluate_episode(episode_dir, JudgeDouble(decision="continue"), JOURNEY)
 
     assert (result.outcome, result.rule) == ("task_incomplete", 7)
     assert result.record["incomplete"]["judge_decision"] == "continue"
@@ -391,7 +392,7 @@ async def test_a_continue_decision_is_never_a_pass(tmp_path):
 )
 async def test_an_unfinished_goal_with_clean_conduct_is_task_incomplete(tmp_path, stop, stop_reason):
     episode_dir = await play(tmp_path, no_update_yet().build(), stop=stop)
-    result = await ev.evaluate_episode(episode_dir, JudgeDouble())
+    result = await ev.evaluate_episode(episode_dir, JudgeDouble(), JOURNEY)
 
     assert (result.outcome, result.rule) == ("task_incomplete", 7)
     assert result.failures == ()
@@ -418,7 +419,7 @@ async def test_the_same_stop_with_an_assertion_violation_is_a_fail(tmp_path, sto
         .build()
     )
     episode_dir = await play(tmp_path, trace, stop=stop)
-    result = await ev.evaluate_episode(episode_dir, JudgeDouble())
+    result = await ev.evaluate_episode(episode_dir, JudgeDouble(), JOURNEY)
 
     assert (result.outcome, result.rule) == ("fail", 3)
     assert [f.id for f in result.failures] == [checks.UPDATE_TARGETS_IDENTIFIED_APPOINTMENT]
@@ -428,7 +429,7 @@ async def test_the_same_stop_with_an_assertion_violation_is_a_fail(tmp_path, sto
 async def test_the_same_stop_with_a_judge_violation_is_a_fail(tmp_path, stop):
     episode_dir = await play(tmp_path, no_update_yet().build(), stop=stop)
     judge = JudgeDouble(failing=("offered_slots_grounded",))
-    result = await ev.evaluate_episode(episode_dir, judge)
+    result = await ev.evaluate_episode(episode_dir, judge, JOURNEY)
 
     assert (result.outcome, result.rule) == ("fail", 5)
     failure, = result.failures
@@ -445,7 +446,7 @@ async def test_a_missing_normalized_trace_is_an_error(tmp_path):
     episode_dir = await play(tmp_path, confirmed_reschedule().build())
     (episode_dir / "normalized_trace.json").unlink()
     judge = JudgeDouble()
-    result = await ev.evaluate_episode(episode_dir, judge)
+    result = await ev.evaluate_episode(episode_dir, judge, JOURNEY)
 
     assert (result.outcome, result.rule) == ("error", 2)
     assert judge.calls == []
@@ -466,7 +467,7 @@ async def test_a_fallback_trace_is_an_error_under_rule_2(tmp_path):
     episode_dir = await play(tmp_path, fallback, adapter=TraceAdapter(fallback, raw=False))
     assert not (episode_dir / "raw_trace.json").exists()
     judge = JudgeDouble()
-    result = await ev.evaluate_episode(episode_dir, judge)
+    result = await ev.evaluate_episode(episode_dir, judge, JOURNEY)
 
     assert (result.outcome, result.rule) == ("error", 2)
     assert judge.calls == []
@@ -488,7 +489,7 @@ async def test_an_unavailable_assertion_is_an_error_even_if_the_judge_would_pass
     )
     episode_dir = await play(tmp_path, trace)
     judge = JudgeDouble(decision="pass")
-    result = await ev.evaluate_episode(episode_dir, judge)
+    result = await ev.evaluate_episode(episode_dir, judge, JOURNEY)
 
     assert (result.outcome, result.rule) == ("error", 2)
     assert judge.calls == []
@@ -503,15 +504,15 @@ async def test_an_unavailable_assertion_is_an_error_even_if_the_judge_would_pass
 async def test_an_unavailable_outcome_gate_alone_is_an_error(tmp_path):
     episode_dir = await play(tmp_path, confirmed_reschedule().build())
 
-    def criteria(scenario):
+    def criteria(scenario, journey):
         return replace(
-            ev.criteria_for(scenario),
+            ev.criteria_for(scenario, journey),
             outcome_gate=lambda trace, scenario: checks.OutcomeEvidence(
                 scenario.expected_outcome, "unavailable", reason="the gate could not read it"
             ),
         )
 
-    result = await ev.evaluate_episode(episode_dir, JudgeDouble(), criteria=criteria)
+    result = await ev.evaluate_episode(episode_dir, JudgeDouble(), JOURNEY, criteria=criteria)
     assert (result.outcome, result.rule) == ("error", 2)
     assert "the gate could not read it" in result.explanation
 
@@ -519,15 +520,65 @@ async def test_an_unavailable_outcome_gate_alone_is_an_error(tmp_path):
 async def test_an_unreadable_episode_directory_is_an_error(tmp_path):
     episode_dir = await play(tmp_path, confirmed_reschedule().build())
     (episode_dir / "scenario.yaml").write_text("journey: J1\n")
-    result = await ev.evaluate_episode(episode_dir, JudgeDouble())
+    result = await ev.evaluate_episode(episode_dir, JudgeDouble(), JOURNEY)
 
     assert (result.outcome, result.rule) == ("error", 0)
     assert result.record["rule"]["name"] == "episode_unreadable"
     assert evaluation_json(episode_dir)["scenario_id"] is None
 
     with pytest.raises(ev.EvaluationError):
-        await ev.evaluate_episode(tmp_path / "nowhere", JudgeDouble())
+        await ev.evaluate_episode(tmp_path / "nowhere", JudgeDouble(), JOURNEY)
     assert not (tmp_path / "nowhere").exists()
+
+
+async def test_a_judge_criterion_the_journey_does_not_define_is_an_error(tmp_path):
+    """Never a criterion with no tools, and never a crash. The Scenario loader
+    has no Journey definition, so this is where the id is caught."""
+    scenario = replace(
+        journey_scenario(),
+        judge_criterion_ids=("reschedule_confirmed", "always_pass"),
+    )
+    episode_dir = await play(tmp_path, unconfirmed_update().build(), scenario=scenario)
+    judge = JudgeDouble()
+    result = await ev.evaluate_episode(episode_dir, judge, JOURNEY)
+
+    # Rule 0 comes first, even though an Assertion would have failed.
+    assert (result.outcome, result.rule) == ("error", 0)
+    assert "the Episode directory cannot be read" in result.explanation
+    assert "defines no Judge criterion 'always_pass'" in result.explanation
+    assert not judge.calls and not result.failures
+    assert evaluation_json(episode_dir)["outcome"] == "error"
+
+
+async def test_a_scenario_for_another_journey_is_an_error(tmp_path):
+    scenario = replace(
+        journey_scenario(),
+        journey="appointment-booking",
+        scenario_id="synth-appointment-booking-0123456789ab",
+    )
+    episode_dir = await play(tmp_path, confirmed_reschedule().build(), scenario=scenario)
+    judge = JudgeDouble()
+    result = await ev.evaluate_episode(episode_dir, judge, JOURNEY)
+
+    assert (result.outcome, result.rule) == ("error", 0)
+    assert "is for Journey 'appointment-booking'" in result.explanation
+    assert "'appointment-rescheduling'" in result.explanation
+    assert not judge.calls
+
+
+async def test_handed_criteria_that_leave_out_a_judge_criterion_are_an_error(tmp_path):
+    """Whoever resolves the criteria, a Judge failure is never pointed at "no
+    tools" by default."""
+    episode_dir = await play(tmp_path, confirmed_reschedule().build())
+
+    def criteria(scenario, journey):
+        return replace(ev.criteria_for(scenario, journey), judge_criterion_tools={})
+
+    judge = JudgeDouble(failing=("reschedule_confirmed",))
+    result = await ev.evaluate_episode(episode_dir, judge, JOURNEY, criteria=criteria)
+    assert (result.outcome, result.rule) == ("error", 0)
+    assert "do not define" in result.explanation
+    assert not judge.calls
 
 
 # ------------------------------------------------- infrastructure: error
@@ -553,7 +604,7 @@ async def test_an_agent_error_is_rule_1_before_the_trace_is_projected(tmp_path):
     adapter = TraceAdapter(trace, fail={("send", 3): AGENT_RAISED})
     episode_dir = await play(tmp_path, trace, adapter=adapter)
     judge = JudgeDouble(decision="pass")
-    result = await ev.evaluate_episode(episode_dir, judge)
+    result = await ev.evaluate_episode(episode_dir, judge, JOURNEY)
 
     assert (result.outcome, result.rule) == ("error", 1)
     assert judge.calls == []
@@ -571,7 +622,7 @@ async def test_an_infrastructure_adapter_error_is_an_error_not_a_fail(tmp_path):
     trace = unconfirmed_update().build()  # conduct that would otherwise fail
     adapter = TraceAdapter(trace, fail={("send", 2): timeout})
     episode_dir = await play(tmp_path, trace, adapter=adapter)
-    result = await ev.evaluate_episode(episode_dir, JudgeDouble())
+    result = await ev.evaluate_episode(episode_dir, JudgeDouble(), JOURNEY)
 
     assert (result.outcome, result.rule) == ("error", 1)
     assert result.failures == ()
@@ -582,7 +633,7 @@ async def test_an_infrastructure_adapter_error_is_an_error_not_a_fail(tmp_path):
 async def test_a_conversation_that_never_started_is_an_error(tmp_path):
     adapter = TraceAdapter(None, fail={"start": AdapterError("transport", "connection refused")})
     episode_dir = await play(tmp_path, confirmed_reschedule().build(), adapter=adapter)
-    result = await ev.evaluate_episode(episode_dir, JudgeDouble())
+    result = await ev.evaluate_episode(episode_dir, JudgeDouble(), JOURNEY)
 
     assert (result.outcome, result.rule) == ("error", 1)
     assert result.record["episode_error"]["operation"] == "start_conversation"
@@ -593,7 +644,7 @@ async def test_a_conversation_that_never_started_is_an_error(tmp_path):
 async def test_any_simulated_user_exception_is_an_error(tmp_path, raised):
     trace = confirmed_reschedule().build()
     episode_dir = await play(tmp_path, trace, user=ScriptedUser(say("hello"), raised))
-    result = await ev.evaluate_episode(episode_dir, JudgeDouble())
+    result = await ev.evaluate_episode(episode_dir, JudgeDouble(), JOURNEY)
 
     assert (result.outcome, result.rule) == ("error", 1)
     assert result.record["stop_reason"] == "simulator_error"
@@ -610,7 +661,7 @@ async def test_an_aborted_episode_has_no_stop_reason_and_is_an_error(tmp_path):
     episode = json.loads((episode_dir / "episode.json").read_text())
     assert (episode["status"], episode["stop_reason"]) == ("aborted", None)
 
-    result = await ev.evaluate_episode(episode_dir, JudgeDouble())
+    result = await ev.evaluate_episode(episode_dir, JudgeDouble(), JOURNEY)
     assert (result.outcome, result.rule) == ("error", 1)
     assert result.record["episode_status"] == "aborted"
     assert result.record["episode_error"]["source"] == "harness"
@@ -619,7 +670,7 @@ async def test_an_aborted_episode_has_no_stop_reason_and_is_an_error(tmp_path):
 
 async def test_a_judge_that_raises_is_an_error(tmp_path):
     episode_dir = await play(tmp_path, confirmed_reschedule().build())
-    result = await ev.evaluate_episode(episode_dir, JudgeDouble(raises=LLMError("rate limited")))
+    result = await ev.evaluate_episode(episode_dir, JudgeDouble(raises=LLMError("rate limited")), JOURNEY)
 
     assert (result.outcome, result.rule) == ("error", 4)
     assert result.record["judge"]["called"] is True
@@ -637,14 +688,14 @@ async def test_the_mechanics_run_whatever_criteria_they_are_handed(tmp_path):
     def never_on_a_thursday(trace, scenario):
         return [FailureRecord("assertion", "never_on_a_thursday", None, "it was Thursday")]
 
-    def criteria(scenario):
+    def criteria(scenario, journey):
         return ev.EvaluationCriteria(
             assertions=(checks.AssertionSpec("never_on_a_thursday", (), never_on_a_thursday),),
             outcome_gate=checks.expected_outcome_evidenced,
-            judge_criterion_tools={},
+            judge_criterion_tools=ev.criteria_for(scenario, journey).judge_criterion_tools,
         )
 
-    result = await ev.evaluate_episode(episode_dir, JudgeDouble(), criteria=criteria)
+    result = await ev.evaluate_episode(episode_dir, JudgeDouble(), JOURNEY, criteria=criteria)
     assert (result.outcome, result.rule) == ("fail", 3)
     failure, = result.failures
     assert failure.id == "never_on_a_thursday"
@@ -657,14 +708,13 @@ def test_the_default_criteria_are_the_ones_the_scenario_references():
         assertion_ids=(checks.UPDATE_MATCHES_GOAL,),
         judge_criterion_ids=("reschedule_confirmed",),
     )
-    applied = ev.criteria_for(scenario)
+    applied = ev.criteria_for(scenario, JOURNEY)
     assert [spec.id for spec in applied.assertions] == [checks.UPDATE_MATCHES_GOAL]
     assert applied.judge_criterion_tools == {
         "reschedule_confirmed": (checks.UPDATE_APPOINTMENT,)
     }
-    # Every Judge criterion says which tools it is about, and only Journey tools.
-    assert set(checks.JUDGE_CRITERION_TOOLS) == set(checks.JUDGE_CRITERIA)
-    assert {t for tools in checks.JUDGE_CRITERION_TOOLS.values() for t in tools} <= set(JOURNEY.tools)
+    # That every Judge criterion names its tools, and only Journey tools, is
+    # now a loader guarantee (tests/test_journey_definition.py).
 
 
 # --------------------------------------- BatchRunRecord / BatchManifest shape
@@ -677,7 +727,7 @@ async def test_results_become_batch_records_that_clustering_groups(tmp_path):
     async def execute(spec):
         episode_dir = await play(tmp_path / spec.run_id, unconfirmed_update().build())
         dirs[spec.run_key] = episode_dir
-        return (await ev.evaluate_episode(episode_dir, JudgeDouble())).to_run_result()
+        return (await ev.evaluate_episode(episode_dir, JudgeDouble(), JOURNEY)).to_run_result()
 
     specs = [BatchRunSpec(scenario=scenario, run_id=f"run-{n}") for n in (1, 2)]
     batch_dir = tmp_path / "journey_runs"
@@ -700,7 +750,7 @@ async def test_results_become_batch_records_that_clustering_groups(tmp_path):
 
 async def test_a_judge_verdict_round_trips_into_the_batch_record(tmp_path):
     episode_dir = await play(tmp_path, confirmed_reschedule().build())
-    result = await ev.evaluate_episode(episode_dir, JudgeDouble())
+    result = await ev.evaluate_episode(episode_dir, JudgeDouble(), JOURNEY)
     run_result = result.to_run_result()
 
     assert run_result.outcome == "pass" and run_result.llm_calls == 1
@@ -730,7 +780,7 @@ async def test_the_judge_prompt_holds_the_four_permitted_inputs_and_nothing_else
     )
     episode_dir = await play(tmp_path, trace, scenario=scenario)
     stub_llm.push(_pass_output(scenario))
-    result = await ev.evaluate_episode(episode_dir, jj.JourneyJudge(stub_llm, JOURNEY))
+    result = await ev.evaluate_episode(episode_dir, jj.JourneyJudge(stub_llm, JOURNEY), JOURNEY)
 
     assert result.outcome == "pass"
     call, = stub_llm.calls  # one batched call
@@ -740,8 +790,8 @@ async def test_the_judge_prompt_holds_the_four_permitted_inputs_and_nothing_else
     # 1. The Scenario Goal.
     assert scenario.goal in message["content"]
     # 2. The criteria and required rules the Journey definition states.
-    for criterion in checks.judge_criteria(scenario.judge_criterion_ids):
-        assert f"- {criterion.id}: {criterion.description}" in system
+    for criterion in JOURNEY.judge_criteria:
+        assert f"- {criterion.id}: {criterion.statement}" in system
     for rule in JOURNEY.required_rules:
         assert f"- {rule.id}: {rule.statement}" in message["content"]
     assert call["schema"]["properties"]["criteria"]["items"]["properties"]["criterion_id"][
@@ -800,6 +850,129 @@ async def test_the_journey_judge_inherits_fail_closed(stub_llm):
         jj.JourneyJudge(stub_llm, JOURNEY)._render(Trace(conversation_id="c"))
 
 
+def test_the_journey_judge_system_prompt_is_unchanged_by_the_move_to_yaml():
+    """Recorded at 709ab0a, when the criteria were Python literals. A
+    deliberate change to the prompt or to a criterion's wording updates this
+    hash in the same commit."""
+    system = jj.JourneyJudge(None, JOURNEY)._system_prompt(
+        JOURNEY.criteria_for_judge(JOURNEY.judge_criterion_ids)
+    )
+    assert hashlib.sha256(system.encode()).hexdigest() == (
+        "2e75ad05277b3579ea6f13f70bdb49800bb0c17c54cb598bfe024aab37b40140"
+    )
+
+
+def test_the_judge_and_evaluation_modules_hold_no_criterion_id_or_wording():
+    for module in (jj, ev):
+        source = Path(module.__file__).read_text(encoding="utf-8")
+        for criterion in JOURNEY.judge_criteria:
+            assert criterion.id not in source, (module.__name__, criterion.id)
+            sentences = [s.strip() for s in criterion.statement.split(". ") if s.strip()]
+            assert sentences
+            for sentence in sentences:
+                assert sentence not in source, (module.__name__, sentence)
+        # Nor do they reach into the per-Journey module for the Judge half.
+        assert "JUDGE_CRITERI" not in source and "judge_criteria(" not in source
+    # The Judge needs nothing from the per-Journey module at all.
+    assert "import checks" not in Path(jj.__file__).read_text(encoding="utf-8")
+
+
+TINY_JOURNEY = {
+    "schema_version": 1,
+    "journey_id": "tiny-second-journey",
+    "title": "A second Journey, for the Judge half only",
+    "agent_role": "a front-desk assistant for a fictional bicycle workshop",
+    "tools": ["update_appointment"],
+    "permitted_behavior": ["Move a booking the customer asks to move."],
+    "required_rules": [
+        {
+            "id": "read_the_change_back",
+            "statement": "The agent reads the change back before ending the conversation.",
+            "checks": ["judge:change_read_back"],
+        },
+    ],
+    "valid_outcomes": [
+        {"id": "rescheduled", "description": "The booking was moved.",
+         "when": {"tool_failures": []}},
+    ],
+    "criteria": {
+        # The Assertion half is still the appointment module's Python — the
+        # remaining per-Journey code, and why this Journey keeps that tool.
+        "assertions": ["update_matches_goal"],
+        "judge": [
+            {"id": "greeted_by_name",
+             "statement": "The agent greeted the customer by name at least once.",
+             "tools": []},
+            {"id": "change_read_back",
+             "statement": "After each update tool call, the agent read the new time back.",
+             "tools": ["update_appointment"]},
+        ],
+    },
+    "knowledge_rules": [{"id": "one_bike_per_slot", "statement": "A slot holds one bicycle."}],
+    "complications": {
+        "supported": ["none"],
+        "unsupported": {
+            c: "Not needed by this test."
+            for c in (
+                "underspecification", "mid-conversation-correction", "goal-shift",
+                "multi-intent-turn", "false-premise", "out-of-scope-drift",
+                "channel-noise", "ambiguous-reference",
+            )
+        },
+    },
+    "max_turns_default": 6,
+}
+
+
+async def test_a_second_journey_written_as_data_is_judged_with_no_python_added(
+    tmp_path, stub_llm
+):
+    """The proof that the Judge half is data-driven: two new criteria and
+    their tools exist only in this YAML, and the same ``JourneyJudge`` and
+    ``evaluate_episode`` prompt with them, rule on them and point a failure at
+    the right actions."""
+    path = tmp_path / "journey.yaml"
+    path.write_text(yaml.safe_dump(TINY_JOURNEY, sort_keys=False), encoding="utf-8")
+    tiny = load_journey_definition(path)
+    scenario = replace(
+        journey_scenario(),
+        journey="tiny-second-journey",
+        scenario_id="synth-tiny-second-journey-0123456789ab",
+        assertion_ids=("update_matches_goal",),
+        judge_criterion_ids=tiny.judge_criterion_ids,
+    )
+    episode_dir = await play(tmp_path, confirmed_reschedule().build(), scenario=scenario)
+    output = _pass_output(scenario)
+    output["criteria"][1]["passed"] = False
+    stub_llm.push(output)
+
+    result = await ev.evaluate_episode(episode_dir, jj.JourneyJudge(stub_llm, tiny), tiny)
+
+    call, = stub_llm.calls
+    assert "a front-desk assistant for a fictional bicycle workshop" in call["system"]
+    for criterion in tiny.judge_criteria:
+        assert f"- {criterion.id}: {criterion.statement}" in call["system"]
+    for criterion in JOURNEY.judge_criteria:
+        assert criterion.id not in call["system"]
+    assert "- read_the_change_back: " in call["messages"][0]["content"]
+    assert call["schema"]["properties"]["criteria"]["items"]["properties"]["criterion_id"][
+        "enum"
+    ] == ["greeted_by_name", "change_read_back"]
+
+    assert (result.outcome, result.rule) == ("fail", 5)
+    failure, = result.failures
+    assert (failure.source, failure.id) == ("judge", "change_read_back")
+    assert failure.data["tools"] == ["update_appointment"]
+    updates = [a for a in confirmed_reschedule().build().actions
+               if a.tool_name == "update_appointment"]
+    assert failure.data["evidence"]["action_ids"] == [a.action_id for a in updates]
+
+    # The appointment Journey's definition refuses this Episode; it does not
+    # quietly judge it with its own criteria.
+    refused = await ev.evaluate_episode(episode_dir, JudgeDouble(), JOURNEY)
+    assert (refused.outcome, refused.rule) == ("error", 0)
+
+
 def test_payments_judge_prompts_are_unchanged():
     judge = GeneralJudge(None)
     trace = Trace(
@@ -811,7 +984,7 @@ def test_payments_judge_prompts_are_unchanged():
     assert hashlib.sha256(text.encode()).hexdigest() == (
         "ee4b5df77409cf70029f9f88f7e91381c14b1b9269154cda2d437a10e299684c"
     )
-    assert not set(checks.JUDGE_CRITERIA) & {c.id for c in DEFAULT_CRITERIA}
+    assert not set(JOURNEY.judge_criterion_ids) & {c.id for c in DEFAULT_CRITERIA}
 
 
 # ------------------------------------------------------------- model wiring

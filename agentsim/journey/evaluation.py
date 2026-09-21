@@ -22,8 +22,11 @@ refuses it, and rule 1 has already made that Episode an ``error``.
 
 These are mechanics. What is checked comes in as ``EvaluationCriteria``,
 resolved from the Scenario's criterion references; the Scenario itself is read
-from ``<episode_dir>/scenario.yaml`` and from nowhere else. Infrastructure
-problems are ``error``, never ``fail``, and missing evidence is never ``pass``.
+from ``<episode_dir>/scenario.yaml`` and from nowhere else. The Judge half of
+the criteria comes from the ``JourneyDefinition`` evaluation is handed. A
+Scenario for another Journey, or one naming a Judge criterion that definition
+does not define, is rule 0. Infrastructure problems are ``error``, never
+``fail``, and missing evidence is never ``pass``.
 """
 
 from __future__ import annotations
@@ -40,6 +43,7 @@ from ..trace import Trace
 from ..types import FailureRecord, TurnVerdict
 from . import checks
 from .checks import AssertionResult, AssertionSpec, OutcomeEvidence
+from .definition import JourneyDefinition
 from .episode import (
     EPISODE_FILE,
     EPISODE_STOP_REASONS,
@@ -97,15 +101,22 @@ class EvaluationCriteria:
     judge_criterion_tools: Mapping[str, tuple[str, ...]]
 
 
-def criteria_for(scenario: JourneyScenario) -> EvaluationCriteria:
-    """The criteria the Scenario's references name (``agentsim.journey.checks``)."""
+def criteria_for(
+    scenario: JourneyScenario, journey: JourneyDefinition
+) -> EvaluationCriteria:
+    """The criteria the Scenario's references name: Assertions from
+    ``agentsim.journey.checks``, Judge criteria from the Journey definition. A
+    Judge criterion the definition does not define raises."""
     return EvaluationCriteria(
         assertions=tuple(checks.assertion(i) for i in scenario.assertion_ids),
         outcome_gate=checks.expected_outcome_evidenced,
         judge_criterion_tools={
-            i: checks.JUDGE_CRITERION_TOOLS.get(i, ()) for i in scenario.judge_criterion_ids
+            i: journey.judge_criterion(i).tools for i in scenario.judge_criterion_ids
         },
     )
+
+
+CriteriaResolver = Callable[[JourneyScenario, JourneyDefinition], EvaluationCriteria]
 
 
 @dataclass(frozen=True)
@@ -167,11 +178,13 @@ class _Working:
 async def evaluate_episode(
     episode_dir: str | Path,
     judge: EpisodeJudge,
+    journey: JourneyDefinition,
     *,
-    criteria: Callable[[JourneyScenario], EvaluationCriteria] = criteria_for,
+    criteria: CriteriaResolver = criteria_for,
 ) -> EvaluationResult:
     """Evaluate a saved Episode and write ``evaluation.json`` beside it. The
-    file is derived from the rest of the directory, so re-evaluating replaces it."""
+    file is derived from the rest of the directory, so re-evaluating replaces it.
+    ``journey`` is the definition the Episode's Scenario was written for."""
     episode_dir = Path(episode_dir)
     if not episode_dir.is_dir():
         raise EvaluationError(f"{episode_dir} is not an Episode directory")
@@ -200,7 +213,7 @@ async def evaluate_episode(
         "simulator_model": None,
     }
     working = _Working(trace=Trace(conversation_id=episode_dir.name))
-    decided = await _apply_rules(episode_dir, judge, criteria, record, working)
+    decided = await _apply_rules(episode_dir, judge, journey, criteria, record, working)
     record["outcome"] = decided.outcome
     record["rule"] = {"number": decided.rule, "name": RULES[decided.rule]}
     record["explanation"] = decided.explanation
@@ -214,7 +227,8 @@ async def evaluate_episode(
 async def _apply_rules(
     episode_dir: Path,
     judge: EpisodeJudge,
-    criteria: Callable[[JourneyScenario], EvaluationCriteria],
+    journey: JourneyDefinition,
+    criteria: CriteriaResolver,
     record: dict[str, Any],
     working: _Working,
 ) -> _Decision:
@@ -225,7 +239,20 @@ async def _apply_rules(
         if not isinstance(episode, dict):
             raise ValueError(f"{EPISODE_FILE} is not an object")
         scenario = load_journey_scenario(episode_dir / SCENARIO_FILE)
-        applied = criteria(scenario)
+        if scenario.journey != journey.journey_id:
+            raise ValueError(
+                f"{SCENARIO_FILE} is for Journey {scenario.journey!r}, not the "
+                f"Journey definition {journey.journey_id!r} it is evaluated against"
+            )
+        applied = criteria(scenario, journey)
+        undefined = sorted(
+            set(scenario.judge_criterion_ids) - set(applied.judge_criterion_tools)
+        )
+        if undefined:
+            raise ValueError(
+                f"{SCENARIO_FILE} names Judge criterion(s) {undefined} that the "
+                "criteria it is evaluated with do not define"
+            )
     except (OSError, ValueError) as error:
         return _Decision(
             OUTCOME_ERROR, 0, f"the Episode directory cannot be read: {error}"
@@ -328,7 +355,7 @@ async def _apply_rules(
         working.failures = tuple(
             _judge_failure(
                 criterion_id, reasoning.get(criterion_id, ""), details, normalized,
-                applied.judge_criterion_tools.get(criterion_id, ()), files,
+                applied.judge_criterion_tools[criterion_id], files,
             )
             for criterion_id in violated
         ) or (

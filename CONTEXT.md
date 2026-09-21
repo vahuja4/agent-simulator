@@ -29,7 +29,8 @@ file in the same commit.
   pursues a goal. A journey may contain multiple valid paths.
 - **Journey definition** — the explicit, reviewed statement of one Journey:
   what the agent is permitted to do, the rules it is required to follow, the
-  valid outcomes, and which Assertions and Judge criteria apply. Its rules
+  valid outcomes, which Assertions apply, and the Judge criteria themselves,
+  stated in full. Its rules
   constrain only the order of observable events, so every path that satisfies
   them is valid and nothing depends on how the agent is built. Together with
   Fixture state it is the authoritative input for a Journey outside payments.
@@ -209,7 +210,8 @@ file in the same commit.
   applied to a transcript (or mid-episode via the judge hook). Judges are
   fail-closed: anything other than an explicit pass is a fail.
 - **Judge criterion** — a single named check a judge applies, defined per
-  scenario or globally. Example: goal completion, groundedness,
+  scenario or globally, or — outside payments — stated by the Journey
+  definition. Example: goal completion, groundedness,
   say/do consistency.
 - **Say/do consistency** — the check that what the agent *claimed* in
   text matches what the trace shows it *did*.

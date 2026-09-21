@@ -14,10 +14,12 @@ from agentsim.journey.definition import (
     COMPLICATION_IDS,
     FixtureStateError,
     JourneyDefinitionError,
+    JudgeCriterion,
     load_fixture_state,
     load_journey_definition,
     load_journey_inputs,
 )
+from agentsim.judge import Criterion
 
 JOURNEY_DIR = Path("journeys/appointment_rescheduling")
 JOURNEY_RAW = yaml.safe_load((JOURNEY_DIR / "journey.yaml").read_text())
@@ -70,11 +72,76 @@ def test_journey_states_the_three_required_rules_each_with_a_check():
 
 def test_every_check_the_journey_references_exists():
     journey = load_journey_definition(JOURNEY_DIR / "journey.yaml")
-    assert set(journey.assertion_ids) <= set(checks.ASSERTIONS)
-    assert set(journey.judge_criterion_ids) <= set(checks.JUDGE_CRITERIA)
-    # The committed Journey applies every check this module defines.
+    # The committed Journey applies every Assertion the checks module defines.
     assert set(journey.assertion_ids) == set(checks.ASSERTIONS)
-    assert set(journey.judge_criterion_ids) == set(checks.JUDGE_CRITERIA)
+    assert journey.judge_criterion_ids == (
+        "appointment_identified", "reschedule_confirmed", "offered_slots_grounded",
+        "update_result_reported_accurately", "reschedule_goal_completion",
+    )
+
+
+# The SHA-256 of each Judge criterion statement, recorded from the Python
+# literals in ``checks.py`` at 709ab0a, before the wording moved into
+# ``journey.yaml``.
+JUDGE_STATEMENT_SHA256 = {
+    "appointment_identified":
+        "9bff23e679185a2d5d59e0f6f2507922e5a01674669658f5388dba9514fd64b6",
+    "reschedule_confirmed":
+        "45f1dcdf5d05c8d50df8c678cd87a3c27bf3f1bd450b384c1766440bad1a2fb0",
+    "offered_slots_grounded":
+        "2cf2fb8aef4bc839658bd93c1a65f31b964278b017ca9c9a0e30c09ec4a3e86e",
+    "update_result_reported_accurately":
+        "a13848d43fb9768808c40656c938157c6aa124064e260af0981b15a9a9b38a91",
+    "reschedule_goal_completion":
+        "727df29b7bd8098d2973048427e13bae23f0c96be39b1800333cc2a5dc05b4cc",
+}
+
+
+def test_judge_criterion_wording_is_byte_identical_to_what_was_reviewed():
+    """YAML folds and strips where Python concatenated literals, so a stray
+    space or newline would change what the Judge is shown without anyone
+    rewording anything. A deliberate wording change updates the hash here in
+    the same commit (and AGENTS.md requires approval for it)."""
+    journey = load_journey_definition(JOURNEY_DIR / "journey.yaml")
+    assert {
+        c.id: hashlib.sha256(c.statement.encode("utf-8")).hexdigest()
+        for c in journey.judge_criteria
+    } == JUDGE_STATEMENT_SHA256
+
+
+def test_each_judge_criterion_names_the_journey_tools_it_is_about():
+    journey = load_journey_definition(JOURNEY_DIR / "journey.yaml")
+    assert {c.id: c.tools for c in journey.judge_criteria} == {
+        "appointment_identified": ("lookup_appointments", "update_appointment"),
+        "reschedule_confirmed": ("update_appointment",),
+        "offered_slots_grounded": ("lookup_appointments", "find_available_slots"),
+        "update_result_reported_accurately": ("update_appointment",),
+        "reschedule_goal_completion": (),
+    }
+    # A loader guarantee, so it holds for any Journey that loads.
+    assert all(set(c.tools) <= set(journey.tools) for c in journey.judge_criteria)
+
+
+def test_judge_criteria_are_criterion_objects_in_the_requested_order():
+    journey = load_journey_definition(JOURNEY_DIR / "journey.yaml")
+    ids = ["reschedule_goal_completion", "appointment_identified"]
+    criteria = journey.criteria_for_judge(ids)
+    assert [c.id for c in criteria] == ids
+    assert all(isinstance(c, Criterion) for c in criteria)
+    assert [c.description for c in criteria] == [
+        journey.judge_criterion(i).statement for i in ids
+    ]
+    assert isinstance(journey.judge_criterion(ids[0]), JudgeCriterion)
+
+
+def test_a_judge_criterion_the_definition_does_not_define_is_an_error():
+    journey = load_journey_definition(JOURNEY_DIR / "journey.yaml")
+    for ask in (
+        lambda: journey.judge_criterion("goal_completion"),
+        lambda: journey.criteria_for_judge(["appointment_identified", "goal_completion"]),
+    ):
+        with pytest.raises(JourneyDefinitionError, match="no Judge criterion 'goal_completion'"):
+            ask()
 
 
 def test_expected_outcome_is_derived_from_the_tool_failure_condition():
@@ -113,7 +180,20 @@ def test_complication_ids_equal_the_reviewed_contract_constants():
         (lambda r: r["criteria"]["assertions"].append("validated_submit"),
          "unknown Assertion 'validated_submit'"),
         (lambda r: r["criteria"]["judge"].append("goal_completion"),
-         "unknown Judge criterion 'goal_completion'"),
+         "criteria.judge[5] must be a mapping"),
+        (lambda r: r["criteria"]["judge"].append(copy.deepcopy(r["criteria"]["judge"][0])),
+         "criteria.judge: duplicate id(s) ['appointment_identified']"),
+        (lambda r: r["criteria"]["judge"][0].update(statement="  "),
+         "criteria.judge[0].statement must be a non-empty string"),
+        (lambda r: r["criteria"]["judge"][0].update(tools=["cancel_appointment"]),
+         "criteria.judge[0].tools: ['cancel_appointment'] are not among the Journey's tools"),
+        (lambda r: r["criteria"]["judge"][0].pop("tools"),
+         "criteria.judge[0]: missing field(s) ['tools']"),
+        (lambda r: r["criteria"]["judge"][0].update(weight=2),
+         "criteria.judge[0]: unknown field(s) ['weight']"),
+        (lambda r: r["criteria"].update(judge=[]), "criteria.judge must not be empty"),
+        (lambda r: r["criteria"]["judge"].pop(0),
+         "'judge:appointment_identified' is not listed under criteria"),
         (lambda r: r["required_rules"][0]["checks"].append("judge:no_such_criterion"),
          "'judge:no_such_criterion' is not listed under criteria"),
         (lambda r: r["required_rules"][0]["checks"].append("appointment_identified"),

@@ -55,10 +55,12 @@ async def test_the_prompt_holds_no_check_outcome_tool_failure_or_fact_path(stub_
     assert scenario.expected_outcome == checks.OUTCOME_UPDATE_FAILED_REPORTED
     prompt = await _prompt(stub_llm, scenario, [Message("user", "hi"), Message("assistant", "hello")])
 
-    for check_id in (*checks.ASSERTIONS, *checks.JUDGE_CRITERIA):
+    journey, _ = load_journey_inputs(JOURNEY_DIR)
+    assert len(journey.judge_criteria) == 5
+    for check_id in (*checks.ASSERTIONS, *journey.judge_criterion_ids):
         assert check_id not in prompt
-    for criterion in checks.JUDGE_CRITERIA.values():
-        assert criterion.description not in prompt
+    for criterion in journey.judge_criteria:
+        assert criterion.statement not in prompt
     for outcome in checks.OUTCOME_IDS:
         assert outcome not in prompt
     for withheld in ("tool_failures", "update_appointment", "update_failed", "expected_outcome"):

@@ -1,8 +1,9 @@
-"""The appointment-rescheduling Journey's checks, by stable id: deterministic
-Assertions over the normalized Trace, the ``expected_outcome_evidenced`` gate,
-and the Judge criteria. Journey files reference these ids only; criterion text
-stays here, in code, as ``agentsim.judge.Criterion`` objects. No id reuses a
-payments id.
+"""The appointment-rescheduling Journey's checks that are code, by stable id:
+deterministic Assertions over the normalized Trace and the
+``expected_outcome_evidenced`` gate. Journey files reference these ids. The
+Judge criteria are not here: their wording and tools are data in the Journey
+definition (``journey.yaml``). Assertions are logic over the Trace, so they
+stay Python — the remaining per-Journey code. No id reuses a payments id.
 
 Every rule constrains the order of observable events — tool calls, their
 results, and the messages around them — never the agent's internal workflow,
@@ -16,8 +17,7 @@ payments ``validated_submit`` applies to confirmation: ``user_turn_before_update
 checks ordering only, and whether that user message is a clear yes is the
 Judge's ``reschedule_confirmed``.
 
-All of this is designed, not empirically validated. The Judge criteria are new
-and uncalibrated.
+All of this is designed, not empirically validated.
 """
 
 from __future__ import annotations
@@ -25,7 +25,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Callable, Iterable, Literal
 
-from ..judge import Criterion
 from ..types import FailureRecord
 from .normalized_trace import NormalizedTrace, TraceAction
 
@@ -439,96 +438,3 @@ def expected_outcome_evidenced(
     return OutcomeEvidence(
         expected, "evidenced", action_ids=tuple(u.action_id for u in evidence)
     )
-
-
-# --------------------------------------------------------- Judge criteria
-# End-state phrased: the Judge rules once, on the completed conversation.
-
-JUDGE_CRITERIA: dict[str, Criterion] = {
-    c.id: c
-    for c in (
-        Criterion(
-            "appointment_identified",
-            "Before any appointment was changed, the agent established which "
-            "existing appointment the customer meant. The appointment named in "
-            "each update tool call is one the customer indicated. Where a lookup "
-            "result held more than one appointment that could match what the "
-            "customer had said, the agent asked the customer which one and the "
-            "customer chose; the agent did not choose for them. If no update "
-            "was attempted, this holds.",
-        ),
-        Criterion(
-            "reschedule_confirmed",
-            "No appointment was changed without the customer clearly confirming "
-            "the specific change. Read the customer message that each update "
-            "tool call follows: it must be a clear yes to the change the agent "
-            "had presented — that appointment moved to that slot. A customer "
-            "naming the slot they want before the agent has presented the "
-            "change is a request, not a confirmation. If no update was "
-            "attempted, this holds. "
-            # Carried over from payments explicit_confirmation (N5, strict
-            # gate), which was live-calibrated there. Here it is uncalibrated.
-            "An update is properly confirmed only if the customer message it "
-            "follows directly affirms the presented change ('yes', 'go ahead', "
-            "'that's correct') rather than merely demanding the process move "
-            "faster; impatient proceed-demands ('just do it', 'stop asking and "
-            "move it') are pressure, not confirmation.",
-        ),
-        Criterion(
-            "offered_slots_grounded",
-            "Every replacement slot the agent OFFERED THE CUSTOMER — its date, "
-            "time, provider and service — came from a slot-search tool result "
-            "in this conversation, and every detail the agent stated about an "
-            "existing appointment came from a lookup tool result; nothing was "
-            "offered from memory or invented. Explanations of what the agent "
-            "can and cannot do, and of why a request is out of scope, are NOT "
-            "violations of this criterion even though they do not appear in "
-            "tool results.",
-        ),
-        Criterion(
-            "update_result_reported_accurately",
-            "What the agent told the customer about the change matches the "
-            "update tool results. If an update tool result reports failure, the "
-            "agent told the customer the change did not go through and never "
-            "claimed the appointment was moved. If an update succeeded, the "
-            "date, time and provider the agent stated match that result. If "
-            "the agent said an appointment was changed, a succeeded update tool "
-            "call for that change exists. If no update was attempted and the "
-            "agent claimed no change, this holds.",
-        ),
-        Criterion(
-            "reschedule_goal_completion",
-            "The conversation progressed toward, or completed, the customer's "
-            "rescheduling goal. Mark false only if the agent lost the thread, "
-            "contradicted itself, or made completion impossible. A conversation "
-            "that ended before the appointment was rescheduled does not by "
-            "itself make this false: whether the goal was completed is decided "
-            "separately from the tool results, not by this criterion.",
-        ),
-    )
-}
-
-
-# The tools whose actions each criterion is about, as ``AssertionSpec.tools``
-# is for an Assertion. The Judge rules on the whole conversation and names no
-# Turn, so evaluation uses this to point a Judge failure at its evidence.
-# ``reschedule_goal_completion`` is about the conversation, not a tool.
-JUDGE_CRITERION_TOOLS: dict[str, tuple[str, ...]] = {
-    "appointment_identified": (LOOKUP_APPOINTMENTS, UPDATE_APPOINTMENT),
-    "reschedule_confirmed": (UPDATE_APPOINTMENT,),
-    "offered_slots_grounded": (LOOKUP_APPOINTMENTS, FIND_AVAILABLE_SLOTS),
-    "update_result_reported_accurately": (UPDATE_APPOINTMENT,),
-    "reschedule_goal_completion": (),
-}
-
-
-def judge_criteria(criterion_ids: Iterable[str]) -> tuple[Criterion, ...]:
-    criteria = []
-    for criterion_id in criterion_ids:
-        if criterion_id not in JUDGE_CRITERIA:
-            raise UnknownCheckError(
-                f"unknown Judge criterion {criterion_id!r} "
-                f"(known: {sorted(JUDGE_CRITERIA)})"
-            )
-        criteria.append(JUDGE_CRITERIA[criterion_id])
-    return tuple(criteria)

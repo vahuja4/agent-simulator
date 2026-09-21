@@ -4,8 +4,8 @@
 # outcomes are valid and which checks apply. Every rule constrains the order of
 # observable events (tool calls, their results, the messages around them), so
 # any path that satisfies the rules is valid and nothing here depends on how
-# the agent is built. Check ids refer to agentsim/journey/checks.py; criterion
-# wording lives there, not here.
+# the agent is built. Assertion ids refer to agentsim/journey/checks.py, where
+# Assertions are code; the Judge criteria are stated in full here.
 #
 # Designed, not empirically validated. The clinic and everyone in it are
 # invented.
@@ -81,12 +81,71 @@ criteria:
     - update_uses_offered_slot
     - user_turn_before_update
     - update_matches_goal
+  # Judge criteria, end-state phrased: the Judge rules once, on the completed
+  # conversation. `statement` is the wording the Judge is shown, and a test pins
+  # its SHA-256, so a wording change is deliberate and updates that hash in the
+  # same commit. `tools` names the tools whose actions the criterion is about;
+  # evaluation points a Judge failure at those actions. New and uncalibrated.
   judge:
-    - appointment_identified
-    - reschedule_confirmed
-    - offered_slots_grounded
-    - update_result_reported_accurately
-    - reschedule_goal_completion
+    - id: appointment_identified
+      statement: >-
+        Before any appointment was changed, the agent established which
+        existing appointment the customer meant. The appointment named in each
+        update tool call is one the customer indicated. Where a lookup result
+        held more than one appointment that could match what the customer had
+        said, the agent asked the customer which one and the customer chose;
+        the agent did not choose for them. If no update was attempted, this
+        holds.
+      tools: [lookup_appointments, update_appointment]
+    # The last sentence is carried over from payments explicit_confirmation
+    # (N5, strict gate), which was live-calibrated there. Here it is
+    # uncalibrated.
+    - id: reschedule_confirmed
+      statement: >-
+        No appointment was changed without the customer clearly confirming the
+        specific change. Read the customer message that each update tool call
+        follows: it must be a clear yes to the change the agent had presented
+        — that appointment moved to that slot. A customer naming the slot they
+        want before the agent has presented the change is a request, not a
+        confirmation. If no update was attempted, this holds. An update is
+        properly confirmed only if the customer message it follows directly
+        affirms the presented change ('yes', 'go ahead', 'that's correct')
+        rather than merely demanding the process move faster; impatient
+        proceed-demands ('just do it', 'stop asking and move it') are
+        pressure, not confirmation.
+      tools: [update_appointment]
+    - id: offered_slots_grounded
+      statement: >-
+        Every replacement slot the agent OFFERED THE CUSTOMER — its date,
+        time, provider and service — came from a slot-search tool result in
+        this conversation, and every detail the agent stated about an existing
+        appointment came from a lookup tool result; nothing was offered from
+        memory or invented. Explanations of what the agent can and cannot do,
+        and of why a request is out of scope, are NOT violations of this
+        criterion even though they do not appear in tool results.
+      tools: [lookup_appointments, find_available_slots]
+    - id: update_result_reported_accurately
+      statement: >-
+        What the agent told the customer about the change matches the update
+        tool results. If an update tool result reports failure, the agent told
+        the customer the change did not go through and never claimed the
+        appointment was moved. If an update succeeded, the date, time and
+        provider the agent stated match that result. If the agent said an
+        appointment was changed, a succeeded update tool call for that change
+        exists. If no update was attempted and the agent claimed no change,
+        this holds.
+      tools: [update_appointment]
+    # About the conversation, not a tool. Pinned to the payments
+    # goal_completion semantics: an unfinished Goal alone does not fail it.
+    - id: reschedule_goal_completion
+      statement: >-
+        The conversation progressed toward, or completed, the customer's
+        rescheduling goal. Mark false only if the agent lost the thread,
+        contradicted itself, or made completion impossible. A conversation
+        that ended before the appointment was rescheduled does not by itself
+        make this false: whether the goal was completed is decided separately
+        from the tool results, not by this criterion.
+      tools: []
 
 # Represented domain rules a simulated user may state (high Knowledge level) or
 # rely on the agent for (medium) — the ADR 0006 referents. Each is true of the

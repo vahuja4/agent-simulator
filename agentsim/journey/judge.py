@@ -7,7 +7,9 @@ batched call and ``_fail_closed`` — and overrides only the two prompt methods.
 
 The Judge is shown exactly four things: the Scenario Goal; the criteria and
 required rules the Journey definition states, reached through the Scenario's
-criterion references; the transcript; and the projected normalized Trace. It
+criterion references; the transcript; and the projected normalized Trace. The
+criteria are data in the Journey definition the Judge holds, so nothing in this
+module belongs to one Journey. It
 is never shown the expected outcome, the controlled tool failures (a Fixture
 condition it finds in the Trace like anyone else), the Persona, or anything
 about how the agent is built. Whether the Goal was completed is the
@@ -24,7 +26,6 @@ from ..judge import GeneralJudge
 from ..llm import LLMClient, OpenAILLM, models_share_family
 from ..trace import Trace
 from ..types import TurnVerdict
-from . import checks
 from .definition import JourneyDefinition, RequiredRule
 from .scenario import JourneyScenario
 
@@ -63,7 +64,7 @@ class JourneyJudge(GeneralJudge):
         super().__init__(
             llm,
             criteria=(
-                checks.judge_criteria(scenario.judge_criterion_ids)
+                journey.criteria_for_judge(scenario.judge_criterion_ids)
                 if scenario is not None
                 else ()
             ),
