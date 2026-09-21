@@ -162,7 +162,11 @@ file in the same commit.
 - **Transcript** — the on-disk record of an episode: ordered turns, tool
   calls, termination reason, timing, model identifiers. JSONL,
   append-only, schema-stable. The contract between the runner and the
-  judge pass.
+  judge pass. On the conversation lifecycle it is one line per message,
+  written as the message arrives — a user message before it is sent, so a
+  failed send survives there — and carries no tool calls: those are in the
+  Trace, and the termination reason and timing are in the Episode record
+  beside it.
 - **Simulated user** — the LLM role-playing the persona toward the goal.
   Also: synthetic user.
 - **Agent adapter** — the interface to the agent-under-test, holding
@@ -191,10 +195,16 @@ file in the same commit.
   stated, never inferred. An Assertion that lacks the evidence it needs is
   unavailable, which is never a pass, and the Judge is shown a Trace only
   when both classes are available.
-- **Termination** — the decision that an episode is over, and by whom:
-  simulated user (goal reached / gives up), judge (halt on met/failed
-  criterion), or harness (max turns). Termination reason is always
-  recorded.
+- **Termination** — the decision that an episode is over, and by whom.
+  Termination reason is always recorded. On the payments path: simulated user
+  (goal reached / gives up), judge (halt on met/failed criterion), or harness
+  (max turns). On the conversation lifecycle the Judge never terminates —
+  nothing is judged or asserted until the conversation is over — so it is the
+  Simulated user (goal achieved / gave up), the harness (Turn limit, or the
+  Episode time limit checked between Turns), or an error (Agent adapter or
+  Simulated user). The agent has no end signal: its claiming completion ends
+  nothing and establishes nothing. However the conversation ended, the Trace
+  is retrieved and the conversation released afterwards, in that order.
 - **Judge** — an LLM evaluator from our existing judge infrastructure,
   applied to a transcript (or mid-episode via the judge hook). Judges are
   fail-closed: anything other than an explicit pass is a fail.

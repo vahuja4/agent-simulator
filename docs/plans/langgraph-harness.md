@@ -4,8 +4,8 @@ Contract for sessions 02–09 on branch `codex/langgraph-synthesis-harness`.
 Written 2026-09-21 (session 01), before any code existed. A session that must
 deviate changes this note in the same commit and says so in its report.
 Amended by session 03 (sections 4, 5, 8, 9, 11, 12), session 07 (sections
-6, 7, 9, 11), session 07c (sections 6, 7, 9) and session 05a (sections 1, 2,
-8, 11, 12).
+6, 7, 9, 11), session 07c (sections 6, 7, 9), session 05a (sections 1, 2,
+8, 11, 12) and session 05b (sections 5, 8, 9, 11).
 
 HARNESS = `/Users/vishal/Desktop/agent_simulator-langgraph`, AGENT =
 `/Users/vishal/Desktop/journey_agent`. The Journey is fictional appointment
@@ -291,6 +291,23 @@ changes. The confirmation-gate paragraph is copied verbatim and pinned equal
 by a test. Knowledge text is rendered by code from grounded facts. It receives
 Persona, Goal and knowledge only — never criteria or expected outcomes.
 
+As built (session 05b): the turn is a `JourneySimTurn(SimTurn)` carrying
+`stop_reason`, and `stop` is true exactly when it is not `none`; there is no
+`###STOP###` sentinel on this path. `_flip` is reused but its first line (the
+payments opening) is replaced. Both payments gate texts are copied and pinned:
+the system-prompt paragraph and the shorter per-turn reminder. Knowledge text
+(`render_journey_knowledge`) carries every grounded fact's **value** and never
+its **path**; the Fixture binding only chooses the heading a fact sits under
+("the appointment you want to move", "the new time you want", "another … you
+know about"), so the other-entity facts a Complication needs are kept. A
+date-time is written out with its weekday, as written, never converted. The
+prompt does not tell the customer today's date (it is not a grounded fact) and
+forbids dates relative to today. `tool_failures` never reaches it.
+`live_simulated_user(scenario, journey, model=None)` is the real wiring
+(section 10); it raises a one-line `SimulatorConfigError` before any client
+exists. An unusable model answer (unknown `stop_reason`, empty message without
+a stop) is an `LLMError`, which the Episode records as `simulator_error`.
+
 **Judge.** `JourneyJudge(GeneralJudge)` in `agentsim/journey/judge.py`
 overrides only `_system_prompt` and `_render` (completed-conversation framing;
 `agent_role`, Goal, required rules, criteria, transcript, projected Trace) and
@@ -456,6 +473,27 @@ and release are attempted on every path. Nothing is judged or asserted during
 the conversation. The agent has no end signal; claiming completion proves
 nothing.
 
+`async run_episode(scenario, *, fixture_state, adapter, simulated_user,
+episode_dir, service_url, time_limit_s=600.0, clock=time.monotonic) ->
+EpisodeRecord` (session 05b). The Simulated user is passed in ready-made, so
+the loop needs no Journey definition and no model. Each user message is
+appended to the Transcript **before** `send_message` — a send that fails is
+not in the adapter's record, so the Transcript is where it survives — and each
+reply as it arrives. A final message sent with a stop is delivered and its
+reply saved; an empty one stops silently. A Turn counts once its reply
+arrived. The Turn limit is checked before the time limit, both between Turns.
+Retrieve comes before release on every path because release drops the
+adapter's record; release is attempted even when retrieval or saving failed,
+and a release failure is recorded without changing the stop reason. If
+`start_conversation` fails there is no handle, so neither is attempted and
+`normalized_trace.json` is written with both evidence classes `unavailable`
+and reason `no conversation was started`. Any exception from the Simulated
+user is `simulator_error`; an `AdapterError` is `adapter_error`; anything else
+(a harness bug, an interrupt) still gets retrieve, release and an
+`episode.json` with `status: aborted`, then propagates, so `BatchRunner`
+records the Run as `error`. An Episode directory that already holds a
+Transcript or an `episode.json` is refused before any write.
+
 Stop reasons: `user_finished`, `user_gave_up`, `turn_limit`, `time_limit`,
 `adapter_error`, `simulator_error`. The HTTP request timeout is an adapter
 parameter defaulting to 120 s, not the first draft's fixed 60 s: one LangGraph
@@ -503,6 +541,22 @@ journey_runs/<run_id>/
     evaluation.json         # outcome, rule fired, Assertion results, Judge verdict, failures
     trace.json, transcript.md, run.json     # BatchRunner, from the RunResult
 ```
+
+`transcript.jsonl` lines (session 05b): user `{turn, role: "user", text,
+intent, stop_reason, at}` — no `message_id`, the service assigns it only on
+acknowledgement; agent `{turn, role: "agent", text, message_id,
+user_message_id, at}`. `episode.json`: `schema_version`, `status`
+(`complete` | `aborted`), `scenario_id`, `journey`, `service_url`, `agent`,
+`conversation_id`, `fixture_state_sha256`, `simulator_model`, `stop_reason`,
+`turns_completed`, `max_turns`, `time_limit_s`, `started_at`, `ended_at`,
+`duration_s`, `error`, `retrieval {attempted, raw_trace_saved, error,
+evidence}`, `release {attempted, error}`. `error` is `null` or one of
+`{source: "adapter", operation, turn?, adapter_error: AdapterError.to_dict()}`,
+`{source: "simulated_user", turn, type, message}`,
+`{source: "harness", type, message}`. It holds no outcome and no Verdict.
+`scenario.yaml` is the Scenario as it ran, written from the loaded object and
+readable by `load_journey_scenario`. `raw_trace.json` exists whenever a
+payload arrived, an unusable one included.
 
 `async evaluate_episode(episode_dir, judge) -> EvaluationResult` with
 `.to_run_result()` (an empty `Trace` when evidence is unavailable). `run`
@@ -561,7 +615,7 @@ Persona-fidelity spot-check of that model and of the new
 | 03 | HARNESS | `journeys/appointment_rescheduling/*.yaml`; `agentsim/journey/{__init__,_strict,definition,normalized_trace,checks,scenario}.py`; `tests/test_journey_{definition,normalized_trace,checks,scenario}.py`; `tests/journey_trace_builder.py` (hand-built Traces and Scenarios, reusable by 05–08); `CONTEXT.md` (Journey definition, Expected outcome, Normalized Trace); `docs/solutions/journey-goal-completion-is-the-gates-call.md` |
 | 04 | AGENT | `journey_agent/langgraph_agent.py`, model wiring, tests, pinned dependencies |
 | 05a | HARNESS | `agentsim/adapters/{conversation,journey_service}.py`; `tests/test_journey_adapter.py`; `tests/fixtures/journey_agent_raw_traces/` (raw Traces captured from AGENT's stub service, pinned for contract tests); `CONTEXT.md` (Agent adapter, Trace) |
-| 05b | HARNESS | `agentsim/journey/{simulated_user,episode}.py`; `tests/test_journey_{simulated_user,episode}.py`; `CONTEXT.md` (Termination) |
+| 05b | HARNESS | `agentsim/journey/{simulated_user,episode}.py`; `tests/test_journey_{simulated_user,episode}.py`; `CONTEXT.md` (Termination, Transcript); the `agentsim/journey/__init__.py` docstring (running a Scenario, unlike loading one, does import the payments simulator) |
 | 06 | HARNESS | `agentsim/journey/{judge,evaluation}.py`; `tests/test_journey_evaluation.py` |
 | 07 | HARNESS | `scenario_synthesis/journey_synthesis.py`; `tests/test_journey_synthesis.py`; `CONTEXT.md`; the `knowledge_evidence.kind` closed set in `agentsim/journey/scenario.py` with its tests and `tests/journey_trace_builder.py` |
 | 08 | HARNESS | `scripts/journey_harness.py`; `agentsim/journey/report.py`; `tests/test_journey_{cli,report,e2e}.py` |
