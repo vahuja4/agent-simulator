@@ -41,6 +41,7 @@ from typing import Any, Mapping, Protocol, Sequence, TextIO
 
 import yaml
 
+from agentsim.journey._strict import _string
 from agentsim.journey.definition import (
     FIXTURE_STATE_FILE,
     JOURNEY_FILE,
@@ -81,6 +82,8 @@ NARRATIVE_TOKEN_BUDGET = 2048
 # quarantine: none may receive this path's output.
 FORBIDDEN_OUTPUT_ROOTS = ("scenarios", "synthesized_scenarios", "generated_scenarios")
 
+# Stamped on every saved Scenario and on provenance.json.
+_UNQUALIFIED = {"origin": "synthesized", "qualification": "none"}
 NOT_QUALIFICATION_NOTICE = (
     "Validation only: these Scenarios are not Qualified or Admitted, and passing "
     "validation establishes nothing about test quality or coverage."
@@ -135,9 +138,10 @@ class VariationSettings:
                     f"{journey.journey_id!r}" + (f": {reason}" if reason else "")
                 )
         derivable = tuple(outcome.tool_failures for outcome in journey.valid_outcomes)
+        derivable_sets = {frozenset(d) for d in derivable}
         conditions = self.tool_failure_conditions or derivable
         for condition in conditions:
-            if frozenset(condition) not in {frozenset(d) for d in derivable}:
+            if frozenset(condition) not in derivable_sets:
                 raise SynthesisConfigError(
                     f"tool-failure condition {list(condition)} has no valid outcome "
                     "in the Journey definition, so no expected outcome can be derived"
@@ -213,14 +217,15 @@ def plan_specs(
     same-length axes do not move in lock-step. No coverage claim follows."""
     settings = settings.resolved(journey)
     combos = [
-        (appointment, slot, archetype, level, complication, condition)
+        (appointment, slot, archetype, level, complication, condition, detail)
         for appointment in fixture_state.appointments
         if appointment["status"] == RESCHEDULABLE_STATUS
         for slot in _bookable_slots(fixture_state, appointment)
         for archetype in settings.archetypes
         for level in settings.knowledge_levels
         for complication in settings.complications
-        if _complication_detail(complication, appointment, slot, fixture_state) is not None
+        if (detail := _complication_detail(complication, appointment, slot, fixture_state))
+        is not None
         for condition in settings.tool_failure_conditions
     ]
     if not combos:
@@ -229,14 +234,14 @@ def plan_specs(
             "scheduled appointment has a bookable slot for a requested Complication"
         )
     random.Random(seed).shuffle(combos)
+    keyed = [(_usage_keys(combo), combo) for combo in combos]
 
     used: Counter[tuple[str, Any]] = Counter()
     specs: list[ScenarioSpec] = []
     for index in range(count):
-        keyed = [(_usage_keys(combo), combo) for combo in combos]
         keys, combo = min(keyed, key=lambda item: sum(used[k] for k in item[0]))
         used.update(keys)
-        appointment, slot, archetype, level, complication, condition = combo
+        appointment, slot, archetype, level, complication, condition, detail = combo
 
         kind, about = KNOWLEDGE_EVIDENCE[level]
         if about == "rule":
@@ -250,13 +255,11 @@ def plan_specs(
                 "referent": f"appointments.{appointment['appointment_id']}.service",
             }
 
-        detail = _complication_detail(complication, appointment, slot, fixture_state)
-        customer = fixture_state.customer(appointment["customer_id"])
         specs.append(
             ScenarioSpec(
                 spec_id=f"spec-{index + 1:03d}",
                 customer_id=appointment["customer_id"],
-                customer_name=customer["name"],
+                customer_name=fixture_state.customer(appointment["customer_id"])["name"],
                 appointment_id=appointment["appointment_id"],
                 target_slot_ids=(slot["slot_id"],),
                 tool_failures=tuple(condition),
@@ -275,7 +278,7 @@ def plan_specs(
 
 
 def _usage_keys(combo: tuple[Any, ...]) -> tuple[tuple[str, Any], ...]:
-    appointment, slot, archetype, level, complication, condition = combo
+    appointment, slot, archetype, level, complication, condition, _detail = combo
     appointment_id, slot_id = appointment["appointment_id"], slot["slot_id"]
     return (
         ("appointment", appointment_id),
@@ -431,6 +434,8 @@ _COMPLICATION_DIRECTION = {
     ),
 }
 
+_NARRATIVE_FIELDS = {"description", "persona", "goal"}
+_PERSONA_FIELDS = {"traits"}
 _NARRATIVE_SCHEMA = {
     "type": "object",
     "additionalProperties": False,
@@ -527,9 +532,8 @@ def _narrative_request(
 ) -> dict[str, Any]:
     """What the model is shown. Tool failures, the expected outcome and the
     checks are withheld: a customer knows none of them."""
-    shown = spec.to_dict()
-    for withheld in ("tool_failures", "max_turns", "spec_id"):
-        shown.pop(withheld)
+    withheld = ("tool_failures", "max_turns", "spec_id")
+    shown = {key: value for key, value in spec.to_dict().items() if key not in withheld}
     rule_id = spec.knowledge_evidence.get("rule")
     rules = {rule.id: rule.statement for rule in journey.knowledge_rules}
     return {
@@ -570,34 +574,33 @@ def parse_narrative(raw: Any) -> dict[str, str]:
     if not isinstance(raw, Mapping):
         raise Rejection(REASON_MALFORMED_OUTPUT, "model output is not a mapping")
     persona = raw.get("persona")
-    extra = sorted(set(raw) - {"description", "persona", "goal"})
+    extra = sorted(set(raw) - _NARRATIVE_FIELDS)
     if isinstance(persona, Mapping):
-        extra += [f"persona.{key}" for key in sorted(set(persona) - {"traits"})]
+        extra += [f"persona.{key}" for key in sorted(set(persona) - _PERSONA_FIELDS)]
     if extra:
         raise Rejection(
             REASON_DERIVED_FIELD,
             f"model output carries field(s) code owns: {extra}",
         )
     try:
-        _strict(raw, {"description", "persona", "goal"}, "model output", error=ValueError)
+        _strict(raw, _NARRATIVE_FIELDS, "model output", error=ValueError)
         persona = _mapping(persona, "model output: persona", error=ValueError)
-        _strict(persona, {"traits"}, "model output: persona", error=ValueError)
+        _strict(persona, _PERSONA_FIELDS, "model output: persona", error=ValueError)
+        return {
+            name: _string(value, f"model output: {name}", error=ValueError)
+            for name, value in (
+                ("description", raw["description"]),
+                ("traits", persona["traits"]),
+                ("goal", raw["goal"]),
+            )
+        }
     except ValueError as exc:
         raise Rejection(REASON_MALFORMED_OUTPUT, str(exc)) from None
-    narrative = {
-        "description": raw["description"],
-        "traits": persona["traits"],
-        "goal": raw["goal"],
-    }
-    for name, value in narrative.items():
-        if not isinstance(value, str) or not value.strip():
-            raise Rejection(
-                REASON_MALFORMED_OUTPUT, f"model output: {name} must be a non-empty string"
-            )
-    return {name: value.strip() for name, value in narrative.items()}
 
 
 _FACT_TOKEN = re.compile(r"[A-Za-z0-9]+(?:[-:/.][A-Za-z0-9]+)*")
+_DIGITS = re.compile(r"\d+")
+_ISO_DATE_TIME = re.compile(r"\d{4}-\d{2}-\d{2}T.+")
 _MONTHS = (
     "january", "february", "march", "april", "may", "june", "july", "august",
     "september", "october", "november", "december",
@@ -629,11 +632,11 @@ def narrative_sealed_world_violations(
         if moment is None:
             for token in _FACT_TOKEN.findall(value):
                 allowed_tokens.add(token.lower())
-                allowed_tokens.update(re.findall(r"\d+", token))
+                allowed_tokens.update(_DIGITS.findall(token))
         else:
             allowed_tokens.add(value.lower())
             allowed_tokens.update(_date_time_tokens(moment))
-            allowed_words.update({_MONTHS[moment.month - 1], _WEEKDAYS[moment.weekday()]})
+            allowed_words.update((_MONTHS[moment.month - 1], _WEEKDAYS[moment.weekday()]))
 
     violations: list[str] = []
     for name, text in narrative.items():
@@ -648,7 +651,7 @@ def narrative_sealed_world_violations(
 
 
 def _date_time(value: str) -> datetime | None:
-    if re.fullmatch(r"\d{4}-\d{2}-\d{2}T.+", value) is None:
+    if _ISO_DATE_TIME.fullmatch(value) is None:
         return None
     try:
         return datetime.fromisoformat(value)
@@ -664,13 +667,13 @@ def _date_time_tokens(moment: datetime) -> set[str]:
         f"{day}{_ordinal_suffix(day)}",
     }
     half = "am" if moment.hour < 12 else "pm"
-    for hour, suffixes in ((moment.hour, ("",)), (moment.hour % 12 or 12, ("", half))):
+    hour12 = moment.hour % 12 or 12
+    for hour, suffix in ((moment.hour, ""), (hour12, ""), (hour12, half)):
         for shown in {str(hour), f"{hour:02d}"}:
-            for suffix in suffixes:
-                tokens.add(f"{shown}:{minute}{suffix}")
-                tokens.add(f"{shown}.{minute}{suffix}")
-                if moment.minute == 0:
-                    tokens.add(f"{shown}{suffix}")
+            forms = [f"{shown}:{minute}", f"{shown}.{minute}"]
+            if moment.minute == 0:
+                forms.append(shown)
+            tokens.update(form + suffix for form in forms)
     return tokens
 
 
@@ -688,14 +691,12 @@ def scenario_document(
 ) -> dict[str, Any]:
     """Assemble the section-6 document. ``expected_outcome`` and ``criteria``
     come from the Journey definition, never from the model."""
-    identity = canonical_json(
+    identity = _sha256_json(
         {"set_id": synthesis["set_id"], "spec": spec.to_dict(), "narrative": dict(narrative)}
     )
     return {
         "schema_version": 1,
-        "scenario_id": (
-            f"synth-{journey.journey_id}-{sha256_bytes(identity.encode('utf-8'))[:12]}"
-        ),
+        "scenario_id": f"synth-{journey.journey_id}-{identity[:12]}",
         "journey": journey.journey_id,
         "description": narrative["description"],
         "persona": {
@@ -721,8 +722,7 @@ def scenario_document(
             "judge": list(journey.judge_criterion_ids),
         },
         "synthesis": {
-            "origin": "synthesized",
-            "qualification": "none",
+            **_UNQUALIFIED,
             "set_id": synthesis["set_id"],
             "spec_id": spec.spec_id,
             **{key: value for key, value in synthesis.items() if key != "set_id"},
@@ -809,25 +809,20 @@ def synthesize_set(
         "model": provider.model,
         "system_prompt_sha256": sha256_bytes(SYSTEM_PROMPT.encode("utf-8")),
     }
-    generated_at = utc_timestamp()
     synthesis = {
         "set_id": set_id,
-        "journey_sha256": sha256_file(journey_dir / JOURNEY_FILE),
-        "fixture_state_sha256": fixture_state.sha256,
-        "generation_config_sha256": sha256_bytes(
-            canonical_json(generation_config).encode("utf-8")
-        ),
+        **_input_hashes(journey_dir, fixture_state, generation_config),
         "generator_version": GENERATOR_VERSION,
         "model": provider.model,
-        "generated_at": generated_at,
+        "generated_at": utc_timestamp(),
     }
+    fixture_state_file_sha256 = sha256_file(journey_dir / FIXTURE_STATE_FILE)
 
     specs = plan_specs(journey, fixture_state, settings, count=count, seed=seed)
     set_dir.mkdir(parents=True)
     accepted: list[Path] = []
     rejected: list[Path] = []
     rejections: list[dict[str, Any]] = []
-    exhausted: list[str] = []
     spec_records: list[dict[str, Any]] = []
     for spec in specs:
         reasons: list[dict[str, str]] = []
@@ -835,20 +830,26 @@ def synthesize_set(
         for attempt in range(1, ATTEMPTS_PER_SPEC + 1):
             raw: Any = None
             try:
-                try:
-                    raw = provider.realize(
-                        _narrative_request(
-                            spec, journey, attempt=attempt, previous_reasons=reasons
-                        ),
-                        attempt=attempt,
-                    )
-                except LLMError as exc:
-                    raise Rejection(REASON_PROVIDER_ERROR, str(exc)) from None
+                raw = provider.realize(
+                    _narrative_request(spec, journey, attempt=attempt, previous_reasons=reasons),
+                    attempt=attempt,
+                )
                 document = scenario_document(spec, parse_narrative(raw), journey, synthesis)
                 text = validate_scenario_document(document, journey, fixture_state)
-            except Rejection as rejection:
-                reasons = [rejection.to_dict()]
-                record = {
+            except LLMError as exc:
+                rejection = Rejection(REASON_PROVIDER_ERROR, str(exc))
+            except Rejection as exc:
+                rejection = exc
+            else:
+                saved = set_dir / "accepted" / f"{document['scenario_id']}.yaml"
+                atomic_text(saved, text)
+                accepted.append(saved)
+                break
+            reasons = [rejection.to_dict()]
+            path = set_dir / "rejected" / f"{spec.spec_id}-{attempt}.json"
+            atomic_json(
+                path,
+                {
                     "spec": spec.to_dict(),
                     "attempt": attempt,
                     "raw_model_output": _jsonable(raw),
@@ -856,20 +857,10 @@ def synthesize_set(
                     "provider_id": provider.provider_id,
                     "model": provider.model,
                     "recorded_at": utc_timestamp(),
-                }
-                path = set_dir / "rejected" / f"{spec.spec_id}-{attempt}.json"
-                atomic_json(path, record)
-                rejected.append(path)
-                rejections.append(
-                    {"spec_id": spec.spec_id, "attempt": attempt, "reasons": reasons}
-                )
-                continue
-            saved = set_dir / "accepted" / f"{document['scenario_id']}.yaml"
-            atomic_text(saved, text)
-            accepted.append(saved)
-            break
-        if saved is None:
-            exhausted.append(spec.spec_id)
+                },
+            )
+            rejected.append(path)
+            rejections.append({"spec_id": spec.spec_id, "attempt": attempt, "reasons": reasons})
         spec_records.append(
             {
                 "spec_id": spec.spec_id,
@@ -882,8 +873,7 @@ def synthesize_set(
         set_dir / "provenance.json",
         {
             "schema_version": 1,
-            "origin": "synthesized",
-            "qualification": "none",
+            **_UNQUALIFIED,
             "notice": NOT_QUALIFICATION_NOTICE,
             "journey_id": journey.journey_id,
             **synthesis,
@@ -896,8 +886,8 @@ def synthesize_set(
                 "fixture_state": {
                     "file": FIXTURE_STATE_FILE,
                     "fixture_state_id": fixture_state.fixture_state_id,
-                    "file_sha256": sha256_file(journey_dir / FIXTURE_STATE_FILE),
-                    "canonical_sha256": fixture_state.sha256,
+                    "file_sha256": fixture_state_file_sha256,
+                    "canonical_sha256": synthesis["fixture_state_sha256"],
                 },
             },
             "generation_config": generation_config,
@@ -926,7 +916,9 @@ def synthesize_set(
         accepted=tuple(accepted),
         rejected=tuple(rejected),
         rejections=tuple(rejections),
-        exhausted_spec_ids=tuple(exhausted),
+        exhausted_spec_ids=tuple(
+            record["spec_id"] for record in spec_records if record["status"] == "exhausted"
+        ),
     )
 
 
@@ -934,8 +926,7 @@ def _set_directory(output_root: str | Path, journey_id: str, set_id: str) -> Pat
     root = Path(output_root)
     resolved = (root if root.is_absolute() else ROOT / root).resolve()
     for name in FORBIDDEN_OUTPUT_ROOTS:
-        forbidden = (ROOT / name).resolve()
-        if resolved == forbidden or forbidden in resolved.parents:
+        if resolved.is_relative_to((ROOT / name).resolve()):
             raise SynthesisConfigError(
                 f"output root {str(output_root)!r} is under {name}/, which never "
                 "receives Journey synthesis output"
@@ -946,6 +937,22 @@ def _set_directory(output_root: str | Path, journey_id: str, set_id: str) -> Pat
             f"{set_dir} already exists; a synthesized set is never overwritten"
         )
     return set_dir
+
+
+def _sha256_json(value: Any) -> str:
+    return sha256_bytes(canonical_json(value).encode("utf-8"))
+
+
+def _input_hashes(
+    journey_dir: Path, fixture_state: FixtureState, generation_config: Mapping[str, Any]
+) -> dict[str, str]:
+    """The three hashes every saved Scenario and provenance.json carry, and
+    that ``verify_provenance`` recomputes."""
+    return {
+        "journey_sha256": sha256_file(journey_dir / JOURNEY_FILE),
+        "fixture_state_sha256": fixture_state.sha256,
+        "generation_config_sha256": _sha256_json(generation_config),
+    }
 
 
 def _jsonable(value: Any) -> Any:
@@ -962,14 +969,7 @@ def verify_provenance(set_dir: str | Path, journey_dir: str | Path) -> list[str]
     set_dir, journey_dir = Path(set_dir), Path(journey_dir)
     provenance = json.loads((set_dir / "provenance.json").read_text(encoding="utf-8"))
     _, fixture_state = load_journey_inputs(journey_dir)
-    config_sha256 = sha256_bytes(
-        canonical_json(provenance["generation_config"]).encode("utf-8")
-    )
-    expected = {
-        "journey_sha256": sha256_file(journey_dir / JOURNEY_FILE),
-        "fixture_state_sha256": fixture_state.sha256,
-        "generation_config_sha256": config_sha256,
-    }
+    expected = _input_hashes(journey_dir, fixture_state, provenance["generation_config"])
     problems = [
         f"provenance.json: {key} no longer matches"
         for key, value in expected.items()
