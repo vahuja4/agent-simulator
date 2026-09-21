@@ -79,6 +79,9 @@ Do not violate these without explicit instruction in the current prompt.
   the one permitted edge.
 - Before qualifying a requested fresh Candidate, verify that its bundle was created by
   the current production attempt; an idempotently returned pre-existing bundle is not fresh.
+- A command that creates its output directory before fallible work must, on an
+  unexpected failure, keep what it wrote and leave a record marked aborted with the
+  error. Exit status 2 (unusable request) is only for failures before the first write.
 
 ## Agent skills
 

@@ -3,8 +3,8 @@
 Contract for sessions 02–09 on branch `codex/langgraph-synthesis-harness`.
 Written 2026-09-21 (session 01), before any code existed. A session that must
 deviate changes this note in the same commit and says so in its report.
-Amended by session 03 (sections 4, 5, 8, 9, 11, 12) and session 07 (sections
-6, 7, 9, 11).
+Amended by session 03 (sections 4, 5, 8, 9, 11, 12), session 07 (sections
+6, 7, 9, 11) and session 07c (sections 6, 7, 9).
 
 HARNESS = `/Users/vishal/Desktop/agent_simulator-langgraph`, AGENT =
 `/Users/vishal/Desktop/journey_agent`. The Journey is fictional appointment
@@ -316,6 +316,19 @@ existing set directory is never overwritten, and an output root under
 `verify_provenance(set_dir, journey_dir)` re-checks the three hashes and every
 accepted file.
 
+`provenance.json` carries `status`. A run that reaches its end writes
+`"complete"`. A run that fails unexpectedly after its set directory exists — a
+provider raising something other than `LLMError`, a failed write, an interrupt —
+keeps what it wrote and still writes `provenance.json`, with
+`"status": "aborted"` and `"error": {type, message, spec_id}`; `counts`, `specs`
+and `accepted` describe what exists. Partial evidence is preserved rather than
+cleaned up (a live run has paid for it), and the set id stays taken.
+`synthesize_set` raises `SynthesisAborted` from the original error — not a
+`ValueError`, so it is never read as a configuration error — and lets an
+interrupt propagate as itself. `verify_provenance` reports an aborted set as a
+problem. A set directory that appears between the existence check and `mkdir`
+is a `SynthesisConfigError`: nothing of this run was written.
+
 Distinguishable from Curated by content (`synthesis.origin`), loader and
 directory; its `synthesis` block is not a Phase 4.5 `SynthesisMetadata`, so
 `load_synthesized_scenario` rejects it too. `qualification: none` says
@@ -355,7 +368,11 @@ conditions are the `when` conditions of `journey.yaml`'s valid outcomes, so
 every planned condition has a derivable expected outcome. Variation settings
 (`VariationSettings`) narrow the axes; a value outside a closed set, a
 Complication the Journey lists as unsupported, or a condition with no valid
-outcome is refused before anything is generated.
+outcome is refused before anything is generated. So are a duplicate value
+(tool-failure conditions compare as sets, so two orderings of one condition
+are a duplicate), an explicitly empty axis — omitting an axis means every
+supported value, `()` never does — and a supported Complication for which the
+generator has no writing direction (goal shift and multi-intent turn today).
 
 Code also owns what a Complication needs from Fixture state (ADR 0005), and a
 combination that lacks it is not planned: mid-conversation correction names a
@@ -375,7 +392,8 @@ fact (Sealed-world rule). All but the last run through the section 5 seam
 (`load_journey_scenario` on the exact text to be saved, then
 `check_against_inputs`). The narrative check is lexical: every digit-bearing
 token and every month or weekday name must come from a grounded fact, with
-dates and times accepted in their usual written forms. It checks tokens one at
+dates and times accepted in their usual written forms, including a grounded
+date-time quoted verbatim (UTC offset and all) and its `HH:MM:SS`. It checks tokens one at
 a time, so it can reject honest text (a count written as a digit) and cannot
 prove a sentence true. Passing validation is not evidence of test quality,
 coverage, Qualification or Admission; the module docstring, `provenance.json`
@@ -461,8 +479,11 @@ composition roots; `run_calibration.py` already imports both packages):
 ```
 
 `synthesize` is `journey_synthesis.synthesize_command(...)`, which prints the
-report and returns the exit status: 0, 1 on a shortfall, 2 for an unusable
-request or missing configuration. Session 08 only parses arguments for it.
+report and returns the exit status: 0; 1 on a shortfall, or when the run
+aborted after writing files (one `ABORTED:` line naming the error and the set
+directory, section 6); 2 for an unusable request or missing configuration,
+always before any network call or write. Session 08 only parses arguments for
+it.
 `synthesize --stub` is a deterministic provider (precedent:
 `StubRealizationProvider`). `run` has **no** doubles mode outside pytest — a
 committed "pass" from a Judge double would read as a result — so session 09

@@ -103,6 +103,20 @@ class SynthesisConfigError(ValueError):
     """The synthesis request itself is unusable; nothing was generated."""
 
 
+class SynthesisAborted(RuntimeError):
+    """The run failed unexpectedly after its set directory was created. What
+    it had written is kept, under a ``provenance.json`` marked ``aborted``.
+    Deliberately not a ``ValueError``: this is never a configuration error."""
+
+    def __init__(self, set_dir: Path, cause: BaseException) -> None:
+        super().__init__(
+            f"{type(cause).__name__}: {' '.join(str(cause).split())}; partial evidence "
+            f"kept under {set_dir} "
+            "(provenance.json status 'aborted')"
+        )
+        self.set_dir = set_dir
+
+
 # ------------------------------------------------------- variation settings
 
 
@@ -137,9 +151,25 @@ class VariationSettings:
                     f"complication {complication!r} is unsupported for Journey "
                     f"{journey.journey_id!r}" + (f": {reason}" if reason else "")
                 )
+            if complication not in _COMPLICATION_DIRECTION:
+                raise SynthesisConfigError(
+                    f"complication {complication!r} has no writing direction in "
+                    "journey synthesis, so it cannot be realized; leave it out of "
+                    "the variation settings"
+                )
         derivable = tuple(outcome.tool_failures for outcome in journey.valid_outcomes)
         derivable_sets = {frozenset(d) for d in derivable}
-        conditions = self.tool_failure_conditions or derivable
+        conditions = (
+            derivable if self.tool_failure_conditions is None
+            else tuple(self.tool_failure_conditions)
+        )
+        _not_empty("tool_failure_conditions", conditions)
+        # A condition is a set of tools: two orderings of it are one value.
+        if len({frozenset(c) for c in conditions}) != len(conditions):
+            raise SynthesisConfigError(
+                f"tool_failure_conditions: duplicate value(s) in "
+                f"{[list(c) for c in conditions]}"
+            )
         for condition in conditions:
             if frozenset(condition) not in derivable_sets:
                 raise SynthesisConfigError(
@@ -167,7 +197,9 @@ def _axis(
     *,
     default: Sequence[str] | None = None,
 ) -> tuple[str, ...]:
-    values = tuple(requested) if requested else tuple(default or sorted(closed))
+    # ``None`` means every supported value; an explicitly empty axis does not.
+    values = tuple(default or sorted(closed)) if requested is None else tuple(requested)
+    _not_empty(name, values)
     outside = sorted(set(values) - set(closed))
     if outside:
         raise SynthesisConfigError(
@@ -176,6 +208,13 @@ def _axis(
     if len(set(values)) != len(values):
         raise SynthesisConfigError(f"{name}: duplicate value(s) in {list(values)}")
     return values
+
+
+def _not_empty(name: str, values: Sequence[Any]) -> None:
+    if not values:
+        raise SynthesisConfigError(
+            f"{name}: must not be empty; omit it to vary over every supported value"
+        )
 
 
 # -------------------------------------------------------------------- specs
@@ -574,6 +613,9 @@ def parse_narrative(raw: Any) -> dict[str, str]:
     if not isinstance(raw, Mapping):
         raise Rejection(REASON_MALFORMED_OUTPUT, "model output is not a mapping")
     persona = raw.get("persona")
+    keys = [*raw, *(persona if isinstance(persona, Mapping) else ())]
+    if not all(isinstance(key, str) for key in keys):
+        raise Rejection(REASON_MALFORMED_OUTPUT, "model output has a key that is not a string")
     extra = sorted(set(raw) - _NARRATIVE_FIELDS)
     if isinstance(persona, Mapping):
         extra += [f"persona.{key}" for key in sorted(set(persona) - _PERSONA_FIELDS)]
@@ -623,6 +665,7 @@ def narrative_sealed_world_violations(
     sentence true."""
     allowed_tokens: set[str] = set()
     allowed_words: set[str] = set()
+    verbatim_date_times: list[str] = []
     for fact in grounded_facts:
         value = fact["value"]
         if not isinstance(value, str):
@@ -634,12 +677,18 @@ def narrative_sealed_world_violations(
                 allowed_tokens.add(token.lower())
                 allowed_tokens.update(_DIGITS.findall(token))
         else:
-            allowed_tokens.add(value.lower())
+            verbatim_date_times.append(value)
             allowed_tokens.update(_date_time_tokens(moment))
             allowed_words.update((_MONTHS[moment.month - 1], _WEEKDAYS[moment.weekday()]))
 
+    # A grounded date-time quoted verbatim is taken out whole before the text is
+    # split into tokens: a "+00:00" offset would otherwise split it in two. Only
+    # the exact grounded string goes; anything beside it is still checked.
+    verbatim = sorted(verbatim_date_times, key=len, reverse=True)
     violations: list[str] = []
     for name, text in narrative.items():
+        for value in verbatim:
+            text = re.sub(re.escape(value), " ", text, flags=re.IGNORECASE)
         for token in _FACT_TOKEN.findall(text):
             if any(c.isdigit() for c in token) and token.lower() not in allowed_tokens:
                 violations.append(f"{name}: {token!r} is not a grounded fact")
@@ -666,6 +715,7 @@ def _date_time_tokens(moment: datetime) -> set[str]:
         str(month), f"{month:02d}", str(day), f"{day:02d}",
         f"{day}{_ordinal_suffix(day)}",
     }
+    tokens.add(moment.strftime("%H:%M:%S"))
     half = "am" if moment.hour < 12 else "pm"
     hour12 = moment.hour % 12 or 12
     for hour, suffix in ((moment.hour, ""), (hour12, ""), (hour12, half)):
@@ -819,95 +869,119 @@ def synthesize_set(
     fixture_state_file_sha256 = sha256_file(journey_dir / FIXTURE_STATE_FILE)
 
     specs = plan_specs(journey, fixture_state, settings, count=count, seed=seed)
-    set_dir.mkdir(parents=True)
+    try:
+        set_dir.mkdir(parents=True)
+    except FileExistsError:
+        raise SynthesisConfigError(_never_overwritten(set_dir)) from None
     accepted: list[Path] = []
     rejected: list[Path] = []
     rejections: list[dict[str, Any]] = []
     spec_records: list[dict[str, Any]] = []
-    for spec in specs:
-        reasons: list[dict[str, str]] = []
-        saved: Path | None = None
-        for attempt in range(1, ATTEMPTS_PER_SPEC + 1):
-            raw: Any = None
-            try:
-                raw = provider.realize(
-                    _narrative_request(spec, journey, attempt=attempt, previous_reasons=reasons),
-                    attempt=attempt,
-                )
-                document = scenario_document(spec, parse_narrative(raw), journey, synthesis)
-                text = validate_scenario_document(document, journey, fixture_state)
-            except LLMError as exc:
-                rejection = Rejection(REASON_PROVIDER_ERROR, str(exc))
-            except Rejection as exc:
-                rejection = exc
-            else:
-                saved = set_dir / "accepted" / f"{document['scenario_id']}.yaml"
-                atomic_text(saved, text)
-                accepted.append(saved)
-                break
-            reasons = [rejection.to_dict()]
-            path = set_dir / "rejected" / f"{spec.spec_id}-{attempt}.json"
-            atomic_json(
-                path,
-                {
-                    "spec": spec.to_dict(),
-                    "attempt": attempt,
-                    "raw_model_output": _jsonable(raw),
-                    "reasons": reasons,
-                    "provider_id": provider.provider_id,
-                    "model": provider.model,
-                    "recorded_at": utc_timestamp(),
-                },
-            )
-            rejected.append(path)
-            rejections.append({"spec_id": spec.spec_id, "attempt": attempt, "reasons": reasons})
-        spec_records.append(
+
+    def write_provenance(status: str, error: Mapping[str, Any] | None = None) -> None:
+        atomic_json(
+            set_dir / "provenance.json",
             {
-                "spec_id": spec.spec_id,
-                "status": "accepted" if saved is not None else "exhausted",
-                "scenario_id": saved.stem if saved is not None else None,
-            }
+                "schema_version": 1,
+                **_UNQUALIFIED,
+                "notice": NOT_QUALIFICATION_NOTICE,
+                "status": status,
+                **({"error": dict(error)} if error is not None else {}),
+                "journey_id": journey.journey_id,
+                **synthesis,
+                "provider_id": provider.provider_id,
+                "inputs": {
+                    "journey": {
+                        "file": JOURNEY_FILE,
+                        "sha256": synthesis["journey_sha256"],
+                    },
+                    "fixture_state": {
+                        "file": FIXTURE_STATE_FILE,
+                        "fixture_state_id": fixture_state.fixture_state_id,
+                        "file_sha256": fixture_state_file_sha256,
+                        "canonical_sha256": synthesis["fixture_state_sha256"],
+                    },
+                },
+                "generation_config": generation_config,
+                "counts": {
+                    "requested": count,
+                    "accepted": len(accepted),
+                    "rejected_attempts": len(rejected),
+                    "shortfall": count - len(accepted),
+                },
+                "specs": spec_records,
+                "accepted": [
+                    {"file": f"accepted/{path.name}", "sha256": sha256_file(path)}
+                    for path in accepted
+                ],
+                "rejected": [
+                    {"file": f"rejected/{path.name}", **rejection}
+                    for path, rejection in zip(rejected, rejections)
+                ],
+            },
         )
 
-    atomic_json(
-        set_dir / "provenance.json",
-        {
-            "schema_version": 1,
-            **_UNQUALIFIED,
-            "notice": NOT_QUALIFICATION_NOTICE,
-            "journey_id": journey.journey_id,
-            **synthesis,
-            "provider_id": provider.provider_id,
-            "inputs": {
-                "journey": {
-                    "file": JOURNEY_FILE,
-                    "sha256": synthesis["journey_sha256"],
-                },
-                "fixture_state": {
-                    "file": FIXTURE_STATE_FILE,
-                    "fixture_state_id": fixture_state.fixture_state_id,
-                    "file_sha256": fixture_state_file_sha256,
-                    "canonical_sha256": synthesis["fixture_state_sha256"],
-                },
-            },
-            "generation_config": generation_config,
-            "counts": {
-                "requested": count,
-                "accepted": len(accepted),
-                "rejected_attempts": len(rejected),
-                "shortfall": count - len(accepted),
-            },
-            "specs": spec_records,
-            "accepted": [
-                {"file": f"accepted/{path.name}", "sha256": sha256_file(path)}
-                for path in accepted
-            ],
-            "rejected": [
-                {"file": f"rejected/{path.name}", **rejection}
-                for path, rejection in zip(rejected, rejections)
-            ],
-        },
-    )
+    current_spec_id: str | None = None
+    try:
+        for spec in specs:
+            current_spec_id = spec.spec_id
+            reasons: list[dict[str, str]] = []
+            saved: Path | None = None
+            for attempt in range(1, ATTEMPTS_PER_SPEC + 1):
+                raw: Any = None
+                try:
+                    raw = provider.realize(
+                        _narrative_request(spec, journey, attempt=attempt, previous_reasons=reasons),
+                        attempt=attempt,
+                    )
+                    document = scenario_document(spec, parse_narrative(raw), journey, synthesis)
+                    text = validate_scenario_document(document, journey, fixture_state)
+                except LLMError as exc:
+                    rejection = Rejection(REASON_PROVIDER_ERROR, str(exc))
+                except Rejection as exc:
+                    rejection = exc
+                else:
+                    saved = set_dir / "accepted" / f"{document['scenario_id']}.yaml"
+                    atomic_text(saved, text)
+                    accepted.append(saved)
+                    break
+                reasons = [rejection.to_dict()]
+                path = set_dir / "rejected" / f"{spec.spec_id}-{attempt}.json"
+                atomic_json(
+                    path,
+                    {
+                        "spec": spec.to_dict(),
+                        "attempt": attempt,
+                        "raw_model_output": _jsonable(raw),
+                        "reasons": reasons,
+                        "provider_id": provider.provider_id,
+                        "model": provider.model,
+                        "recorded_at": utc_timestamp(),
+                    },
+                )
+                rejected.append(path)
+                rejections.append({"spec_id": spec.spec_id, "attempt": attempt, "reasons": reasons})
+            spec_records.append(
+                {
+                    "spec_id": spec.spec_id,
+                    "status": "accepted" if saved is not None else "exhausted",
+                    "scenario_id": saved.stem if saved is not None else None,
+                }
+            )
+    except BaseException as exc:
+        # Preserve partial evidence: what was written stays, marked aborted, so
+        # the set is explained rather than left unusable and unexplained.
+        try:
+            write_provenance(
+                "aborted",
+                {"type": type(exc).__name__, "message": str(exc), "spec_id": current_spec_id},
+            )
+        except OSError:
+            pass  # the original failure is the one to report
+        if isinstance(exc, Exception):
+            raise SynthesisAborted(set_dir, exc) from exc
+        raise  # an interrupt stays an interrupt
+    write_provenance("complete")
     return SynthesisResult(
         set_dir=set_dir,
         journey_id=journey.journey_id,
@@ -933,10 +1007,12 @@ def _set_directory(output_root: str | Path, journey_id: str, set_id: str) -> Pat
             )
     set_dir = resolved / journey_id / set_id
     if set_dir.exists():
-        raise SynthesisConfigError(
-            f"{set_dir} already exists; a synthesized set is never overwritten"
-        )
+        raise SynthesisConfigError(_never_overwritten(set_dir))
     return set_dir
+
+
+def _never_overwritten(set_dir: Path) -> str:
+    return f"{set_dir} already exists; a synthesized set is never overwritten"
 
 
 def _sha256_json(value: Any) -> str:
@@ -970,7 +1046,13 @@ def verify_provenance(set_dir: str | Path, journey_dir: str | Path) -> list[str]
     provenance = json.loads((set_dir / "provenance.json").read_text(encoding="utf-8"))
     _, fixture_state = load_journey_inputs(journey_dir)
     expected = _input_hashes(journey_dir, fixture_state, provenance["generation_config"])
-    problems = [
+    problems = []
+    if provenance.get("status") == "aborted":
+        error = provenance["error"]
+        problems.append(
+            f"provenance.json: the run was aborted ({error['type']}: {error['message']})"
+        )
+    problems += [
         f"provenance.json: {key} no longer matches"
         for key, value in expected.items()
         if provenance[key] != value
@@ -1030,8 +1112,9 @@ def synthesize_command(
     out: TextIO,
 ) -> int:
     """The body of ``journey_harness.py synthesize``. Exit status: 0 when the
-    requested count was produced, 1 on a shortfall, 2 when the request or its
-    configuration is unusable (reported in one line, before any network call)."""
+    requested count was produced; 1 on a shortfall, or when the run aborted
+    after writing files (one ``ABORTED:`` line); 2 when the request or its
+    configuration is unusable (one line, before any network call or write)."""
     try:
         if provider is None:
             provider = StubNarrativeProvider() if stub else _live_provider(model)
@@ -1043,6 +1126,9 @@ def synthesize_command(
             seed=seed,
             output_root=output_root,
         )
+    except SynthesisAborted as exc:
+        print(f"ABORTED: {exc}", file=out)
+        return 1
     except ValueError as exc:  # config, Journey-definition and Fixture-state errors
         print(f"synthesize: {exc}", file=out)
         return 2

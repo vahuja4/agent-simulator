@@ -45,7 +45,7 @@ class ScriptedProvider:
         scripted = self.script.get((spec_number, attempt))
         if scripted is None:
             return good
-        if isinstance(scripted, Exception):
+        if isinstance(scripted, BaseException):
             raise scripted
         return scripted(good) if callable(scripted) else scripted
 
@@ -508,3 +508,273 @@ def test_the_live_provider_sends_one_structured_request_through_the_llm_client(t
     assert scenario["synthesis"]["model"] == "some-model"
     provenance = json.loads((result.set_dir / "provenance.json").read_text())
     assert provenance["provider_id"] == "openai-structured-journey-narrative:some-model"
+
+
+# ------------------------------------------------------- an aborted run
+
+
+def _abort_on_second_spec(error):
+    return ScriptedProvider({(2, 1): error})
+
+
+def test_an_unexpected_failure_mid_run_keeps_the_evidence_and_marks_the_set_aborted(tmp_path):
+    """A provider raising something other than ``LLMError`` — here a
+    ``ValueError``, which must not be mistaken for a configuration error."""
+    out = io.StringIO()
+    status = js.synthesize_command(
+        journey_dir=JOURNEY_DIR, count=3, set_id="set-1", output_root=tmp_path,
+        provider=_abort_on_second_spec(ValueError("boom")), out=out,
+    )
+    set_dir = tmp_path / "appointment-rescheduling" / "set-1"
+
+    assert status == 1  # files were written and the count was not produced: never 2
+    assert out.getvalue().count("\n") == 1
+    assert out.getvalue().startswith("ABORTED: ValueError: boom")
+    assert str(set_dir) in out.getvalue()
+
+    provenance = json.loads((set_dir / "provenance.json").read_text())
+    assert provenance["status"] == "aborted"
+    assert provenance["error"] == {"type": "ValueError", "message": "boom", "spec_id": "spec-002"}
+    assert provenance["counts"] == {
+        "requested": 3, "accepted": 1, "rejected_attempts": 0, "shortfall": 2,
+    }
+    assert [entry["spec_id"] for entry in provenance["specs"]] == ["spec-001"]
+    kept = list((set_dir / "accepted").glob("*.yaml"))
+    assert [f"accepted/{path.name}" for path in kept] == [
+        entry["file"] for entry in provenance["accepted"]
+    ]
+    load_journey_scenario(kept[0])
+
+    problems = js.verify_provenance(set_dir, JOURNEY_DIR)
+    assert problems == ["provenance.json: the run was aborted (ValueError: boom)"]
+
+
+def test_the_aborted_line_stays_one_line_whatever_the_error_says(tmp_path):
+    out = io.StringIO()
+    js.synthesize_command(
+        journey_dir=JOURNEY_DIR, count=2, set_id="set-1", output_root=tmp_path,
+        provider=_abort_on_second_spec(RuntimeError("first line\nsecond line")), out=out,
+    )
+    assert out.getvalue().count("\n") == 1
+    assert out.getvalue().startswith("ABORTED: RuntimeError: first line second line;")
+    provenance = json.loads(
+        (tmp_path / "appointment-rescheduling" / "set-1" / "provenance.json").read_text()
+    )
+    assert provenance["error"]["message"] == "first line\nsecond line"  # kept as raised
+
+
+def test_a_completed_run_says_so(tmp_path):
+    result, _ = _synthesize(tmp_path, count=1)
+    provenance = json.loads((result.set_dir / "provenance.json").read_text())
+    assert provenance["status"] == "complete" and "error" not in provenance
+
+
+def test_synthesize_set_raises_synthesis_aborted_from_the_original_error(tmp_path):
+    with pytest.raises(js.SynthesisAborted) as excinfo:
+        js.synthesize_set(
+            JOURNEY_DIR, count=3, set_id="set-1", output_root=tmp_path,
+            provider=_abort_on_second_spec(KeyError("missing")),
+        )
+    assert not isinstance(excinfo.value, ValueError)
+    assert isinstance(excinfo.value.__cause__, KeyError)
+    assert excinfo.value.set_dir == tmp_path / "appointment-rescheduling" / "set-1"
+
+
+def test_an_interrupted_run_is_marked_aborted_and_the_interrupt_propagates(tmp_path):
+    with pytest.raises(KeyboardInterrupt):
+        js.synthesize_set(
+            JOURNEY_DIR, count=3, set_id="set-1", output_root=tmp_path,
+            provider=_abort_on_second_spec(KeyboardInterrupt()),
+        )
+    provenance = json.loads(
+        (tmp_path / "appointment-rescheduling" / "set-1" / "provenance.json").read_text()
+    )
+    assert provenance["status"] == "aborted"
+    assert provenance["error"]["type"] == "KeyboardInterrupt"
+
+
+def test_a_set_directory_that_appears_during_planning_is_a_config_error(tmp_path, monkeypatch):
+    """The race: another run creates the set directory after the existence
+    check and before ``mkdir``."""
+    real_plan = js.plan_specs
+    set_dir = tmp_path / "appointment-rescheduling" / "set-1"
+
+    def racing(*args, **kwargs):
+        set_dir.mkdir(parents=True)
+        return real_plan(*args, **kwargs)
+
+    monkeypatch.setattr(js, "plan_specs", racing)
+    out = io.StringIO()
+    status = js.synthesize_command(
+        journey_dir=JOURNEY_DIR, count=1, set_id="set-1", stub=True,
+        output_root=tmp_path, out=out,
+    )
+    assert status == 2
+    assert "never overwritten" in out.getvalue()
+    assert list(set_dir.iterdir()) == []
+
+
+# ------------------------------------------------ variation settings, again
+
+
+def _journey_with(**changes):
+    import dataclasses
+
+    journey, _ = _inputs()
+    return dataclasses.replace(journey, **changes)
+
+
+def test_duplicate_tool_failure_conditions_are_refused_comparing_as_sets():
+    from agentsim.journey.definition import ValidOutcome
+
+    journey, _ = _inputs()
+    with pytest.raises(js.SynthesisConfigError, match="tool_failure_conditions: duplicate"):
+        js.VariationSettings(tool_failure_conditions=((), ())).resolved(journey)
+
+    two_failures = _journey_with(
+        valid_outcomes=(
+            *journey.valid_outcomes,
+            ValidOutcome("both_failed", "both tools failed", ("update_appointment", "lookup")),
+        )
+    )
+    same_condition_twice = (("update_appointment", "lookup"), ("lookup", "update_appointment"))
+    with pytest.raises(js.SynthesisConfigError, match="tool_failure_conditions: duplicate"):
+        js.VariationSettings(tool_failure_conditions=same_condition_twice).resolved(two_failures)
+    # One spelling of it is fine.
+    resolved = js.VariationSettings(
+        tool_failure_conditions=same_condition_twice[:1]
+    ).resolved(two_failures)
+    assert resolved.tool_failure_conditions == (("update_appointment", "lookup"),)
+
+
+@pytest.mark.parametrize(
+    "axis", ["archetypes", "knowledge_levels", "complications", "tool_failure_conditions"]
+)
+def test_an_explicitly_empty_axis_is_refused_rather_than_meaning_everything(tmp_path, axis):
+    with pytest.raises(js.SynthesisConfigError, match=f"{axis}: must not be empty"):
+        _synthesize(tmp_path, settings=js.VariationSettings(**{axis: ()}))
+    assert list(tmp_path.iterdir()) == []
+
+
+def test_an_omitted_axis_still_means_every_supported_value():
+    journey, _ = _inputs()
+    resolved = js.VariationSettings().resolved(journey)
+    assert set(resolved.archetypes) == {"cooperative", "pressure", "vigilant", "persistent"}
+    assert set(resolved.knowledge_levels) == {"low", "medium", "high"}
+    assert resolved.complications == journey.supported_complications
+    assert resolved.tool_failure_conditions == ((), ("update_appointment",))
+    # The one-condition setting "no tool failure" is not an empty axis.
+    assert js.VariationSettings(tool_failure_conditions=((),)).resolved(
+        journey
+    ).tool_failure_conditions == ((),)
+
+
+def _journey_dir_with(tmp_path, *, journey=lambda raw: None, fixture_text=lambda text: text):
+    """A copy of the reviewed Journey inputs with one deliberate change."""
+    directory = tmp_path / "journey-inputs"
+    directory.mkdir()
+    raw = yaml.safe_load((JOURNEY_DIR / "journey.yaml").read_text())
+    journey(raw)
+    (directory / "journey.yaml").write_text(yaml.safe_dump(raw, sort_keys=False))
+    (directory / "fixture_state.yaml").write_text(
+        fixture_text((JOURNEY_DIR / "fixture_state.yaml").read_text())
+    )
+    return directory
+
+
+def test_a_supported_complication_with_no_writing_direction_is_refused_up_front(tmp_path):
+    """Goal shift is unsupported for the reviewed Journey. A Journey that lists
+    it as supported must be refused before anything is written, not crash on
+    the first spec that uses it."""
+
+    def support_goal_shift(raw):
+        raw["complications"]["unsupported"].pop("goal-shift")
+        raw["complications"]["supported"].append("goal-shift")
+
+    journey_dir = _journey_dir_with(tmp_path, journey=support_goal_shift)
+    output_root = tmp_path / "out"
+    out = io.StringIO()
+    status = js.synthesize_command(
+        journey_dir=journey_dir, count=8, set_id="set-1", stub=True,
+        output_root=output_root, out=out,
+    )
+    assert status == 2
+    assert "'goal-shift'" in out.getvalue() and "no writing direction" in out.getvalue()
+    assert not output_root.exists()
+    # Asking only for Complications that have a direction still works.
+    assert js.synthesize_command(
+        journey_dir=journey_dir, count=2, set_id="set-1", output_root=output_root,
+        provider=js.StubNarrativeProvider(), out=io.StringIO(),
+    ) == 2  # the default settings still include goal-shift
+    result = js.synthesize_set(
+        journey_dir, count=2, set_id="set-1", output_root=output_root,
+        provider=js.StubNarrativeProvider(),
+        settings=js.VariationSettings(complications=("none", "false-premise")),
+    )
+    assert result.shortfall == 0
+
+
+# ------------------------------------------- date-times with a UTC offset
+
+_OFFSET_FACTS = [
+    {"path": "appointments.A-1001.start", "value": "2026-10-06T10:00:00+00:00"},
+    {"path": "slots.S-102.start", "value": "2026-10-13T15:30:00+00:00"},
+]
+
+
+def test_a_verbatim_grounded_date_time_and_its_clock_time_pass():
+    for text in (
+        "My appointment is at 2026-10-06T10:00:00+00:00.",
+        "From 2026-10-06T10:00:00+00:00 to 2026-10-13T15:30:00+00:00, please.",
+        "It starts at 10:00:00 and the new one at 15:30:00.",
+    ):
+        assert js.narrative_sealed_world_violations({"goal": text}, _OFFSET_FACTS) == []
+    plain = [{"path": "appointments.A-1001.start", "value": "2026-10-06T10:00:00"}]
+    assert js.narrative_sealed_world_violations({"goal": "At 10:00:00."}, plain) == []
+
+
+@pytest.mark.parametrize(
+    "text, ungrounded",
+    [
+        ("At 2026-10-06T11:00:00+00:00.", "2026-10-06T11:00:00"),  # another time
+        ("At 2026-10-07T10:00:00+00:00.", "2026-10-07T10:00:00"),  # another date
+        ("At 2026-10-06T10:00:00+05:00.", "05:00"),  # another offset
+        ("At 2026-10-06T10:00:00+00:00 or 00:00.", "00:00"),  # the offset is not a time
+        ("At 10:00:01.", "10:00:01"),
+        ("At 10:30:00.", "10:30:00"),
+        ("Code HSD-9999, appointment A-1001.", "HSD-9999"),
+    ],
+)
+def test_the_offset_fix_loosens_nothing_else(text, ungrounded):
+    violations = js.narrative_sealed_world_violations({"goal": text}, _OFFSET_FACTS)
+    assert f"goal: {ungrounded!r} is not a grounded fact" in violations
+
+
+def test_the_stub_produces_the_requested_count_on_a_fixture_with_utc_offsets(tmp_path):
+    import re
+
+    journey_dir = _journey_dir_with(
+        tmp_path,
+        fixture_text=lambda text: re.sub(r'(\d{2}:\d{2}:\d{2})"', r'\1+00:00"', text),
+    )
+    _, fixture_state = load_journey_inputs(journey_dir)
+    assert fixture_state.now.endswith("+00:00")
+    result = js.synthesize_set(
+        journey_dir, count=6, set_id="set-1", output_root=tmp_path / "out",
+        provider=js.StubNarrativeProvider(),
+    )
+    assert result.shortfall == 0 and result.rejected == ()
+    assert js.verify_provenance(result.set_dir, journey_dir) == []
+
+
+def test_model_output_with_keys_that_are_not_strings_is_malformed_not_a_crash():
+    good = {"description": "d", "persona": {"traits": "t"}, "goal": "g"}
+    with pytest.raises(js.Rejection) as excinfo:  # sorting mixed-type keys raised TypeError
+        js.parse_narrative({1: "x", "expected_outcome": "rescheduled", **good})
+    assert excinfo.value.code == "malformed-output"
+    with pytest.raises(js.Rejection) as excinfo:
+        js.parse_narrative({1: "x", "description": "d", "persona": {"traits": "t"}, "goal": "g"})
+    assert excinfo.value.code == "malformed-output"
+    with pytest.raises(js.Rejection) as excinfo:
+        js.parse_narrative({"description": "d", "persona": {2: "x", "traits": "t"}, "goal": "g"})
+    assert excinfo.value.code == "malformed-output"
