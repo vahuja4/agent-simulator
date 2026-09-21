@@ -4,7 +4,8 @@ Contract for sessions 02–09 on branch `codex/langgraph-synthesis-harness`.
 Written 2026-09-21 (session 01), before any code existed. A session that must
 deviate changes this note in the same commit and says so in its report.
 Amended by session 03 (sections 4, 5, 8, 9, 11, 12), session 07 (sections
-6, 7, 9, 11) and session 07c (sections 6, 7, 9).
+6, 7, 9, 11), session 07c (sections 6, 7, 9) and session 05a (sections 1, 2,
+8, 11, 12).
 
 HARNESS = `/Users/vishal/Desktop/agent_simulator-langgraph`, AGENT =
 `/Users/vishal/Desktop/journey_agent`. The Journey is fictional appointment
@@ -56,16 +57,37 @@ class ConversationAdapter(ABC):
     def release(self, handle: ConversationHandle) -> None: ...
 ```
 
-- `ConversationHandle(conversation_id, fixture_state_sha256)`;
+- `ConversationHandle(conversation_id, fixture_state_sha256, agent)` — `agent`
+  is the start response's agent kind (`stub` | `langgraph`), exposed so the
+  Episode record can say which agent answered (session 05a);
   `AgentReply(user_message_id, message_id, text)` — text only, no tool calls
   cross the adapter before the conversation ends;
   `RetrievedTrace(raw: dict | None, normalized: NormalizedTrace, error: str | None)`.
 - `retrieve_trace` never raises for a service-side problem; it returns the gap.
-  The others raise `AdapterError(kind, detail, status)`,
-  `kind ∈ {transport, service, protocol}`.
+  The others raise `AdapterError(kind, detail, status, code)`,
+  `kind ∈ {transport, service, protocol}`. Errors say whose fault they are:
+  `transport` is a refused connection or a request timeout (infrastructure);
+  `service` is one of section 3's documented errors, with the HTTP `status`
+  and the service's own `code`; `protocol` is an answer outside the contract
+  (malformed JSON, a missing field, a Fixture-state hash mismatch).
+  `AdapterError.agent_fault` is true only for `service` + `agent_error`: the
+  agent raised, which includes a model looping past its per-turn step limit.
+  `to_dict()` is the form session 05b records.
+- The per-request timeout is a constructor parameter,
+  `JourneyServiceAdapter(base_url, request_timeout_s=120.0)` (section 8).
+- **The adapter keeps its own record** (session 05a; the first draft left open
+  where section 2's fallback messages come from). Per conversation it holds
+  every exchange the service acknowledged — the service's message ids, role
+  and text — plus the texts of sends that raised, and the `tool_failures` it
+  sent. `retrieve_trace(handle)` therefore keeps its signature and the caller
+  passes no Transcript in. The record is dropped at `release`, so retrieve
+  comes first. A message the adapter did not observe is never invented.
+- On a Fixture-state hash mismatch the adapter releases the conversation it
+  refuses to use (best effort) before raising.
 - Synchronous (blocking `urllib`): execution is sequential by requirement.
-- `agentsim/adapters/journey_service.py` alone knows the transport.
-  `agentsim/adapters/__init__.py` is not edited.
+- `agentsim/adapters/journey_service.py` alone knows the transport, and holds
+  raw → normalized (`normalize_raw_trace`). `agentsim/adapters/__init__.py` is
+  not edited.
 
 ## 2. Normalized Trace
 
@@ -90,10 +112,30 @@ NormalizedTrace
   field becomes `None` / `result_available: false` / `status: unknown`, its
   evidence class becomes `partial`, and a reason is appended. Status is never
   derived from a payload, nor references from ordering.
-- Retrieval failed → `messages` come from the Transcript the harness recorded
-  (real observations carrying the service's ids), `actions = []`,
-  `evidence.actions = unavailable`. Raw messages that disagree with the
-  Transcript → `evidence.messages = partial`.
+- **`result_available` means "the raw action carries the `result` key"**,
+  nothing else. The service writes `"result": null` for a failed action; that
+  is complete evidence (`result_available: true`, `result: None`, class stays
+  `available`). Deriving it from `status` would be inference and would turn
+  every controlled-tool-failure Episode into `error`.
+- `reply_message_id: null` in the raw Trace is a recorded fact (the agent
+  raised before replying), not a gap; an absent key is a gap. Such a Trace is
+  `available` yet `to_trace()` refuses it — it only arises with stop reason
+  `adapter_error`, which section 8 rule 1 already makes `error`.
+- A header gap (`sealed` not true, no `fixture_state_sha256`, no
+  `tool_failures`), an event of unknown type, or two events sharing a `seq`
+  makes both classes `partial`; a repeated id makes its own class `partial`.
+- Retrieval failed, or the raw payload cannot be used at all (wrong
+  `trace_version`, no `events` list, another conversation's id or Fixture
+  hash) → `messages` come from the adapter's own record (section 1: real
+  observations carrying the service's ids), `actions = []`,
+  `evidence.actions = unavailable`. Those messages have `sequence: None` —
+  the service's counter lives only in the Trace — so `evidence.messages` is
+  `partial` (`unavailable` when the record is empty). An unusable payload is
+  still returned as `raw`. Raw messages that disagree with the adapter's
+  record → `evidence.messages = partial`; the raw Trace is still what is
+  normalized. A raw user message whose text matches a send that raised is not
+  a disagreement (`500 agent_error` records the user message without telling
+  the adapter its id).
 - **Assertions** read `NormalizedTrace` directly.
 - **Judge** reads `NormalizedTrace.to_trace() -> agentsim.trace.Trace`: one
   `TraceTurn` per message (`index` = position, so `FailureRecord.turn_index`
@@ -414,9 +456,12 @@ and release are attempted on every path. Nothing is judged or asserted during
 the conversation. The agent has no end signal; claiming completion proves
 nothing.
 
-Stop reasons: `user_finished`, `user_gave_up`, `turn_limit`, `time_limit`
-(300 s per Episode, checked between Turns; 60 s per HTTP request),
-`adapter_error`, `simulator_error`.
+Stop reasons: `user_finished`, `user_gave_up`, `turn_limit`, `time_limit`,
+`adapter_error`, `simulator_error`. The HTTP request timeout is an adapter
+parameter defaulting to 120 s, not the first draft's fixed 60 s: one LangGraph
+turn makes several model calls at up to 30 s each with one retry (session
+05a). The Episode time limit, checked between Turns, becomes a parameter
+defaulting to 600 s in session 05b (first draft: a fixed 300 s).
 
 Outcome — first matching rule (`agentsim/journey/evaluation.py`):
 
@@ -515,7 +560,8 @@ Persona-fidelity spot-check of that model and of the new
 | 02 | AGENT | `journey_agent/{fixture_state,tools,trace_recorder,service,stub_agent,agent_interface}.py`, tests, packaging |
 | 03 | HARNESS | `journeys/appointment_rescheduling/*.yaml`; `agentsim/journey/{__init__,_strict,definition,normalized_trace,checks,scenario}.py`; `tests/test_journey_{definition,normalized_trace,checks,scenario}.py`; `tests/journey_trace_builder.py` (hand-built Traces and Scenarios, reusable by 05–08); `CONTEXT.md` (Journey definition, Expected outcome, Normalized Trace); `docs/solutions/journey-goal-completion-is-the-gates-call.md` |
 | 04 | AGENT | `journey_agent/langgraph_agent.py`, model wiring, tests, pinned dependencies |
-| 05 | HARNESS | `agentsim/adapters/{conversation,journey_service}.py`; `agentsim/journey/{simulated_user,episode}.py`; `tests/test_journey_{adapter,simulated_user,episode}.py`; `CONTEXT.md` |
+| 05a | HARNESS | `agentsim/adapters/{conversation,journey_service}.py`; `tests/test_journey_adapter.py`; `tests/fixtures/journey_agent_raw_traces/` (raw Traces captured from AGENT's stub service, pinned for contract tests); `CONTEXT.md` (Agent adapter, Trace) |
+| 05b | HARNESS | `agentsim/journey/{simulated_user,episode}.py`; `tests/test_journey_{simulated_user,episode}.py`; `CONTEXT.md` (Termination) |
 | 06 | HARNESS | `agentsim/journey/{judge,evaluation}.py`; `tests/test_journey_evaluation.py` |
 | 07 | HARNESS | `scenario_synthesis/journey_synthesis.py`; `tests/test_journey_synthesis.py`; `CONTEXT.md`; the `knowledge_evidence.kind` closed set in `agentsim/journey/scenario.py` with its tests and `tests/journey_trace_builder.py` |
 | 08 | HARNESS | `scripts/journey_harness.py`; `agentsim/journey/report.py`; `tests/test_journey_{cli,report,e2e}.py` |
@@ -535,7 +581,7 @@ Frictions in the README split, smallest fix each:
 - 09's walkthrough assumes doubles outside pytest; section 9 provides none for
   `run`.
 - `CONTEXT.md` is edited by 03 (Journey definition, Expected outcome,
-  Normalized Trace), 05 (Agent adapter, Trace, Termination), 06 (Verdict: the
+  Normalized Trace), 05a (Agent adapter, Trace), 05b (Termination), 06 (Verdict: the
   expected-outcome gate joins the two layers) and 07 (synthesized Scenario
   without Qualification); no two of them run concurrently.
 
@@ -571,8 +617,9 @@ that Knowledge-level compliance is unverified (item 3), and that the
    structure, an LLM realizes narrative" and **ADR 0003**'s single archetype
    per Scenario are followed.
 5. **`CONTEXT.md` vocabulary** — *Agent adapter* is "one-method", *Trace* is
-   "attached to turns", *Termination* includes the Judge. Session 05 amends
-   the three entries in the commit that adds the lifecycle.
+   "attached to turns", *Termination* includes the Judge. Session 05a amends
+   *Agent adapter* and *Trace* in the commit that adds the lifecycle; session
+   05b amends *Termination* with the loop.
 6. **`CONTEXT.md` invariant 3** — "No inline judge prompts in harness code."
    `JourneyJudge` overrides the system prompt because the existing one says
    "credit-card payment assistant" and rules per Turn. It is a `GeneralJudge`

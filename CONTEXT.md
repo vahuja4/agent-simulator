@@ -165,13 +165,24 @@ file in the same commit.
   judge pass.
 - **Simulated user** — the LLM role-playing the persona toward the goal.
   Also: synthetic user.
-- **Agent adapter** — the one-method interface to the agent-under-test:
-  message in → reply + tool calls out, holding whatever session state the
-  backend needs. Implementations: `MockAgent` (harness development),
-  `SierraAgent` (headless API + trace fetch).
+- **Agent adapter** — the interface to the agent-under-test, holding
+  whatever session state the backend needs; the only code that knows the
+  platform's transport. Two shapes. The payments path's is one method:
+  message in → reply + tool calls out. The conversation lifecycle is four
+  operations — start an isolated conversation on a given Fixture state, send
+  a message (reply text only), retrieve the completed Trace, release — for a
+  platform whose tool evidence arrives only after the conversation ends. Its
+  errors say whose fault they are: the agent raised, or the infrastructure
+  failed. Retrieving a Trace never raises for a platform-side problem; it
+  returns the gap. Implementations: `MockAgent` (harness development), the
+  journey service adapter (the LangGraph agent standing in), `SierraAgent`
+  (headless API + trace fetch).
 - **Trace** — the agent platform's record of what the agent did
-  internally (tool calls, parameters, results). Fetched by the adapter
-  and attached to turns so judges can see actions, not just words.
+  internally (tool calls, parameters, results). On the payments path the
+  adapter fetches it per Turn and attaches it to turns so judges can see
+  actions, not just words. On the conversation lifecycle it is retrieved once,
+  after the conversation: the platform's payload is kept untouched as the raw
+  Trace, and the adapter copies it into the Normalized Trace.
 - **Normalized Trace** — the harness's platform-independent record of one
   completed conversation: messages and agent actions under stable ids in one
   explicit order, each action tied to the user message it handled and the

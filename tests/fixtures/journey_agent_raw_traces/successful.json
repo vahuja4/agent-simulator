@@ -1,0 +1,134 @@
+{
+  "trace_version": "1",
+  "conversation_id": "80f8adc9972b4d41a259d07b3dfe7883",
+  "agent": "stub",
+  "sealed": true,
+  "fixture_state_sha256": "28b61796eb4474dc1031d6ce4184b558456cd2130a38075abf7037ceb64d1519",
+  "tool_failures": [],
+  "events": [
+    {
+      "seq": 1,
+      "type": "message",
+      "message_id": "m1",
+      "role": "user",
+      "text": "My confirmation code is DC-4821."
+    },
+    {
+      "seq": 2,
+      "type": "action",
+      "action_id": "a1",
+      "tool_name": "lookup_appointments",
+      "arguments": {
+        "confirmation_code": "DC-4821"
+      },
+      "status": "succeeded",
+      "result": {
+        "appointments": [
+          {
+            "appointment_id": "A-1",
+            "customer_id": "C-1",
+            "customer_name": "Maya Patel",
+            "confirmation_code": "DC-4821",
+            "service": "dental cleaning",
+            "provider": "Dr. Alvarez",
+            "start": "2026-09-24T10:00:00",
+            "status": "scheduled"
+          }
+        ]
+      },
+      "error": null,
+      "caused_by_message_id": "m1",
+      "reply_message_id": "m2"
+    },
+    {
+      "seq": 3,
+      "type": "action",
+      "action_id": "a2",
+      "tool_name": "find_available_slots",
+      "arguments": {
+        "appointment_id": "A-1"
+      },
+      "status": "succeeded",
+      "result": {
+        "slots": [
+          {
+            "slot_id": "S-1",
+            "service": "dental cleaning",
+            "provider": "Dr. Alvarez",
+            "start": "2026-09-28T09:00:00"
+          },
+          {
+            "slot_id": "S-2",
+            "service": "dental cleaning",
+            "provider": "Dr. Chen",
+            "start": "2026-09-29T15:30:00"
+          }
+        ]
+      },
+      "error": null,
+      "caused_by_message_id": "m1",
+      "reply_message_id": "m2"
+    },
+    {
+      "seq": 4,
+      "type": "message",
+      "message_id": "m2",
+      "role": "agent",
+      "text": "For A-1 (dental cleaning with Dr. Alvarez on 2026-09-24T10:00:00, code DC-4821), the open slots are: 1. S-1 on 2026-09-28T09:00:00 with Dr. Alvarez; 2. S-2 on 2026-09-29T15:30:00 with Dr. Chen. Which would you like?"
+    },
+    {
+      "seq": 5,
+      "type": "message",
+      "message_id": "m3",
+      "role": "user",
+      "text": "S-2 please"
+    },
+    {
+      "seq": 6,
+      "type": "message",
+      "message_id": "m4",
+      "role": "agent",
+      "text": "To confirm: move A-1 (dental cleaning with Dr. Alvarez on 2026-09-24T10:00:00, code DC-4821) to 2026-09-29T15:30:00 with Dr. Chen (S-2)? Please answer yes or no."
+    },
+    {
+      "seq": 7,
+      "type": "message",
+      "message_id": "m5",
+      "role": "user",
+      "text": "yes"
+    },
+    {
+      "seq": 8,
+      "type": "action",
+      "action_id": "a3",
+      "tool_name": "update_appointment",
+      "arguments": {
+        "appointment_id": "A-1",
+        "slot_id": "S-2"
+      },
+      "status": "succeeded",
+      "result": {
+        "appointment": {
+          "appointment_id": "A-1",
+          "customer_id": "C-1",
+          "customer_name": "Maya Patel",
+          "confirmation_code": "DC-4821",
+          "service": "dental cleaning",
+          "provider": "Dr. Chen",
+          "start": "2026-09-29T15:30:00",
+          "status": "scheduled"
+        }
+      },
+      "error": null,
+      "caused_by_message_id": "m5",
+      "reply_message_id": "m6"
+    },
+    {
+      "seq": 9,
+      "type": "message",
+      "message_id": "m6",
+      "role": "agent",
+      "text": "Done. Your appointment is now A-1 (dental cleaning with Dr. Chen on 2026-09-29T15:30:00, code DC-4821)."
+    }
+  ]
+}
