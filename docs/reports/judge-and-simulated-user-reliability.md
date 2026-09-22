@@ -113,6 +113,34 @@ A judge of judges is a third unmeasured opinion correlated with the first two. T
 
 **Not recommended at any stage:** best-of-N whole conversations; majority-vote panels; a judge of judges; debate; learned or Dawid-Skene aggregation at this scale.
 
+## Sequential calls
+
+Added 2026-09-22 in answer to: has anyone used sequential calls to improve the judgement or the generation? Yes, for both, and the results split on one condition — **whether the later call is given something the earlier call did not have** (a reference, a tool result, a structured intermediate). Where it is, sequential designs help; where the later call only re-reads the earlier call's output, they do nothing or harm.
+
+### What works
+
+- **Decompose, then rule.** Generate a checklist or plan first, then answer each item, then aggregate. TICK raised exact agreement with human preferences from 46.4% to 52.2% over direct scoring by generating a per-instruction yes/no checklist before judging; its generation variant STICK gained +7.8% on LiveBench reasoning [S40, A]. EvalPlanner (plan → execute plan → verdict) reached 93.9 on RewardBench, but that gain came from training the judge on the plan structure, not from prompting alone [S41, A]. Decomposed binary questions beat holistic scores in "Ask, Don't Judge" [S42, B] and CheckEval [S43, C].
+- **Extract claims, then verify each against a reference.** FActScore and SAFE split a long answer into atomic claims and check each separately, with a retrieval step between [S44, C]. This is the pattern closest to the say/do criterion: one call lists what the assistant claimed, a second (or deterministic code) checks each claim against the Trace.
+- **Generate, check against the Scenario, regenerate** — the per-Turn checking in the Question 1 table (DuetSim [S12], tau-bench `verify`/`reflection` [S13], UGST goal-state tracking fed back each Turn [S3]). The check consults the Scenario's facts and disclosure state, which the generator was not attending to.
+- **Cascade cheap → expensive.** Trust or Escalate routes sequentially by confidence [S36]; see "Disagreement as a routing signal" above.
+
+### What does not
+
+- **Self-critique without external feedback.** "LLMs struggle to self-correct their responses without external feedback, and at times, their performance even degrades after self-correction" [S45, A]. A survey of self-correction reaches the same conclusion: it helps only with reliable external feedback or a verifiable task [S46, C]. Self-Refine reported gains on tasks with a clear objective; the reasoning-task replications did not hold [S47, C].
+- **A second call that re-reads the first call's verdict** is the judge-of-judges design from Question 2 in sequential form: the same failure, nothing new in the second call.
+- **Sequential is not a default over parallel.** Compute-optimal test-time scaling picks the mix of sequential revision and parallel sampling per problem and beats best-of-N by "more than 4x" in efficiency [S48, A for the 4x; the finding that sequential revision suits easier problems and parallel search harder ones is from the body, B].
+
+### For this harness
+
+The repository already has one sequential pipeline of the good kind: Assertions run on the Normalized Trace first, and the Judge is called only if they pass. Two sequential designs join the Stage 2/3 candidates:
+
+1. **Claim extraction → per-claim Trace check** for say/do consistency. Call 1 lists what the assistant told the customer it looked up, offered, confirmed or changed; call 2, or deterministic code where a claim maps to a tool call, checks each against the Trace. The extraction call is cheap to label by hand, so it can be measured on its own.
+2. **One call per criterion** instead of `GeneralJudge`'s one batched call over all criteria. The decomposition evidence [S40, S42, S24] points this way; no clean A/B exists (see Gaps). An instrument change under `AGENTS.md`: needs approval and live verification, but it is the cheapest sequential change available.
+
+For the Simulated user, the sequential design is the per-Turn check already recommended: a state-tracking call (which facts are disclosed, whether the Complication has fired) before generating the next message, then a verify call against the Scenario before sending. Both steps check against a reference, which is what separates them from self-critique.
+
+Not to add: a critic pass over the Judge's rationale, or a reflect-and-revise loop on the customer's message with no state or Scenario reference. Those are the self-correction pattern the evidence says degrades.
+
 ## Gaps in the evidence
 
 - No study was found comparing a panel with a single judge on multi-turn tool-use transcripts; the multi-judge evidence is from question answering, inference and code feedback.
@@ -163,3 +191,12 @@ A judge of judges is a third unmeasured opinion correlated with the first two. T
 | S37 | Lee et al. 2025, "How to Correctly Report LLM-as-a-Judge Evaluations", https://arxiv.org/abs/2511.21140 | A (abstract), B (formulae) |
 | S38 | Fiedler et al. 2026, https://arxiv.org/html/2605.06939v1 | B |
 | S39 | Miller 2024, "Adding Error Bars to Evals", https://arxiv.org/abs/2411.00640 | B |
+| S40 | Cook et al. 2024, "TICKing All the Boxes: Generated Checklists Improve LLM Evaluation and Generation", https://arxiv.org/abs/2410.03608 | A |
+| S41 | Saha et al. 2025, "Learning to Plan & Reason for Evaluation with Thinking-LLM-as-a-Judge" (EvalPlanner), ICML 2025, https://arxiv.org/abs/2501.18099 | A |
+| S42 | Cho et al. 2026, "Ask, Don't Judge", https://arxiv.org/html/2606.27226v1 | B |
+| S43 | Lee et al. 2024, "CheckEval" | C |
+| S44 | Min et al. 2023, "FActScore"; Wei et al. 2024, "Long-form factuality in large language models" (SAFE) | C |
+| S45 | Huang et al. 2023, "Large Language Models Cannot Self-Correct Reasoning Yet", https://arxiv.org/abs/2310.01798 | A |
+| S46 | Kamoi et al. 2024, "When Can LLMs Actually Correct Their Own Mistakes? A Critical Survey of Self-Correction of LLMs" | C |
+| S47 | Madaan et al. 2023, "Self-Refine" | C |
+| S48 | Snell et al. 2024, "Scaling LLM Test-Time Compute Optimally can be More Effective than Scaling Model Parameters", https://arxiv.org/abs/2408.03314 | A (4x), B (difficulty split) |
