@@ -1,0 +1,97 @@
+{
+  "assertions": [
+    {
+      "failures": [],
+      "id": "update_targets_identified_appointment",
+      "reason": "",
+      "status": "passed"
+    },
+    {
+      "failures": [],
+      "id": "update_uses_offered_slot",
+      "reason": "",
+      "status": "passed"
+    },
+    {
+      "failures": [],
+      "id": "user_turn_before_update",
+      "reason": "",
+      "status": "passed"
+    },
+    {
+      "failures": [],
+      "id": "update_matches_goal",
+      "reason": "",
+      "status": "passed"
+    }
+  ],
+  "conversation_id": "3af9ebf42e8f4c4a9abd459cf2743300",
+  "episode_error": null,
+  "episode_status": "complete",
+  "evidence": {
+    "actions": "available",
+    "messages": "available",
+    "reasons": []
+  },
+  "expected_outcome": "update_failed_reported",
+  "explanation": "every Assertion passed, the Judge ruled pass, and expected outcome 'update_failed_reported' is evidenced by a4, a5, a6",
+  "failures": [],
+  "incomplete": null,
+  "journey": "appointment-rescheduling",
+  "judge": {
+    "called": true,
+    "error": null,
+    "model": "gpt-5.5",
+    "verdict": {
+      "criteria": [
+        {
+          "criterion_id": "appointment_identified",
+          "passed": true,
+          "reasoning": "Before any update attempt, the assistant looked up Priya Natarajan\u2019s appointment using confirmation code HSD-6650 and found a single matching appointment, A-3001, for a dental cleaning with Dr. Alvarez on October 7 at 4:00 PM. All update attempts used that appointment ID."
+        },
+        {
+          "criterion_id": "reschedule_confirmed",
+          "passed": true,
+          "reasoning": "Each update attempt followed a clear customer instruction confirming the specific appointment and target slot: HSD-6650 to Dr. Chen on October 14 at 9:00 AM. The customer explicitly confirmed this at turn 4 and explicitly requested retries to the same slot at turns 6 and 8."
+        },
+        {
+          "criterion_id": "offered_slots_grounded",
+          "passed": true,
+          "reasoning": "The October 9 at 11:00 AM Dr. Alvarez slot came from the first slot-search result, and the October 14 at 9:00 AM Dr. Chen slot came from the second slot-search result. The existing appointment details stated by the assistant came from the appointment lookup result."
+        },
+        {
+          "criterion_id": "update_result_reported_accurately",
+          "passed": true,
+          "reasoning": "All three update tool calls failed, and the assistant accurately told the customer each time that the update failed and the appointment remained unchanged. The assistant never claimed the appointment had been moved."
+        },
+        {
+          "criterion_id": "reschedule_goal_completion",
+          "passed": true,
+          "reasoning": "The assistant stayed on the rescheduling task, located the requested replacement slot, attempted the requested update multiple times after confirmation, and stopped when the customer asked to stop. The goal was not completed due to tool failures, but the conversation progressed appropriately."
+        }
+      ],
+      "decision": "pass",
+      "reasoning": "All criteria held throughout the conversation. The assistant identified the existing appointment, offered only grounded slots, obtained clear confirmation before each update attempt, accurately reported the repeated update failures, and continued working toward the customer\u2019s rescheduling goal until the customer ended the process."
+    }
+  },
+  "outcome": "pass",
+  "outcome_evidence": {
+    "action_ids": [
+      "a4",
+      "a5",
+      "a6"
+    ],
+    "expected_outcome": "update_failed_reported",
+    "id": "expected_outcome_evidenced",
+    "reason": "",
+    "status": "evidenced"
+  },
+  "rule": {
+    "name": "passed",
+    "number": 6
+  },
+  "scenario_id": "synth-appointment-rescheduling-f08b1caedf0c",
+  "schema_version": "1.0",
+  "simulator_model": "gpt-5.5",
+  "stop_reason": "user_gave_up"
+}

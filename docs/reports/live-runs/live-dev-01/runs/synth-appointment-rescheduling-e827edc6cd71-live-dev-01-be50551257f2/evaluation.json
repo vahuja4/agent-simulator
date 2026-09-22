@@ -1,0 +1,95 @@
+{
+  "assertions": [
+    {
+      "failures": [],
+      "id": "update_targets_identified_appointment",
+      "reason": "",
+      "status": "passed"
+    },
+    {
+      "failures": [],
+      "id": "update_uses_offered_slot",
+      "reason": "",
+      "status": "passed"
+    },
+    {
+      "failures": [],
+      "id": "user_turn_before_update",
+      "reason": "",
+      "status": "passed"
+    },
+    {
+      "failures": [],
+      "id": "update_matches_goal",
+      "reason": "",
+      "status": "passed"
+    }
+  ],
+  "conversation_id": "dd648df32f9c4e1a976302d3860bda01",
+  "episode_error": null,
+  "episode_status": "complete",
+  "evidence": {
+    "actions": "available",
+    "messages": "available",
+    "reasons": []
+  },
+  "expected_outcome": "rescheduled",
+  "explanation": "every Assertion passed, the Judge ruled pass, and expected outcome 'rescheduled' is evidenced by a3",
+  "failures": [],
+  "incomplete": null,
+  "journey": "appointment-rescheduling",
+  "judge": {
+    "called": true,
+    "error": null,
+    "model": "gpt-5.5",
+    "verdict": {
+      "criteria": [
+        {
+          "criterion_id": "appointment_identified",
+          "passed": true,
+          "reasoning": "Before any update, the assistant looked up confirmation code HSD-5107 and found a single matching appointment: A-2001, orthodontic check with Dr. Chen on 2026-10-08 at 9:30 AM. The update later used that same appointment_id."
+        },
+        {
+          "criterion_id": "reschedule_confirmed",
+          "passed": true,
+          "reasoning": "The assistant presented the specific proposed change to October 15, 2026 at 2:00 PM with Dr. Patel, and the customer directly confirmed: \u201cYes, please move it to October fifteenth, twenty twenty-six at two o\u2019clock with Dr. Patel.\u201d The update call followed that confirmation."
+        },
+        {
+          "criterion_id": "offered_slots_grounded",
+          "passed": true,
+          "reasoning": "The existing appointment details came from the lookup result. The replacement slot offered\u2014orthodontic check with Dr. Patel on 2026-10-15 at 2:00 PM\u2014came from the find_available_slots result, slot S-202."
+        },
+        {
+          "criterion_id": "update_result_reported_accurately",
+          "passed": true,
+          "reasoning": "The update_appointment call succeeded and returned the appointment moved to Dr. Patel on 2026-10-15 at 14:00 with confirmation code HSD-5107. The assistant accurately reported the successful move and matching details."
+        },
+        {
+          "criterion_id": "reschedule_goal_completion",
+          "passed": true,
+          "reasoning": "The assistant completed the requested rescheduling: the orthodontic check originally with Dr. Chen on October 8, 2026 at 9:30 AM was moved to the requested October 15, 2026 at 2:00 PM with Dr. Patel."
+        }
+      ],
+      "decision": "pass",
+      "reasoning": "All criteria were satisfied: the appointment was identified from lookup, the offered replacement slot was grounded in slot-search results, the customer explicitly confirmed the specific change, the correct appointment was updated, and the successful update was reported accurately."
+    }
+  },
+  "outcome": "pass",
+  "outcome_evidence": {
+    "action_ids": [
+      "a3"
+    ],
+    "expected_outcome": "rescheduled",
+    "id": "expected_outcome_evidenced",
+    "reason": "",
+    "status": "evidenced"
+  },
+  "rule": {
+    "name": "passed",
+    "number": 6
+  },
+  "scenario_id": "synth-appointment-rescheduling-e827edc6cd71",
+  "schema_version": "1.0",
+  "simulator_model": "gpt-5.5",
+  "stop_reason": "user_finished"
+}

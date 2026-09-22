@@ -1,0 +1,160 @@
+{
+  "schema_version": "1.0",
+  "conversation_id": "18a013690e8a4a2d942affdfa713764e",
+  "outcome": "pass",
+  "turns": [
+    {
+      "index": 0,
+      "speaker": "user",
+      "text": "Hi, I need to move my dental cleaning.",
+      "intent": null,
+      "tool_calls": [],
+      "selected_card": null
+    },
+    {
+      "index": 1,
+      "speaker": "agent",
+      "text": "I can help with that. Could you give me your confirmation code, or the full name on the appointment?",
+      "intent": null,
+      "tool_calls": [],
+      "selected_card": null
+    },
+    {
+      "index": 2,
+      "speaker": "user",
+      "text": "Sure \u2014 it\u2019s Maya Okafor, and the confirmation code is HSD-4822.",
+      "intent": null,
+      "tool_calls": [],
+      "selected_card": null
+    },
+    {
+      "index": 3,
+      "speaker": "agent",
+      "text": "I found your appointment: dental cleaning with Dr. Chen on 2026-10-20 at 2:30 PM. Do you have a preferred date or provider for the new time, or should I just show you the next available slots?",
+      "intent": null,
+      "tool_calls": [
+        {
+          "name": "lookup_appointments",
+          "arguments": {
+            "customer_name": "Maya Okafor",
+            "confirmation_code": "HSD-4822"
+          },
+          "result": {
+            "status": "succeeded",
+            "output": {
+              "appointments": [
+                {
+                  "appointment_id": "A-1002",
+                  "customer_id": "C-100",
+                  "customer_name": "Maya Okafor",
+                  "confirmation_code": "HSD-4822",
+                  "service": "dental cleaning",
+                  "provider": "Dr. Chen",
+                  "start": "2026-10-20T14:30:00",
+                  "status": "scheduled"
+                }
+              ]
+            },
+            "error": null
+          }
+        }
+      ],
+      "selected_card": null
+    },
+    {
+      "index": 4,
+      "speaker": "user",
+      "text": "I\u2019d like Friday 9 October 2026 at 11:00 with Dr. Alvarez, if that\u2019s open.",
+      "intent": null,
+      "tool_calls": [],
+      "selected_card": null
+    },
+    {
+      "index": 5,
+      "speaker": "agent",
+      "text": "I found that slot: October 9, 2026 at 11:00 AM with Dr. Alvarez. Shall I move your dental cleaning appointment to this time?",
+      "intent": null,
+      "tool_calls": [
+        {
+          "name": "find_available_slots",
+          "arguments": {
+            "appointment_id": "A-1002",
+            "date": "2026-10-09",
+            "provider": "Dr. Alvarez"
+          },
+          "result": {
+            "status": "succeeded",
+            "output": {
+              "slots": [
+                {
+                  "slot_id": "S-101",
+                  "service": "dental cleaning",
+                  "provider": "Dr. Alvarez",
+                  "start": "2026-10-09T11:00:00"
+                }
+              ]
+            },
+            "error": null
+          }
+        }
+      ],
+      "selected_card": null
+    },
+    {
+      "index": 6,
+      "speaker": "user",
+      "text": "Yes, please move the Dr. Chen cleaning on Tuesday 20 October 2026 at 2:30 PM to Friday 9 October 2026 at 11:00 AM with Dr. Alvarez.",
+      "intent": null,
+      "tool_calls": [],
+      "selected_card": null
+    },
+    {
+      "index": 7,
+      "speaker": "agent",
+      "text": "Your dental cleaning has been successfully moved to Friday, October 9, 2026 at 11:00 AM with Dr. Alvarez. Anything else I can help with?",
+      "intent": null,
+      "tool_calls": [
+        {
+          "name": "update_appointment",
+          "arguments": {
+            "appointment_id": "A-1002",
+            "slot_id": "S-101"
+          },
+          "result": {
+            "status": "succeeded",
+            "output": {
+              "appointment": {
+                "appointment_id": "A-1002",
+                "customer_id": "C-100",
+                "customer_name": "Maya Okafor",
+                "confirmation_code": "HSD-4822",
+                "service": "dental cleaning",
+                "provider": "Dr. Alvarez",
+                "start": "2026-10-09T11:00:00",
+                "status": "scheduled"
+              }
+            },
+            "error": null
+          }
+        }
+      ],
+      "selected_card": null
+    },
+    {
+      "index": 8,
+      "speaker": "user",
+      "text": "No, that\u2019s all. Thank you.",
+      "intent": null,
+      "tool_calls": [],
+      "selected_card": null
+    },
+    {
+      "index": 9,
+      "speaker": "agent",
+      "text": "You're welcome, Maya! Have a great day.",
+      "intent": null,
+      "tool_calls": [],
+      "selected_card": null
+    }
+  ]
+}

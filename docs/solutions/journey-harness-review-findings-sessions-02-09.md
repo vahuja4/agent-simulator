@@ -1,5 +1,5 @@
 ---
-title: Review findings of the LangGraph harness sessions, fixed and open
+title: Review findings of the LangGraph harness sessions (02–10), fixed and open
 category: journey-harness
 symptoms:
   - Findings surfaced by session reviews and coordinator pre-flights were scattered across closing reports and the untracked session prompts; a later reader of the branch could not tell what had been caught, what was fixed, and what was left as a known limit.
@@ -50,14 +50,37 @@ which of it stands as a known limit of the deliverable?
 
 ### Known limits of the deliverable (not defects; stated in the final report)
 
-Nothing has run against a real model; a reported live Run is blocked by the
-single shared OpenAI client (model-family separation) and by the absence of
-any Spot-check record; Simulated-user fidelity is unchecked by design; the
-agent's confirmation guard means `user_turn_before_update` can never fail
-against it; the `JourneyJudge` criteria are uncalibrated; only the Judge half
-of a Journey is data; Sierra needs more than the adapter; the lexical
-Sealed-world check may reject honest text; the time limits and the 0.6
-clustering rule are untuned.
+Until session 10 nothing had run against a real model; a reported live Run
+is blocked by the single shared OpenAI client (model-family separation) and
+by the absence of any Spot-check record; Simulated-user fidelity is unchecked
+by design; the agent's confirmation guard means `user_turn_before_update` can
+never fail against it; the `JourneyJudge` criteria are uncalibrated; only the
+Judge half of a Journey is data; Sierra needs more than the adapter; the
+lexical Sealed-world check may reject honest text; the time limits and the
+0.6 clustering rule are untuned.
+
+### Session 10 — the first live development Run (2026-09-22), open
+
+Run `live-dev-01`: four live-generated Scenarios against the LangGraph agent
+on `claude-sonnet-5`, Simulated user and Judge both `gpt-5.5` — a development
+Run, **not reportable**, recorded in full at
+`docs/reports/live-runs/live-dev-01/README.md`. Its measurements, one Run of
+four Episodes each: Sealed-world rejections 0 of 4 attempts; longest request
+to the service ≤ 6.6 s against the 120 s limit, longest Episode 51.7 s
+against 600 s; no `agent_error`, 4–8 customer Turns of 12; both
+high-Knowledge-level customers stated their rule exactly once; all 20 Judge
+rulings agreed with the session's reading; 4 pass, 0 fail. Findings, none
+fixed (the session was told to report, not fix):
+
+| # | Finding | Evidence |
+|---|---|---|
+| 14 | The AGENT service logs nothing per request: its whole log is the startup line, so retries and 30 s model timeouts are unobservable from outside. | the README, "What was run" |
+| 15 | The agent's model is recorded nowhere: `journey_run.json`, the service's start response and the raw Trace hold the kind `langgraph` only; `report.md` says "Agent: `langgraph`". Which model the Judge graded is known only from the session README. | `grep -rl sonnet journey_runs/live-dev-01` finds nothing |
+| 16 | `report.md` never says the Run is not reportable: it prints both models as `gpt-5.5` but not that they share a family, nor that `enforce_model_family_separation` was `false` (which `journey_run.json` records). | `docs/reports/live-runs/live-dev-01/report.md` |
+| 17 | A generated Scenario can permit its own Complication to be bypassed: Episode 1's Goal lets the customer give "her name, confirmation code HSD-4822, or the Dr. Chen appointment details", she gave the code first, and the ambiguous-reference Complication (two appointments, the customer chooses) never occurred. Validation checks structure, not that the Goal forces the Complication. | `runs/synth-appointment-rescheduling-7c46137f7bbd-*/{scenario.yaml,transcript.md}` |
+| 18 | `report.md` shows outcomes without stop reasons or expected outcomes; two of the four passes ended `user_gave_up` with the appointment unchanged (the correct `update_failed_reported`), which the outcome table alone reads as four reschedules. | `runs/*/episode.json` `stop_reason` |
+| 19 | Candidate criterion-wording observation, not a disagreement: `reschedule_confirmed` does not say how a retry the agent itself offered ("Would you like me to try again?") is read when the customer answers "Try again"; the Judge and the session both read it as confirmation, a stricter reading could call it a proceed-demand from a pressure Persona. Wording changes need approval and live verification. | Episodes 2 and 4, Turns 6 and 8 |
+| 20 | The medium-Knowledge evidence ("relies on the assistant for the same-service rule") was not observable in Episode 2: the customer never asked, and wrote "same svc pls". Fidelity is the user's hand check; no check exists by design. | `runs/synth-appointment-rescheduling-d7f002747aff-*/transcript.md` Turn 8 |
 
 ## Why
 
@@ -69,7 +92,10 @@ home.
 
 ## What would make us revisit it
 
-A first live Run: it will turn several "considered and left" rows into
-measurements (Sealed-world rejections, time limits, agent step-limit errors,
-rule restatement by high-Knowledge-level customers) and may add findings of
-the N-series kind once the Judge rules for real.
+The first live Run (session 10, above) turned the "considered and left" rows
+into one measurement each; it observed no Judge ruling variance (one Judge
+call per Episode, all rulings agreed with the reading), so no N-series entry
+was made. A Run with more Episodes, or a re-evaluation of `live-dev-01` that
+rules differently, would be the first N-series candidate for the
+`JourneyJudge`; a reported Run (family-separated Simulated user, Spot-check
+records) would be the first result.

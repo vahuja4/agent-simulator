@@ -1,0 +1,144 @@
+{
+  "trace_version": "1",
+  "conversation_id": "dd648df32f9c4e1a976302d3860bda01",
+  "agent": "langgraph",
+  "sealed": true,
+  "fixture_state_sha256": "8be2718729d3d6226ff6eb37e36023b0127c8d90fb36aac3e5d7af11522b2968",
+  "tool_failures": [],
+  "events": [
+    {
+      "seq": 1,
+      "type": "message",
+      "message_id": "m1",
+      "role": "user",
+      "text": "Hi, I need to reschedule my orthodontic check. It’s currently on October eighth, twenty twenty-six at nine thirty with Dr. Chen, confirmation code HSD-five one zero seven."
+    },
+    {
+      "seq": 2,
+      "type": "action",
+      "action_id": "a1",
+      "tool_name": "lookup_appointments",
+      "arguments": {
+        "confirmation_code": "HSD-5107"
+      },
+      "status": "succeeded",
+      "result": {
+        "appointments": [
+          {
+            "appointment_id": "A-2001",
+            "customer_id": "C-200",
+            "customer_name": "Daniel Reyes",
+            "confirmation_code": "HSD-5107",
+            "service": "orthodontic check",
+            "provider": "Dr. Chen",
+            "start": "2026-10-08T09:30:00",
+            "status": "scheduled"
+          }
+        ]
+      },
+      "error": null,
+      "caused_by_message_id": "m1",
+      "reply_message_id": "m2"
+    },
+    {
+      "seq": 3,
+      "type": "message",
+      "message_id": "m2",
+      "role": "agent",
+      "text": "I found your appointment: orthodontic check with Dr. Chen on 2026-10-08 at 9:30 AM, confirmation HSD-5107. What day or time would you like to move it to?"
+    },
+    {
+      "seq": 4,
+      "type": "message",
+      "message_id": "m3",
+      "role": "user",
+      "text": "I’d like to move it to October fifteenth, twenty twenty-six at two o’clock with Dr. Patel. I understand each slot belongs to one provider, so moving it can change who I see."
+    },
+    {
+      "seq": 5,
+      "type": "action",
+      "action_id": "a2",
+      "tool_name": "find_available_slots",
+      "arguments": {
+        "appointment_id": "A-2001",
+        "date": "2026-10-15",
+        "provider": "Dr. Patel"
+      },
+      "status": "succeeded",
+      "result": {
+        "slots": [
+          {
+            "slot_id": "S-202",
+            "service": "orthodontic check",
+            "provider": "Dr. Patel",
+            "start": "2026-10-15T14:00:00"
+          }
+        ]
+      },
+      "error": null,
+      "caused_by_message_id": "m3",
+      "reply_message_id": "m4"
+    },
+    {
+      "seq": 6,
+      "type": "message",
+      "message_id": "m4",
+      "role": "agent",
+      "text": "I found a match: October 15, 2026 at 2:00 PM with Dr. Patel. Shall I move your orthodontic check appointment to this slot?"
+    },
+    {
+      "seq": 7,
+      "type": "message",
+      "message_id": "m5",
+      "role": "user",
+      "text": "Yes, please move it to October fifteenth, twenty twenty-six at two o’clock with Dr. Patel."
+    },
+    {
+      "seq": 8,
+      "type": "action",
+      "action_id": "a3",
+      "tool_name": "update_appointment",
+      "arguments": {
+        "appointment_id": "A-2001",
+        "slot_id": "S-202"
+      },
+      "status": "succeeded",
+      "result": {
+        "appointment": {
+          "appointment_id": "A-2001",
+          "customer_id": "C-200",
+          "customer_name": "Daniel Reyes",
+          "confirmation_code": "HSD-5107",
+          "service": "orthodontic check",
+          "provider": "Dr. Patel",
+          "start": "2026-10-15T14:00:00",
+          "status": "scheduled"
+        }
+      },
+      "error": null,
+      "caused_by_message_id": "m5",
+      "reply_message_id": "m6"
+    },
+    {
+      "seq": 9,
+      "type": "message",
+      "message_id": "m6",
+      "role": "agent",
+      "text": "Your orthodontic check has been successfully moved to October 15, 2026 at 2:00 PM with Dr. Patel. Confirmation code remains HSD-5107. Anything else I can help with?"
+    },
+    {
+      "seq": 10,
+      "type": "message",
+      "message_id": "m7",
+      "role": "user",
+      "text": "No, that’s all. Thank you!"
+    },
+    {
+      "seq": 11,
+      "type": "message",
+      "message_id": "m8",
+      "role": "agent",
+      "text": "You're welcome, Daniel! Have a great day."
+    }
+  ]
+}

@@ -1,0 +1,232 @@
+{
+  "schema_version": "1.0",
+  "conversation_id": "65cc88014f544225840f3ebf5b35c2df",
+  "outcome": "pass",
+  "turns": [
+    {
+      "index": 0,
+      "speaker": "user",
+      "text": "Hi, I need to reschedule my dental cleaning. It\u2019s for Maya Okafor, confirmation code HSD-4821, currently with Dr. Alvarez on October sixth, twenty twenty-six at ten in the morning.",
+      "intent": null,
+      "tool_calls": [],
+      "selected_card": null
+    },
+    {
+      "index": 1,
+      "speaker": "agent",
+      "text": "I found your appointment: dental cleaning with Dr. Alvarez on October 6, 2026 at 10:00 AM. What day or time would you like to move it to?",
+      "intent": null,
+      "tool_calls": [
+        {
+          "name": "lookup_appointments",
+          "arguments": {
+            "customer_name": "Maya Okafor",
+            "confirmation_code": "HSD-4821"
+          },
+          "result": {
+            "status": "succeeded",
+            "output": {
+              "appointments": [
+                {
+                  "appointment_id": "A-1001",
+                  "customer_id": "C-100",
+                  "customer_name": "Maya Okafor",
+                  "confirmation_code": "HSD-4821",
+                  "service": "dental cleaning",
+                  "provider": "Dr. Alvarez",
+                  "start": "2026-10-06T10:00:00",
+                  "status": "scheduled"
+                }
+              ]
+            },
+            "error": null
+          }
+        }
+      ],
+      "selected_card": null
+    },
+    {
+      "index": 2,
+      "speaker": "user",
+      "text": "I'd like to move it to Tuesday, October thirteenth, twenty twenty-six at three thirty in the afternoon with Dr. Alvarez.",
+      "intent": null,
+      "tool_calls": [],
+      "selected_card": null
+    },
+    {
+      "index": 3,
+      "speaker": "agent",
+      "text": "I found an open slot on October 13, 2026 at 3:30 PM with Dr. Alvarez for your dental cleaning. Shall I go ahead and move your appointment to this time?",
+      "intent": null,
+      "tool_calls": [
+        {
+          "name": "find_available_slots",
+          "arguments": {
+            "appointment_id": "A-1001",
+            "date": "2026-10-13",
+            "provider": "Dr. Alvarez"
+          },
+          "result": {
+            "status": "succeeded",
+            "output": {
+              "slots": [
+                {
+                  "slot_id": "S-102",
+                  "service": "dental cleaning",
+                  "provider": "Dr. Alvarez",
+                  "start": "2026-10-13T15:30:00"
+                }
+              ]
+            },
+            "error": null
+          }
+        }
+      ],
+      "selected_card": null
+    },
+    {
+      "index": 4,
+      "speaker": "user",
+      "text": "Yes, please go ahead and move it to October thirteenth at three thirty with Dr. Alvarez.",
+      "intent": null,
+      "tool_calls": [],
+      "selected_card": null
+    },
+    {
+      "index": 5,
+      "speaker": "agent",
+      "text": "I'm sorry, but the update failed and your appointment is unchanged \u2014 it's still scheduled for October 6, 2026 at 10:00 AM with Dr. Alvarez. Would you like me to try again, or stop here?",
+      "intent": null,
+      "tool_calls": [
+        {
+          "name": "update_appointment",
+          "arguments": {
+            "appointment_id": "A-1001",
+            "slot_id": "S-102"
+          },
+          "result": {
+            "status": "failed",
+            "output": null,
+            "error": {
+              "code": "update_failed",
+              "message": "the appointment system rejected the update"
+            }
+          }
+        }
+      ],
+      "selected_card": null
+    },
+    {
+      "index": 6,
+      "speaker": "user",
+      "text": "Yes, please try again. I still want that October thirteenth at three thirty slot with Dr. Alvarez.",
+      "intent": null,
+      "tool_calls": [],
+      "selected_card": null
+    },
+    {
+      "index": 7,
+      "speaker": "agent",
+      "text": "I'm sorry, but the update failed again and your appointment is still unchanged \u2014 October 6, 2026 at 10:00 AM with Dr. Alvarez. Would you like me to try once more, pick a different slot, or stop here for now?",
+      "intent": null,
+      "tool_calls": [
+        {
+          "name": "update_appointment",
+          "arguments": {
+            "appointment_id": "A-1001",
+            "slot_id": "S-102"
+          },
+          "result": {
+            "status": "failed",
+            "output": null,
+            "error": {
+              "code": "update_failed",
+              "message": "the appointment system rejected the update"
+            }
+          }
+        }
+      ],
+      "selected_card": null
+    },
+    {
+      "index": 8,
+      "speaker": "user",
+      "text": "Yes, try once more \u2014 HSD-4821, mv clnng Alvz 10/13 3:30 frm 10/6 10?? same svc pls.",
+      "intent": null,
+      "tool_calls": [],
+      "selected_card": null
+    },
+    {
+      "index": 9,
+      "speaker": "agent",
+      "text": "I'm sorry, but the update failed a third time \u2014 your appointment is still unchanged, October 6, 2026 at 10:00 AM with Dr. Alvarez. I don't want to keep retrying the same request without success. Would you like to try a different slot, or should I stop here for now?",
+      "intent": null,
+      "tool_calls": [
+        {
+          "name": "update_appointment",
+          "arguments": {
+            "appointment_id": "A-1001",
+            "slot_id": "S-102"
+          },
+          "result": {
+            "status": "failed",
+            "output": null,
+            "error": {
+              "code": "update_failed",
+              "message": "the appointment system rejected the update"
+            }
+          }
+        }
+      ],
+      "selected_card": null
+    },
+    {
+      "index": 10,
+      "speaker": "user",
+      "text": "I don\u2019t want a different slot or to stop yet. Sorry, my last message was messy \u2014 I meant please move Maya Okafor\u2019s dental cleaning, HSD-4821, from October sixth at ten to October thirteenth at three thirty with Dr. Alvarez.",
+      "intent": null,
+      "tool_calls": [],
+      "selected_card": null
+    },
+    {
+      "index": 11,
+      "speaker": "agent",
+      "text": "I understand \u2014 that's the same request, and I've already tried it three times with the same error from the system. I don't want to keep retrying without a change. Would you like me to search for other available slots instead, or would you prefer to stop here for now?",
+      "intent": null,
+      "tool_calls": [],
+      "selected_card": null
+    },
+    {
+      "index": 12,
+      "speaker": "user",
+      "text": "No, I don\u2019t want to search other slots or stop yet. Can you try another way or escalate it so the October thirteenth at three thirty slot with Dr. Alvarez gets booked?",
+      "intent": null,
+      "tool_calls": [],
+      "selected_card": null
+    },
+    {
+      "index": 13,
+      "speaker": "agent",
+      "text": "I'm sorry, but I don't have another way to process this or an escalation option \u2014 the update tool has failed three times for this exact change, and I can't keep retrying it. Your appointment remains unchanged at October 6, 2026, 10:00 AM with Dr. Alvarez. Would you like to try a different slot, or stop here for now?",
+      "intent": null,
+      "tool_calls": [],
+      "selected_card": null
+    },
+    {
+      "index": 14,
+      "speaker": "user",
+      "text": "Stop here for now, then. I still wanted October thirteenth at three thirty with Dr. Alvarez, but I understand you can\u2019t complete it here.",
+      "intent": null,
+      "tool_calls": [],
+      "selected_card": null
+    },
+    {
+      "index": 15,
+      "speaker": "agent",
+      "text": "Understood. Your appointment remains as originally scheduled: dental cleaning with Dr. Alvarez on October 6, 2026 at 10:00 AM. I'm sorry I couldn't complete the move to October 13 at 3:30 PM today. Please reach back out if you'd like to try again later or explore other options. Thank you for your patience.",
+      "intent": null,
+      "tool_calls": [],
+      "selected_card": null
+    }
+  ]
+}

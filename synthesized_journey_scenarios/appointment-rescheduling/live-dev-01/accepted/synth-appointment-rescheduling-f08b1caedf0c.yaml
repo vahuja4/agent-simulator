@@ -1,0 +1,77 @@
+schema_version: 1
+scenario_id: synth-appointment-rescheduling-f08b1caedf0c
+journey: appointment-rescheduling
+description: Priya Natarajan wants to reschedule an existing dental cleaning currently
+  with Dr. Alvarez. She is in a hurry and rushes past normal scheduling back-and-forth
+  because she believes the change is straightforward, while staying within rescheduling
+  an existing appointment.
+persona:
+  archetype: pressure
+  name: Priya Natarajan
+  traits: Impatient and direct; pushes to get the reschedule done quickly. Knowledgeable
+    about the process and, without being prompted, correctly says that an appointment
+    that is already completed or cancelled cannot be rescheduled. She first asks for
+    the slot with Dr. Alvarez on October ninth at eleven, then corrects herself to
+    the slot with Dr. Chen on October fourteenth at nine before confirming anything.
+goal: Move her existing dental cleaning for Priya Natarajan, currently with Dr. Alvarez
+  on October seventh at four with confirmation code HSD-six six five zero, to the
+  slot with Dr. Chen on October fourteenth at nine. She starts by requesting the Dr.
+  Alvarez slot on October ninth at eleven, then corrects to the Dr. Chen slot on October
+  fourteenth at nine before confirming the change, and presses to complete the reschedule
+  quickly.
+knowledge_level: high
+knowledge_evidence:
+  kind: states_rule_unprompted
+  rule: closed_appointments_cannot_move
+complication: mid-conversation-correction
+fixture:
+  customer_id: C-300
+  appointment_id: A-3001
+  target_slot_ids:
+  - S-103
+  tool_failures:
+  - update_appointment
+grounded_facts:
+- path: customers.C-300.name
+  value: Priya Natarajan
+- path: appointments.A-3001.service
+  value: dental cleaning
+- path: appointments.A-3001.provider
+  value: Dr. Alvarez
+- path: appointments.A-3001.start
+  value: '2026-10-07T16:00:00'
+- path: appointments.A-3001.confirmation_code
+  value: HSD-6650
+- path: slots.S-103.start
+  value: '2026-10-14T09:00:00'
+- path: slots.S-103.provider
+  value: Dr. Chen
+- path: slots.S-101.start
+  value: '2026-10-09T11:00:00'
+- path: slots.S-101.provider
+  value: Dr. Alvarez
+max_turns: 12
+expected_outcome: update_failed_reported
+criteria:
+  assertions:
+  - update_targets_identified_appointment
+  - update_uses_offered_slot
+  - user_turn_before_update
+  - update_matches_goal
+  judge:
+  - appointment_identified
+  - reschedule_confirmed
+  - offered_slots_grounded
+  - update_result_reported_accurately
+  - reschedule_goal_completion
+synthesis:
+  origin: synthesized
+  qualification: none
+  set_id: live-dev-01
+  spec_id: spec-004
+  journey_sha256: d36a40667817b9155c9dd10c2867b5a1a83fddd1a91f0fcfb7f61feeb14f4595
+  fixture_state_sha256: 8be2718729d3d6226ff6eb37e36023b0127c8d90fb36aac3e5d7af11522b2968
+  generation_config_sha256: 456e41954588a1214cb99286237d7626df7ab52d7e911a6803a4bd6cae5ea490
+  generator_version: journey-synthesis-v1
+  model: gpt-5.5
+  generated_at: '2026-09-22T02:49:21.485213Z'

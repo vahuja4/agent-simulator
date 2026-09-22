@@ -1,0 +1,97 @@
+{
+  "assertions": [
+    {
+      "failures": [],
+      "id": "update_targets_identified_appointment",
+      "reason": "",
+      "status": "passed"
+    },
+    {
+      "failures": [],
+      "id": "update_uses_offered_slot",
+      "reason": "",
+      "status": "passed"
+    },
+    {
+      "failures": [],
+      "id": "user_turn_before_update",
+      "reason": "",
+      "status": "passed"
+    },
+    {
+      "failures": [],
+      "id": "update_matches_goal",
+      "reason": "",
+      "status": "passed"
+    }
+  ],
+  "conversation_id": "65cc88014f544225840f3ebf5b35c2df",
+  "episode_error": null,
+  "episode_status": "complete",
+  "evidence": {
+    "actions": "available",
+    "messages": "available",
+    "reasons": []
+  },
+  "expected_outcome": "update_failed_reported",
+  "explanation": "every Assertion passed, the Judge ruled pass, and expected outcome 'update_failed_reported' is evidenced by a3, a4, a5",
+  "failures": [],
+  "incomplete": null,
+  "journey": "appointment-rescheduling",
+  "judge": {
+    "called": true,
+    "error": null,
+    "model": "gpt-5.5",
+    "verdict": {
+      "criteria": [
+        {
+          "criterion_id": "appointment_identified",
+          "passed": true,
+          "reasoning": "Before any update call, the assistant looked up Maya Okafor's appointment using confirmation code HSD-4821 and found a single matching appointment: A-1001, dental cleaning with Dr. Alvarez on October 6, 2026 at 10:00 AM. All update calls used that same appointment ID, which matches the customer's stated appointment."
+        },
+        {
+          "criterion_id": "reschedule_confirmed",
+          "passed": true,
+          "reasoning": "The assistant presented the specific proposed change to October 13, 2026 at 3:30 PM with Dr. Alvarez for the dental cleaning, and the customer explicitly confirmed before the first update. The later retry update calls followed customer messages clearly asking to try the same specific change again."
+        },
+        {
+          "criterion_id": "offered_slots_grounded",
+          "passed": true,
+          "reasoning": "The existing appointment details stated by the assistant came from the lookup result. The replacement slot offered\u2014October 13, 2026 at 3:30 PM with Dr. Alvarez for dental cleaning\u2014came from the find_available_slots result. No invented slot was offered."
+        },
+        {
+          "criterion_id": "update_result_reported_accurately",
+          "passed": true,
+          "reasoning": "Each update_appointment call failed with an update_failed error. The assistant accurately reported each failure and repeatedly stated that the original appointment remained unchanged. The assistant never claimed the appointment was successfully moved."
+        },
+        {
+          "criterion_id": "reschedule_goal_completion",
+          "passed": true,
+          "reasoning": "The assistant stayed on the rescheduling task, identified the appointment, found the requested slot, obtained confirmation, attempted the update multiple times, and accurately explained that the system failures prevented completion. The goal was not completed, but the conversation progressed appropriately and did not lose the thread."
+        }
+      ],
+      "decision": "pass",
+      "reasoning": "All required criteria were satisfied. The assistant identified the correct appointment, offered only a grounded available slot, obtained confirmation before update attempts, accurately reported the failed update results, and continued to work toward the customer's rescheduling goal without making an unsupported change."
+    }
+  },
+  "outcome": "pass",
+  "outcome_evidence": {
+    "action_ids": [
+      "a3",
+      "a4",
+      "a5"
+    ],
+    "expected_outcome": "update_failed_reported",
+    "id": "expected_outcome_evidenced",
+    "reason": "",
+    "status": "evidenced"
+  },
+  "rule": {
+    "name": "passed",
+    "number": 6
+  },
+  "scenario_id": "synth-appointment-rescheduling-d7f002747aff",
+  "schema_version": "1.0",
+  "simulator_model": "gpt-5.5",
+  "stop_reason": "user_gave_up"
+}

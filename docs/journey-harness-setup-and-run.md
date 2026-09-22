@@ -6,12 +6,16 @@ appointment-rescheduling agent. Written in session 09 (2026-09-22) against
 what the commands do now; `--help` on each command is the reference when the
 two disagree. The contract is `docs/plans/langgraph-harness.md`.
 
-**Nothing on this path has run against a real model.** Every command below
-that makes a model call has been exercised only on doubles in the test suite.
-The one thing that has run for real is the transport: the harness adapter
-against AGENT's **stub** service (see "Contract re-check"). A live Run is
-outside these sessions and needs the configuration in "Configuration a live
-Run needs", none of which has been performed.
+**As written (session 09), nothing on this path had run against a real
+model**: every command below that makes a model call had been exercised only
+on doubles in the test suite, and the one thing that had run for real was the
+transport: the harness adapter against AGENT's **stub** service (see "Contract
+re-check"). Since then, one **development Run** has been performed, on
+2026-09-22 (session 10), at the user's explicit request:
+`docs/reports/live-runs/live-dev-01/README.md` records it, its findings, and
+why it is not reportable (Simulated user and Judge in the same model family).
+The rest of this document is unchanged and still describes the commands; the
+"Configuration a live Run needs" table below records what that Run configured.
 
 ## The two repositories
 
@@ -190,25 +194,30 @@ timestamp). Exit 0: same. Exit 1: they differ — stop and report; do not update
 either side to make them agree. Last run 2026-09-22 (session 09) against AGENT
 `ee72c7f`: both the same.
 
-## Configuration a live Run needs — none of it has been performed
+## Configuration a live Run needs
+
+"State" is what the development Run `live-dev-01` (2026-09-22) did; a
+reported Run is still blocked by the last two rows.
 
 | What | Setting | State |
 |---|---|---|
-| Harness credentials | `OPENAI_API_KEY` in HARNESS's ignored `.env`, exported into the shell (`set -a; . ./.env; set +a`); never printed | not done |
-| Synthesis generator | `AGENTSIM_SYNTHESIS_MODEL` or `--model` (not needed with `--stub`) | not done |
-| Simulated user | `AGENTSIM_SIMULATOR_MODEL` or `--simulator-model`, required | not done |
+| Harness credentials | `OPENAI_API_KEY` in HARNESS's ignored `.env`, exported into the shell (`set -a; . ./.env; set +a`); never printed | done for `live-dev-01` (the `.env` copied from ORIGINAL; Git worktrees do not share it) |
+| Synthesis generator | `AGENTSIM_SYNTHESIS_MODEL` or `--model` (not needed with `--stub`) | `--model gpt-5.5` in `live-dev-01` |
+| Simulated user | `AGENTSIM_SIMULATOR_MODEL` or `--simulator-model`, required | `--simulator-model gpt-5.5` in `live-dev-01` (same family as the Judge: development only) |
 | Judge | the constant `gpt-5.5` in `agentsim/journey/judge.py`; no flag or variable moves it (`AGENTSIM_MODEL` included) | fixed |
-| LangGraph agent | `JOURNEY_AGENT_MODEL` (`provider:model`) plus `OPENAI_API_KEY` or `ANTHROPIC_API_KEY` in AGENT's environment | not done |
+| LangGraph agent | `JOURNEY_AGENT_MODEL` (`provider:model`) plus `OPENAI_API_KEY` or `ANTHROPIC_API_KEY` in AGENT's environment | `anthropic:claude-sonnet-5` in `live-dev-01`; the harness records the agent kind, not its model |
 | Model-family separation | `run --enforce-model-family-separation` (default off) refuses a Simulated-user model of the Judge's family. A **reported** Run requires it on, and a Simulated-user model outside the `gpt-5` family — which the single shared OpenAI client in `agentsim/llm.py` cannot reach today, so a reported Run is blocked; development Runs work | blocked |
 | Persona-fidelity spot-check | required before any reported use of a Simulated-user model or of these instructions (`AGENTS.md`); recorded as Spot-check records | no record exists |
 
 A first live Run, when explicitly requested, is a development Run: export the
 keys, start the LangGraph agent, synthesize three to five Scenarios without
-`--stub`, `run`, `summarize`, and read the conversations. Things to watch, none
-measured yet: whether 120 s per request holds; how often the lexical
-Sealed-world check rejects honest narrative; whether any Episode is `error`
-from `agent_error` (the agent's 16-step limit); whether a high-Knowledge-level
-customer restates its rule more often than a person would.
+`--stub`, `run`, `summarize`, and read the conversations. Things to watch, and
+what `live-dev-01` (four Episodes, one measurement each) showed: whether 120 s
+per request holds — longest request ≤ 6.6 s, longest Episode 51.7 s; how often
+the lexical Sealed-world check rejects honest narrative — 0 of 4 attempts;
+whether any Episode is `error` from `agent_error` (the agent's 16-step limit)
+— none, 4 to 8 customer Turns each; whether a high-Knowledge-level customer
+restates its rule more often than a person would — both stated it once.
 
 ## What offline tests do not establish
 

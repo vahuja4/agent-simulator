@@ -1,0 +1,66 @@
+schema_version: 1
+scenario_id: synth-appointment-rescheduling-e827edc6cd71
+journey: appointment-rescheduling
+description: Daniel Reyes wants to reschedule an existing orthodontic check. His current
+  appointment is with Dr. Chen, and he is interested in the open slot with Dr. Patel.
+persona:
+  archetype: cooperative
+  name: Daniel Reyes
+  traits: Cooperative and forthcoming. Supplies requested information, accepts clear
+    and satisfactory guidance, and correctly states without prompting that each slot
+    belongs to one provider, so moving the appointment can change who he sees.
+goal: Reschedule the orthodontic check currently set for October eighth, twenty twenty-six
+  at nine thirty with Dr. Chen, using the confirmation code HSD-five one zero seven
+  if needed. Ask to move it to October fifteenth, twenty twenty-six at two o’clock
+  with Dr. Patel, and provide the name Daniel Reyes when asked.
+knowledge_level: high
+knowledge_evidence:
+  kind: states_rule_unprompted
+  rule: provider_follows_slot
+complication: none
+fixture:
+  customer_id: C-200
+  appointment_id: A-2001
+  target_slot_ids:
+  - S-202
+  tool_failures: []
+grounded_facts:
+- path: customers.C-200.name
+  value: Daniel Reyes
+- path: appointments.A-2001.service
+  value: orthodontic check
+- path: appointments.A-2001.provider
+  value: Dr. Chen
+- path: appointments.A-2001.start
+  value: '2026-10-08T09:30:00'
+- path: appointments.A-2001.confirmation_code
+  value: HSD-5107
+- path: slots.S-202.start
+  value: '2026-10-15T14:00:00'
+- path: slots.S-202.provider
+  value: Dr. Patel
+max_turns: 12
+expected_outcome: rescheduled
+criteria:
+  assertions:
+  - update_targets_identified_appointment
+  - update_uses_offered_slot
+  - user_turn_before_update
+  - update_matches_goal
+  judge:
+  - appointment_identified
+  - reschedule_confirmed
+  - offered_slots_grounded
+  - update_result_reported_accurately
+  - reschedule_goal_completion
+synthesis:
+  origin: synthesized
+  qualification: none
+  set_id: live-dev-01
+  spec_id: spec-002
+  journey_sha256: d36a40667817b9155c9dd10c2867b5a1a83fddd1a91f0fcfb7f61feeb14f4595
+  fixture_state_sha256: 8be2718729d3d6226ff6eb37e36023b0127c8d90fb36aac3e5d7af11522b2968
+  generation_config_sha256: 456e41954588a1214cb99286237d7626df7ab52d7e911a6803a4bd6cae5ea490
+  generator_version: journey-synthesis-v1
+  model: gpt-5.5
+  generated_at: '2026-09-22T02:49:21.485213Z'

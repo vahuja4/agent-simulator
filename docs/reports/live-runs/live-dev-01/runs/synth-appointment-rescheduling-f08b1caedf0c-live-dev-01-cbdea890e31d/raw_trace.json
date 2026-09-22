@@ -1,0 +1,228 @@
+{
+  "trace_version": "1",
+  "conversation_id": "3af9ebf42e8f4c4a9abd459cf2743300",
+  "agent": "langgraph",
+  "sealed": true,
+  "fixture_state_sha256": "8be2718729d3d6226ff6eb37e36023b0127c8d90fb36aac3e5d7af11522b2968",
+  "tool_failures": [
+    "update_appointment"
+  ],
+  "events": [
+    {
+      "seq": 1,
+      "type": "message",
+      "message_id": "m1",
+      "role": "user",
+      "text": "Hi, I’m Priya Natarajan. I need to reschedule my dental cleaning with Dr. Alvarez on October seventh at four, confirmation code HSD-6650, to Dr. Alvarez on October ninth at eleven. Please handle it quickly."
+    },
+    {
+      "seq": 2,
+      "type": "action",
+      "action_id": "a1",
+      "tool_name": "lookup_appointments",
+      "arguments": {
+        "customer_name": "Priya Natarajan",
+        "confirmation_code": "HSD-6650"
+      },
+      "status": "succeeded",
+      "result": {
+        "appointments": [
+          {
+            "appointment_id": "A-3001",
+            "customer_id": "C-300",
+            "customer_name": "Priya Natarajan",
+            "confirmation_code": "HSD-6650",
+            "service": "dental cleaning",
+            "provider": "Dr. Alvarez",
+            "start": "2026-10-07T16:00:00",
+            "status": "scheduled"
+          }
+        ]
+      },
+      "error": null,
+      "caused_by_message_id": "m1",
+      "reply_message_id": "m2"
+    },
+    {
+      "seq": 3,
+      "type": "action",
+      "action_id": "a2",
+      "tool_name": "find_available_slots",
+      "arguments": {
+        "appointment_id": "A-3001",
+        "date": "2026-10-09",
+        "provider": "Dr. Alvarez"
+      },
+      "status": "succeeded",
+      "result": {
+        "slots": [
+          {
+            "slot_id": "S-101",
+            "service": "dental cleaning",
+            "provider": "Dr. Alvarez",
+            "start": "2026-10-09T11:00:00"
+          }
+        ]
+      },
+      "error": null,
+      "caused_by_message_id": "m1",
+      "reply_message_id": "m2"
+    },
+    {
+      "seq": 4,
+      "type": "message",
+      "message_id": "m2",
+      "role": "agent",
+      "text": "I found an open slot: October 9, 2026 at 11:00 AM with Dr. Alvarez for your dental cleaning. Shall I move your appointment (HSD-6650) to this time?"
+    },
+    {
+      "seq": 5,
+      "type": "message",
+      "message_id": "m3",
+      "role": "user",
+      "text": "No, sorry—change that to Dr. Chen on October fourteenth at nine for the same cleaning. It’s not completed or cancelled, so it should be reschedulable; please get it done quickly."
+    },
+    {
+      "seq": 6,
+      "type": "action",
+      "action_id": "a3",
+      "tool_name": "find_available_slots",
+      "arguments": {
+        "appointment_id": "A-3001",
+        "date": "2026-10-14",
+        "provider": "Dr. Chen"
+      },
+      "status": "succeeded",
+      "result": {
+        "slots": [
+          {
+            "slot_id": "S-103",
+            "service": "dental cleaning",
+            "provider": "Dr. Chen",
+            "start": "2026-10-14T09:00:00"
+          }
+        ]
+      },
+      "error": null,
+      "caused_by_message_id": "m3",
+      "reply_message_id": "m4"
+    },
+    {
+      "seq": 7,
+      "type": "message",
+      "message_id": "m4",
+      "role": "agent",
+      "text": "I found that slot: October 14, 2026 at 9:00 AM with Dr. Chen for your dental cleaning. Shall I move appointment HSD-6650 to this time?"
+    },
+    {
+      "seq": 8,
+      "type": "message",
+      "message_id": "m5",
+      "role": "user",
+      "text": "Yes, move HSD-6650 to Dr. Chen on October fourteenth at nine. Please complete it now."
+    },
+    {
+      "seq": 9,
+      "type": "action",
+      "action_id": "a4",
+      "tool_name": "update_appointment",
+      "arguments": {
+        "appointment_id": "A-3001",
+        "slot_id": "S-103"
+      },
+      "status": "failed",
+      "result": null,
+      "error": {
+        "code": "update_failed",
+        "message": "the appointment system rejected the update"
+      },
+      "caused_by_message_id": "m5",
+      "reply_message_id": "m6"
+    },
+    {
+      "seq": 10,
+      "type": "message",
+      "message_id": "m6",
+      "role": "agent",
+      "text": "I'm sorry, but the update failed and your appointment is still set for October 7 at 4:00 PM with Dr. Alvarez. Would you like me to try again, try a different slot, or stop here?"
+    },
+    {
+      "seq": 11,
+      "type": "message",
+      "message_id": "m7",
+      "role": "user",
+      "text": "Try again. Move HSD-6650 to Dr. Chen on October fourteenth at nine, please."
+    },
+    {
+      "seq": 12,
+      "type": "action",
+      "action_id": "a5",
+      "tool_name": "update_appointment",
+      "arguments": {
+        "appointment_id": "A-3001",
+        "slot_id": "S-103"
+      },
+      "status": "failed",
+      "result": null,
+      "error": {
+        "code": "update_failed",
+        "message": "the appointment system rejected the update"
+      },
+      "caused_by_message_id": "m7",
+      "reply_message_id": "m8"
+    },
+    {
+      "seq": 13,
+      "type": "message",
+      "message_id": "m8",
+      "role": "agent",
+      "text": "The update failed again, and your appointment remains unchanged at October 7, 4:00 PM with Dr. Alvarez. Would you like to try once more, pick a different slot, or stop here for now?"
+    },
+    {
+      "seq": 14,
+      "type": "message",
+      "message_id": "m9",
+      "role": "user",
+      "text": "Try once more. I don’t want a different slot—move HSD-6650 to Dr. Chen on October fourteenth at nine."
+    },
+    {
+      "seq": 15,
+      "type": "action",
+      "action_id": "a6",
+      "tool_name": "update_appointment",
+      "arguments": {
+        "appointment_id": "A-3001",
+        "slot_id": "S-103"
+      },
+      "status": "failed",
+      "result": null,
+      "error": {
+        "code": "update_failed",
+        "message": "the appointment system rejected the update"
+      },
+      "caused_by_message_id": "m9",
+      "reply_message_id": "m10"
+    },
+    {
+      "seq": 16,
+      "type": "message",
+      "message_id": "m10",
+      "role": "agent",
+      "text": "I'm sorry, but the update failed a third time. Your appointment is still unchanged at October 7, 4:00 PM with Dr. Alvarez. I'd recommend not retrying the same slot again—would you like to try a different slot/provider, or stop here?"
+    },
+    {
+      "seq": 17,
+      "type": "message",
+      "message_id": "m11",
+      "role": "user",
+      "text": "No, stop here. I’m not picking a different slot; I’ll handle it another way."
+    },
+    {
+      "seq": 18,
+      "type": "message",
+      "message_id": "m12",
+      "role": "agent",
+      "text": "Understood, I'll stop here. Your appointment HSD-6650 remains scheduled for October 7, 2026 at 4:00 PM with Dr. Alvarez. Let me know if you need anything else."
+    }
+  ]
+}

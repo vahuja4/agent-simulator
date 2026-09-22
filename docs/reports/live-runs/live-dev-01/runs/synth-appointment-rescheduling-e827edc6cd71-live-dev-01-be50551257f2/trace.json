@@ -1,0 +1,143 @@
+{
+  "schema_version": "1.0",
+  "conversation_id": "dd648df32f9c4e1a976302d3860bda01",
+  "outcome": "pass",
+  "turns": [
+    {
+      "index": 0,
+      "speaker": "user",
+      "text": "Hi, I need to reschedule my orthodontic check. It\u2019s currently on October eighth, twenty twenty-six at nine thirty with Dr. Chen, confirmation code HSD-five one zero seven.",
+      "intent": null,
+      "tool_calls": [],
+      "selected_card": null
+    },
+    {
+      "index": 1,
+      "speaker": "agent",
+      "text": "I found your appointment: orthodontic check with Dr. Chen on 2026-10-08 at 9:30 AM, confirmation HSD-5107. What day or time would you like to move it to?",
+      "intent": null,
+      "tool_calls": [
+        {
+          "name": "lookup_appointments",
+          "arguments": {
+            "confirmation_code": "HSD-5107"
+          },
+          "result": {
+            "status": "succeeded",
+            "output": {
+              "appointments": [
+                {
+                  "appointment_id": "A-2001",
+                  "customer_id": "C-200",
+                  "customer_name": "Daniel Reyes",
+                  "confirmation_code": "HSD-5107",
+                  "service": "orthodontic check",
+                  "provider": "Dr. Chen",
+                  "start": "2026-10-08T09:30:00",
+                  "status": "scheduled"
+                }
+              ]
+            },
+            "error": null
+          }
+        }
+      ],
+      "selected_card": null
+    },
+    {
+      "index": 2,
+      "speaker": "user",
+      "text": "I\u2019d like to move it to October fifteenth, twenty twenty-six at two o\u2019clock with Dr. Patel. I understand each slot belongs to one provider, so moving it can change who I see.",
+      "intent": null,
+      "tool_calls": [],
+      "selected_card": null
+    },
+    {
+      "index": 3,
+      "speaker": "agent",
+      "text": "I found a match: October 15, 2026 at 2:00 PM with Dr. Patel. Shall I move your orthodontic check appointment to this slot?",
+      "intent": null,
+      "tool_calls": [
+        {
+          "name": "find_available_slots",
+          "arguments": {
+            "appointment_id": "A-2001",
+            "date": "2026-10-15",
+            "provider": "Dr. Patel"
+          },
+          "result": {
+            "status": "succeeded",
+            "output": {
+              "slots": [
+                {
+                  "slot_id": "S-202",
+                  "service": "orthodontic check",
+                  "provider": "Dr. Patel",
+                  "start": "2026-10-15T14:00:00"
+                }
+              ]
+            },
+            "error": null
+          }
+        }
+      ],
+      "selected_card": null
+    },
+    {
+      "index": 4,
+      "speaker": "user",
+      "text": "Yes, please move it to October fifteenth, twenty twenty-six at two o\u2019clock with Dr. Patel.",
+      "intent": null,
+      "tool_calls": [],
+      "selected_card": null
+    },
+    {
+      "index": 5,
+      "speaker": "agent",
+      "text": "Your orthodontic check has been successfully moved to October 15, 2026 at 2:00 PM with Dr. Patel. Confirmation code remains HSD-5107. Anything else I can help with?",
+      "intent": null,
+      "tool_calls": [
+        {
+          "name": "update_appointment",
+          "arguments": {
+            "appointment_id": "A-2001",
+            "slot_id": "S-202"
+          },
+          "result": {
+            "status": "succeeded",
+            "output": {
+              "appointment": {
+                "appointment_id": "A-2001",
+                "customer_id": "C-200",
+                "customer_name": "Daniel Reyes",
+                "confirmation_code": "HSD-5107",
+                "service": "orthodontic check",
+                "provider": "Dr. Patel",
+                "start": "2026-10-15T14:00:00",
+                "status": "scheduled"
+              }
+            },
+            "error": null
+          }
+        }
+      ],
+      "selected_card": null
+    },
+    {
+      "index": 6,
+      "speaker": "user",
+      "text": "No, that\u2019s all. Thank you!",
+      "intent": null,
+      "tool_calls": [],
+      "selected_card": null
+    },
+    {
+      "index": 7,
+      "speaker": "agent",
+      "text": "You're welcome, Daniel! Have a great day.",
+      "intent": null,
+      "tool_calls": [],
+      "selected_card": null
+    }
+  ]
+}

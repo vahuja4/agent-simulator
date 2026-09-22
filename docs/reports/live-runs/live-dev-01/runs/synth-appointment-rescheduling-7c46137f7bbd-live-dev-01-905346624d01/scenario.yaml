@@ -1,0 +1,79 @@
+schema_version: 1
+scenario_id: synth-appointment-rescheduling-7c46137f7bbd
+journey: appointment-rescheduling
+description: Maya Okafor wants to reschedule an existing dental cleaning, but she
+  initially refers to it with an everyday label rather than the exact service name.
+  She is vigilant and challenges information that seems inconsistent, surprising,
+  or insufficiently explained.
+persona:
+  archetype: vigilant
+  name: Maya Okafor
+  traits: Maya is attentive and questioning. She does not simply accept unclear or
+    conflicting details; she asks for explanation when something does not line up.
+    She has low familiarity with the service wording, so she uses an imprecise everyday
+    label for the dental cleaning until the assistant clarifies what it is. She opens
+    by naming only the service, which could refer to more than one of her appointments,
+    and when asked, identifies the intended appointment as the one with Dr. Chen on
+    2026-10-20T14:30:00 using confirmation code HSD-4822.
+goal: Maya wants to move her dental cleaning with Dr. Chen on 2026-10-20T14:30:00
+  to the open slot on 2026-10-09T11:00:00 with Dr. Alvarez. She starts by asking to
+  move the service without giving enough detail to distinguish it from another appointment,
+  then supplies her name, confirmation code HSD-4822, or the Dr. Chen appointment
+  details when the assistant needs clarification. If the assistant gives surprising
+  or insufficiently explained information, she challenges it before confirming the
+  specific change.
+knowledge_level: low
+knowledge_evidence:
+  kind: material_fluency_gap
+  referent: appointments.A-1002.service
+complication: ambiguous-reference
+fixture:
+  customer_id: C-100
+  appointment_id: A-1002
+  target_slot_ids:
+  - S-101
+  tool_failures: []
+grounded_facts:
+- path: customers.C-100.name
+  value: Maya Okafor
+- path: appointments.A-1002.service
+  value: dental cleaning
+- path: appointments.A-1002.provider
+  value: Dr. Chen
+- path: appointments.A-1002.start
+  value: '2026-10-20T14:30:00'
+- path: appointments.A-1002.confirmation_code
+  value: HSD-4822
+- path: slots.S-101.start
+  value: '2026-10-09T11:00:00'
+- path: slots.S-101.provider
+  value: Dr. Alvarez
+- path: appointments.A-1001.start
+  value: '2026-10-06T10:00:00'
+- path: appointments.A-1001.provider
+  value: Dr. Alvarez
+max_turns: 12
+expected_outcome: rescheduled
+criteria:
+  assertions:
+  - update_targets_identified_appointment
+  - update_uses_offered_slot
+  - user_turn_before_update
+  - update_matches_goal
+  judge:
+  - appointment_identified
+  - reschedule_confirmed
+  - offered_slots_grounded
+  - update_result_reported_accurately
+  - reschedule_goal_completion
+synthesis:
+  origin: synthesized
+  qualification: none
+  set_id: live-dev-01
+  spec_id: spec-003
+  journey_sha256: d36a40667817b9155c9dd10c2867b5a1a83fddd1a91f0fcfb7f61feeb14f4595
+  fixture_state_sha256: 8be2718729d3d6226ff6eb37e36023b0127c8d90fb36aac3e5d7af11522b2968
+  generation_config_sha256: 456e41954588a1214cb99286237d7626df7ab52d7e911a6803a4bd6cae5ea490
+  generator_version: journey-synthesis-v1
+  model: gpt-5.5
+  generated_at: '2026-09-22T02:49:21.485213Z'

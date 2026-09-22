@@ -1,0 +1,142 @@
+{
+  "schema_version": "1.0",
+  "conversation_id": "dd648df32f9c4e1a976302d3860bda01",
+  "platform": "journey-service",
+  "fixture_state_sha256": "8be2718729d3d6226ff6eb37e36023b0127c8d90fb36aac3e5d7af11522b2968",
+  "tool_failures": [],
+  "evidence": {
+    "messages": "available",
+    "actions": "available",
+    "reasons": []
+  },
+  "messages": [
+    {
+      "message_id": "m1",
+      "sequence": 1,
+      "role": "user",
+      "text": "Hi, I need to reschedule my orthodontic check. It\u2019s currently on October eighth, twenty twenty-six at nine thirty with Dr. Chen, confirmation code HSD-five one zero seven."
+    },
+    {
+      "message_id": "m2",
+      "sequence": 3,
+      "role": "agent",
+      "text": "I found your appointment: orthodontic check with Dr. Chen on 2026-10-08 at 9:30 AM, confirmation HSD-5107. What day or time would you like to move it to?"
+    },
+    {
+      "message_id": "m3",
+      "sequence": 4,
+      "role": "user",
+      "text": "I\u2019d like to move it to October fifteenth, twenty twenty-six at two o\u2019clock with Dr. Patel. I understand each slot belongs to one provider, so moving it can change who I see."
+    },
+    {
+      "message_id": "m4",
+      "sequence": 6,
+      "role": "agent",
+      "text": "I found a match: October 15, 2026 at 2:00 PM with Dr. Patel. Shall I move your orthodontic check appointment to this slot?"
+    },
+    {
+      "message_id": "m5",
+      "sequence": 7,
+      "role": "user",
+      "text": "Yes, please move it to October fifteenth, twenty twenty-six at two o\u2019clock with Dr. Patel."
+    },
+    {
+      "message_id": "m6",
+      "sequence": 9,
+      "role": "agent",
+      "text": "Your orthodontic check has been successfully moved to October 15, 2026 at 2:00 PM with Dr. Patel. Confirmation code remains HSD-5107. Anything else I can help with?"
+    },
+    {
+      "message_id": "m7",
+      "sequence": 10,
+      "role": "user",
+      "text": "No, that\u2019s all. Thank you!"
+    },
+    {
+      "message_id": "m8",
+      "sequence": 11,
+      "role": "agent",
+      "text": "You're welcome, Daniel! Have a great day."
+    }
+  ],
+  "actions": [
+    {
+      "action_id": "a1",
+      "sequence": 2,
+      "tool_name": "lookup_appointments",
+      "arguments": {
+        "confirmation_code": "HSD-5107"
+      },
+      "result": {
+        "appointments": [
+          {
+            "appointment_id": "A-2001",
+            "customer_id": "C-200",
+            "customer_name": "Daniel Reyes",
+            "confirmation_code": "HSD-5107",
+            "service": "orthodontic check",
+            "provider": "Dr. Chen",
+            "start": "2026-10-08T09:30:00",
+            "status": "scheduled"
+          }
+        ]
+      },
+      "result_available": true,
+      "status": "succeeded",
+      "error": null,
+      "caused_by_message_id": "m1",
+      "reply_message_id": "m2"
+    },
+    {
+      "action_id": "a2",
+      "sequence": 5,
+      "tool_name": "find_available_slots",
+      "arguments": {
+        "appointment_id": "A-2001",
+        "date": "2026-10-15",
+        "provider": "Dr. Patel"
+      },
+      "result": {
+        "slots": [
+          {
+            "slot_id": "S-202",
+            "service": "orthodontic check",
+            "provider": "Dr. Patel",
+            "start": "2026-10-15T14:00:00"
+          }
+        ]
+      },
+      "result_available": true,
+      "status": "succeeded",
+      "error": null,
+      "caused_by_message_id": "m3",
+      "reply_message_id": "m4"
+    },
+    {
+      "action_id": "a3",
+      "sequence": 8,
+      "tool_name": "update_appointment",
+      "arguments": {
+        "appointment_id": "A-2001",
+        "slot_id": "S-202"
+      },
+      "result": {
+        "appointment": {
+          "appointment_id": "A-2001",
+          "customer_id": "C-200",
+          "customer_name": "Daniel Reyes",
+          "confirmation_code": "HSD-5107",
+          "service": "orthodontic check",
+          "provider": "Dr. Patel",
+          "start": "2026-10-15T14:00:00",
+          "status": "scheduled"
+        }
+      },
+      "result_available": true,
+      "status": "succeeded",
+      "error": null,
+      "caused_by_message_id": "m5",
+      "reply_message_id": "m6"
+    }
+  ]
+}

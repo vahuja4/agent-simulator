@@ -1,0 +1,33 @@
+{
+  "schema_version": "1.0",
+  "status": "complete",
+  "scenario_id": "synth-appointment-rescheduling-e827edc6cd71",
+  "journey": "appointment-rescheduling",
+  "service_url": "http://127.0.0.1:8765",
+  "agent": "langgraph",
+  "conversation_id": "dd648df32f9c4e1a976302d3860bda01",
+  "fixture_state_sha256": "8be2718729d3d6226ff6eb37e36023b0127c8d90fb36aac3e5d7af11522b2968",
+  "simulator_model": "gpt-5.5",
+  "stop_reason": "user_finished",
+  "turns_completed": 4,
+  "max_turns": 12,
+  "time_limit_s": 600.0,
+  "started_at": "2026-09-22T02:51:46.453+00:00",
+  "ended_at": "2026-09-22T02:52:02.085+00:00",
+  "duration_s": 15.632,
+  "error": null,
+  "retrieval": {
+    "attempted": true,
+    "raw_trace_saved": true,
+    "error": null,
+    "evidence": {
+      "messages": "available",
+      "actions": "available",
+      "reasons": []
+    }
+  },
+  "release": {
+    "attempted": true,
+    "error": null
+  }
+}

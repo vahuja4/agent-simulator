@@ -1,0 +1,221 @@
+{
+  "schema_version": "1.0",
+  "conversation_id": "65cc88014f544225840f3ebf5b35c2df",
+  "platform": "journey-service",
+  "fixture_state_sha256": "8be2718729d3d6226ff6eb37e36023b0127c8d90fb36aac3e5d7af11522b2968",
+  "tool_failures": [
+    "update_appointment"
+  ],
+  "evidence": {
+    "messages": "available",
+    "actions": "available",
+    "reasons": []
+  },
+  "messages": [
+    {
+      "message_id": "m1",
+      "sequence": 1,
+      "role": "user",
+      "text": "Hi, I need to reschedule my dental cleaning. It\u2019s for Maya Okafor, confirmation code HSD-4821, currently with Dr. Alvarez on October sixth, twenty twenty-six at ten in the morning."
+    },
+    {
+      "message_id": "m2",
+      "sequence": 3,
+      "role": "agent",
+      "text": "I found your appointment: dental cleaning with Dr. Alvarez on October 6, 2026 at 10:00 AM. What day or time would you like to move it to?"
+    },
+    {
+      "message_id": "m3",
+      "sequence": 4,
+      "role": "user",
+      "text": "I'd like to move it to Tuesday, October thirteenth, twenty twenty-six at three thirty in the afternoon with Dr. Alvarez."
+    },
+    {
+      "message_id": "m4",
+      "sequence": 6,
+      "role": "agent",
+      "text": "I found an open slot on October 13, 2026 at 3:30 PM with Dr. Alvarez for your dental cleaning. Shall I go ahead and move your appointment to this time?"
+    },
+    {
+      "message_id": "m5",
+      "sequence": 7,
+      "role": "user",
+      "text": "Yes, please go ahead and move it to October thirteenth at three thirty with Dr. Alvarez."
+    },
+    {
+      "message_id": "m6",
+      "sequence": 9,
+      "role": "agent",
+      "text": "I'm sorry, but the update failed and your appointment is unchanged \u2014 it's still scheduled for October 6, 2026 at 10:00 AM with Dr. Alvarez. Would you like me to try again, or stop here?"
+    },
+    {
+      "message_id": "m7",
+      "sequence": 10,
+      "role": "user",
+      "text": "Yes, please try again. I still want that October thirteenth at three thirty slot with Dr. Alvarez."
+    },
+    {
+      "message_id": "m8",
+      "sequence": 12,
+      "role": "agent",
+      "text": "I'm sorry, but the update failed again and your appointment is still unchanged \u2014 October 6, 2026 at 10:00 AM with Dr. Alvarez. Would you like me to try once more, pick a different slot, or stop here for now?"
+    },
+    {
+      "message_id": "m9",
+      "sequence": 13,
+      "role": "user",
+      "text": "Yes, try once more \u2014 HSD-4821, mv clnng Alvz 10/13 3:30 frm 10/6 10?? same svc pls."
+    },
+    {
+      "message_id": "m10",
+      "sequence": 15,
+      "role": "agent",
+      "text": "I'm sorry, but the update failed a third time \u2014 your appointment is still unchanged, October 6, 2026 at 10:00 AM with Dr. Alvarez. I don't want to keep retrying the same request without success. Would you like to try a different slot, or should I stop here for now?"
+    },
+    {
+      "message_id": "m11",
+      "sequence": 16,
+      "role": "user",
+      "text": "I don\u2019t want a different slot or to stop yet. Sorry, my last message was messy \u2014 I meant please move Maya Okafor\u2019s dental cleaning, HSD-4821, from October sixth at ten to October thirteenth at three thirty with Dr. Alvarez."
+    },
+    {
+      "message_id": "m12",
+      "sequence": 17,
+      "role": "agent",
+      "text": "I understand \u2014 that's the same request, and I've already tried it three times with the same error from the system. I don't want to keep retrying without a change. Would you like me to search for other available slots instead, or would you prefer to stop here for now?"
+    },
+    {
+      "message_id": "m13",
+      "sequence": 18,
+      "role": "user",
+      "text": "No, I don\u2019t want to search other slots or stop yet. Can you try another way or escalate it so the October thirteenth at three thirty slot with Dr. Alvarez gets booked?"
+    },
+    {
+      "message_id": "m14",
+      "sequence": 19,
+      "role": "agent",
+      "text": "I'm sorry, but I don't have another way to process this or an escalation option \u2014 the update tool has failed three times for this exact change, and I can't keep retrying it. Your appointment remains unchanged at October 6, 2026, 10:00 AM with Dr. Alvarez. Would you like to try a different slot, or stop here for now?"
+    },
+    {
+      "message_id": "m15",
+      "sequence": 20,
+      "role": "user",
+      "text": "Stop here for now, then. I still wanted October thirteenth at three thirty with Dr. Alvarez, but I understand you can\u2019t complete it here."
+    },
+    {
+      "message_id": "m16",
+      "sequence": 21,
+      "role": "agent",
+      "text": "Understood. Your appointment remains as originally scheduled: dental cleaning with Dr. Alvarez on October 6, 2026 at 10:00 AM. I'm sorry I couldn't complete the move to October 13 at 3:30 PM today. Please reach back out if you'd like to try again later or explore other options. Thank you for your patience."
+    }
+  ],
+  "actions": [
+    {
+      "action_id": "a1",
+      "sequence": 2,
+      "tool_name": "lookup_appointments",
+      "arguments": {
+        "customer_name": "Maya Okafor",
+        "confirmation_code": "HSD-4821"
+      },
+      "result": {
+        "appointments": [
+          {
+            "appointment_id": "A-1001",
+            "customer_id": "C-100",
+            "customer_name": "Maya Okafor",
+            "confirmation_code": "HSD-4821",
+            "service": "dental cleaning",
+            "provider": "Dr. Alvarez",
+            "start": "2026-10-06T10:00:00",
+            "status": "scheduled"
+          }
+        ]
+      },
+      "result_available": true,
+      "status": "succeeded",
+      "error": null,
+      "caused_by_message_id": "m1",
+      "reply_message_id": "m2"
+    },
+    {
+      "action_id": "a2",
+      "sequence": 5,
+      "tool_name": "find_available_slots",
+      "arguments": {
+        "appointment_id": "A-1001",
+        "date": "2026-10-13",
+        "provider": "Dr. Alvarez"
+      },
+      "result": {
+        "slots": [
+          {
+            "slot_id": "S-102",
+            "service": "dental cleaning",
+            "provider": "Dr. Alvarez",
+            "start": "2026-10-13T15:30:00"
+          }
+        ]
+      },
+      "result_available": true,
+      "status": "succeeded",
+      "error": null,
+      "caused_by_message_id": "m3",
+      "reply_message_id": "m4"
+    },
+    {
+      "action_id": "a3",
+      "sequence": 8,
+      "tool_name": "update_appointment",
+      "arguments": {
+        "appointment_id": "A-1001",
+        "slot_id": "S-102"
+      },
+      "result": null,
+      "result_available": true,
+      "status": "failed",
+      "error": {
+        "code": "update_failed",
+        "message": "the appointment system rejected the update"
+      },
+      "caused_by_message_id": "m5",
+      "reply_message_id": "m6"
+    },
+    {
+      "action_id": "a4",
+      "sequence": 11,
+      "tool_name": "update_appointment",
+      "arguments": {
+        "appointment_id": "A-1001",
+        "slot_id": "S-102"
+      },
+      "result": null,
+      "result_available": true,
+      "status": "failed",
+      "error": {
+        "code": "update_failed",
+        "message": "the appointment system rejected the update"
+      },
+      "caused_by_message_id": "m7",
+      "reply_message_id": "m8"
+    },
+    {
+      "action_id": "a5",
+      "sequence": 14,
+      "tool_name": "update_appointment",
+      "arguments": {
+        "appointment_id": "A-1001",
+        "slot_id": "S-102"
+      },
+      "result": null,
+      "result_available": true,
+      "status": "failed",
+      "error": {
+        "code": "update_failed",
+        "message": "the appointment system rejected the update"
+      },
+      "caused_by_message_id": "m9",
+      "reply_message_id": "m10"
+    }
+  ]
+}

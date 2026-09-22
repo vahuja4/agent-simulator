@@ -1,0 +1,27 @@
+{
+  "agent": "langgraph",
+  "ended_at": "2026-09-22T02:53:02.906156Z",
+  "enforce_model_family_separation": false,
+  "episode_timeout_s": 600.0,
+  "error": null,
+  "fixture_state_sha256": "8be2718729d3d6226ff6eb37e36023b0127c8d90fb36aac3e5d7af11522b2968",
+  "journey_dir": "journeys/appointment_rescheduling",
+  "journey_id": "appointment-rescheduling",
+  "journey_sha256": "d36a40667817b9155c9dd10c2867b5a1a83fddd1a91f0fcfb7f61feeb14f4595",
+  "judge_model": "gpt-5.5",
+  "re_evaluation": null,
+  "request_timeout_s": 120.0,
+  "run_id": "live-dev-01",
+  "scenario_ids": [
+    "synth-appointment-rescheduling-7c46137f7bbd",
+    "synth-appointment-rescheduling-d7f002747aff",
+    "synth-appointment-rescheduling-e827edc6cd71",
+    "synth-appointment-rescheduling-f08b1caedf0c"
+  ],
+  "scenario_set": "synthesized_journey_scenarios/appointment-rescheduling/live-dev-01",
+  "schema_version": "1.0",
+  "service_url": "http://127.0.0.1:8765",
+  "simulator_model": "gpt-5.5",
+  "started_at": "2026-09-22T02:50:08.933344Z",
+  "status": "complete"
+}

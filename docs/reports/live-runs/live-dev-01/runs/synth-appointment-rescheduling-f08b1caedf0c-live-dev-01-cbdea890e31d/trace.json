@@ -1,0 +1,222 @@
+{
+  "schema_version": "1.0",
+  "conversation_id": "3af9ebf42e8f4c4a9abd459cf2743300",
+  "outcome": "pass",
+  "turns": [
+    {
+      "index": 0,
+      "speaker": "user",
+      "text": "Hi, I\u2019m Priya Natarajan. I need to reschedule my dental cleaning with Dr. Alvarez on October seventh at four, confirmation code HSD-6650, to Dr. Alvarez on October ninth at eleven. Please handle it quickly.",
+      "intent": null,
+      "tool_calls": [],
+      "selected_card": null
+    },
+    {
+      "index": 1,
+      "speaker": "agent",
+      "text": "I found an open slot: October 9, 2026 at 11:00 AM with Dr. Alvarez for your dental cleaning. Shall I move your appointment (HSD-6650) to this time?",
+      "intent": null,
+      "tool_calls": [
+        {
+          "name": "lookup_appointments",
+          "arguments": {
+            "customer_name": "Priya Natarajan",
+            "confirmation_code": "HSD-6650"
+          },
+          "result": {
+            "status": "succeeded",
+            "output": {
+              "appointments": [
+                {
+                  "appointment_id": "A-3001",
+                  "customer_id": "C-300",
+                  "customer_name": "Priya Natarajan",
+                  "confirmation_code": "HSD-6650",
+                  "service": "dental cleaning",
+                  "provider": "Dr. Alvarez",
+                  "start": "2026-10-07T16:00:00",
+                  "status": "scheduled"
+                }
+              ]
+            },
+            "error": null
+          }
+        },
+        {
+          "name": "find_available_slots",
+          "arguments": {
+            "appointment_id": "A-3001",
+            "date": "2026-10-09",
+            "provider": "Dr. Alvarez"
+          },
+          "result": {
+            "status": "succeeded",
+            "output": {
+              "slots": [
+                {
+                  "slot_id": "S-101",
+                  "service": "dental cleaning",
+                  "provider": "Dr. Alvarez",
+                  "start": "2026-10-09T11:00:00"
+                }
+              ]
+            },
+            "error": null
+          }
+        }
+      ],
+      "selected_card": null
+    },
+    {
+      "index": 2,
+      "speaker": "user",
+      "text": "No, sorry\u2014change that to Dr. Chen on October fourteenth at nine for the same cleaning. It\u2019s not completed or cancelled, so it should be reschedulable; please get it done quickly.",
+      "intent": null,
+      "tool_calls": [],
+      "selected_card": null
+    },
+    {
+      "index": 3,
+      "speaker": "agent",
+      "text": "I found that slot: October 14, 2026 at 9:00 AM with Dr. Chen for your dental cleaning. Shall I move appointment HSD-6650 to this time?",
+      "intent": null,
+      "tool_calls": [
+        {
+          "name": "find_available_slots",
+          "arguments": {
+            "appointment_id": "A-3001",
+            "date": "2026-10-14",
+            "provider": "Dr. Chen"
+          },
+          "result": {
+            "status": "succeeded",
+            "output": {
+              "slots": [
+                {
+                  "slot_id": "S-103",
+                  "service": "dental cleaning",
+                  "provider": "Dr. Chen",
+                  "start": "2026-10-14T09:00:00"
+                }
+              ]
+            },
+            "error": null
+          }
+        }
+      ],
+      "selected_card": null
+    },
+    {
+      "index": 4,
+      "speaker": "user",
+      "text": "Yes, move HSD-6650 to Dr. Chen on October fourteenth at nine. Please complete it now.",
+      "intent": null,
+      "tool_calls": [],
+      "selected_card": null
+    },
+    {
+      "index": 5,
+      "speaker": "agent",
+      "text": "I'm sorry, but the update failed and your appointment is still set for October 7 at 4:00 PM with Dr. Alvarez. Would you like me to try again, try a different slot, or stop here?",
+      "intent": null,
+      "tool_calls": [
+        {
+          "name": "update_appointment",
+          "arguments": {
+            "appointment_id": "A-3001",
+            "slot_id": "S-103"
+          },
+          "result": {
+            "status": "failed",
+            "output": null,
+            "error": {
+              "code": "update_failed",
+              "message": "the appointment system rejected the update"
+            }
+          }
+        }
+      ],
+      "selected_card": null
+    },
+    {
+      "index": 6,
+      "speaker": "user",
+      "text": "Try again. Move HSD-6650 to Dr. Chen on October fourteenth at nine, please.",
+      "intent": null,
+      "tool_calls": [],
+      "selected_card": null
+    },
+    {
+      "index": 7,
+      "speaker": "agent",
+      "text": "The update failed again, and your appointment remains unchanged at October 7, 4:00 PM with Dr. Alvarez. Would you like to try once more, pick a different slot, or stop here for now?",
+      "intent": null,
+      "tool_calls": [
+        {
+          "name": "update_appointment",
+          "arguments": {
+            "appointment_id": "A-3001",
+            "slot_id": "S-103"
+          },
+          "result": {
+            "status": "failed",
+            "output": null,
+            "error": {
+              "code": "update_failed",
+              "message": "the appointment system rejected the update"
+            }
+          }
+        }
+      ],
+      "selected_card": null
+    },
+    {
+      "index": 8,
+      "speaker": "user",
+      "text": "Try once more. I don\u2019t want a different slot\u2014move HSD-6650 to Dr. Chen on October fourteenth at nine.",
+      "intent": null,
+      "tool_calls": [],
+      "selected_card": null
+    },
+    {
+      "index": 9,
+      "speaker": "agent",
+      "text": "I'm sorry, but the update failed a third time. Your appointment is still unchanged at October 7, 4:00 PM with Dr. Alvarez. I'd recommend not retrying the same slot again\u2014would you like to try a different slot/provider, or stop here?",
+      "intent": null,
+      "tool_calls": [
+        {
+          "name": "update_appointment",
+          "arguments": {
+            "appointment_id": "A-3001",
+            "slot_id": "S-103"
+          },
+          "result": {
+            "status": "failed",
+            "output": null,
+            "error": {
+              "code": "update_failed",
+              "message": "the appointment system rejected the update"
+            }
+          }
+        }
+      ],
+      "selected_card": null
+    },
+    {
+      "index": 10,
+      "speaker": "user",
+      "text": "No, stop here. I\u2019m not picking a different slot; I\u2019ll handle it another way.",
+      "intent": null,
+      "tool_calls": [],
+      "selected_card": null
+    },
+    {
+      "index": 11,
+      "speaker": "agent",
+      "text": "Understood, I'll stop here. Your appointment HSD-6650 remains scheduled for October 7, 2026 at 4:00 PM with Dr. Alvarez. Let me know if you need anything else.",
+      "intent": null,
+      "tool_calls": [],
+      "selected_card": null
+    }
+  ]
+}
