@@ -6,8 +6,9 @@ deviate changes this note in the same commit and says so in its report.
 Amended by session 03 (sections 4, 5, 8, 9, 11, 12), session 07 (sections
 6, 7, 9, 11), session 07c (sections 6, 7, 9), session 05a (sections 1, 2,
 8, 11, 12), session 05b (sections 5, 8, 9, 11), session 06c (sections 4,
-5, 9, 11: Judge criteria are data in `journey.yaml`) and session 08 (sections
-8, 9, 11: the commands as built, the Run record, what clustering is handed).
+5, 9, 11: Judge criteria are data in `journey.yaml`), session 08 (sections
+8, 9, 11: the commands as built, the Run record, what clustering is handed)
+and session 09 (sections 9, 11: the re-evaluation record; what 09 delivered).
 
 HARNESS = `/Users/vishal/Desktop/agent_simulator-langgraph`, AGENT =
 `/Users/vishal/Desktop/journey_agent`. The Journey is fictional appointment
@@ -692,7 +693,7 @@ Episode with `status: running` and finished as `complete` or `aborted`:
 plan, so Scenarios the Run never reached can be named), `service_url`, `agent`,
 `simulator_model`, `judge_model`, `enforce_model_family_separation`,
 `request_timeout_s`, `episode_timeout_s`, `started_at`, `ended_at`,
-`re_evaluated_at`, `error {type, message}`. `BatchRunner`'s manifest says
+`re_evaluation`, `error {type, message}`. `BatchRunner`'s manifest says
 `pending | running | completed` per Episode but nothing about the Run, so the
 AGENTS.md rule (a command that writes before fallible work leaves a record
 marked aborted) needs this file. Whatever escapes `BatchRunner` — an interrupt,
@@ -782,7 +783,15 @@ untouched. It makes the same hash check as `run` and refuses, before any
 write, a Journey directory edited since the Scenarios were written — criterion
 wording lives in `journey.yaml`, so the Episodes would otherwise be judged with
 other wording. An aborted Run stays aborted; Scenarios it never started are
-left as they are.
+left as they are. Whether the conversations finished and whether the last
+re-evaluation finished are two facts, recorded apart (session 09): the Run's
+`status`, `ended_at` and `error` are never touched by a re-evaluation, which
+writes its own `re_evaluation {status: running | complete | aborted,
+started_at, ended_at, error}` entry in `journey_run.json`. Session 08's first
+draft reused `status`, so an interrupted re-evaluation left a finished Run
+`aborted` for good. The report and `summarize` name an aborted re-evaluation
+as such: the Episodes it did not reach are counted as not finished and keep
+their earlier `evaluation.json`.
 
 `synthesize` is `journey_synthesis.synthesize_command(...)`, which prints the
 report and returns the exit status: 0; 1 on a shortfall, or when the run
@@ -828,7 +837,7 @@ Persona-fidelity spot-check of that model and of the new
 | 06c | HARNESS | `journeys/appointment_rescheduling/journey.yaml` (`criteria.judge` in full); `agentsim/journey/{definition,checks,judge,evaluation,scenario}.py`; their tests and `tests/journey_trace_builder.py`; sections 4, 5 and 9 of this note |
 | 07 | HARNESS | `scenario_synthesis/journey_synthesis.py`; `tests/test_journey_synthesis.py`; `CONTEXT.md`; the `knowledge_evidence.kind` closed set in `agentsim/journey/scenario.py` with its tests and `tests/journey_trace_builder.py` |
 | 08 | HARNESS | `scripts/journey_harness.py`; `agentsim/journey/report.py`; `tests/test_journey_{cli,report,e2e}.py`; `tests/journey_run_doubles.py` (a whole Run on doubles, reusable by 09); `.gitignore` (`journey_runs/`); `CONTEXT.md` (Run); sections 8, 9 and 11 of this note |
-| 09 | both | setup-and-run docs, walkthrough evidence, final report |
+| 09 | both | `docs/journey-harness-setup-and-run.md`; AGENT `README.md` (running the harness, the contract re-check); `scripts/recapture_journey_agent_traces.py` (re-captures the pinned raw Traces from AGENT's stub and compares); `synthesized_journey_scenarios/appointment-rescheduling/stub-walkthrough/` with its `README.md` (stub-generated walkthrough set); the re-evaluation record (section 9) in `scripts/journey_harness.py` and `agentsim/journey/report.py`; the guarded no-conversation Trace save in `agentsim/journey/episode.py`; `docs/solutions/journey-{re-evaluation-has-its-own-record,harness-review-findings-sessions-02-09}.md`; final report |
 
 Every HARNESS session also edits `ENVIRONMENT.md` and adds compound outputs.
 Nobody edits `agentsim/{scenario,simulator,judge,criteria,assertions,orchestrator,trace,types,batch,clustering,report}.py`,

@@ -1,0 +1,113 @@
+{
+  "accepted": [
+    {
+      "file": "accepted/synth-appointment-rescheduling-6796e126130a.yaml",
+      "sha256": "91aa0afae29f3a7d73ccf67f1852ceae076fae49332c1299f2485e0f59c269ff"
+    },
+    {
+      "file": "accepted/synth-appointment-rescheduling-538512da80d4.yaml",
+      "sha256": "445815fed88ee2473e1afa2e905382f98e7f12de577089654db3191e23bbdfa9"
+    },
+    {
+      "file": "accepted/synth-appointment-rescheduling-1ac379490a6c.yaml",
+      "sha256": "07180ccb04d4602638490baae8a5f5823a1069b7d584dec855d532522f81d8bb"
+    },
+    {
+      "file": "accepted/synth-appointment-rescheduling-8c37ca043872.yaml",
+      "sha256": "5615db41a95ee78ae71dc0bd6259bd83542279b95013f9791e6a6c22740a9735"
+    }
+  ],
+  "counts": {
+    "accepted": 4,
+    "rejected_attempts": 0,
+    "requested": 4,
+    "shortfall": 0
+  },
+  "fixture_state_sha256": "8be2718729d3d6226ff6eb37e36023b0127c8d90fb36aac3e5d7af11522b2968",
+  "generated_at": "2026-09-22T01:53:47.013363Z",
+  "generation_config": {
+    "attempts_per_spec": 2,
+    "count": 4,
+    "generator_version": "journey-synthesis-v1",
+    "model": "stub",
+    "provider_id": "offline-stub-journey-narrative-v1",
+    "seed": 0,
+    "system_prompt_sha256": "3dd87cb345bb10c52b82e8032d12b56d9dce3cd0171e45b52eef9f230efc118c",
+    "variation": {
+      "archetypes": [
+        "cooperative",
+        "persistent",
+        "pressure",
+        "vigilant"
+      ],
+      "complications": [
+        "none",
+        "underspecification",
+        "mid-conversation-correction",
+        "false-premise",
+        "out-of-scope-drift",
+        "channel-noise",
+        "ambiguous-reference"
+      ],
+      "knowledge_levels": [
+        "high",
+        "low",
+        "medium"
+      ],
+      "max_turns": 12,
+      "tool_failure_conditions": [
+        [],
+        [
+          "update_appointment"
+        ]
+      ]
+    }
+  },
+  "generation_config_sha256": "77d49d262a2dca6d01e93689a55125a493ad0b85393e21503e9dc95af9cd48b6",
+  "generator_version": "journey-synthesis-v1",
+  "inputs": {
+    "fixture_state": {
+      "canonical_sha256": "8be2718729d3d6226ff6eb37e36023b0127c8d90fb36aac3e5d7af11522b2968",
+      "file": "fixture_state.yaml",
+      "file_sha256": "91e5b8cb956dd0bcbe6f4721eef949294c23dd99243a9e3bb617275bc46ef777",
+      "fixture_state_id": "harbor-street-dental-2026-10"
+    },
+    "journey": {
+      "file": "journey.yaml",
+      "sha256": "d36a40667817b9155c9dd10c2867b5a1a83fddd1a91f0fcfb7f61feeb14f4595"
+    }
+  },
+  "journey_id": "appointment-rescheduling",
+  "journey_sha256": "d36a40667817b9155c9dd10c2867b5a1a83fddd1a91f0fcfb7f61feeb14f4595",
+  "model": "stub",
+  "notice": "Validation only: these Scenarios are not Qualified or Admitted, and passing validation establishes nothing about test quality or coverage.",
+  "origin": "synthesized",
+  "provider_id": "offline-stub-journey-narrative-v1",
+  "qualification": "none",
+  "rejected": [],
+  "schema_version": 1,
+  "set_id": "stub-walkthrough",
+  "specs": [
+    {
+      "scenario_id": "synth-appointment-rescheduling-6796e126130a",
+      "spec_id": "spec-001",
+      "status": "accepted"
+    },
+    {
+      "scenario_id": "synth-appointment-rescheduling-538512da80d4",
+      "spec_id": "spec-002",
+      "status": "accepted"
+    },
+    {
+      "scenario_id": "synth-appointment-rescheduling-1ac379490a6c",
+      "spec_id": "spec-003",
+      "status": "accepted"
+    },
+    {
+      "scenario_id": "synth-appointment-rescheduling-8c37ca043872",
+      "spec_id": "spec-004",
+      "status": "accepted"
+    }
+  ],
+  "status": "complete"
+}

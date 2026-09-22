@@ -83,6 +83,9 @@ Do not violate these without explicit instruction in the current prompt.
 - A command that creates its output directory before fallible work must, on an
   unexpected failure, keep what it wrote and leave a record marked aborted with the
   error. Exit status 2 (unusable request) is only for failures before the first write.
+- A record's status says whether the operation that wrote it finished. A later
+  operation on the same record (a re-evaluation, a re-run of one step) writes its own
+  status field; it never reuses or overwrites the first.
 
 ## Agent skills
 

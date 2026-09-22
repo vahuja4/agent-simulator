@@ -1,0 +1,64 @@
+schema_version: 1
+scenario_id: synth-appointment-rescheduling-538512da80d4
+journey: appointment-rescheduling
+description: 'Offline stub realization: cooperative Persona, high Knowledge level,
+  Complication none.'
+persona:
+  archetype: cooperative
+  name: Daniel Reyes
+  traits: 'cooperative: Supplies requested information and accepts clear, satisfactory
+    guidance. No conversational Complication.'
+goal: 'Move the appointment to the target slot. High: correctly states the named rule
+  without being prompted. Grounded facts: Daniel Reyes; orthodontic check; Dr. Chen;
+  2026-10-08T09:30:00; HSD-5107; 2026-10-15T14:00:00; Dr. Patel.'
+knowledge_level: high
+knowledge_evidence:
+  kind: states_rule_unprompted
+  rule: provider_follows_slot
+complication: none
+fixture:
+  customer_id: C-200
+  appointment_id: A-2001
+  target_slot_ids:
+  - S-202
+  tool_failures: []
+grounded_facts:
+- path: customers.C-200.name
+  value: Daniel Reyes
+- path: appointments.A-2001.service
+  value: orthodontic check
+- path: appointments.A-2001.provider
+  value: Dr. Chen
+- path: appointments.A-2001.start
+  value: '2026-10-08T09:30:00'
+- path: appointments.A-2001.confirmation_code
+  value: HSD-5107
+- path: slots.S-202.start
+  value: '2026-10-15T14:00:00'
+- path: slots.S-202.provider
+  value: Dr. Patel
+max_turns: 12
+expected_outcome: rescheduled
+criteria:
+  assertions:
+  - update_targets_identified_appointment
+  - update_uses_offered_slot
+  - user_turn_before_update
+  - update_matches_goal
+  judge:
+  - appointment_identified
+  - reschedule_confirmed
+  - offered_slots_grounded
+  - update_result_reported_accurately
+  - reschedule_goal_completion
+synthesis:
+  origin: synthesized
+  qualification: none
+  set_id: stub-walkthrough
+  spec_id: spec-002
+  journey_sha256: d36a40667817b9155c9dd10c2867b5a1a83fddd1a91f0fcfb7f61feeb14f4595
+  fixture_state_sha256: 8be2718729d3d6226ff6eb37e36023b0127c8d90fb36aac3e5d7af11522b2968
+  generation_config_sha256: 77d49d262a2dca6d01e93689a55125a493ad0b85393e21503e9dc95af9cd48b6
+  generator_version: journey-synthesis-v1
+  model: stub
+  generated_at: '2026-09-22T01:53:47.013363Z'

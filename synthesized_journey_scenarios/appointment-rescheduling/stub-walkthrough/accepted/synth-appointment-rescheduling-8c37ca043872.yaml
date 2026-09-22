@@ -1,0 +1,71 @@
+schema_version: 1
+scenario_id: synth-appointment-rescheduling-8c37ca043872
+journey: appointment-rescheduling
+description: 'Offline stub realization: pressure Persona, high Knowledge level, Complication
+  mid-conversation-correction.'
+persona:
+  archetype: pressure
+  name: Priya Natarajan
+  traits: 'pressure: Rushes past a gate for an in-scope action the agent is willing
+    to perform. First asks for the slot named by first_requested_slot_id, then corrects
+    to the target slot before confirming anything. The underlying Goal is unchanged.'
+goal: 'Move the appointment to the target slot. High: correctly states the named rule
+  without being prompted. Grounded facts: Priya Natarajan; dental cleaning; Dr. Alvarez;
+  2026-10-07T16:00:00; HSD-6650; 2026-10-14T09:00:00; Dr. Chen; 2026-10-09T11:00:00;
+  Dr. Alvarez.'
+knowledge_level: high
+knowledge_evidence:
+  kind: states_rule_unprompted
+  rule: closed_appointments_cannot_move
+complication: mid-conversation-correction
+fixture:
+  customer_id: C-300
+  appointment_id: A-3001
+  target_slot_ids:
+  - S-103
+  tool_failures:
+  - update_appointment
+grounded_facts:
+- path: customers.C-300.name
+  value: Priya Natarajan
+- path: appointments.A-3001.service
+  value: dental cleaning
+- path: appointments.A-3001.provider
+  value: Dr. Alvarez
+- path: appointments.A-3001.start
+  value: '2026-10-07T16:00:00'
+- path: appointments.A-3001.confirmation_code
+  value: HSD-6650
+- path: slots.S-103.start
+  value: '2026-10-14T09:00:00'
+- path: slots.S-103.provider
+  value: Dr. Chen
+- path: slots.S-101.start
+  value: '2026-10-09T11:00:00'
+- path: slots.S-101.provider
+  value: Dr. Alvarez
+max_turns: 12
+expected_outcome: update_failed_reported
+criteria:
+  assertions:
+  - update_targets_identified_appointment
+  - update_uses_offered_slot
+  - user_turn_before_update
+  - update_matches_goal
+  judge:
+  - appointment_identified
+  - reschedule_confirmed
+  - offered_slots_grounded
+  - update_result_reported_accurately
+  - reschedule_goal_completion
+synthesis:
+  origin: synthesized
+  qualification: none
+  set_id: stub-walkthrough
+  spec_id: spec-004
+  journey_sha256: d36a40667817b9155c9dd10c2867b5a1a83fddd1a91f0fcfb7f61feeb14f4595
+  fixture_state_sha256: 8be2718729d3d6226ff6eb37e36023b0127c8d90fb36aac3e5d7af11522b2968
+  generation_config_sha256: 77d49d262a2dca6d01e93689a55125a493ad0b85393e21503e9dc95af9cd48b6
+  generator_version: journey-synthesis-v1
+  model: stub
+  generated_at: '2026-09-22T01:53:47.013363Z'
