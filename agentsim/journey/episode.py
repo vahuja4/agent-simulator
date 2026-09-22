@@ -251,7 +251,10 @@ def _retrieve_and_release(
             tool_failures=scenario.fixture.tool_failures,
             evidence=Evidence("unavailable", "unavailable", (reason,)),
         )
-        _save_trace(RetrievedTrace(None, normalized, reason), episode_dir, retrieval)
+        try:
+            _save_trace(RetrievedTrace(None, normalized, reason), episode_dir, retrieval)
+        except Exception as error:
+            retrieval["error"] = f"saving the Trace failed: {type(error).__name__}: {error}"
         return
 
     retrieval["attempted"] = True

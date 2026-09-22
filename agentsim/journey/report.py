@@ -106,10 +106,15 @@ class RunSummary:
     not_finished: int
     clusters: list[FailureCluster]
     report_path: Path
+    re_evaluation_status: str | None = None  # the last ``run --re-evaluate``, if any
 
     @property
     def aborted(self) -> bool:
         return self.status != RUN_STATUS_COMPLETE
+
+    @property
+    def re_evaluation_aborted(self) -> bool:
+        return self.re_evaluation_status not in (None, RUN_STATUS_COMPLETE)
 
 
 def summarize_run(run_dir: str | Path) -> RunSummary:
@@ -126,7 +131,14 @@ def summarize_run(run_dir: str | Path) -> RunSummary:
         not_finished=len(run.not_finished),
         clusters=clusters,
         report_path=report_path,
+        re_evaluation_status=_re_evaluation(run.record).get("status"),
     )
+
+
+def _re_evaluation(record: dict[str, Any]) -> dict[str, Any]:
+    """The record of the last ``run --re-evaluate``; empty when there was none."""
+    re_evaluation = record.get("re_evaluation")
+    return re_evaluation if isinstance(re_evaluation, dict) else {}
 
 
 # ------------------------------------------------------------------ reading
@@ -292,6 +304,20 @@ def _header(run: _Run) -> list[str]:
             "It did not play every Scenario; the counts below cover only what ran.",
             "",
         ))
+    re_evaluation = _re_evaluation(record)
+    if re_evaluation and re_evaluation.get("status") != RUN_STATUS_COMPLETE:
+        error = re_evaluation.get("error") or {}
+        why = (
+            f": {error.get('type')}: {error.get('message')}" if error
+            else " (no end was recorded)"
+        )
+        lines.extend((
+            f"**The last re-evaluation was ABORTED** (status "
+            f"`{_cell(re_evaluation.get('status'))}`){_cell(why)}. The conversations are "
+            "as the Run left them; the Episodes it did not reach are counted as not "
+            "finished and keep their earlier `evaluation.json`. Run `--re-evaluate` again.",
+            "",
+        ))
     agents = sorted({
         str(e.episode["agent"]) for e in run.episodes if e.episode and e.episode.get("agent")
     })
@@ -306,8 +332,11 @@ def _header(run: _Run) -> list[str]:
         f"Judge model: `{_cell(record.get('judge_model'))}`",
         f"- Started {_cell(record.get('started_at'))}, ended {_cell(record.get('ended_at'))}",
     ))
-    if record.get("re_evaluated_at"):
-        lines.append(f"- Re-evaluated {_cell(record['re_evaluated_at'])}")
+    if re_evaluation:
+        lines.append(
+            f"- Last re-evaluated {_cell(re_evaluation.get('started_at'))} "
+            f"({_cell(re_evaluation.get('status'))})"
+        )
     lines.extend((
         f"- Judge calls: {run.manifest.run_llm_calls_total}. The Simulated user's "
         "model calls are not recorded, so this is not a total.",

@@ -733,10 +733,18 @@ def test_agent_raw_trace_samples_carry_exactly_the_keys_the_normalizer_reads():
 # ----------------------------------------------------- the import boundary
 
 
-def test_nothing_under_agentsim_imports_langgraph_langchain_or_the_agent():
+def test_nothing_in_the_harness_imports_langgraph_langchain_or_the_agent():
+    """``agentsim`` and the composition roots alike: LangGraph lives only in
+    AGENT, and the harness talks to it over HTTP (session 09 widened this
+    from ``agentsim`` alone)."""
     forbidden = {"langgraph", "langchain", "langchain_core", "journey_agent"}
     offenders = []
-    for path in sorted((REPO / "agentsim").rglob("*.py")):
+    paths = [
+        path
+        for package in ("agentsim", "scenario_synthesis", "scripts")
+        for path in (REPO / package).rglob("*.py")
+    ]
+    for path in sorted(paths):
         for node in ast.walk(ast.parse(path.read_text(encoding="utf-8"))):
             if isinstance(node, ast.Import):
                 names = [alias.name for alias in node.names]

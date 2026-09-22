@@ -354,6 +354,31 @@ async def test_a_failed_start_is_recorded_with_nothing_to_retrieve_or_release(tm
     assert normalized.messages == () and normalized.actions == ()
 
 
+async def test_a_failed_start_whose_trace_cannot_be_saved_still_leaves_the_record(
+    tmp_path, monkeypatch
+):
+    """The no-conversation Trace is written from inside the cleanup that runs
+    while the start failure is being recorded; a write failure there must not
+    take ``episode.json`` with it (session 09 review)."""
+    error = AdapterError("transport", "connection refused")
+    adapter = FakeAdapter(fail={"start_conversation": error})
+    write_text = ep._write_text
+
+    def cannot_write_the_trace(path, text):
+        if path.name == "normalized_trace.json":
+            raise OSError(f"{path.name}: read-only file system")
+        write_text(path, text)
+
+    monkeypatch.setattr(ep, "_write_text", cannot_write_the_trace)
+    result = await run(tmp_path, adapter, ScriptedUser(say("hi")))
+
+    record = episode_json(result)
+    assert record["status"] == "complete" and record["stop_reason"] == "adapter_error"
+    assert record["error"]["operation"] == "start_conversation"
+    assert record["retrieval"]["error"].startswith("saving the Trace failed: OSError")
+    assert not (result.episode_dir / "normalized_trace.json").exists()
+
+
 @pytest.mark.parametrize(
     "failure", [LLMError("model refused the request"), AssertionError("a broken double")]
 )

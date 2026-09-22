@@ -369,7 +369,9 @@ def test_re_evaluate_replaces_the_evaluation_and_replays_nothing(tmp_path):
     assert {r["outcome"] for r in manifest["runs"].values()} == {"pass"}
     assert all(r["failures"] == [] for r in manifest["runs"].values())
     record = run_record(played.run_dir)
-    assert record["status"] == "complete" and record["re_evaluated_at"]
+    assert record["status"] == "complete"
+    assert record["re_evaluation"]["status"] == "complete"
+    assert record["re_evaluation"]["started_at"] and record["re_evaluation"]["ended_at"]
 
 
 def test_re_evaluate_refuses_a_journey_file_edited_since_the_run(tmp_path):
@@ -400,6 +402,87 @@ def test_re_evaluating_an_aborted_run_evaluates_what_was_saved_and_stays_aborted
     assert read(played.episode_dir(1) / "evaluation.json")["outcome"] == "error"
     record = run_record(played.run_dir)
     assert record["status"] == "aborted" and record["error"]["type"] == "CancelledError"
+
+
+def test_the_judge_and_every_evaluation_hold_the_same_loaded_journey(tmp_path, monkeypatch):
+    """Criterion wording lives in the Journey definition, so the object the
+    Judge is built from and the one ``evaluate_episode`` resolves criteria
+    from must be one and the same — in ``run`` and in ``run --re-evaluate``."""
+    seen: dict[str, list] = {"judge": [], "evaluate": []}
+    real_evaluate = jh.evaluate_episode
+
+    def build_judge(journey, **kwargs):
+        seen["judge"].append(journey)
+        return ScenarioJudge()
+
+    async def evaluate(episode_dir, judge, journey):
+        seen["evaluate"].append(journey)
+        return await real_evaluate(episode_dir, judge, journey)
+
+    monkeypatch.setattr(jh, "live_journey_judge", build_judge)
+    monkeypatch.setattr(jh, "evaluate_episode", evaluate)
+
+    played = play_run(tmp_path, ["pass", "pass"], judge=None)
+    assert played.status == 0
+    status = jh.re_evaluate_command(
+        journey_dir=JOURNEY_DIR, run_dir=played.run_dir, out=io.StringIO(),
+    )
+    assert status == 0
+
+    assert len(seen["judge"]) == 2 and len(seen["evaluate"]) == 4  # run, then re-evaluate
+    run_journey, re_evaluate_journey = seen["judge"]
+    assert all(j is run_journey for j in seen["evaluate"][:2])
+    assert all(j is re_evaluate_journey for j in seen["evaluate"][2:])
+
+
+class InterruptedJudge(ScenarioJudge):
+    """Cancelled on its second call, as Ctrl-C during a re-evaluation would be."""
+
+    async def judge_episode(self, scenario, trace):
+        if len(self.calls) == 1:
+            raise asyncio.CancelledError()
+        return await super().judge_episode(scenario, trace)
+
+
+def test_an_interrupted_re_evaluation_does_not_make_a_finished_run_aborted(tmp_path):
+    played = play_run(tmp_path, ["pass", "pass"])
+    assert run_record(played.run_dir)["status"] == "complete"
+
+    out = io.StringIO()
+    with pytest.raises(asyncio.CancelledError):
+        jh.re_evaluate_command(
+            journey_dir=JOURNEY_DIR, run_dir=played.run_dir, out=out, judge=InterruptedJudge(),
+        )
+
+    # The conversations finished; only the re-evaluation did not. Two facts, apart.
+    record = run_record(played.run_dir)
+    assert record["status"] == "complete" and record["error"] is None
+    assert record["re_evaluation"]["status"] == "aborted"
+    assert record["re_evaluation"]["error"]["type"] == "CancelledError"
+    assert out.getvalue().splitlines()[-1].startswith("ABORTED: CancelledError")
+    summary = io.StringIO()
+    assert jh.summarize_command(played.run_dir, out=summary) == 0
+    assert "this Run was ABORTED" not in summary.getvalue()
+    assert "last re-evaluation was ABORTED" in summary.getvalue()
+    report = (played.run_dir / "report.md").read_text()
+    assert "**This Run was ABORTED**" not in report
+    assert "**The last re-evaluation was ABORTED**" in report and "CancelledError" in report
+
+    # The next re-evaluation reaches every Episode and says so.
+    status = jh.re_evaluate_command(
+        journey_dir=JOURNEY_DIR, run_dir=played.run_dir, out=io.StringIO(),
+        judge=ScenarioJudge(),
+    )
+    assert status == 0
+    record = run_record(played.run_dir)
+    assert record["status"] == "complete"
+    assert record["re_evaluation"]["status"] == "complete"
+    assert record["re_evaluation"]["error"] is None
+    manifest = read(played.run_dir / "manifest.json")
+    assert {r["outcome"] for r in manifest["runs"].values()} == {"pass"}
+    summary = io.StringIO()
+    assert jh.summarize_command(played.run_dir, out=summary) == 0
+    assert "ABORTED" not in summary.getvalue()
 
 
 def test_re_evaluate_refuses_a_directory_that_is_not_a_run(tmp_path):

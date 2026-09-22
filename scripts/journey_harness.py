@@ -158,7 +158,7 @@ def run_command(
         "episode_timeout_s": episode_timeout_s,
         "started_at": utc_timestamp(),
         "ended_at": None,
-        "re_evaluated_at": None,
+        "re_evaluation": None,
         "error": None,
     }
     _atomic_json(run_dir / RUN_RECORD_FILE, record)
@@ -177,7 +177,7 @@ def run_command(
         return await _evaluate(episode_dir, judge, journey)
 
     specs = [_spec(scenario, run_id, simulator or "") for scenario in scenarios]
-    status = _play(run_dir, record, specs, execute, RUN_STATUS_COMPLETE, out)
+    status = _play(run_dir, record, record, specs, execute, out)
     if status == 0:
         print(
             f"Run complete: {run_dir}\nnext: scripts/journey_harness.py summarize {run_dir}",
@@ -233,27 +233,30 @@ def re_evaluate_command(
         manifest.runs[spec.run_key].status = "pending"
         manifest.runs[spec.run_key].outcome = None
     _atomic_json(manifest_path, manifest.to_dict())
-    finished = (
-        RUN_STATUS_COMPLETE if record.get("status") == RUN_STATUS_COMPLETE
-        else RUN_STATUS_ABORTED  # the Run itself never finished; re-evaluating cannot change that
-    )
-    record["status"] = RUN_STATUS_RUNNING
+    # Whether the conversations finished (``status``) and whether this
+    # re-evaluation finished are two facts, kept apart: the Run's own status,
+    # end and error are never touched here.
+    record["re_evaluation"] = {
+        "status": RUN_STATUS_RUNNING,
+        "started_at": utc_timestamp(),
+        "ended_at": None,
+        "error": None,
+    }
     _atomic_json(run_dir / RUN_RECORD_FILE, record)
     print(f"Re-evaluating {len(specs)} saved Episode(s) of {run_dir}", file=out)
 
     async def execute(spec: BatchRunSpec) -> RunResult:
         return await _evaluate(run_dir / "runs" / spec.run_key, judge, journey)
 
-    record["re_evaluated_at"] = utc_timestamp()
-    return _play(run_dir, record, specs, execute, finished, out)
+    return _play(run_dir, record, record["re_evaluation"], specs, execute, out)
 
 
 def _play(
     run_dir: Path,
     record: dict[str, Any],
+    progress: dict[str, Any],
     specs: Sequence[BatchRunSpec],
     execute: Callable[[BatchRunSpec], Awaitable[RunResult]],
-    finished: str,
     out: TextIO,
 ) -> int:
     """One spec at a time, so nothing runs alongside anything else and an
@@ -261,7 +264,9 @@ def _play(
     ``run_episode`` refuses a directory that already holds an Episode. It
     records an ``execute`` that raises as ``error`` and the loop goes on; what
     escapes it (an interrupt, a failed write) aborts the Run, keeping what was
-    written."""
+    written. ``progress`` is where ``status``, ``ended_at`` and ``error`` are
+    written: the Run record itself for ``run``, its ``re_evaluation`` entry for
+    ``run --re-evaluate``."""
     runner = BatchRunner(
         run_dir,
         concurrency=1,
@@ -282,7 +287,7 @@ def _play(
     try:
         run_on_the_process_loop(play_all())
     except BaseException as error:
-        record.update(
+        progress.update(
             status=RUN_STATUS_ABORTED,
             ended_at=utc_timestamp(),
             error={"type": type(error).__name__, "message": str(error)},
@@ -296,10 +301,7 @@ def _play(
         if not isinstance(error, Exception):
             raise  # an interrupt stays an interrupt
         return 1
-    if finished == RUN_STATUS_COMPLETE:
-        record.update(status=RUN_STATUS_COMPLETE, ended_at=utc_timestamp(), error=None)
-    else:
-        record["status"] = finished
+    progress.update(status=RUN_STATUS_COMPLETE, ended_at=utc_timestamp(), error=None)
     _atomic_json(run_dir / RUN_RECORD_FILE, record)
     return 0
 
@@ -407,6 +409,13 @@ def summarize_command(run_dir: str | Path, *, out: TextIO) -> int:
         print(
             f"NOTE: this Run was ABORTED (status {summary.status!r}); the summary covers "
             "only what ran",
+            file=out,
+        )
+    if summary.re_evaluation_aborted:
+        print(
+            f"NOTE: the last re-evaluation was ABORTED (status "
+            f"{summary.re_evaluation_status!r}); Episodes it did not reach are counted as "
+            "not finished — run --re-evaluate again",
             file=out,
         )
     failures = sum(cluster.size for cluster in summary.clusters)
