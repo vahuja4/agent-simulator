@@ -297,6 +297,8 @@ Nothing is confirmed by a machine.
 
 1. **Zero new dependencies.** Stdlib plus what is already in the
    environment. If a task appears to need a new package, stop and ask.
+   Approved exceptions to date: `anthropic` (2026-09-25), so the Simulated
+   user can run on a family the calibration-locked Judge does not share.
 2. **Adapter boundary.** All access to the agent platform goes through
    the agent adapter interface. No platform client code imported
    anywhere else.

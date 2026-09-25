@@ -4,6 +4,12 @@ version = "0.1.0"
 description = "Framework-agnostic adversarial simulation harness for conversational agents (payments agent gym)"
 requires-python = ">=3.12"
 dependencies = [
+    # The Simulated user needs a model from a family the calibration-locked
+    # Judge does not share (AGENTS.md). Added 2026-09-25 with explicit user
+    # approval as an exception to the zero-new-dependencies invariant; the
+    # Anthropic API's request surface has moved enough recently that
+    # hand-rolled HTTP would be provable only by spending live calls.
+    "anthropic>=1.0",
     "openai>=1.50",
     "pyyaml>=6.0",
 ]

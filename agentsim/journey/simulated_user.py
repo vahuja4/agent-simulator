@@ -28,7 +28,9 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
 
-from ..llm import LLMClient, LLMError, OpenAILLM
+from ..anthropic_llm import API_KEY_ENV as ANTHROPIC_API_KEY_ENV
+from ..anthropic_llm import AnthropicLLM
+from ..llm import LLMClient, LLMError, OpenAILLM, model_family
 from ..simulator import Persona, SimTurn, UserSimulator
 from ..types import Message
 from .definition import JourneyDefinition
@@ -328,6 +330,24 @@ def live_simulated_user(
         raise SimulatorConfigError(
             f"no Simulated-user model: pass --simulator-model or set {SIMULATOR_MODEL_ENV}"
         )
+    llm = _client_for(model)
+    return JourneySimulatedUser.for_scenario(llm, scenario, journey, model=model)
+
+
+def _client_for(model: str) -> LLMClient:
+    """The backend that serves ``model``, and the credential it needs.
+
+    The Judge is calibration-locked to a GPT model, so a reported Run needs the
+    Simulated user on another family; which backend to call follows from the
+    model identifier rather than from a separate flag that could disagree with
+    it."""
+    if model_family(model) == "claude":
+        if not os.environ.get(ANTHROPIC_API_KEY_ENV):
+            raise SimulatorConfigError(
+                f"{ANTHROPIC_API_KEY_ENV} is not set for Simulated-user model "
+                f"{model!r} (export the ignored .env)"
+            )
+        return AnthropicLLM(model)
     if not os.environ.get("OPENAI_API_KEY"):
         raise SimulatorConfigError("OPENAI_API_KEY is not set (export the ignored .env)")
-    return JourneySimulatedUser.for_scenario(OpenAILLM(model), scenario, journey, model=model)
+    return OpenAILLM(model)

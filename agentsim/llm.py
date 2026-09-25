@@ -34,10 +34,25 @@ class LLMTruncationError(LLMError):
 
 
 def model_family(model: str) -> str:
-    """Return the stable family name for a model alias or dated snapshot."""
+    """Return the stable family name for a model alias or dated snapshot.
+
+    Model-family separation asks whether the Simulated user and the Judge share
+    a lineage, so every Anthropic model is one family: ``claude-opus-5`` and
+    ``claude-sonnet-5`` are not separated in the sense the rule means. An
+    unrecognized identifier is its own family, which fails closed — it can only
+    make separation look absent, never present."""
     normalized = _DATED_MODEL_SUFFIX.sub("", model.strip().lower())
-    match = re.match(r"^(gpt-\d+)(?:[.-]|$)", normalized)
-    return match.group(1) if match is not None else normalized
+    for pattern, family in _MODEL_FAMILIES:
+        match = re.match(pattern, normalized)
+        if match is not None:
+            return match.group(1) if match.groups() else family
+    return normalized
+
+
+_MODEL_FAMILIES: tuple[tuple[str, str], ...] = (
+    (r"^(gpt-\d+)(?:[.-]|$)", ""),
+    (r"^claude(?:[.-]|$)", "claude"),
+)
 
 
 def models_share_family(simulator_model: str, judge_model: str) -> bool:

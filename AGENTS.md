@@ -34,6 +34,10 @@ Do not violate these without explicit instruction in the current prompt.
 
 - Zero new dependencies: use the stdlib plus what is already in the
   environment. If a task appears to need a new package, stop and ask.
+  Approved so far: `anthropic` (2026-09-25). When one is approved, constrain
+  the lockfile recompile to the existing pins (`uv pip compile -c
+  requirements.lock`) so an approved addition does not also bump unrelated
+  packages under a pinned baseline.
 - All agent-platform access goes through the agent adapter interface. No
   platform client code may be imported elsewhere.
 - The mock under `agentsim/adapters/mock_paycard/` is deterministic and
