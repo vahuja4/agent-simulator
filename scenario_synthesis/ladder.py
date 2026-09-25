@@ -25,6 +25,7 @@ left alone.
 
 from __future__ import annotations
 
+import re
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from typing import Any
@@ -365,3 +366,26 @@ IDENTIFY_EXISTING_APPOINTMENT = Ladder(
 LADDERS: Mapping[str, Ladder] = {
     IDENTIFY_EXISTING_APPOINTMENT.set_id: IDENTIFY_EXISTING_APPOINTMENT,
 }
+
+_RUNG_SPEC_ID = re.compile(r"rung-(\d+)")
+
+
+def ladder_and_rung_for(synthesis: Mapping[str, Any]) -> tuple[Ladder, RungSpec]:
+    """The Ladder and Rung a realized Scenario came from, read off its
+    ``synthesis`` block.
+
+    A Rung's Scenario names its primary Complication and has nowhere to list the
+    difficulties it also carries; this is the path back to the specification
+    that does. A Scenario whose ``set_id`` names a Ladder must resolve, so a
+    Rung Scenario is never orphaned from the record of what it actually is."""
+    set_id = synthesis.get("set_id")
+    ladder = LADDERS.get(str(set_id))
+    if ladder is None:
+        raise LadderError(f"no Ladder named {set_id!r} (known: {sorted(LADDERS)})")
+    match = _RUNG_SPEC_ID.fullmatch(str(synthesis.get("spec_id")))
+    if match is None:
+        raise LadderError(
+            f"Ladder {set_id!r} Scenario has spec_id {synthesis.get('spec_id')!r}, "
+            "which does not name a Rung"
+        )
+    return ladder, ladder.rung(int(match.group(1)))

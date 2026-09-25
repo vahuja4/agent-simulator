@@ -29,6 +29,7 @@ from scenario_synthesis.ladder import (
     also_carries,
     archetype_for,
     check_ladder,
+    ladder_and_rung_for,
     narrative_request,
     spec_for,
 )
@@ -148,6 +149,41 @@ def test_the_request_carries_every_difficulty_and_withholds_the_rule(journey_inp
     assert "identify_existing_appointment" not in rendered
     assert "update_matches_goal" not in rendered
     assert "expected_outcome" not in rendered
+
+
+def test_a_realized_rung_scenario_leads_back_to_every_difficulty_it_carries(
+    journey_inputs,
+):
+    """The Scenario names its primary Complication and cannot list the rest, so
+    the way back to the Rung specification has to hold."""
+    journey, _ = journey_inputs
+    spec = spec_for(IDENTIFY_EXISTING_APPOINTMENT, 4)
+    document = scenario_document(
+        spec, {"description": "d", "traits": "t", "goal": "g"}, journey, SYNTHESIS
+    )
+    ladder, rung = ladder_and_rung_for(document["synthesis"])
+    assert ladder is IDENTIFY_EXISTING_APPOINTMENT
+    assert rung.rung == 4
+    assert also_carries(rung) == ("pressure", "false-premise")
+
+
+@pytest.mark.parametrize(
+    "synthesis,message",
+    [
+        ({"set_id": "ladder-invented", "spec_id": "rung-1"}, "no Ladder named"),
+        (
+            {"set_id": "ladder-identify-existing-appointment", "spec_id": "spec-003"},
+            "does not name a Rung",
+        ),
+        (
+            {"set_id": "ladder-identify-existing-appointment", "spec_id": "rung-9"},
+            "has no Rung 9",
+        ),
+    ],
+)
+def test_a_scenario_that_cannot_lead_back_to_its_rung_is_refused(synthesis, message):
+    with pytest.raises(LadderError, match=message):
+        ladder_and_rung_for(synthesis)
 
 
 def test_the_false_premise_value_is_a_grounded_fact(journey_inputs):

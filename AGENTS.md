@@ -74,6 +74,9 @@ Do not violate these without explicit instruction in the current prompt.
 - Honor all prompt-imposed file-reading and evidence boundaries.
   Otherwise inspect only files relevant to the task; do not browse old
   calibration transcripts, build plans, or unrelated artifacts.
+- A document's wording is not evidence of what code enforces. Before reporting
+  that a guard is missing, read the code path that would enforce it and the test
+  that would pin it; `CONTEXT.md` states meaning, not implementation.
 - A LEGACY docstring or a cutover list is not evidence that a module has no
   production callers. Before proposing or performing a deletion, verify transitive
   importers from non-legacy code; `tests/test_synthesis_cutover_boundary.py` pins
