@@ -20,12 +20,12 @@ vocabulary as normal.
 - Offline tests: **1047 passing**, `ENVIRONMENT.md` holds that number and
   `make test` fails on any drift. Run it before you change code, and never edit
   a tracked file while it is running.
-- Eight commits on top of `9b53966`: `3bf7e44` ADR 0008 and the Openings finder,
-  `38d2861` the Ladder and its four Rungs, `4d6cf1f` the climb decision,
-  `3dceb3e` the compound record, `b80d293` the Anthropic client, `ce7257a`
-  realizing a Ladder, `6305dcc` the probe command, `cba3305` the live Rung
-  provider, `5f1f428` the four realized Rungs. The last three are **not yet
-  pushed**.
+- Nine commits on top of `9b53966`, all pushed to the branch: `3bf7e44` ADR 0008
+  and the Openings finder, `38d2861` the Ladder and its four Rungs, `4d6cf1f`
+  the climb decision, `3dceb3e` the compound record, `b80d293` the Anthropic
+  client, `ce7257a` realizing a Ladder, `6305dcc` the probe command, `cba3305`
+  the live Rung provider, `5f1f428` the four realized Rungs, `b73c88a` the
+  compound record for this session.
 - **The four Rungs exist.** Four live `gpt-5.5` calls, four accepted on the
   first attempt, in
   `synthesized_journey_scenarios/appointment-rescheduling/ladder-identify-existing-appointment/`.
