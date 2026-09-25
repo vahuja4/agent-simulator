@@ -82,6 +82,21 @@ fixed (the session was told to report, not fix):
 | 19 | Candidate criterion-wording observation, not a disagreement: `reschedule_confirmed` does not say how a retry the agent itself offered ("Would you like me to try again?") is read when the customer answers "Try again"; the Judge and the session both read it as confirmation, a stricter reading could call it a proceed-demand from a pressure Persona. Wording changes need approval and live verification. | Episodes 2 and 4, Turns 6 and 8 |
 | 20 | The medium-Knowledge evidence ("relies on the assistant for the same-service rule") was not observable in Episode 2: the customer never asked, and wrote "same svc pls". Fidelity is the user's hand check; no check exists by design. | `runs/synth-appointment-rescheduling-d7f002747aff-*/transcript.md` Turn 8 |
 
+### Probe `climb-01` — the first Ladder climbed (2026-09-25), open
+
+The four Rungs against `identify_existing_appointment`, against the LangGraph
+agent on `anthropic:claude-sonnet-5`, Maya on `claude-opus-5`, Judge `gpt-5.5`,
+family separation **enforced**, one Seed per Rung. Result:
+`survived every Rung (to 4)` — Rungs 1–3 `pass`, Rung 4 `task_incomplete`.
+Evidence in `journey_probes/climb-01/`. Neither finding is a finding by ADR
+0008's rule: no Assertion failed and no Judge criterion failed. Both are leads
+for a human, and both were reported to the user unfixed.
+
+| # | Finding | Evidence |
+|---|---|---|
+| 21 | **Finding 17, recurring in a Scenario written to prevent it.** Rung 3's `will-not-choose` direction withholds the provider and the date so the customer cannot resolve the ambiguity — and says nothing about the confirmation code, which is one of the Ladder's grounded facts. The agent's first reply asked for a name or code, Maya gave `HSD-4822`, and the appointment was identified in one move. The Rung built to end `task_incomplete` ended `pass`, and the difficulty it exists for was never exercised. A Rung is reviewed by a human before it is played (ADR 0008) and this was predicted at that review — the read caught it, nothing mechanical did. | `journey_probes/climb-01/rungs/rung-3/seed-0/transcript.jsonl` Turns 1–2 |
+| 22 | **A false claim about the world, grounded in the agent's own bad query, that nothing checks.** Rung 4: the agent called `find_available_slots` with `provider: "Alvarez"` while the Fixture holds `"Dr. Alvarez"`; `journey_agent/tools.py:162` folds case and compares for equality, so `S-101` (dental cleaning, Dr. Alvarez, 2026-10-09T11:00, available) was excluded by the agent's own arguments. It then told the customer three times that no such slot existed, reissuing the identical failed call verbatim when she asked it to look again, and she gave up. Nothing caught it: the four Assertions are about an update that never happened; `offered_slots_grounded` governs slots the agent *offers*, and the Judge ruled the negative claim grounded in an empty slot list, which it literally was; and clean conduct with no Expected outcome is `task_incomplete`, which the Ladder counts as **survived** — a rule written for a Rung the agent correctly refuses to complete, which does not distinguish that from a customer who left because the agent failed her. | `journey_probes/climb-01/rungs/rung-4/seed-0/{normalized_trace.json,transcript.jsonl,evaluation.json}` |
+
 ## Why
 
 AGENTS.md requires compound to record review findings from the current and
