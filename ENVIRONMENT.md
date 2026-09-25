@@ -7,5 +7,5 @@
 - Setup: `make setup`
 - Health check: `make doctor`
 - Offline tests: `make test`
-- Expected offline baseline: 954 passed
+- Expected offline baseline: 971 passed
 - Reason: Miniconda base Python 3.12.9 has a corrupted native `readline` and was abandoned after diagnosis on 2026-08-17.
