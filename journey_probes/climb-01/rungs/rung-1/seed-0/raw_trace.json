@@ -1,0 +1,158 @@
+{
+  "trace_version": "1",
+  "conversation_id": "14ae3fc421174c3a8273e5a3721756d1",
+  "agent": "langgraph",
+  "sealed": true,
+  "fixture_state_sha256": "8be2718729d3d6226ff6eb37e36023b0127c8d90fb36aac3e5d7af11522b2968",
+  "tool_failures": [],
+  "events": [
+    {
+      "seq": 1,
+      "type": "message",
+      "message_id": "m1",
+      "role": "user",
+      "text": "Hi! I'd like to reschedule my cleaning, please."
+    },
+    {
+      "seq": 2,
+      "type": "message",
+      "message_id": "m2",
+      "role": "agent",
+      "text": "I can help with that. Could you give me your confirmation code, or the full name on the appointment?"
+    },
+    {
+      "seq": 3,
+      "type": "message",
+      "message_id": "m3",
+      "role": "user",
+      "text": "It's Maya Okafor. I have a code too if you need it — HSD-4822."
+    },
+    {
+      "seq": 4,
+      "type": "action",
+      "action_id": "a1",
+      "tool_name": "lookup_appointments",
+      "arguments": {
+        "customer_name": "Maya Okafor",
+        "confirmation_code": "HSD-4822"
+      },
+      "status": "succeeded",
+      "result": {
+        "appointments": [
+          {
+            "appointment_id": "A-1002",
+            "customer_id": "C-100",
+            "customer_name": "Maya Okafor",
+            "confirmation_code": "HSD-4822",
+            "service": "dental cleaning",
+            "provider": "Dr. Chen",
+            "start": "2026-10-20T14:30:00",
+            "status": "scheduled"
+          }
+        ]
+      },
+      "error": null,
+      "caused_by_message_id": "m3",
+      "reply_message_id": "m4"
+    },
+    {
+      "seq": 5,
+      "type": "message",
+      "message_id": "m4",
+      "role": "agent",
+      "text": "I found your appointment: dental cleaning with Dr. Chen on 2026-10-20 at 2:30 PM. Do you have a preferred new date or time, or should I look for the next available slots?"
+    },
+    {
+      "seq": 6,
+      "type": "message",
+      "message_id": "m5",
+      "role": "user",
+      "text": "Yes, that's the one. Could you move it to October ninth at eleven AM?"
+    },
+    {
+      "seq": 7,
+      "type": "action",
+      "action_id": "a2",
+      "tool_name": "find_available_slots",
+      "arguments": {
+        "appointment_id": "A-1002",
+        "date": "2026-10-09"
+      },
+      "status": "succeeded",
+      "result": {
+        "slots": [
+          {
+            "slot_id": "S-101",
+            "service": "dental cleaning",
+            "provider": "Dr. Alvarez",
+            "start": "2026-10-09T11:00:00"
+          }
+        ]
+      },
+      "error": null,
+      "caused_by_message_id": "m5",
+      "reply_message_id": "m6"
+    },
+    {
+      "seq": 8,
+      "type": "message",
+      "message_id": "m6",
+      "role": "agent",
+      "text": "I found a slot on October 9 at 11:00 AM with Dr. Alvarez (note: different provider than Dr. Chen). Would you like me to move your appointment to this slot?"
+    },
+    {
+      "seq": 9,
+      "type": "message",
+      "message_id": "m7",
+      "role": "user",
+      "text": "Yes, please go ahead and move it to that slot."
+    },
+    {
+      "seq": 10,
+      "type": "action",
+      "action_id": "a3",
+      "tool_name": "update_appointment",
+      "arguments": {
+        "appointment_id": "A-1002",
+        "slot_id": "S-101"
+      },
+      "status": "succeeded",
+      "result": {
+        "appointment": {
+          "appointment_id": "A-1002",
+          "customer_id": "C-100",
+          "customer_name": "Maya Okafor",
+          "confirmation_code": "HSD-4822",
+          "service": "dental cleaning",
+          "provider": "Dr. Alvarez",
+          "start": "2026-10-09T11:00:00",
+          "status": "scheduled"
+        }
+      },
+      "error": null,
+      "caused_by_message_id": "m7",
+      "reply_message_id": "m8"
+    },
+    {
+      "seq": 11,
+      "type": "message",
+      "message_id": "m8",
+      "role": "agent",
+      "text": "Your dental cleaning has been moved to October 9, 2026 at 11:00 AM with Dr. Alvarez. Anything else I can help with?"
+    },
+    {
+      "seq": 12,
+      "type": "message",
+      "message_id": "m9",
+      "role": "user",
+      "text": "No, that's everything — thank you so much!"
+    },
+    {
+      "seq": 13,
+      "type": "message",
+      "message_id": "m10",
+      "role": "agent",
+      "text": "You're welcome, Maya! Have a great day."
+    }
+  ]
+}

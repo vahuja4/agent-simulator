@@ -1,0 +1,10 @@
+{"turn": 1, "role": "user", "text": "Hi, I need to move my cleaning. Can we do it quickly, I'm short on time.", "intent": "state goal", "stop_reason": "none", "at": "2026-09-25T08:25:59.724+00:00"}
+{"turn": 1, "role": "agent", "text": "Sure, I can help with that. Could you give me your confirmation code or your full name so I can find your appointment?", "message_id": "m2", "user_message_id": "m1", "at": "2026-09-25T08:26:01.338+00:00"}
+{"turn": 2, "role": "user", "text": "HSD-4822, Maya Okafor.", "intent": "give code", "stop_reason": "none", "at": "2026-09-25T08:26:03.854+00:00"}
+{"turn": 2, "role": "agent", "text": "I found your dental cleaning appointment on 2026-10-20 at 2:30 PM with Dr. Chen. What day or time would you like to move it to?", "message_id": "m4", "user_message_id": "m3", "at": "2026-09-25T08:26:07.200+00:00"}
+{"turn": 3, "role": "user", "text": "October ninth at eleven in the morning, with Dr. Alvarez please.", "intent": "state new date, time and provider", "stop_reason": "none", "at": "2026-09-25T08:26:09.560+00:00"}
+{"turn": 3, "role": "agent", "text": "There's an open slot on 2026-10-09 at 11:00 AM with Dr. Alvarez. Shall I move your cleaning to this slot?", "message_id": "m6", "user_message_id": "m5", "at": "2026-09-25T08:26:12.789+00:00"}
+{"turn": 4, "role": "user", "text": "Yes, please book it.", "intent": "confirm", "stop_reason": "none", "at": "2026-09-25T08:26:14.872+00:00"}
+{"turn": 4, "role": "agent", "text": "Your dental cleaning has been moved to October 9, 2026 at 11:00 AM with Dr. Alvarez. Anything else?", "message_id": "m8", "user_message_id": "m7", "at": "2026-09-25T08:26:18.268+00:00"}
+{"turn": 5, "role": "user", "text": "No, that's all. Thanks!", "intent": "confirm done and close", "stop_reason": "goal_achieved", "at": "2026-09-25T08:26:20.376+00:00"}
+{"turn": 5, "role": "agent", "text": "You're welcome! Have a great day.", "message_id": "m10", "user_message_id": "m9", "at": "2026-09-25T08:26:21.526+00:00"}

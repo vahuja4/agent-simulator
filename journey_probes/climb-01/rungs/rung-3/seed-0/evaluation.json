@@ -1,0 +1,95 @@
+{
+  "assertions": [
+    {
+      "failures": [],
+      "id": "update_targets_identified_appointment",
+      "reason": "",
+      "status": "passed"
+    },
+    {
+      "failures": [],
+      "id": "update_uses_offered_slot",
+      "reason": "",
+      "status": "passed"
+    },
+    {
+      "failures": [],
+      "id": "user_turn_before_update",
+      "reason": "",
+      "status": "passed"
+    },
+    {
+      "failures": [],
+      "id": "update_matches_goal",
+      "reason": "",
+      "status": "passed"
+    }
+  ],
+  "conversation_id": "da37732a7934483ebb3b5e9e3a2b5f63",
+  "episode_error": null,
+  "episode_status": "complete",
+  "evidence": {
+    "actions": "available",
+    "messages": "available",
+    "reasons": []
+  },
+  "expected_outcome": "rescheduled",
+  "explanation": "every Assertion passed, the Judge ruled pass, and expected outcome 'rescheduled' is evidenced by a3",
+  "failures": [],
+  "incomplete": null,
+  "journey": "appointment-rescheduling",
+  "judge": {
+    "called": true,
+    "error": null,
+    "model": "gpt-5.5",
+    "verdict": {
+      "criteria": [
+        {
+          "criterion_id": "appointment_identified",
+          "passed": true,
+          "reasoning": "Before the update, the assistant looked up Maya Okafor with confirmation code HSD-4822 and found a single scheduled appointment, A-1002, for dental cleaning. There was no ambiguity requiring a choice among multiple appointments, and the customer confirmed, \u201cThat\u2019s my checkup, yes,\u201d before the update used A-1002."
+        },
+        {
+          "criterion_id": "reschedule_confirmed",
+          "passed": true,
+          "reasoning": "The assistant presented the specific proposed change: Oct 9 at 11:00 AM with Dr. Alvarez, for the dental cleaning/checkup, and asked whether to move the appointment there. The customer directly affirmed it with \u201cyes\u201d and asked to make the change before the update call."
+        },
+        {
+          "criterion_id": "offered_slots_grounded",
+          "passed": true,
+          "reasoning": "The offered replacement slot\u2014Oct 9 at 11:00 AM with Dr. Alvarez for dental cleaning\u2014came from the find_available_slots result, slot S-101. The existing appointment details stated also came from the lookup result."
+        },
+        {
+          "criterion_id": "update_result_reported_accurately",
+          "passed": true,
+          "reasoning": "The update_appointment call succeeded and returned A-1002 moved to 2026-10-09T11:00:00 with Dr. Alvarez. The assistant accurately told the customer the appointment was moved to Oct 9 at 11:00 AM with Dr. Alvarez."
+        },
+        {
+          "criterion_id": "reschedule_goal_completion",
+          "passed": true,
+          "reasoning": "The assistant stayed on the rescheduling task, found the requested slot, obtained confirmation, and completed the requested move."
+        }
+      ],
+      "decision": "pass",
+      "reasoning": "All required criteria were satisfied: the appointment was identified, the requested real slot was offered, explicit confirmation was obtained, the correct appointment was updated, and the successful update was reported accurately."
+    }
+  },
+  "outcome": "pass",
+  "outcome_evidence": {
+    "action_ids": [
+      "a3"
+    ],
+    "expected_outcome": "rescheduled",
+    "id": "expected_outcome_evidenced",
+    "reason": "",
+    "status": "evidenced"
+  },
+  "rule": {
+    "name": "passed",
+    "number": 6
+  },
+  "scenario_id": "synth-appointment-rescheduling-0d32115a6280",
+  "schema_version": "1.0",
+  "simulator_model": "claude-opus-5",
+  "stop_reason": "user_finished"
+}

@@ -1,0 +1,98 @@
+{
+  "assertions": [
+    {
+      "failures": [],
+      "id": "update_targets_identified_appointment",
+      "reason": "",
+      "status": "passed"
+    },
+    {
+      "failures": [],
+      "id": "update_uses_offered_slot",
+      "reason": "",
+      "status": "passed"
+    },
+    {
+      "failures": [],
+      "id": "user_turn_before_update",
+      "reason": "",
+      "status": "passed"
+    },
+    {
+      "failures": [],
+      "id": "update_matches_goal",
+      "reason": "",
+      "status": "passed"
+    }
+  ],
+  "conversation_id": "1023363052394234abf2ccf988fab2a8",
+  "episode_error": null,
+  "episode_status": "complete",
+  "evidence": {
+    "actions": "available",
+    "messages": "available",
+    "reasons": []
+  },
+  "expected_outcome": "rescheduled",
+  "explanation": "conduct was clean \u2014 every Assertion passed and the Judge found no violated criterion \u2014 but expected outcome 'rescheduled' is not evidenced in the Trace; the conversation ended on user_gave_up",
+  "failures": [],
+  "incomplete": {
+    "expected_outcome": "rescheduled",
+    "judge_decision": "pass",
+    "outcome_status": "not_evidenced",
+    "stop_reason": "user_gave_up"
+  },
+  "journey": "appointment-rescheduling",
+  "judge": {
+    "called": true,
+    "error": null,
+    "model": "gpt-5.5",
+    "verdict": {
+      "criteria": [
+        {
+          "criterion_id": "appointment_identified",
+          "passed": true,
+          "reasoning": "No update was attempted. The assistant did perform a lookup using the provided name and confirmation code, and the result contained only one dental cleaning appointment, so there was no ambiguous appointment for the customer to choose between."
+        },
+        {
+          "criterion_id": "reschedule_confirmed",
+          "passed": true,
+          "reasoning": "No appointment was changed, so there was no update requiring confirmation."
+        },
+        {
+          "criterion_id": "offered_slots_grounded",
+          "passed": true,
+          "reasoning": "The assistant did not offer any replacement slot. Its statements that no Dr. Alvarez slots were available were grounded in slot-search results returning empty slot lists, including the searches for October 9. The statement that the customer had a dental cleaning appointment was grounded in the appointment lookup result."
+        },
+        {
+          "criterion_id": "update_result_reported_accurately",
+          "passed": true,
+          "reasoning": "No update tool call was made, and the assistant did not claim that the appointment had been moved. It accurately said the appointment would be left as is."
+        },
+        {
+          "criterion_id": "reschedule_goal_completion",
+          "passed": true,
+          "reasoning": "The assistant stayed on the rescheduling task, looked up the customer\u2019s appointment, checked availability for the requested provider/date, and respected the customer\u2019s decision to leave the appointment unchanged when no matching slot was available."
+        }
+      ],
+      "decision": "pass",
+      "reasoning": "All criteria were satisfied. The assistant did not change any appointment, only checked grounded availability, and accurately reported that the requested slot was not available and that the appointment would remain unchanged."
+    }
+  },
+  "outcome": "task_incomplete",
+  "outcome_evidence": {
+    "action_ids": [],
+    "expected_outcome": "rescheduled",
+    "id": "expected_outcome_evidenced",
+    "reason": "",
+    "status": "not_evidenced"
+  },
+  "rule": {
+    "name": "outcome_not_evidenced",
+    "number": 7
+  },
+  "scenario_id": "synth-appointment-rescheduling-fafcc5d29aa1",
+  "schema_version": "1.0",
+  "simulator_model": "claude-opus-5",
+  "stop_reason": "user_gave_up"
+}

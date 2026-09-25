@@ -1,0 +1,155 @@
+{
+  "schema_version": "1.0",
+  "conversation_id": "2b2ce30370e041fcab36bc9978053f6d",
+  "platform": "journey-service",
+  "fixture_state_sha256": "8be2718729d3d6226ff6eb37e36023b0127c8d90fb36aac3e5d7af11522b2968",
+  "tool_failures": [],
+  "evidence": {
+    "messages": "available",
+    "actions": "available",
+    "reasons": []
+  },
+  "messages": [
+    {
+      "message_id": "m1",
+      "sequence": 1,
+      "role": "user",
+      "text": "Hi, I need to move my cleaning. Can we do it quickly, I'm short on time."
+    },
+    {
+      "message_id": "m2",
+      "sequence": 2,
+      "role": "agent",
+      "text": "Sure, I can help with that. Could you give me your confirmation code or your full name so I can find your appointment?"
+    },
+    {
+      "message_id": "m3",
+      "sequence": 3,
+      "role": "user",
+      "text": "HSD-4822, Maya Okafor."
+    },
+    {
+      "message_id": "m4",
+      "sequence": 5,
+      "role": "agent",
+      "text": "I found your dental cleaning appointment on 2026-10-20 at 2:30 PM with Dr. Chen. What day or time would you like to move it to?"
+    },
+    {
+      "message_id": "m5",
+      "sequence": 6,
+      "role": "user",
+      "text": "October ninth at eleven in the morning, with Dr. Alvarez please."
+    },
+    {
+      "message_id": "m6",
+      "sequence": 8,
+      "role": "agent",
+      "text": "There's an open slot on 2026-10-09 at 11:00 AM with Dr. Alvarez. Shall I move your cleaning to this slot?"
+    },
+    {
+      "message_id": "m7",
+      "sequence": 9,
+      "role": "user",
+      "text": "Yes, please book it."
+    },
+    {
+      "message_id": "m8",
+      "sequence": 11,
+      "role": "agent",
+      "text": "Your dental cleaning has been moved to October 9, 2026 at 11:00 AM with Dr. Alvarez. Anything else?"
+    },
+    {
+      "message_id": "m9",
+      "sequence": 12,
+      "role": "user",
+      "text": "No, that's all. Thanks!"
+    },
+    {
+      "message_id": "m10",
+      "sequence": 13,
+      "role": "agent",
+      "text": "You're welcome! Have a great day."
+    }
+  ],
+  "actions": [
+    {
+      "action_id": "a1",
+      "sequence": 4,
+      "tool_name": "lookup_appointments",
+      "arguments": {
+        "confirmation_code": "HSD-4822",
+        "customer_name": "Maya Okafor"
+      },
+      "result": {
+        "appointments": [
+          {
+            "appointment_id": "A-1002",
+            "customer_id": "C-100",
+            "customer_name": "Maya Okafor",
+            "confirmation_code": "HSD-4822",
+            "service": "dental cleaning",
+            "provider": "Dr. Chen",
+            "start": "2026-10-20T14:30:00",
+            "status": "scheduled"
+          }
+        ]
+      },
+      "result_available": true,
+      "status": "succeeded",
+      "error": null,
+      "caused_by_message_id": "m3",
+      "reply_message_id": "m4"
+    },
+    {
+      "action_id": "a2",
+      "sequence": 7,
+      "tool_name": "find_available_slots",
+      "arguments": {
+        "appointment_id": "A-1002",
+        "date": "2026-10-09",
+        "provider": "Dr. Alvarez"
+      },
+      "result": {
+        "slots": [
+          {
+            "slot_id": "S-101",
+            "service": "dental cleaning",
+            "provider": "Dr. Alvarez",
+            "start": "2026-10-09T11:00:00"
+          }
+        ]
+      },
+      "result_available": true,
+      "status": "succeeded",
+      "error": null,
+      "caused_by_message_id": "m5",
+      "reply_message_id": "m6"
+    },
+    {
+      "action_id": "a3",
+      "sequence": 10,
+      "tool_name": "update_appointment",
+      "arguments": {
+        "appointment_id": "A-1002",
+        "slot_id": "S-101"
+      },
+      "result": {
+        "appointment": {
+          "appointment_id": "A-1002",
+          "customer_id": "C-100",
+          "customer_name": "Maya Okafor",
+          "confirmation_code": "HSD-4822",
+          "service": "dental cleaning",
+          "provider": "Dr. Alvarez",
+          "start": "2026-10-09T11:00:00",
+          "status": "scheduled"
+        }
+      },
+      "result_available": true,
+      "status": "succeeded",
+      "error": null,
+      "caused_by_message_id": "m7",
+      "reply_message_id": "m8"
+    }
+  ]
+}

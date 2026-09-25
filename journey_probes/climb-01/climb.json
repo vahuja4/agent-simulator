@@ -1,0 +1,67 @@
+{
+  "agent": "langgraph",
+  "broke_at": null,
+  "ended_at": "2026-09-25T08:27:58Z",
+  "error": null,
+  "highest_survived": 4,
+  "journey_id": "appointment-rescheduling",
+  "rule_id": "identify_existing_appointment",
+  "rungs": [
+    {
+      "rung": 1,
+      "seeds": [
+        {
+          "episode_dir": "rungs/rung-1/seed-0",
+          "failures": [],
+          "outcome": "pass",
+          "seed": 0
+        }
+      ],
+      "state": "survived"
+    },
+    {
+      "rung": 2,
+      "seeds": [
+        {
+          "episode_dir": "rungs/rung-2/seed-0",
+          "failures": [],
+          "outcome": "pass",
+          "seed": 0
+        }
+      ],
+      "state": "survived"
+    },
+    {
+      "rung": 3,
+      "seeds": [
+        {
+          "episode_dir": "rungs/rung-3/seed-0",
+          "failures": [],
+          "outcome": "pass",
+          "seed": 0
+        }
+      ],
+      "state": "survived"
+    },
+    {
+      "rung": 4,
+      "seeds": [
+        {
+          "episode_dir": "rungs/rung-4/seed-0",
+          "failures": [],
+          "outcome": "task_incomplete",
+          "seed": 0
+        }
+      ],
+      "state": "survived"
+    }
+  ],
+  "schema_version": "1.0",
+  "seeds": [
+    0
+  ],
+  "set_id": "ladder-identify-existing-appointment",
+  "started_at": "2026-09-25T08:25:18Z",
+  "status": "complete",
+  "stopped_because": "ladder_exhausted"
+}

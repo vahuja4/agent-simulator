@@ -1,0 +1,10 @@
+{"turn": 1, "role": "user", "text": "Hi! I'd like to reschedule my cleaning, please.", "intent": "state goal", "stop_reason": "none", "at": "2026-09-25T08:25:22.851+00:00"}
+{"turn": 1, "role": "agent", "text": "I can help with that. Could you give me your confirmation code, or the full name on the appointment?", "message_id": "m2", "user_message_id": "m1", "at": "2026-09-25T08:25:24.333+00:00"}
+{"turn": 2, "role": "user", "text": "It's Maya Okafor. I have a code too if you need it — HSD-4822.", "intent": "give name", "stop_reason": "none", "at": "2026-09-25T08:25:27.226+00:00"}
+{"turn": 2, "role": "agent", "text": "I found your appointment: dental cleaning with Dr. Chen on 2026-10-20 at 2:30 PM. Do you have a preferred new date or time, or should I look for the next available slots?", "message_id": "m4", "user_message_id": "m3", "at": "2026-09-25T08:25:31.099+00:00"}
+{"turn": 3, "role": "user", "text": "Yes, that's the one. Could you move it to October ninth at eleven AM?", "intent": "state desired new time", "stop_reason": "none", "at": "2026-09-25T08:25:33.817+00:00"}
+{"turn": 3, "role": "agent", "text": "I found a slot on October 9 at 11:00 AM with Dr. Alvarez (note: different provider than Dr. Chen). Would you like me to move your appointment to this slot?", "message_id": "m6", "user_message_id": "m5", "at": "2026-09-25T08:25:36.902+00:00"}
+{"turn": 4, "role": "user", "text": "Yes, please go ahead and move it to that slot.", "intent": "confirm the move", "stop_reason": "none", "at": "2026-09-25T08:25:40.583+00:00"}
+{"turn": 4, "role": "agent", "text": "Your dental cleaning has been moved to October 9, 2026 at 11:00 AM with Dr. Alvarez. Anything else I can help with?", "message_id": "m8", "user_message_id": "m7", "at": "2026-09-25T08:25:43.449+00:00"}
+{"turn": 5, "role": "user", "text": "No, that's everything — thank you so much!", "intent": "thank and close", "stop_reason": "goal_achieved", "at": "2026-09-25T08:25:47.099+00:00"}
+{"turn": 5, "role": "agent", "text": "You're welcome, Maya! Have a great day.", "message_id": "m10", "user_message_id": "m9", "at": "2026-09-25T08:25:48.411+00:00"}

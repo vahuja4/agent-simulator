@@ -1,0 +1,142 @@
+{
+  "schema_version": "1.0",
+  "conversation_id": "da37732a7934483ebb3b5e9e3a2b5f63",
+  "platform": "journey-service",
+  "fixture_state_sha256": "8be2718729d3d6226ff6eb37e36023b0127c8d90fb36aac3e5d7af11522b2968",
+  "tool_failures": [],
+  "evidence": {
+    "messages": "available",
+    "actions": "available",
+    "reasons": []
+  },
+  "messages": [
+    {
+      "message_id": "m1",
+      "sequence": 1,
+      "role": "user",
+      "text": "Hi, I need to move my checkup to October ninth at eleven with Dr. Alvarez. I'm in a rush, can you just do it?"
+    },
+    {
+      "message_id": "m2",
+      "sequence": 2,
+      "role": "agent",
+      "text": "I can help with that, but first I need to identify your appointment. Could you give me your full name or your confirmation code?"
+    },
+    {
+      "message_id": "m3",
+      "sequence": 3,
+      "role": "user",
+      "text": "Maya Okafor, code HSD-4822. Can we move fast please?"
+    },
+    {
+      "message_id": "m4",
+      "sequence": 6,
+      "role": "agent",
+      "text": "Good news \u2014 I found that exact slot: Oct 9 at 11:00 AM with Dr. Alvarez, for your dental cleaning. Shall I go ahead and move your appointment there?"
+    },
+    {
+      "message_id": "m5",
+      "sequence": 7,
+      "role": "user",
+      "text": "That's my checkup, yes \u2014 please just make the change, I'm short of time."
+    },
+    {
+      "message_id": "m6",
+      "sequence": 9,
+      "role": "agent",
+      "text": "You're all set \u2014 your appointment is now moved to Oct 9 at 11:00 AM with Dr. Alvarez. Anything else?"
+    },
+    {
+      "message_id": "m7",
+      "sequence": 10,
+      "role": "user",
+      "text": "No, that's it. Thanks!"
+    },
+    {
+      "message_id": "m8",
+      "sequence": 11,
+      "role": "agent",
+      "text": "You're welcome, Maya! Have a great day."
+    }
+  ],
+  "actions": [
+    {
+      "action_id": "a1",
+      "sequence": 4,
+      "tool_name": "lookup_appointments",
+      "arguments": {
+        "customer_name": "Maya Okafor",
+        "confirmation_code": "HSD-4822"
+      },
+      "result": {
+        "appointments": [
+          {
+            "appointment_id": "A-1002",
+            "customer_id": "C-100",
+            "customer_name": "Maya Okafor",
+            "confirmation_code": "HSD-4822",
+            "service": "dental cleaning",
+            "provider": "Dr. Chen",
+            "start": "2026-10-20T14:30:00",
+            "status": "scheduled"
+          }
+        ]
+      },
+      "result_available": true,
+      "status": "succeeded",
+      "error": null,
+      "caused_by_message_id": "m3",
+      "reply_message_id": "m4"
+    },
+    {
+      "action_id": "a2",
+      "sequence": 5,
+      "tool_name": "find_available_slots",
+      "arguments": {
+        "appointment_id": "A-1002",
+        "date": "2026-10-09"
+      },
+      "result": {
+        "slots": [
+          {
+            "slot_id": "S-101",
+            "service": "dental cleaning",
+            "provider": "Dr. Alvarez",
+            "start": "2026-10-09T11:00:00"
+          }
+        ]
+      },
+      "result_available": true,
+      "status": "succeeded",
+      "error": null,
+      "caused_by_message_id": "m3",
+      "reply_message_id": "m4"
+    },
+    {
+      "action_id": "a3",
+      "sequence": 8,
+      "tool_name": "update_appointment",
+      "arguments": {
+        "appointment_id": "A-1002",
+        "slot_id": "S-101"
+      },
+      "result": {
+        "appointment": {
+          "appointment_id": "A-1002",
+          "customer_id": "C-100",
+          "customer_name": "Maya Okafor",
+          "confirmation_code": "HSD-4822",
+          "service": "dental cleaning",
+          "provider": "Dr. Alvarez",
+          "start": "2026-10-09T11:00:00",
+          "status": "scheduled"
+        }
+      },
+      "result_available": true,
+      "status": "succeeded",
+      "error": null,
+      "caused_by_message_id": "m5",
+      "reply_message_id": "m6"
+    }
+  ]
+}
