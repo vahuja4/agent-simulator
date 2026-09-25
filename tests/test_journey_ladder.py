@@ -3,6 +3,7 @@ Rung realizes an ordinary Synthesized Journey Scenario, and a Ladder that does
 not describe its Journey definition is refused before any Rung is climbed."""
 
 import dataclasses
+import json
 from pathlib import Path
 
 import pytest
@@ -16,6 +17,7 @@ from scenario_synthesis.journey_synthesis import (
     parse_narrative,
     scenario_document,
     validate_scenario_document,
+    verify_provenance,
 )
 from scenario_synthesis.ladder import (
     ARCHETYPE_AXIS,
@@ -28,9 +30,11 @@ from scenario_synthesis.ladder import (
     RungSpec,
     also_carries,
     archetype_for,
+    StubLadderNarrativeProvider,
     check_ladder,
     ladder_and_rung_for,
     narrative_request,
+    realize_ladder,
     spec_for,
 )
 
@@ -194,6 +198,100 @@ def test_the_false_premise_value_is_a_grounded_fact(journey_inputs):
         str(fact["value"]) for fact in IDENTIFY_EXISTING_APPOINTMENT.grounded_facts
     }
     assert detail["believed_value"] in grounded
+
+
+# --------------------------------------------------------- realization
+
+
+def _realize(tmp_path, provider=None, **kwargs):
+    return realize_ladder(
+        IDENTIFY_EXISTING_APPOINTMENT,
+        JOURNEY_DIR,
+        provider=provider or StubLadderNarrativeProvider(),
+        output_root=tmp_path / "sets",
+        **kwargs,
+    )
+
+
+def test_realizing_a_ladder_writes_one_loadable_scenario_per_rung(tmp_path):
+    set_dir = _realize(tmp_path)
+    record = json.loads((set_dir / "provenance.json").read_text())
+    assert record["status"] == "complete"
+    assert [entry["rung"] for entry in record["accepted"]] == [1, 2, 3, 4]
+
+    for entry in record["accepted"]:
+        scenario = load_journey_scenario(set_dir / entry["file"])
+        ladder, rung = ladder_and_rung_for({"set_id": "ladder-identify-existing-appointment",
+                                            "spec_id": f"rung-{entry['rung']}"})
+        assert rung.rung == entry["rung"]
+        assert scenario.complication == DIRECTIONS[rung.primary].value
+
+
+def test_a_realized_ladder_passes_the_ordinary_provenance_check(tmp_path):
+    """It is an ordinary synthesized set, so the existing checker must accept
+    it without knowing anything about Ladders."""
+    set_dir = _realize(tmp_path)
+    assert verify_provenance(set_dir, JOURNEY_DIR) == []
+
+
+def test_every_direction_reaches_the_narrative(tmp_path):
+    """Rung 4 carries three directions. A Rung that silently dropped one would
+    still be a valid Scenario — just not the attack it claims to be."""
+    set_dir = _realize(tmp_path)
+    record = json.loads((set_dir / "provenance.json").read_text())
+    entry = next(entry for entry in record["accepted"] if entry["rung"] == 4)
+    traits = load_journey_scenario(set_dir / entry["file"]).persona.traits
+    for direction_id in IDENTIFY_EXISTING_APPOINTMENT.rung(4).direction_ids:
+        assert DIRECTIONS[direction_id].text in traits
+
+
+def test_a_set_directory_is_never_overwritten(tmp_path):
+    _realize(tmp_path)
+    with pytest.raises(LadderError, match="never overwritten"):
+        _realize(tmp_path)
+
+
+def test_a_rung_that_cannot_be_realized_aborts_the_whole_ladder(tmp_path):
+    """A Ladder missing Rung 2 is not a shorter Ladder; a climb needs every
+    Rung below the one that breaks."""
+
+    class _FailsOnRungTwo:
+        provider_id = "test"
+        model = "test"
+
+        def realize(self, request, *, attempt):
+            if request["spec"]["archetype"] == "pressure":
+                return {"description": "d", "persona": {"traits": "t"}, "goal": "HSD-9999"}
+            return StubLadderNarrativeProvider().realize(request, attempt=attempt)
+
+    with pytest.raises(LadderError, match="was not realized in"):
+        _realize(tmp_path, provider=_FailsOnRungTwo(), attempts=2)
+
+    set_dir = tmp_path / "sets" / "appointment-rescheduling" / "ladder-identify-existing-appointment"
+    record = json.loads((set_dir / "provenance.json").read_text())
+    assert record["status"] == "aborted"
+    assert [entry["rung"] for entry in record["accepted"]] == [1], "Rung 1 is kept"
+    assert {entry["rung"] for entry in record["rejected"]} == {2}
+    assert record["error"]["type"] == "LadderError"
+
+
+def test_a_rejected_attempt_is_retried_with_its_reason(tmp_path):
+    seen = []
+
+    class _FailsOnce:
+        provider_id = "test"
+        model = "test"
+
+        def realize(self, request, *, attempt):
+            seen.append((request["spec"]["complication"], attempt,
+                         len(request["previous_rejection"])))
+            if attempt == 1:
+                return {"description": "d", "persona": {"traits": "t"}, "goal": "HSD-9999"}
+            return StubLadderNarrativeProvider().realize(request, attempt=attempt)
+
+    _realize(tmp_path, provider=_FailsOnce(), attempts=2)
+    assert seen[0][1:] == (1, 0)
+    assert seen[1][1:] == (2, 1), "the second attempt is told why the first was rejected"
 
 
 # ------------------------------------------------------------- refusals

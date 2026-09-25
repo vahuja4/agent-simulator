@@ -26,13 +26,25 @@ left alone.
 from __future__ import annotations
 
 import re
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any
 
-from agentsim.journey.definition import JourneyDefinition
+from agentsim._io import _atomic_json
+from agentsim.journey.definition import JourneyDefinition, load_journey_inputs
 
-from .journey_synthesis import _KNOWLEDGE_DIRECTION, ScenarioSpec
+from .journey_synthesis import (
+    _KNOWLEDGE_DIRECTION,
+    _input_hashes,
+    Rejection,
+    ScenarioSpec,
+    parse_narrative,
+    scenario_document,
+    sha256_file,
+    validate_scenario_document,
+)
 
 COMPLICATION_AXIS = "complication"
 ARCHETYPE_AXIS = "archetype"
@@ -366,6 +378,165 @@ IDENTIFY_EXISTING_APPOINTMENT = Ladder(
 LADDERS: Mapping[str, Ladder] = {
     IDENTIFY_EXISTING_APPOINTMENT.set_id: IDENTIFY_EXISTING_APPOINTMENT,
 }
+
+DEFAULT_OUTPUT_ROOT = Path("synthesized_journey_scenarios")
+LADDER_GENERATOR_VERSION = "journey-ladder-v1"
+STUB_LADDER_MODEL = "offline-stub-ladder"
+
+
+@dataclass
+class StubLadderNarrativeProvider:
+    """Deterministic narrative for a Rung; never constructs a client.
+
+    It cannot be ``journey_synthesis.StubNarrativeProvider``: that one reads the
+    measuring mode's single ``complication_direction``, and a Rung sends a list.
+    It writes every direction into the traits so a test can see that none was
+    dropped on the way through."""
+
+    provider_id: str = "offline-stub-journey-ladder-v1"
+    model: str = STUB_LADDER_MODEL
+
+    def realize(self, request: Mapping[str, Any], *, attempt: int) -> Any:
+        spec = request["spec"]
+        # Values only: a grounded-fact path holds Fixture ids no customer knows.
+        facts = "; ".join(str(fact["value"]) for fact in spec["grounded_facts"])
+        directions = " ".join(
+            entry["direction"] for entry in request["difficulty_directions"]
+        )
+        return {
+            "description": (
+                f"Offline stub Rung: {spec['archetype']} Persona, "
+                f"{spec['knowledge_level']} Knowledge level, primary Complication "
+                f"{spec['complication']}."
+            ),
+            "persona": {"traits": f"{spec['archetype']}: {directions}"},
+            "goal": (
+                "Move the appointment to the target slot. "
+                f"{request['knowledge_direction']} Grounded facts: {facts}."
+            ),
+        }
+
+
+def realize_ladder(
+    ladder: Ladder,
+    journey_dir: str | Path,
+    *,
+    provider: Any,
+    output_root: str | Path = DEFAULT_OUTPUT_ROOT,
+    attempts: int = 2,
+    now: Callable[[], str] | None = None,
+) -> Path:
+    """Realize every Rung of ``ladder`` into one set directory, laid out like
+    any other synthesized set: ``accepted/`` plus a ``provenance.json`` whose
+    hashes ``verify_provenance`` recomputes.
+
+    A Rung that cannot be realized within ``attempts`` aborts the Ladder rather
+    than leaving a gap — a climb needs every Rung below the one that breaks, so
+    a Ladder missing Rung 2 is not a shorter Ladder, it is no Ladder. What was
+    written is kept, under a ``provenance.json`` marked aborted (AGENTS.md)."""
+    journey_dir = Path(journey_dir)
+    journey, fixture_state = load_journey_inputs(journey_dir)
+    check_ladder(ladder, journey)
+    stamp = now or (
+        lambda: datetime.now(timezone.utc).isoformat(timespec="microseconds").replace(
+            "+00:00", "Z"
+        )
+    )
+
+    set_dir = Path(output_root) / journey.journey_id / ladder.set_id
+    if set_dir.exists():
+        raise LadderError(f"{set_dir} already exists; a Ladder set is never overwritten")
+    (set_dir / "accepted").mkdir(parents=True)
+
+    generation_config = {
+        "attempts_per_rung": attempts,
+        "generator_version": LADDER_GENERATOR_VERSION,
+        "provider_id": getattr(provider, "provider_id", None),
+        "rule_id": ladder.rule_id,
+        "rungs": {
+            str(rung.rung): list(rung.direction_ids) for rung in ladder.rungs
+        },
+        "set_id": ladder.set_id,
+    }
+    synthesis = {
+        "set_id": ladder.set_id,
+        **_input_hashes(journey_dir, fixture_state, generation_config),
+        "generator_version": LADDER_GENERATOR_VERSION,
+        "model": provider.model,
+        "generated_at": stamp(),
+    }
+    record: dict[str, Any] = {
+        "accepted": [],
+        "fixture_state_sha256": synthesis["fixture_state_sha256"],
+        "generated_at": synthesis["generated_at"],
+        "generation_config": generation_config,
+        "journey_sha256": synthesis["journey_sha256"],
+        "generation_config_sha256": synthesis["generation_config_sha256"],
+        "ladder": {"rule_id": ladder.rule_id, "set_id": ladder.set_id},
+        "rejected": [],
+        "status": "aborted",
+    }
+    _atomic_json(set_dir / "provenance.json", record)
+
+    try:
+        for rung in ladder.rungs:
+            document = _realize_rung(
+                ladder, rung.rung, journey, fixture_state, provider, synthesis, attempts, record
+            )
+            path = set_dir / "accepted" / f"{document['scenario_id']}.yaml"
+            path.write_text(
+                validate_scenario_document(document, journey, fixture_state), encoding="utf-8"
+            )
+            record["accepted"].append(
+                {
+                    "rung": rung.rung,
+                    "file": f"accepted/{path.name}",
+                    "sha256": sha256_file(path),
+                }
+            )
+            _atomic_json(set_dir / "provenance.json", record)
+    except BaseException as error:
+        record["error"] = {"type": type(error).__name__, "message": str(error)}
+        record["ended_at"] = stamp()
+        _atomic_json(set_dir / "provenance.json", record)
+        raise
+
+    record["status"] = "complete"
+    record["ended_at"] = stamp()
+    _atomic_json(set_dir / "provenance.json", record)
+    return set_dir
+
+
+def _realize_rung(
+    ladder: Ladder,
+    rung: int,
+    journey: JourneyDefinition,
+    fixture_state: Any,
+    provider: Any,
+    synthesis: Mapping[str, str],
+    attempts: int,
+    record: dict[str, Any],
+) -> dict[str, Any]:
+    spec = spec_for(ladder, rung)
+    reasons: list[Mapping[str, str]] = []
+    for attempt in range(1, attempts + 1):
+        request = narrative_request(ladder, rung, journey, attempt=attempt)
+        request["previous_rejection"] = [dict(reason) for reason in reasons]
+        try:
+            narrative = parse_narrative(provider.realize(request, attempt=attempt))
+            document = scenario_document(spec, narrative, journey, synthesis)
+            validate_scenario_document(document, journey, fixture_state)
+            return document
+        except Rejection as rejection:
+            reasons.append(rejection.to_dict())
+            record["rejected"].append(
+                {"rung": rung, "attempt": attempt, **rejection.to_dict()}
+            )
+    raise LadderError(
+        f"Rung {rung} of Ladder {ladder.set_id!r} was not realized in {attempts} "
+        f"attempt(s): {reasons}"
+    )
+
 
 _RUNG_SPEC_ID = re.compile(r"rung-(\d+)")
 

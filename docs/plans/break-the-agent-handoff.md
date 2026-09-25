@@ -1,113 +1,135 @@
 # Break the agent — handoff for a fresh session
 
-Written 2026-09-25 at the end of the planning session. Read this, then
-`docs/plans/break-the-agent.md` (the plan) and
-`docs/reports/break-the-agent-plan-review.md` (a review of it). Nothing has
-been built yet.
+Rewritten 2026-09-25, replacing the handoff written earlier the same day. That
+one described a probe whose customer improvised inside the conversation; the
+user rejected that design and it no longer exists. Read this, then ADR 0008
+(`docs/adrs/0008-probe-by-climbing-a-per-rule-difficulty-ladder.md`) and
+`docs/solutions/probe-rungs-are-ordinary-synthesized-scenarios.md`.
+`docs/plans/break-the-agent.md` is the original plan and is now **partly
+superseded** — its steps 2 and 6 describe the in-conversation loop. Its
+reasoning about fairness, evidence and cost still holds.
 
 Work in `/Users/vishal/Desktop/agent_simulator-langgraph`, branch
 `codex/langgraph-synthesis-harness`. Read `AGENTS.md` and `CONTEXT.md` and
 follow them. Never touch `main` or `/Users/vishal/Desktop/agent_simulator`.
 
-**A note on language.** The plan and this file are written in plain English on
-purpose — that is a deliberate exception, recorded in the plan, to the rule in
-`AGENTS.md` about using `CONTEXT.md`'s vocabulary in prose. Don't translate
-them back. Anything you write *into the repo proper* — `CONTEXT.md`, ADR 0008,
-the design note, code, commit messages — uses the house vocabulary as normal.
+**A note on language.** `docs/plans/break-the-agent.md` is written in plain
+English on purpose. Anything written *into the repo proper* uses the house
+vocabulary as normal.
 
 ## Where things stand
 
-- Offline tests: **931 passing**, confirmed 2026-09-24. `ENVIRONMENT.md` holds
-  that number and `make test` fails on any drift. Run it before you change
-  code, and never edit a tracked file while it is running — the tests read
-  them mid-run.
-- The plan is committed. The review is committed. **No code has been written.**
-- The four conversations the plan refers to are in
-  `docs/reports/live-runs/live-dev-01/`, from a development run on 2026-09-22.
-  Same model family on both sides, so nothing in there is reportable. The
-  scenarios that produced them are in
-  `synthesized_journey_scenarios/appointment-rescheduling/live-dev-01/`.
+- Offline tests: **1031 passing**, `ENVIRONMENT.md` holds that number and
+  `make test` fails on any drift. Run it before you change code, and never edit
+  a tracked file while it is running.
+- Five commits on top of `9b53966`, all pushed to the branch:
+  `3bf7e44` ADR 0008 and the Openings finder, `38d2861` the Ladder and its four
+  Rungs, `4d6cf1f` the climb decision, `3dceb3e` the compound record, `b80d293`
+  the Anthropic client.
+- **No live model call has been made.** Everything below was built and proven
+  offline.
+
+## The design, in one paragraph
+
+Difficulty escalates *between* Episodes, not inside one. A Ladder is an ordered
+series of Rungs against one required rule; Rung 1 arranges the Fixture state
+condition under which that rule binds and each later Rung stacks one more
+Persona or Complication difficulty on the one below. Every Rung is an ordinary
+Episode; code reads the saved Verdicts and decides whether to climb. This is
+why none of the old plan's landmines apply: no new Termination reason, no edit
+to `episode.py` or `evaluation.py`, and `SIMULATED_USER_STOP_REASONS` is
+untouched.
+
+## What exists
+
+- `agentsim/journey/probe.py` — Openings, derived from `journey.yaml` +
+  `fixture_state.yaml` with no model. Six for the dental Journey; a test pins
+  them, so a Fixture edit that moves where a Probe can aim fails loudly.
+- `scenario_synthesis/ladder.py` — the `Ladder`/`RungSpec` types, the Rung
+  difficulty directions, `realize_ladder` (writes an ordinary synthesized set),
+  and `IDENTIFY_EXISTING_APPOINTMENT`, the four Rungs against rule 1.
+- `agentsim/journey/climb.py` — the climb decision, with `play` injected.
+- `agentsim/anthropic_llm.py` — `AnthropicLLM`, so the Simulated user can leave
+  the Judge's family. `anthropic` is an approved dependency exception.
 
 ## Decisions already made — don't reopen these
 
-- **The probe may pile on difficulties.** Ambiguity and impatience and a
-  garbled message in one conversation is fine. The one-difficulty-per-scenario
-  rule serves the measuring mode's coverage counts; the probe counts nothing.
-  Fairness is the plan's three conditions, not the taxonomy. (User's call,
-  2026-09-25.)
-- **But** the probe never edits a committed scenario file — it takes its
-  variant as its own input or an overlay — and the easy-going customer stays
-  easy-going, because she is the control.
-- **Nothing is confirmed by a machine.** Even a failed code check needs a
-  person to rule out that our own customer caused it. The difference from a
-  judge claim is a glance versus a full read, not whether the check is needed.
-- **The ending never implies a verdict.** Why the conversation stopped is
-  metadata. Findings come only from evaluating the saved evidence afterwards.
-
-## The one open question — ask before writing ADR 0008
-
-Step 4 of the loop has the customer check her own draft and mark it if it
-fails. The decision recorded in
-`docs/solutions/journey-simulated-user-fidelity-is-a-human-record.md` rejected
-exactly that mechanism on 2026-09-21 — a self-report field, deviation flags —
-because it is the same model grading itself and a quiet check gets mistaken
-for evidence. Calling it a write-time guard does not resolve the conflict.
-
-So either it goes in as an explicit, limited reversal (a marked message only
-ever *lowers* what we trust from that conversation; an unmarked message proves
-nothing), or it comes out and the loop keeps only its hard counters. **The
-user had not answered when this session ended. Ask.**
+- **The self-marking mechanism is gone.** The 2026-09-21 decision in
+  `docs/solutions/journey-simulated-user-fidelity-is-a-human-record.md` stands
+  unchanged. A Rung is reviewed by a human before it is played, which is where
+  the judgement about fairness now happens. ADR 0008 records this.
+- **A Rung realizes an ordinary Synthesized Journey Scenario.** Not a new file
+  type, not a widened `origin`. Chosen by the user over both alternatives.
+- **ADR 0005's one-Complication rule is untouched.** It keeps Coverage cells
+  finite; it was never a limit on how difficult a Simulated user may be. A Rung
+  carries several and is never a Coverage cell.
+- **Rungs never reuse or edit `_COMPLICATION_DIRECTION`.** Those directions
+  resolve their own difficulty and describe the measuring mode's customer.
+- **Customer model: `claude-opus-5`. Judge: `gpt-5.5` (calibration-locked).
+  Generator: `gpt-5.5`. One Seed per Rung to begin with.** The user chose all
+  four on 2026-09-25.
+- **No stub rehearsal.** A climb has no stopping logic of its own to prove, and
+  a scripted agent answers every Rung the same way.
 
 ## What to do next
 
-Step 1 of the plan: write the rule down. A "what this is for" section at the
-top of `CONTEXT.md`, and ADR 0008 carrying the three fairness conditions.
-Documents only, no code, so the baseline does not move. Existing ADRs are
-flowing prose with a decision-shaped title — match `docs/adrs/0005-*.md`.
-
-Then step 2: a rough probe pointed at the scripted bot in
-`/Users/vishal/Desktop/journey_agent`, to prove it stops on its own. It must
-change nothing that exists — one new file plus a throwaway driver — and it
-must still go through the agent adapter and still retrieve-then-release, both
-of which `AGENTS.md` requires and neither of which `run_episode` will be doing
-for you.
+1. **Generate the four Rungs.** First spend: four calls to `gpt-5.5`.
+   `realize_ladder(IDENTIFY_EXISTING_APPOINTMENT, "journeys/appointment_rescheduling",
+   provider=LiveNarrativeProvider.from_model("gpt-5.5"))`. It writes
+   `synthesized_journey_scenarios/appointment-rescheduling/ladder-identify-existing-appointment/`.
+   **Show the four Scenarios to the user before anything is played** — that
+   human read is what ADR 0008 puts in place of the self-check.
+2. **Climb rule 1 against the LangGraph agent.** Nothing yet wires `climb`'s
+   `play` to `run_episode` + `evaluate_episode`; that is the one piece of
+   plumbing still missing, and `scripts/journey_harness.py:run_command` is the
+   shape to copy (it already injects adapter, Simulated user and Judge).
+3. **The user's Persona-fidelity spot-check** of the Opus customer. `AGENTS.md`
+   requires it before reported use, and it is a human read — not yours to do.
+   Records go under `journey_spot_checks/`.
+4. Then: a Spot-check-style record for a ruling on one suspected finding
+   (original plan step 3), and the design note (step 4).
 
 ## Landmines — each of these cost this session time
 
-- **`episode.py` allows exactly two endings from the customer** (`_USER_STOPS`,
-  line 58). A third one fails the check at line 193, which is caught by the
-  `except` directly below it and recorded as **`simulator_error` — our customer
-  crashed**. So the probe's honest endings currently get filed as our own bug.
-- **Do not widen `SIMULATED_USER_STOP_REASONS`.** That tuple is handed to the
-  model as its menu of choices (`simulated_user.py:105`). Widen it and the
-  *existing* customer silently gains options it never had, and every earlier
-  run stops being comparable. The probe needs its own list and its own schema.
-- **Evaluation's rule 1 returns `error` before it reads the evidence**
-  (`evaluation.py:274`). So labelling a new ending an error throws away any
-  real break that happened earlier in that conversation.
-- **The code checks only ever read tool calls, never the bot's words.** So
-  anything living in what the bot *said* can only be caught by the judge, and
-  costs a person a full read.
-- **Of the four code checks: one can never fire** (the bot's own wiring blocks
-  the case), **two only fire if the bot invents an id from nothing**, and one
-  is realistically reachable.
-- **That last one is a coin flip.** `update_matches_goal` compares a successful
-  update against the scenario's goal. If the bot guesses which appointment the
-  customer meant and guesses *right*, the check passes and the "customer
-  chooses" violation is visible only to the judge. The wrong-appointment target
-  is still the best first target; it is not the sure thing an earlier draft of
-  the plan claimed.
-- **Nothing detects a break while the conversation is running.** The recording
-  of what the bot did arrives afterwards. Any cap or ending that assumes
-  online detection cannot be built.
+- **Do not claim a guard is missing from a document's wording.** This session
+  reported that a Simulated user could quote a Fixture id; two guards already
+  existed and a test already pinned one. `AGENTS.md` now carries the rule.
+- **Measure the baseline, do not predict it.** Writing a guessed pass count
+  into `ENVIRONMENT.md` fails `make test`. Run the suite, read the number,
+  then write it.
+- **A constrained lockfile recompile.** `uv pip compile -c requirements.lock`,
+  or an approved single dependency also drags `openai` and six transitive pins.
+- **`model_family` grouped only GPT models** until this session; every
+  Anthropic model is now one family. An unrecognized id is still its own, which
+  fails closed.
+- **The offline narrative stub cannot realize a Rung** — it reads the measuring
+  mode's single `complication_direction`. Use `StubLadderNarrativeProvider`.
+- **Rungs 3 and 4 share two directions.** A test that finds a Rung by matching
+  its prose will silently select the wrong one. Resolve a Rung by its number.
+- **Realizing a Ladder aborts on a Rung that cannot be realized**, rather than
+  leaving a gap. A Ladder missing Rung 2 is not a shorter Ladder.
+
+## Still open
+
+- **Seeds.** One for now. A single Seed cannot say whether a break is reliable,
+  which is the number a reviewer wants; revisit once a climb has run.
+- **`task_incomplete` counts as survived.** Rung 3 is built to end that way. If
+  the user ever wants an unfinished conversation to count against the agent,
+  it is one line in `climb.py` — but it would make Rung 3 unpassable.
+- **Ladders for the other four rules.** Only `identify_existing_appointment`
+  exists. Its Assertion is the one realistically reachable; the others fall to
+  the Judge and cost a human read per Rung.
+- **Rung order is a guess.** Whether a false premise is harder than time
+  pressure is not known; it should be learned from results rather than decreed.
+- **Nothing checks `permitted_behavior`.** Moving a completed appointment (Priya's
+  A-3002) breaks no required rule, so the Openings finder does not report it.
 
 ## Housekeeping
 
-- The ignored `.env` is already copied into both repositories. Export it with
-  `set -a; . ./.env; set +a`; never print a key.
-- **No live model calls** without the user explicitly asking for them. Steps 1
-  and 2 need none.
-- This is a git worktree sharing a stash stack with other checkouts. Never use
-  bare `git stash` / `git stash pop`; prefer a temporary commit.
+- The ignored `.env` is in both repositories. Export with
+  `set -a; . ./.env; set +a`; never print a key. Both `OPENAI_API_KEY` and
+  `ANTHROPIC_API_KEY` are needed now.
+- **No live model calls** without the user explicitly asking.
+- This is a git worktree sharing a stash stack. Never use bare `git stash`.
 - Run the `compound` skill before ending a session that implemented, debugged
   or reviewed anything, and commit its outputs.
