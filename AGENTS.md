@@ -81,6 +81,12 @@ Do not violate these without explicit instruction in the current prompt.
 - A document's wording is not evidence of what code enforces. Before reporting
   that a guard is missing, read the code path that would enforce it and the test
   that would pin it; `CONTEXT.md` states meaning, not implementation.
+- A prompt constant is not evidence of what is sent. Before the first live call
+  through any provider, read the code path that builds the request and pin, with
+  a client double, the system prompt and request fields that actually reach the
+  model: `LADDER_SYSTEM_PROMPT` sat unsent while the offline stub's own test
+  passed, and the four Rungs would have been generated under the measuring
+  mode's prompt.
 - A LEGACY docstring or a cutover list is not evidence that a module has no
   production callers. Before proposing or performing a deletion, verify transitive
   importers from non-legacy code; `tests/test_synthesis_cutover_boundary.py` pins

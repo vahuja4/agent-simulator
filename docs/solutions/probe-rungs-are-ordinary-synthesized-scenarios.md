@@ -4,6 +4,7 @@ category: journey-harness
 symptoms:
   - A session wants a Rung to carry several difficulties and proposes adding a field to the Scenario schema, or a new `origin` value beside `synthesized`.
   - A Rung reuses `_COMPLICATION_DIRECTION` and every Rung of the Ladder behaves the same, because that direction resolves its own difficulty.
+  - A Ladder is realized live through `journey_synthesis.LiveNarrativeProvider`, and every Rung comes back carrying only its primary Complication.
   - A session plans to prove the climb against the scripted stub agent first, carrying the step over from the superseded in-conversation probe plan.
   - A Rung's Scenario file names one Complication and a reader cannot tell which other difficulties it carries.
 ---
@@ -42,6 +43,15 @@ can play, without widening shared validation or lying about where it came from?
   mode's customer and is exactly Rung 1. A Ladder needs harder variants of one
   Complication, so it states its own. Editing the shared table would silently
   change every existing Scenario's meaning.
+- **A Rung's provider is its own, live as well as offline.**
+  `LiveLadderNarrativeProvider` exists for the reason
+  `StubLadderNarrativeProvider` does: the measuring mode's providers send
+  `SYSTEM_PROMPT`, which directs one Complication and never mentions
+  `difficulty_directions`. A Rung realized under it comes back a perfectly valid
+  Scenario carrying its primary Complication and none of the difficulty stacked
+  on it — Rungs 2, 3 and 4 quietly reduced to Rung 1, with nothing downstream
+  able to tell. A client double pins which prompt is sent, because the offline
+  stub's passing test says nothing about the live path.
 - **A direction may only name values the Ladder's grounded facts contain.**
   `check_ladder` refuses one that does not, so a difficulty is never realized by
   telling the model a fact the customer was never given.
