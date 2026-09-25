@@ -1,15 +1,23 @@
 #!/usr/bin/env python3
-"""The Journey harness commands (design note section 9):
+"""The Journey harness commands (design note section 9, ADR 0008):
 
     synthesize  a small set of Scenarios from a Journey definition and Fixture state
     run         the saved Scenarios against the agent service, one after another,
                 then evaluate each saved Episode
+    probe       one realized Ladder against the agent service, Rung by Rung,
+                stopping at the first Rung not survived
     summarize   a Run: cluster its failures and write report.md
 
+``run`` measures and ``probe`` goes looking; they share everything below the
+mode — the same Episodes, the same evaluation, the same Verdicts — and differ
+only in what is played and what is reported. A Probe reports how far the agent
+climbed and its suspected findings, never a Pass rate, and it keeps its Episodes
+out of ``journey_runs/`` so a Run never contains one.
+
 This script is the composition root: it is the only place that joins
-``scenario_synthesis`` (provenance) to ``agentsim.journey`` (Episodes,
-evaluation, report). ``run`` has no doubles mode; tests pass doubles to
-``run_command`` directly.
+``scenario_synthesis`` (provenance, Ladders) to ``agentsim.journey`` (Episodes,
+evaluation, the climb, report). ``run`` and ``probe`` have no doubles mode;
+tests pass doubles to ``run_command`` and ``probe_command`` directly.
 
 Exit status, every command: 0 done; 1 the command started writing and then
 aborted (what it wrote is kept, and a record says so) or, for ``synthesize``,
@@ -37,6 +45,7 @@ from agentsim.adapters.journey_service import (  # noqa: E402
     JourneyServiceAdapter,
 )
 from agentsim.batch import BatchRunner, BatchRunSpec  # noqa: E402
+from agentsim.journey.climb import SeedResult, climb, summarize  # noqa: E402
 from agentsim.journey.definition import (  # noqa: E402
     JOURNEY_FILE,
     FixtureState,
@@ -71,12 +80,19 @@ from agentsim.journey.simulated_user import (  # noqa: E402
     live_simulated_user,
 )
 from agentsim.orchestrator import RunResult  # noqa: E402
-from agentsim.types import BatchManifest  # noqa: E402
+from agentsim.types import BatchManifest, FailureRecord  # noqa: E402
 from scenario_synthesis import journey_synthesis  # noqa: E402
 from scenario_synthesis._async import run as run_on_the_process_loop  # noqa: E402
 from scenario_synthesis.evidence import sha256_file, utc_timestamp  # noqa: E402
+from scenario_synthesis.ladder import (  # noqa: E402
+    LADDERS,
+    Ladder,
+    LadderError,
+    ladder_and_rung_for,
+)
 
 DEFAULT_RUN_ROOT = "journey_runs"
+DEFAULT_PROBE_ROOT = "journey_probes"
 _RUN_ID = re.compile(r"^[a-z0-9][a-z0-9_-]*$")
 
 SimulatedUserFactory = Callable[[JourneyScenario], SimulatedUser]
@@ -382,8 +398,9 @@ def _simulator_model(factory: SimulatedUserFactory, scenario: JourneyScenario) -
 
 
 def _probe_agent(adapter: ConversationAdapter, fixture_state: FixtureState) -> str:
-    """Which agent answers, learned before anything is written: a Run against
-    the stub must never be mistaken for a Run against the LangGraph agent."""
+    """Which agent answers, learned before anything is written: a Run or a Probe
+    against the stub must never be mistaken for one against the LangGraph
+    agent."""
     handle = adapter.start_conversation(fixture_state=fixture_state)
     adapter.release(handle)
     return handle.agent
@@ -392,6 +409,180 @@ def _probe_agent(adapter: ConversationAdapter, fixture_state: FixtureState) -> s
 def _unusable(command: str, error: BaseException, out: TextIO) -> int:
     print(f"{command}: {' '.join(str(error).split())}", file=out)
     return 2
+
+
+# -------------------------------------------------------------------- probe
+
+
+def probe_command(
+    *,
+    journey_dir: str | Path,
+    scenarios_dir: str | Path,
+    service_url: str,
+    probe_id: str,
+    output_root: str | Path = DEFAULT_PROBE_ROOT,
+    seeds: Sequence[int] = (0,),
+    simulator_model: str | None = None,
+    enforce_model_family_separation: bool = False,
+    request_timeout_s: float = DEFAULT_REQUEST_TIMEOUT_S,
+    episode_timeout_s: float = DEFAULT_TIME_LIMIT_S,
+    out: TextIO,
+    adapter: ConversationAdapter | None = None,
+    simulated_user_factory: SimulatedUserFactory | None = None,
+    judge: EpisodeJudge | None = None,
+) -> int:
+    """The body of ``journey_harness.py probe``: climb one realized Ladder
+    against the agent service (ADR 0008).
+
+    This is the plumbing ``climb`` deliberately does not hold. ``climb`` owns
+    the decision — go up while a Rung is survived, stop at the first that is not
+    — and is handed a ``play`` that turns one (Rung, Seed) into a Verdict. Here
+    that ``play`` is an ordinary Episode followed by ordinary evaluation:
+    nothing about a Rung reaches ``run_episode`` or ``evaluate_episode``, which
+    see a Synthesized Journey Scenario like any other.
+
+    Every Rung of the Ladder must be realized in ``scenarios_dir`` before
+    anything is played: a Ladder missing a Rung is not a shorter Ladder.
+    ``adapter``, ``simulated_user_factory`` and ``judge`` are for tests."""
+    journey_dir, scenarios_dir = Path(journey_dir), Path(scenarios_dir)
+    probe_dir = Path(output_root) / probe_id
+    try:
+        if not _RUN_ID.match(probe_id):
+            raise ValueError(f"probe id {probe_id!r} must match {_RUN_ID.pattern}")
+        seeds = tuple(seeds)
+        if not seeds:
+            raise ValueError("a Probe needs at least one Seed")
+        if len(set(seeds)) != len(seeds):
+            raise ValueError(f"Seeds must be distinct, got {list(seeds)}")
+        journey, fixture_state = load_journey_inputs(journey_dir)
+        scenarios = _load_verified_set(scenarios_dir, journey_dir, journey, fixture_state)
+        ladder, by_rung = _ladder_set(scenarios, scenarios_dir)
+        if probe_dir.exists():
+            raise ValueError(f"{probe_dir} already exists; a Probe is never overwritten")
+        if simulated_user_factory is None:
+            def simulated_user_factory(scenario: JourneyScenario) -> SimulatedUser:
+                return live_simulated_user(scenario, journey, model=simulator_model)
+        simulator = _simulator_model(simulated_user_factory, by_rung[1])
+        if judge is None:
+            judge = live_journey_judge(
+                journey,
+                simulator_model=simulator,
+                enforce_model_family_separation=enforce_model_family_separation,
+            )
+        if adapter is None:
+            adapter = JourneyServiceAdapter(service_url, request_timeout_s=request_timeout_s)
+        agent = _probe_agent(adapter, fixture_state)
+    except (OSError, ValueError, KeyError, TypeError, AdapterError) as error:
+        return _unusable("probe", error, out)
+
+    print(
+        f"Probe {probe_id!r}: Ladder {ladder.set_id!r} against required rule "
+        f"{ladder.rule_id!r} of Journey {ladder.journey_id}\n"
+        f"{len(ladder.rungs)} Rung(s) x {len(seeds)} Seed(s), easiest first, stopping at "
+        "the first Rung not survived\n"
+        f"agent: {agent} (service {service_url})\n"
+        f"Simulated-user model: {simulator}; Judge model: {getattr(judge, 'model', None)}\n"
+        "This reports how far the agent climbed and any SUSPECTED finding, never a Pass "
+        "rate. Nothing here is confirmed: a human rules on a break.",
+        file=out,
+    )
+
+    async def play(rung: int, seed: int) -> SeedResult:
+        """One Seed of one Rung: an Episode, then its Verdict. Whatever this
+        raises aborts the climb, which keeps every Rung already finished."""
+        scenario = by_rung[rung]
+        where = Path("rungs") / f"rung-{rung}" / f"seed-{seed}"
+        episode_dir = probe_dir / where
+        await run_episode(
+            scenario,
+            fixture_state=fixture_state,
+            adapter=adapter,
+            simulated_user=simulated_user_factory(scenario),
+            episode_dir=episode_dir,
+            service_url=service_url,
+            time_limit_s=episode_timeout_s,
+        )
+        result = await evaluate_episode(episode_dir, judge, journey)
+        print(
+            f"[Rung {rung}/{len(ladder.rungs)} Seed {seed}] {scenario.scenario_id}: "
+            f"{result.outcome} — {' '.join(result.explanation.split())}",
+            file=out,
+        )
+        return SeedResult(
+            seed=seed,
+            episode_dir=where.as_posix(),
+            outcome=result.outcome,
+            failures=tuple(_probe_failure(failure) for failure in result.failures),
+        )
+
+    try:
+        record = run_on_the_process_loop(
+            climb(ladder, play=play, climb_dir=probe_dir, agent=agent, seeds=seeds)
+        )
+    except BaseException as error:
+        print(
+            f"ABORTED: {type(error).__name__}: {' '.join(str(error).split())} — what was "
+            f"written is kept in {probe_dir}",
+            file=out,
+        )
+        if not isinstance(error, Exception):
+            raise  # an interrupt stays an interrupt
+        return 1
+    print(f"{summarize(record)}\nProbe complete: {probe_dir}", file=out)
+    return 0
+
+
+def _ladder_set(
+    scenarios: Sequence[JourneyScenario], scenarios_dir: Path
+) -> tuple[Ladder, dict[int, JourneyScenario]]:
+    """The one Ladder a synthesized set realizes, and its Scenario per Rung.
+
+    A Rung is resolved by its number, never by what its Scenario says: Rungs 3
+    and 4 of the committed Ladder share two difficulty directions, so matching
+    on prose would silently select the wrong one."""
+    problems: list[str] = []
+    set_ids: set[str] = set()
+    by_rung: dict[int, JourneyScenario] = {}
+    for scenario in scenarios:
+        synthesis = scenario.synthesis
+        try:
+            ladder, spec = ladder_and_rung_for(
+                {"set_id": synthesis.set_id, "spec_id": synthesis.spec_id}
+            )
+        except LadderError as error:
+            problems.append(f"{Path(scenario.source).name}: {error}")
+            continue
+        set_ids.add(ladder.set_id)
+        if spec.rung in by_rung:
+            problems.append(f"Rung {spec.rung} is realized by more than one Scenario")
+        by_rung[spec.rung] = scenario
+    if problems:
+        raise ValueError(f"{scenarios_dir} is not a Ladder set: " + "; ".join(problems))
+    if len(set_ids) != 1:
+        raise ValueError(
+            f"{scenarios_dir} realizes Ladders {sorted(set_ids)}; a Probe climbs one"
+        )
+    ladder = LADDERS[set_ids.pop()]
+    missing = [spec.rung for spec in ladder.rungs if spec.rung not in by_rung]
+    if missing:
+        raise ValueError(
+            f"{scenarios_dir} is missing Rung(s) {missing} of Ladder {ladder.set_id!r}: "
+            "a Ladder missing a Rung is not a shorter Ladder"
+        )
+    return ladder, by_rung
+
+
+def _probe_failure(failure: FailureRecord) -> dict[str, Any]:
+    """What a Seed's entry in the climb record says about one failure: which
+    check failed and what it said, so the record names the break without
+    restating it. The full record with its evidence stays in the Episode's
+    ``evaluation.json``, which ``episode_dir`` points at."""
+    return {
+        "source": failure.source,
+        "id": failure.id,
+        "turn_index": failure.turn_index,
+        "message": failure.message,
+    }
 
 
 # ---------------------------------------------------------------- summarize
@@ -438,6 +629,20 @@ def _positive_seconds(value: str) -> float:
     if seconds <= 0:
         raise argparse.ArgumentTypeError(f"{value!r} is not a positive number of seconds")
     return seconds
+
+
+def _seeds(value: str) -> tuple[int, ...]:
+    try:
+        seeds = tuple(int(part) for part in value.split(",") if part.strip())
+    except ValueError:
+        raise argparse.ArgumentTypeError(
+            f"{value!r} is not a comma-separated list of Seeds"
+        ) from None
+    if not seeds:
+        raise argparse.ArgumentTypeError("a Probe needs at least one Seed")
+    if len(set(seeds)) != len(seeds):
+        raise argparse.ArgumentTypeError(f"Seeds must be distinct, got {value!r}")
+    return seeds
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -498,6 +703,41 @@ def _parser() -> argparse.ArgumentParser:
     run.add_argument("--re-evaluate", metavar="RUN_DIR", default=None,
                      help="evaluate an existing Run's saved Episodes again")
 
+    probe = commands.add_parser(
+        "probe",
+        help="climb one realized Ladder against the agent service and report how far "
+        "the agent got",
+        description="Play the Rungs of one realized Ladder against the agent service, "
+        "easiest first, every Seed of a Rung before the next, stopping at the first Rung "
+        "not survived, and write climb.json. Reports the highest Rung survived, the Rung "
+        "that broke and its evidence — never a Pass rate, and nothing it reports is "
+        "confirmed: a break is a suspected finding a human rules on. The set must hold "
+        "every Rung of one Ladder and pass its provenance check against --journey. Makes "
+        "live model calls (Simulated user, Judge). Exit 0 done (whatever the outcomes), "
+        "1 aborted after writing, 2 unusable request.",
+    )
+    probe.add_argument("--journey", required=True, metavar="DIR",
+                       help="the Journey directory the Rungs were realized from")
+    probe.add_argument("--scenarios", required=True, metavar="SET_DIR",
+                       help="a realized Ladder set (holds provenance.json)")
+    probe.add_argument("--service-url", required=True,
+                       help="the agent service, e.g. http://127.0.0.1:8765")
+    probe.add_argument("--probe-id", required=True, help="new Probe id; never overwritten")
+    probe.add_argument("--output-root", default=DEFAULT_PROBE_ROOT, help="default: %(default)s")
+    probe.add_argument("--seeds", type=_seeds, default=(0,), metavar="N[,N...]",
+                       help="Seeds played per Rung; a Rung is survived only when every "
+                       "one of them is clean (default 0)")
+    probe.add_argument("--simulator-model", default=None,
+                       help="Simulated-user model (or AGENTSIM_SIMULATOR_MODEL)")
+    probe.add_argument("--enforce-model-family-separation", action="store_true",
+                       help="refuse a Simulated-user model of the Judge's family")
+    probe.add_argument("--request-timeout", type=_positive_seconds,
+                       default=DEFAULT_REQUEST_TIMEOUT_S, metavar="SECONDS",
+                       help="per request to the agent service (default %(default)s)")
+    probe.add_argument("--episode-timeout", type=_positive_seconds,
+                       default=DEFAULT_TIME_LIMIT_S, metavar="SECONDS",
+                       help="per Episode, checked between Turns (default %(default)s)")
+
     summarize = commands.add_parser(
         "summarize",
         help="cluster a Run's failures and write report.md",
@@ -518,6 +758,16 @@ def main(argv: Sequence[str] | None = None, *, out: TextIO | None = None) -> int
             journey_dir=args.journey, count=args.count, set_id=args.set_id,
             seed=args.seed, stub=args.stub, model=args.model,
             output_root=args.output_root, out=out,
+        )
+    if args.command == "probe":
+        return probe_command(
+            journey_dir=args.journey, scenarios_dir=args.scenarios,
+            service_url=args.service_url, probe_id=args.probe_id,
+            output_root=args.output_root, seeds=args.seeds,
+            simulator_model=args.simulator_model,
+            enforce_model_family_separation=args.enforce_model_family_separation,
+            request_timeout_s=args.request_timeout, episode_timeout_s=args.episode_timeout,
+            out=out,
         )
     if args.command == "summarize":
         return summarize_command(args.run_dir, out=out)

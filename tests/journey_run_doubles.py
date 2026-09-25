@@ -1,7 +1,8 @@
-"""A whole Journey Run on doubles, for the command and report tests
-(session 08). The Scenarios are really synthesized (stub narrative) so the set
-passes its provenance check; the agent, the Simulated user and the Judge are
-doubles. Nothing here talks to a network or a model.
+"""A whole Journey Run — or Probe — on doubles, for the command and report
+tests (session 08; the Probe added with ADR 0008). The Scenarios are really
+synthesized (stub narrative) so the set passes its provenance check; the agent,
+the Simulated user and the Judge are doubles. Nothing here talks to a network
+or a model.
 
 Each Scenario of the set is given a *behaviour* by position, in the order
 ``run`` plays them (sorted accepted file names):
@@ -15,6 +16,11 @@ Each Scenario of the set is given a *behaviour* by position, in the order
     transport         the service stops answering on the first message
     simulator_error   the Simulated user raises
     interrupt         the Simulated user is cancelled, as Ctrl-C would
+
+``play_probe`` gives a behaviour to a *Rung* instead, and to one Seed of a Rung
+when a Rung is given a per-Seed mapping. Its Scenarios are a really realized
+Ladder (stub narrative), so the set a Probe is handed is the one ``probe`` will
+be handed live.
 """
 
 from __future__ import annotations
@@ -22,6 +28,8 @@ from __future__ import annotations
 import asyncio
 import io
 import json
+from collections import deque
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -34,6 +42,11 @@ from agentsim.adapters.conversation import (
 from agentsim.journey.scenario import JourneyScenario, load_journey_scenario
 from agentsim.llm import LLMError
 from scenario_synthesis import journey_synthesis as js
+from scenario_synthesis.ladder import (
+    IDENTIFY_EXISTING_APPOINTMENT,
+    StubLadderNarrativeProvider,
+    realize_ladder,
+)
 from scripts import journey_harness as jh
 from tests.journey_trace_builder import TraceBuilder, find_slots, lookup, update
 from tests.test_journey_evaluation import JudgeDouble, ScriptedUser, TraceAdapter, say
@@ -213,3 +226,111 @@ def play_run(
         manifest = json.loads((run_dir / "manifest.json").read_text())
         played.run_keys = {r["scenario"]: key for key, r in manifest["runs"].items()}
     return played
+
+
+# ------------------------------------------------------------------- Probe
+
+
+def realize(root: Path) -> Path:
+    """The committed Ladder, really realized: four Rungs, ordinary Synthesized
+    Journey Scenarios, offline narrative."""
+    return realize_ladder(
+        IDENTIFY_EXISTING_APPOINTMENT, JOURNEY_DIR,
+        provider=StubLadderNarrativeProvider(), output_root=root / "ladders",
+    )
+
+
+def rung_scenarios(set_dir: Path) -> dict[int, JourneyScenario]:
+    """The set's Scenario per Rung number. Resolved by ``spec_id`` — Rungs 3 and
+    4 share two difficulty directions, so nothing here matches on prose."""
+    return {
+        int(str(scenario.synthesis.spec_id).removeprefix("rung-")): scenario
+        for scenario in saved_scenarios(set_dir)
+    }
+
+
+@dataclass
+class PlayedProbe:
+    status: int | None
+    probe_dir: Path
+    output: str
+    rungs: dict[int, JourneyScenario]
+    adapter: SequenceAdapter
+    judge: ScenarioJudge
+    raised: BaseException | None = None
+
+    @property
+    def record(self) -> dict[str, Any]:
+        return json.loads((self.probe_dir / "climb.json").read_text())
+
+    def episode_dir(self, rung: int, seed: int = 0) -> Path:
+        return self.probe_dir / "rungs" / f"rung-{rung}" / f"seed-{seed}"
+
+    @property
+    def played(self) -> list[tuple[int, int]]:
+        """Every (Rung, Seed) that reached an Episode, in play order."""
+        return sorted(
+            (int(d.parent.name.removeprefix("rung-")), int(d.name.removeprefix("seed-")))
+            for d in self.probe_dir.glob("rungs/rung-*/seed-*")
+        )
+
+
+def play_probe(
+    root: Path,
+    behaviours: Mapping[int, Any],
+    *,
+    probe_id: str = "probe-1",
+    seeds: Sequence[int] = (0,),
+    judge_failing: Mapping[int, tuple[str, ...]] | None = None,
+    set_dir: Path | None = None,
+    unbuildable: Mapping[int, Exception] | None = None,
+    **overrides: Any,
+) -> PlayedProbe:
+    """Realize the committed Ladder and ``probe`` it on doubles.
+
+    ``behaviours`` maps a Rung number to a behaviour, or to a ``{seed:
+    behaviour}`` mapping when its Seeds differ. Doubles are prepared for every
+    Rung the Ladder has; a climb that stops early simply never asks for the rest,
+    which is what ``PlayedProbe.adapter.adapters`` is then left holding."""
+    set_dir = set_dir or realize(root)
+    rungs = rung_scenarios(set_dir)
+    unbuildable = {rungs[rung].scenario_id: e for rung, e in (unbuildable or {}).items()}
+
+    adapters: list[Any] = []
+    users: dict[str, deque] = {}
+    for rung in sorted(rungs):
+        for seed in seeds:
+            behaviour = behaviours[rung]
+            behaviour = behaviour[seed] if isinstance(behaviour, Mapping) else behaviour
+            adapter_, user = _double_for(rungs[rung], behaviour)
+            users.setdefault(rungs[rung].scenario_id, deque()).append(user)
+            if rungs[rung].scenario_id not in unbuildable:
+                adapters.append(adapter_)
+    # ``probe`` builds one Simulated user before anything is written, only to
+    # read its model; its script is untouched, so Rung 1's is handed out twice.
+    first = rungs[min(rungs)].scenario_id
+    users[first].appendleft(users[first][0])
+    adapter = SequenceAdapter(adapters)
+
+    def build_user(scenario: JourneyScenario) -> Any:
+        if scenario.scenario_id in unbuildable:
+            raise unbuildable[scenario.scenario_id]
+        return users[scenario.scenario_id].popleft()
+
+    judge = ScenarioJudge(
+        {rungs[rung].scenario_id: failing for rung, failing in (judge_failing or {}).items()}
+    )
+    out = io.StringIO()
+    arguments = dict(
+        journey_dir=JOURNEY_DIR, scenarios_dir=set_dir, service_url=SERVICE_URL,
+        probe_id=probe_id, output_root=root / "journey_probes", seeds=tuple(seeds),
+        out=out, adapter=adapter, simulated_user_factory=build_user, judge=judge,
+    )
+    arguments.update(overrides)
+    status, raised = None, None
+    try:
+        status = jh.probe_command(**arguments)
+    except BaseException as error:  # the interrupt behaviour propagates, as it must
+        raised = error
+    probe_dir = Path(arguments["output_root"]) / probe_id
+    return PlayedProbe(status, probe_dir, out.getvalue(), rungs, adapter, judge, raised)

@@ -1,8 +1,14 @@
-"""The three Journey harness commands (design note section 9), on doubles.
+"""The Journey harness commands (design note section 9, ADR 0008), on doubles.
 
-``run`` is exercised through ``run_command`` with an adapter, Simulated-user
-and Judge double: it has no doubles mode of its own. These tests are plain
-functions — the commands enter the process-local event loop themselves.
+``run`` and ``probe`` are exercised through ``run_command`` and
+``probe_command`` with an adapter, Simulated-user and Judge double: they have
+no doubles mode of their own. These tests are plain functions — the commands
+enter the process-local event loop themselves.
+
+The ``probe`` tests are about the plumbing only: that the climb's decision
+reaches real Episodes and real Verdicts, that a Rung is resolved by its number,
+and that what a Probe leaves behind points at its evidence. Whether the agent
+actually breaks is not a thing a double can say.
 """
 
 from __future__ import annotations
@@ -17,6 +23,7 @@ import pytest
 
 from agentsim.batch import BatchRunner
 from agentsim.journey.definition import JourneyDefinitionError
+from agentsim.journey.scenario import load_journey_scenario
 from scenario_synthesis import journey_synthesis as js
 from scripts import journey_harness as jh
 from tests.journey_run_doubles import (
@@ -25,7 +32,10 @@ from tests.journey_run_doubles import (
     SERVICE_URL,
     ScenarioJudge,
     SequenceAdapter,
+    play_probe,
     play_run,
+    realize,
+    rung_scenarios,
     saved_scenarios,
     synthesize,
 )
@@ -60,10 +70,13 @@ def edited_journey_dir(root: Path) -> Path:
 
 
 @pytest.mark.parametrize("command, mentions", [
-    ((), ("synthesize", "run", "summarize")),
+    ((), ("synthesize", "run", "probe", "summarize")),
     (("synthesize",), ("--journey", "--count", "--set-id", "--stub", "not Qualification")),
     (("run",), ("--journey", "--scenarios", "--service-url", "--run-id",
                 "--request-timeout", "--episode-timeout", "--re-evaluate", "120", "600")),
+    (("probe",), ("--journey", "--scenarios", "--service-url", "--probe-id", "--seeds",
+                  "journey_probes", "never a Pass rate", "suspected finding a human rules on",
+                  "stopping at the first Rung not survived")),
     (("summarize",), ("RUN_DIR", "report.md", "not proven root causes")),
 ])
 def test_every_command_prints_useful_help(capsys, command, mentions):
@@ -489,6 +502,199 @@ def test_re_evaluate_refuses_a_directory_that_is_not_a_run(tmp_path):
     out = io.StringIO()
     status = jh.re_evaluate_command(journey_dir=JOURNEY_DIR, run_dir=tmp_path, out=out)
     assert status == 2 and "journey_run.json" in out.getvalue()
+
+
+# -------------------------------------------------------------------- probe
+
+PROBE_EPISODE_FILES = {
+    "scenario.yaml", "transcript.jsonl", "episode.json", "raw_trace.json",
+    "normalized_trace.json", "evaluation.json",
+}
+EVERY_RUNG = (1, 2, 3, 4)
+
+
+def test_probe_climbs_rung_by_rung_and_stops_at_the_first_break(tmp_path):
+    played = play_probe(tmp_path, {1: "pass", 2: "padded", 3: "gave_up", 4: "unconfirmed"})
+
+    assert (played.status, played.raised) == (0, None)
+    record = played.record
+    assert record["status"] == "complete" and record["error"] is None
+    assert record["rule_id"] == "identify_existing_appointment"
+    assert record["agent"] == "stub"  # never mistaken for the LangGraph agent
+    assert [rung["rung"] for rung in record["rungs"]] == list(EVERY_RUNG)
+    assert [rung["state"] for rung in record["rungs"]] == [
+        "survived", "survived", "survived", "broke"
+    ]
+    assert (record["highest_survived"], record["broke_at"]) == (3, 4)
+    assert record["stopped_because"] == "rung_broke"
+    assert played.played == [(rung, 0) for rung in EVERY_RUNG]
+    for rung in EVERY_RUNG:
+        assert {p.name for p in played.episode_dir(rung).iterdir()} == PROBE_EPISODE_FILES
+    assert "suspected break at Rung 4" in played.output
+    assert "a human rules on it" in played.output
+
+
+def test_a_break_low_down_leaves_the_rungs_above_unplayed(tmp_path):
+    """The Rungs above a break say nothing about it, and every one of them costs
+    real Simulated-user and Judge calls."""
+    played = play_probe(tmp_path, {1: "pass", 2: "unconfirmed", 3: "pass", 4: "pass"})
+
+    assert played.played == [(1, 0), (2, 0)]
+    assert not played.episode_dir(3).exists()
+    assert len(played.adapter.adapters) == 2, "Rungs 3 and 4 must not be played"
+
+
+def test_a_rung_the_agent_will_not_complete_is_survived(tmp_path):
+    """Rung 3 is built to end ``task_incomplete``. Clean conduct is survival
+    whether or not the Goal was reached: an agent that correctly refuses to
+    guess which appointment she means has broken nothing."""
+    played = play_probe(tmp_path, dict.fromkeys(EVERY_RUNG, "gave_up"))
+
+    record = played.record
+    assert [rung["seeds"][0]["outcome"] for rung in record["rungs"]] == (
+        ["task_incomplete"] * 4
+    )
+    assert (record["highest_survived"], record["broke_at"]) == (4, None)
+    assert record["stopped_because"] == "ladder_exhausted"
+    assert "survived every Rung" in played.output
+
+
+def test_an_episode_that_errors_stops_the_climb_without_claiming_a_break(tmp_path):
+    played = play_probe(tmp_path, {1: "pass", 2: "agent_error", 3: "pass", 4: "pass"})
+
+    record = played.record
+    assert played.status == 0, "an Episode outcome is a result, not a command failure"
+    assert record["rungs"][-1]["state"] == "inconclusive"
+    assert record["broke_at"] is None, "evidence that is missing is not a break"
+    assert record["highest_survived"] == 1
+    assert played.played == [(1, 0), (2, 0)]
+    assert "unreadable" in played.output
+
+
+def test_every_seed_of_a_rung_is_played_even_after_one_breaks(tmp_path):
+    """Whether a break is every time or one time in three is the number a
+    reviewer needs and cannot get afterwards."""
+    played = play_probe(
+        tmp_path,
+        {1: "pass", 2: {0: "pass", 1: "unconfirmed", 2: "pass"}, 3: "pass", 4: "pass"},
+        seeds=(0, 1, 2),
+    )
+
+    record = played.record
+    assert played.played == [(1, 0), (1, 1), (1, 2), (2, 0), (2, 1), (2, 2)]
+    assert record["seeds"] == [0, 1, 2]
+    assert [seed["outcome"] for seed in record["rungs"][1]["seeds"]] == [
+        "pass", "fail", "pass"
+    ]
+    assert record["broke_at"] == 2
+    assert "on 1 of 3 Seed(s)" in played.output
+
+
+def test_the_record_names_each_seeds_evidence_and_the_check_that_failed(tmp_path):
+    """A break is a suspected finding, so the record must lead a human straight
+    to the Episode it happened in."""
+    played = play_probe(tmp_path, {1: "pass", 2: "unconfirmed", 3: "pass", 4: "pass"})
+
+    broke = played.record["rungs"][-1]["seeds"][0]
+    assert broke["episode_dir"] == "rungs/rung-2/seed-0"
+    evaluation = read(played.probe_dir / broke["episode_dir"] / "evaluation.json")
+    assert evaluation["outcome"] == "fail"
+    assert [failure["source"] for failure in broke["failures"]] == ["assertion"]
+    assert [failure["id"] for failure in broke["failures"]] == [
+        failure["id"] for failure in evaluation["failures"]
+    ]
+
+
+def test_a_rung_is_resolved_by_its_number_never_by_its_prose(tmp_path):
+    """Rungs 3 and 4 of the committed Ladder share two difficulty directions, so
+    a Rung selected by matching what its Scenario says would silently be the
+    wrong one — and the climb would report a difficulty it did not play."""
+    played = play_probe(tmp_path, dict.fromkeys(EVERY_RUNG, "pass"))
+
+    for rung in EVERY_RUNG:
+        saved = load_journey_scenario(played.episode_dir(rung) / "scenario.yaml")
+        assert saved.synthesis.spec_id == f"rung-{rung}"
+        assert saved.scenario_id == played.rungs[rung].scenario_id
+
+
+def test_a_probe_is_never_overwritten_and_its_id_is_checked(tmp_path):
+    set_dir = realize(tmp_path)
+    behaviours = dict.fromkeys(EVERY_RUNG, "pass")
+    assert play_probe(tmp_path, behaviours, set_dir=set_dir).status == 0
+
+    again = play_probe(tmp_path, behaviours, set_dir=set_dir)
+    assert again.status == 2 and "never overwritten" in again.output
+
+    named = play_probe(tmp_path, behaviours, set_dir=set_dir, probe_id="Probe One")
+    assert named.status == 2 and "must match" in named.output
+
+
+def test_a_set_that_is_not_a_ladder_is_refused_before_anything_is_written(tmp_path):
+    out = io.StringIO()
+    status = jh.probe_command(
+        journey_dir=JOURNEY_DIR, scenarios_dir=synthesize(tmp_path, 2),
+        service_url=SERVICE_URL, probe_id="probe-1",
+        output_root=tmp_path / "journey_probes", out=out,
+        adapter=SequenceAdapter([]), simulated_user_factory=lambda scenario: None,
+        judge=ScenarioJudge(),
+    )
+    assert status == 2 and "is not a Ladder set" in out.getvalue()
+    assert not (tmp_path / "journey_probes").exists()
+
+
+def test_a_ladder_set_missing_a_rung_is_refused(tmp_path):
+    """A Ladder missing a Rung is not a shorter Ladder: a climb needs every Rung
+    below the one that breaks. Realizing a Ladder already aborts rather than
+    leaving a gap, and the provenance check refuses what it left behind, so this
+    guard is reached only by a hand-edited set and is tested where it lives."""
+    scenarios = rung_scenarios(realize(tmp_path))
+    with pytest.raises(ValueError, match=r"missing Rung\(s\) \[4\]"):
+        jh._ladder_set([scenarios[rung] for rung in (1, 2, 3)], tmp_path)
+
+
+def test_a_probe_needs_distinct_seeds(tmp_path):
+    played = play_probe(tmp_path, dict.fromkeys(EVERY_RUNG, "pass"), seeds=(0, 0))
+    assert played.status == 2 and "must be distinct" in played.output
+    assert not played.probe_dir.exists()
+
+
+def test_an_interrupt_mid_climb_keeps_finished_rungs_and_marks_the_climb_aborted(tmp_path):
+    played = play_probe(tmp_path, {1: "pass", 2: "interrupt", 3: "pass", 4: "pass"})
+
+    assert isinstance(played.raised, asyncio.CancelledError)
+    assert played.status is None
+    record = played.record
+    assert record["status"] == "aborted"
+    assert record["error"]["type"] == "CancelledError"
+    assert [rung["rung"] for rung in record["rungs"]] == [1]
+    assert record["broke_at"] is None, "falling over is not the agent breaking"
+    assert "ABORTED" in played.output
+
+
+def test_a_climb_that_falls_over_exits_1_and_keeps_what_it_wrote(tmp_path):
+    """A Simulated user that cannot be built is not an Episode error: nothing was
+    played, so there is no Rung to call unreadable and the climb aborts. In a Run
+    it is that Scenario's error and the next Scenario still runs."""
+    played = play_probe(
+        tmp_path, dict.fromkeys(EVERY_RUNG, "pass"),
+        unbuildable={2: RuntimeError("no Simulated user")},
+    )
+
+    assert played.status == 1
+    record = played.record
+    assert record["status"] == "aborted" and record["error"]["type"] == "RuntimeError"
+    assert [rung["rung"] for rung in record["rungs"]] == [1]
+    assert (record["highest_survived"], record["broke_at"]) == (1, None)
+    assert "ABORTED" in played.output
+
+
+def test_probe_keeps_its_episodes_out_of_the_run_root(tmp_path):
+    """A Run never contains Probe Episodes (ADR 0008), which starts with them
+    not being written where a Run's are."""
+    assert jh.DEFAULT_PROBE_ROOT != jh.DEFAULT_RUN_ROOT
+    played = play_probe(tmp_path, dict.fromkeys(EVERY_RUNG, "pass"))
+    assert not (tmp_path / "journey_runs").exists()
+    assert played.record["set_id"] == "ladder-identify-existing-appointment"
 
 
 # ------------------------------------------------------------------ hygiene
