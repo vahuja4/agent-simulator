@@ -49,6 +49,20 @@ suspected problems with the evidence for each — never a pass rate.
 Once a person confirms a problem, it becomes a fixed scenario so `run` checks
 for it from then on.
 
+**The probe may pile on difficulties.** Ambiguity and impatience and a garbled
+message in one conversation, if that is what it takes. The rule of one
+difficulty per scenario exists so the measuring mode can count what it has
+covered; the probe counts nothing, and real customers don't turn up with
+exactly one problem each. Fairness is the three conditions above — only the
+facts we gave her, a customer a real business could get, evidence in the
+recording — not the taxonomy.
+
+Two limits stay, and neither is about difficulty. The probe never edits a
+committed scenario file: it takes its variant as its own input or as an
+overlay, so the measuring mode's set keeps its provenance and stays
+comparable. And the easy-going customer stays easy-going — make her pushy and
+she stops being the control that tells us our own test is what broke.
+
 ## What the probing customer does each turn
 
 1. **Take stock.** Update a short note to itself: what I've told the bot so
@@ -213,7 +227,9 @@ Watch two numbers, not one:
 - **How a confirmed problem becomes a fixed scenario.** Scenarios describe a
   person and a goal; they aren't scripts. A confirmed problem may need a new
   optional field holding whatever it was that worked. Decide when we have the
-  first one, not before.
+  first one, not before. One thing is already settled: a scenario frozen out of
+  a probe may carry several difficulties at once, so it belongs with the
+  regression cases and stays out of the coverage counts.
 - **Which model plays the probing customer.** For development it can be the
   same family as the judge. For anything we report, it can't.
 - **The two limits left blank above.** Pick them once the first probe shows
