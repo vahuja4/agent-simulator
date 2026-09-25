@@ -5,6 +5,22 @@ these terms exactly as defined here — in code identifiers, file names,
 docs, and conversation. If a decision changes a definition, update this
 file in the same commit.
 
+## What this is for
+
+The harness exists to find ways the agent-under-test breaks the rules its
+Journey definition requires of it. Episodes in which nothing went wrong
+establish very little on their own: they do not distinguish an agent that holds
+up from a set of Scenarios that never pushed it. So the harness has two modes,
+and they answer different questions. A Run measures, and reports a Pass rate
+comparable between versions of the agent. A Probe goes looking, and reports
+suspected findings with their evidence.
+
+Going looking is a statement about our obligation, not a prediction about the
+agent: it does not follow that there is always something to find. What a Probe
+may claim is bounded by ADR 0008 — the Simulated user played fair, it is one a
+real business could receive, and the break is visible in the saved evidence.
+Nothing is confirmed by a machine.
+
 ## Vocabulary
 
 - **Scenario** — a declarative test situation: persona + goal + knowledge
@@ -163,6 +179,31 @@ file in the same commit.
   A **re-evaluation** evaluates a Run's saved Episodes again and replays no
   conversation; whether it finished is a fact of its own, recorded beside the
   Run's status and never in its place.
+- **Probe** — one execution of the discovery mode against one named required
+  rule of a Journey definition: a Ladder, played Rung by Rung against one
+  agent-under-test. Its output is suspected findings with their evidence, plus
+  how far the agent climbed. A Probe never reports a Pass rate, a Run never
+  contains Probe Episodes, and a Probe never edits a committed Scenario.
+- **Opening** — a Fixture state condition under which one required rule binds,
+  and therefore the condition a Ladder's Rung 1 arranges: two rows a customer
+  could describe with one phrase, a row that looks usable but is disqualified, a
+  row matching on every field but the decisive one, or a tool failure the
+  Fixture binding can force. Openings are derived from the Journey definition
+  and Fixture state by code, with no model and no Episode. An Opening is where a
+  rule *can* break, never evidence that it does.
+- **Ladder** — the ordered series of Rungs a Probe climbs against one required
+  rule. Rung 1 arranges the Fixture state condition under which that rule binds;
+  each later Rung adds one more difficulty. Code decides whether to climb, from
+  saved Verdicts, between Episodes — never a model, and never mid-conversation.
+  The Ladder stops at the first Rung that breaks; the result for the rule is the
+  highest Rung survived and the Rung that broke.
+- **Rung** — one attack at one difficulty, and the committed input file that
+  states it: the required rule it attacks, its position in the Ladder, its
+  primary Complication, and the further Persona and Complication difficulties it
+  also carries. It produces the Scenario that is played, over N Seeds, and is
+  survived only when every Seed is clean. Because a Rung carries more than one
+  difficulty it is never a Coverage cell or a Candidate and never enters a
+  Coverage count; ADR 0005's one-Complication rule is unaffected.
 - **Episode** — one simulated conversation: a single scenario + seed
   played out between the simulated user and the agent-under-test.
 - **Turn** — one user message and the agent's reply to it, including any
