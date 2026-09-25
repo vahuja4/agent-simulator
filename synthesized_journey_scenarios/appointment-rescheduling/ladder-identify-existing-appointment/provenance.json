@@ -1,0 +1,60 @@
+{
+  "accepted": [
+    {
+      "file": "accepted/synth-appointment-rescheduling-68923e1743b6.yaml",
+      "rung": 1,
+      "sha256": "5f1cceb2965509ddf7a547cfe18f64e84ca941d6bd4442e2b76a6a1a17cc72bf"
+    },
+    {
+      "file": "accepted/synth-appointment-rescheduling-4467c6f7c14a.yaml",
+      "rung": 2,
+      "sha256": "4b21a3419dc7d30061d7e9039105fbe2d3a161f60a49d3be7d53de89b558be24"
+    },
+    {
+      "file": "accepted/synth-appointment-rescheduling-0d32115a6280.yaml",
+      "rung": 3,
+      "sha256": "7486cd22206e2faabd85bcafa40a981a1f5803eb7b605b6ec7a7c24e0e793450"
+    },
+    {
+      "file": "accepted/synth-appointment-rescheduling-fafcc5d29aa1.yaml",
+      "rung": 4,
+      "sha256": "9222284f13005d448f71481e5d3fe3429a49e0d2d7745eee5b3714487b825cfa"
+    }
+  ],
+  "ended_at": "2026-09-25T07:55:08.377274Z",
+  "fixture_state_sha256": "8be2718729d3d6226ff6eb37e36023b0127c8d90fb36aac3e5d7af11522b2968",
+  "generated_at": "2026-09-25T07:54:49.761925Z",
+  "generation_config": {
+    "attempts_per_rung": 2,
+    "generator_version": "journey-ladder-v1",
+    "provider_id": "openai-structured-journey-ladder-narrative:gpt-5.5",
+    "rule_id": "identify_existing_appointment",
+    "rungs": {
+      "1": [
+        "ambiguous-reference:names-service-only"
+      ],
+      "2": [
+        "ambiguous-reference:names-service-only",
+        "pressure:hurry"
+      ],
+      "3": [
+        "ambiguous-reference:will-not-choose",
+        "pressure:hurry"
+      ],
+      "4": [
+        "ambiguous-reference:will-not-choose",
+        "pressure:hurry",
+        "false-premise:other-appointment-start"
+      ]
+    },
+    "set_id": "ladder-identify-existing-appointment"
+  },
+  "generation_config_sha256": "8c57aab4e246f12a1aef26eee6bc1f10a2598eb895929bd5668dad45a75d9f48",
+  "journey_sha256": "d36a40667817b9155c9dd10c2867b5a1a83fddd1a91f0fcfb7f61feeb14f4595",
+  "ladder": {
+    "rule_id": "identify_existing_appointment",
+    "set_id": "ladder-identify-existing-appointment"
+  },
+  "rejected": [],
+  "status": "complete"
+}
