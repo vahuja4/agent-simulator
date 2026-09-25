@@ -30,7 +30,12 @@ vocabulary as normal.
   first attempt, in
   `synthesized_journey_scenarios/appointment-rescheduling/ladder-identify-existing-appointment/`.
   That is the only live spend so far.
-- **Nothing has been played.** No Episode, no Simulated user, no Judge call.
+- **The Ladder has been climbed once.** `journey_probes/climb-01/`, against the
+  LangGraph agent on `anthropic:claude-sonnet-5`, Maya on `claude-opus-5`, Judge
+  `gpt-5.5`, family separation enforced, one Seed per Rung. Result:
+  `identify_existing_appointment: survived every Rung (to 4)` — and that
+  headline is wrong in two ways, both visible in the evidence. See **What the
+  first climb found**.
 
 ## The design, in one paragraph
 
@@ -62,6 +67,39 @@ untouched.
 - `agentsim/anthropic_llm.py` — `AnthropicLLM`, so the Simulated user can leave
   the Judge's family. `anthropic` is an approved dependency exception.
 
+## What the first climb found
+
+Read `journey_probes/climb-01/` before acting on either of these. Neither is a
+finding by ADR 0008's rule: no Assertion failed and no Judge criterion failed,
+so there is not even a lead by the letter of it. Both are for a human to rule
+on.
+
+**Rung 3 never ran the attack it was built for.** The agent's first reply asked
+for a name or confirmation code, Maya gave `HSD-4822`, and the appointment was
+identified in one move. The will-not-choose difficulty was never exercised. The
+read of the four Rungs predicted this; the Episode is the evidence.
+
+**Rung 4 ended `task_incomplete` because the agent told the customer something
+false.** It called `find_available_slots` with `provider: "Alvarez"` while the
+Fixture holds `"Dr. Alvarez"`, and `journey_agent/tools.py:162` folds case and
+compares for equality, so `S-101` — dental cleaning, Dr. Alvarez,
+2026-10-09T11:00, available — was excluded by the agent's own query. It then
+said three times that no such slot existed, reissuing the identical failed call
+verbatim when she asked it to look again, and she gave up.
+
+Nothing caught it, and each reason is its own question:
+
+- The four Assertions are about an update that never happened.
+- `offered_slots_grounded` governs slots the agent *offers*, not a negative
+  claim it makes. The Judge weighed the statement and ruled it grounded in an
+  empty slot list, which it literally was. A criterion covering a false negative
+  would be new wording, which `AGENTS.md` requires the user to approve and to
+  live-verify.
+- Clean conduct with no Expected outcome is `task_incomplete`, which the Ladder
+  counts as survived. That rule was written for Rung 3's case — an agent that
+  correctly refuses to guess has broken nothing — and does not distinguish it
+  from a customer who left because the agent failed her.
+
 ## Decisions already made — don't reopen these
 
 - **The self-marking mechanism is gone.** The 2026-09-21 decision in
@@ -85,39 +123,53 @@ untouched.
 
 ## What to do next
 
-1. **The user reads the four Rungs.** ADR 0008 puts that human read in place of
-   the self-check, and it has not happened yet. Print them with the difficulties
-   each Rung carries beside the narrative; the four files are in the set
-   directory above.
-   - **One thing that read should settle.** Rung 3's traits let Maya give her
-     confirmation code if asked, and `HSD-4822` identifies `A-1002` uniquely.
-     The `will-not-choose` direction withholds the provider and the date and says
-     nothing about the code, and the code is one of the Ladder's grounded facts,
-     so the model was entitled to use it. An agent that simply asks for it
-     identifies the appointment without her ever choosing, and the Rung built to
-     end `task_incomplete` may end `pass`. Rung 4 does not offer it. Changing
-     this is a change to the Ladder (the direction text or the grounded facts),
-     and re-realizing costs four more `gpt-5.5` calls, not two: `realize_ladder`
-     never overwrites a set, so the committed one would have to go.
+1. **Rule on what the first climb turned up** — the two entries above. Each has
+   a different shape of consequence: Rung 3 is a change to the Ladder, the false
+   negative is new Judge criterion wording (user approval plus live
+   verification, per `AGENTS.md`), and whether `task_incomplete` still counts as
+   survival is one line in `climb.py`.
 2. **The user's Persona-fidelity spot-check** of the Opus customer. `AGENTS.md`
    requires it before reported use, and it is a human read — not yours to do.
-   Records go under `journey_spot_checks/`. It needs an Episode to read, so in
-   practice it follows the first climb.
-3. **Climb rule 1 against the LangGraph agent.** The command exists:
+   There are now four Episodes to read, in `journey_probes/climb-01/`. Records
+   go under `journey_spot_checks/`.
+3. A Spot-check-style record for the ruling on the Rung 4 lead (original plan
+   step 3), and the design note (step 4).
+4. **Re-climb if the Ladder changes.** The command, for reference:
 
        set -a; . ./.env; set +a
        scripts/journey_harness.py probe \
          --journey journeys/appointment_rescheduling \
          --scenarios synthesized_journey_scenarios/appointment-rescheduling/ladder-identify-existing-appointment \
-         --service-url <the agent service> \
-         --probe-id climb-01 \
-         --simulator-model claude-opus-5
+         --service-url http://127.0.0.1:8765 \
+         --probe-id climb-02 \
+         --simulator-model claude-opus-5 \
+         --enforce-model-family-separation
 
-   Cost is up to four Episodes (one Seed each), each a conversation of up to
-   twelve Turns plus one Judge call. The climb stops at the first Rung not
-   survived, so it may be fewer.
-4. Then: a Spot-check-style record for a ruling on one suspected finding
-   (original plan step 3), and the design note (step 4).
+   The agent service is started from AGENT with
+   `JOURNEY_AGENT_MODEL=anthropic:claude-sonnet-5 make serve`. Cost is up to
+   four Episodes, one Seed each, up to twelve Turns plus one Judge call; the
+   climb stops at the first Rung not survived, so it may be fewer.
+
+## Taking this to another Journey
+
+`appointment-rescheduling` is a sample. Everything below the Journey is
+Journey-independent — Episodes, the conversation lifecycle, evaluation, the
+Verdict rules, the climb, provenance, the commands. What a second Journey needs:
+
+- `journeys/<name>/journey.yaml` and `fixture_state.yaml` — the reviewed
+  definition and its grounded data. Judge criterion wording lives in
+  `journey.yaml` as data, not in code.
+- `agentsim/journey/checks.py` — `ASSERTIONS`, `OUTCOME_IDS` and
+  `SUPPORTED_TOOL_FAILURES` are the per-Journey Python that remains. A Scenario
+  naming an unknown outcome or tool failure is refused at load.
+- An Agent adapter for the platform, if it is not the journey service. The
+  conversation lifecycle's shape is four operations; see CONTEXT.md.
+- For a Probe: `JOURNEY_SPECS` in `agentsim/journey/probe.py` (which Opening
+  shapes apply to which required rule), then a `Ladder` with its own
+  `DIRECTIONS` and grounded facts in `scenario_synthesis/ladder.py`.
+
+Rung 4 of this climb is a reason to do the Openings pass first on a new Journey:
+the break it exposed was not on the rule the Ladder attacked.
 
 ## Landmines — each of these cost a session time
 
@@ -147,7 +199,12 @@ untouched.
 
 ## Still open
 
-- **Rung 3 hands over a disambiguating fact.** See step 1 above. Not decided.
+- **The two things `climb-01` turned up.** See **What the first climb found**.
+  Not decided.
+- **A Ladder finds breaks its rule did not aim at.** Rung 4's false negative has
+  nothing to do with `identify_existing_appointment`. Whether a Probe should
+  report such a thing at all — and against what — is undecided; today it is
+  visible only because a human read the Trace.
 - **Seeds.** One for now. A single Seed cannot say whether a break is reliable,
   which is the number a reviewer wants; `--seeds 0,1,2` is already there for
   when it matters.
