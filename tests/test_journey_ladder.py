@@ -12,6 +12,7 @@ from agentsim.journey.definition import load_journey_inputs
 from agentsim.journey.probe import openings
 import scenario_synthesis.ladder as ladder_module
 from agentsim.journey.scenario import load_journey_scenario
+from scenario_synthesis import journey_synthesis as js
 from scenario_synthesis.journey_synthesis import (
     StubNarrativeProvider,
     parse_narrative,
@@ -24,9 +25,11 @@ from scenario_synthesis.ladder import (
     CONTROL_ARCHETYPE,
     DIRECTIONS,
     IDENTIFY_EXISTING_APPOINTMENT,
+    LADDER_SYSTEM_PROMPT,
     LADDERS,
     Ladder,
     LadderError,
+    LiveLadderNarrativeProvider,
     RungSpec,
     also_carries,
     archetype_for,
@@ -243,6 +246,42 @@ def test_every_direction_reaches_the_narrative(tmp_path):
     traits = load_journey_scenario(set_dir / entry["file"]).persona.traits
     for direction_id in IDENTIFY_EXISTING_APPOINTMENT.rung(4).direction_ids:
         assert DIRECTIONS[direction_id].text in traits
+
+
+def test_the_live_provider_sends_the_ladders_own_system_prompt(tmp_path):
+    """Under the measuring mode's prompt a Rung would come back valid and wrong:
+    it directs one Complication and never mentions difficulty_directions, so the
+    difficulty stacked on the Rung would simply not be realized."""
+    calls = []
+
+    class LLMDouble:
+        async def structured(self, **kwargs):
+            calls.append(kwargs)
+            request = json.loads(kwargs["messages"][0]["content"])
+            return StubLadderNarrativeProvider().realize(request, attempt=request["attempt"])
+
+    provider = LiveLadderNarrativeProvider(llm=LLMDouble(), model="some-model")
+    set_dir = _realize(tmp_path, provider=provider)
+
+    assert len(calls) == 4, "one call per Rung"
+    assert all(call["system"] == LADDER_SYSTEM_PROMPT for call in calls)
+    assert calls[0]["system"] != js.SYSTEM_PROMPT
+    assert set(calls[0]["schema"]["properties"]) == {"description", "persona", "goal"}
+    assert json.loads(calls[3]["messages"][0]["content"])["difficulty_directions"] == [
+        {
+            "axis": DIRECTIONS[direction_id].axis,
+            "value": DIRECTIONS[direction_id].value,
+            "direction": DIRECTIONS[direction_id].text,
+        }
+        for direction_id in IDENTIFY_EXISTING_APPOINTMENT.rung(4).direction_ids
+    ]
+    provenance = json.loads((set_dir / "provenance.json").read_text())
+    assert provenance["generation_config"]["provider_id"] == (
+        "openai-structured-journey-ladder-narrative:some-model"
+    )
+    assert load_journey_scenario(
+        set_dir / provenance["accepted"][0]["file"]
+    ).synthesis.model == "some-model"
 
 
 def test_a_set_directory_is_never_overwritten(tmp_path):

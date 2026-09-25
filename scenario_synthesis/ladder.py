@@ -25,6 +25,7 @@ left alone.
 
 from __future__ import annotations
 
+import json
 import re
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, field
@@ -34,10 +35,14 @@ from typing import Any
 
 from agentsim._io import _atomic_json
 from agentsim.journey.definition import JourneyDefinition, load_journey_inputs
+from agentsim.llm import LLMClient, OpenAILLM
 
+from ._async import run
 from .journey_synthesis import (
     _KNOWLEDGE_DIRECTION,
+    _NARRATIVE_SCHEMA,
     _input_hashes,
+    NARRATIVE_TOKEN_BUDGET,
     Rejection,
     ScenarioSpec,
     parse_narrative,
@@ -415,6 +420,47 @@ class StubLadderNarrativeProvider:
                 f"{request['knowledge_direction']} Grounded facts: {facts}."
             ),
         }
+
+
+@dataclass
+class LiveLadderNarrativeProvider:
+    """Realize a Rung's narrative with the configured synthesis model.
+
+    It cannot be ``journey_synthesis.LiveNarrativeProvider``, for the reason
+    ``StubLadderNarrativeProvider`` cannot be the measuring mode's stub: that
+    one sends ``SYSTEM_PROMPT``, which directs one Complication and says nothing
+    about a list of difficulties. A Rung realized under it would come back a
+    perfectly valid Scenario carrying its primary Complication and none of the
+    difficulty stacked on it — the attack it claims to be, minus the thing that
+    makes it a Rung, and nothing downstream would notice."""
+
+    llm: LLMClient
+    model: str
+    provider_id: str = field(init=False)
+
+    def __post_init__(self) -> None:
+        self.provider_id = f"openai-structured-journey-ladder-narrative:{self.model}"
+
+    @classmethod
+    def from_model(cls, model: str) -> LiveLadderNarrativeProvider:
+        return cls(llm=OpenAILLM(model=model), model=model)
+
+    def realize(self, request: Mapping[str, Any], *, attempt: int) -> Any:
+        # One process-local event loop for the shared OpenAI client (AGENTS.md).
+        return run(
+            self.llm.structured(
+                system=LADDER_SYSTEM_PROMPT,
+                messages=[
+                    {
+                        "role": "user",
+                        "content": json.dumps(request, sort_keys=True, ensure_ascii=False),
+                    }
+                ],
+                schema=_NARRATIVE_SCHEMA,
+                effort="none",
+                max_tokens=NARRATIVE_TOKEN_BUDGET,
+            )
+        )
 
 
 def realize_ladder(
